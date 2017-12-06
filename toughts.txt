@@ -1,0 +1,13 @@
+These are the initial thoughs for a general pulse lirary that should be maily used for keysight systems.
+Note that the intend is to support also other systems
+
+Library functions needed
+-> general object: conatains AWG info
+	-> channels
+	-> makers
+-> segment object
+	-> add function
+	-> add time based relative based
+-> sequence object
+-> option for virtual AWG
+-
