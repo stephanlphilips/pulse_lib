@@ -1,5 +1,5 @@
 import numpy as np
-
+import matplotlib.pyplot as plt 
 
 class pulselib:
 	'''
@@ -53,16 +53,15 @@ class segment_container():
 			t = k.get_total_time()
 			if t > maxtime:
 				maxtime = t
-		print(maxtime)
 		for i in self.channels:
-			getattr(self, i).latest_time = maxtime
+			getattr(self, i).starttime = maxtime
 
 
 class segment_single():
 	def __init__(self):
 		self.type = 'default'
 		self.to_swing = False
-		self.latest_time = 0
+		self.starttime = 0
 
 		self.my_pulse_data = np.zeros([1,2])
 		self.last = None
@@ -74,7 +73,7 @@ class segment_single():
 		[[t0, Amp0],[t1, Amp1]]
 		'''
 		arr = np.asarray(array)
-		arr[:,0] = arr[:,0] + self.latest_time 
+		arr[:,0] = arr[:,0] + self.starttime 
 
 		self.my_pulse_data = np.append(self.my_pulse_data,arr, axis=0)
 
@@ -82,7 +81,7 @@ class segment_single():
 
 	def add_block(self,start,stop, amplitude):
 		amp_0 = self.my_pulse_data[-1,1]
-
+		print(amp_0)
 		pulse = [ [start, amp_0], [start,amplitude], [stop, amplitude], [stop, amp_0]]
 		self.add_pulse(pulse)
 
@@ -112,9 +111,33 @@ class segment_single():
 		'''
 		return None
 
-	def plot_sequence(self):
-		return None
+	def _generate_sequence(self):
+		# 1 make base sequence:
+		t_tot = self.my_pulse_data[-1,0]
 
+		times = np.linspace(0, int(t_tot-1), int(t_tot))
+		my_sequence = np.empty([int(t_tot)])
+
+
+		for i in range(0,len(self.my_pulse_data)-1):
+			my_loc = np.where(times < self.my_pulse_data[i+1,0])[0]
+			my_loc = np.where(times[my_loc] >= self.my_pulse_data[i,0])[0]
+
+			if my_loc.size==0:
+				continue;
+
+			end_voltage = self.my_pulse_data[i,1] + (self.my_pulse_data[i+1,1] - self.my_pulse_data[i,1])*(times[my_loc[-1]] - self.my_pulse_data[i,0])/(self.my_pulse_data[i+1,0]- self.my_pulse_data[i,0]);
+
+			start_stop_values = np.linspace(self.my_pulse_data[i,1],end_voltage,my_loc.size);
+			my_sequence[my_loc] = start_stop_values;
+
+		return times, my_sequence
+
+	def plot_sequence(self):
+		x,y = self._generate_sequence()
+		plt.plot(x,y)
+		plt.show()
+		
 class marker_single():
 	def __init__(self):
 		self.type = 'default'
@@ -158,13 +181,25 @@ seg = p.mk_segment('test')
 # append functions?
 seg.B0.add_pulse([[10,5]
 				 ,[20,5]])
+
 seg.B0.add_pulse([[20,0],[30,5], [30,0]])
 seg.B0.add_block(40,70,2)
-seg.B0.add_pulse([[70,0], [80,0], [150,100], [150,0]])
+seg.B0.add_pulse([[70,0],
+				 [80,0],
+				 [150,5],
+				 [150,0]])
 # seg.B0.repeat(20)
-seg.B0.wait(20)
-print(seg.B0.my_pulse_data)
-seg.reset_time()
+# seg.B0.wait(20)
+# print(seg.B0.my_pulse_data)
+# seg.reset_time()
+seg.B1.add_pulse([[10,0],
+				[10,5],
+				[20,5],
+				[20,0]])
+seg.B1.add_block(20,50,2)
+
+seg.B1.add_block(80,90,2)
+seg.B1.plot_sequence()
 # insert in the begining of a segment
 # seg.insert_mode()
 # seg.clear()
