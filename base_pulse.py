@@ -21,6 +21,12 @@ class pulselib:
 
 		self.backend = 'keysight'
 		self.frequency = 1e9
+		self.devices = []
+
+	def add_awgs(self, awg):
+		for i in awg:
+			self.devices.append(i)
+
 	def mk_segment(self, name):
 		return self.segments_bin.new(name)
 
@@ -176,6 +182,7 @@ class segment_bin():
 		return False
 
 
+
 p = pulselib()
 seg = p.mk_segment('test')
 # append functions?
@@ -204,30 +211,31 @@ seg.B1.plot_sequence()
 # seg.insert_mode()
 # seg.clear()
 
-# class channel_data_obj():
-#     #object containing the data for a specific channels
-#     #the idea is that all the data is parmeterised and will be constuceted whenever the function is called.
+# # class channel_data_obj():
+# #     #object containing the data for a specific channels
+# #     #the idea is that all the data is parmeterised and will be constuceted whenever the function is called.
 
-#     self.my_data_array = np.empty()
+# #     self.my_data_array = np.empty()
     
-#     add_data
+# #     add_data
 
-# class block_pulses:
-#     # class to make block pulses
+# # class block_pulses:
+# #     # class to make block pulses
 
 
-# how to do pulses
-# -> sin?
-# -> pulses?
-# -> step_pulses
+# # how to do pulses
+# # -> sin?
+# # -> pulses?
+# # -> step_pulses
 
-# p = pulselin()
+# # p = pulselin()
 
-# seg = pulselib.mk_segment('manip')
-# seg.p1.add_pulse(10,50, 20, prescaler= '1')
-# seg.p3.add_pulse(12,34, 40,)
-# seg.k2.add_pulse_advanced([pulse sequence])
-# seg.add_np(array, tstart_t_stop
-# seg.p5.add_sin(14,89, freq, phase, amp)
+# # seg = pulselib.mk_segment('manip')
+# # seg.p1.add_pulse(10,50, 20, prescaler= '1')
+# # seg.p3.add_pulse(12,34, 40,)
+# # seg.k2.add_pulse_advanced([pulse sequence])
+# # seg.add_np(array, tstart_t_stop
+# # seg.p5.add_sin(14,89, freq, phase, amp)
 
-# pulse
+# # pulse
+
