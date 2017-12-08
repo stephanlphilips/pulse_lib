@@ -15,7 +15,7 @@ awg1.set_channel_amplitude(1,1)
 # set_channel_offset
 awg1.set_channel_wave_shape(4,1)
 
-# load_waveform
+# awg1.load_waveform
 # load_waveform_int16
 # reload_waveform_int16
 
