@@ -2,16 +2,20 @@ import numpy as np
 import datetime
 
 class keysight_awg():
-	def __init__(self, segment_bin, channel_locations):
+	def __init__(self, segment_bin, channel_locations,channels):
 		self.awg = dict()
 		self.awg_memory = dict()
 		self.current_waveform_number = 0
 
 		self.channel_locations = channel_locations
+		self.channels = channels
 		self.segmentdata = dict()
 		self.segdata_awg_mem = dict()
+		self.vpp_data = dict()
+		for i in self.channels:
+			self.vpp_data[i] = {"V_min" : None, "V_max" : None}
 		self.segment_bin = segment_bin
-
+		print(self.vpp_data)
 		self.maxmem = 1e9
 	def upload(self, sequence_data):
 		# step 1 prepare for upload, check how much memory is needed. (and is available)
@@ -26,14 +30,14 @@ class keysight_awg():
 		
 
 		# If memory full, clear
-		if mem_needed > allocatable_mem:
+		if mem_needed > self.allocatable_mem:
 			self.clear_mem()
 
 		# step 2 upload
 		for i in sequence_data:
 			segment_name = i[0]
 			if segment_name not in self.segmentdata:
-				if self.segment_bin.get_segment(segment_name).latest_mod <= self.segmentdata(segment_name):
+				if self.segment_bin.get_segment(segment_name).last_edit <= self.segmentdata(segment_name):
 					segmend_data, channels = segment_bin.get_pulse(segment_name)
 					# This is the location to do post processing?
 				
@@ -65,9 +69,10 @@ class keysight_awg():
 	@property
 	def allocatable_mem(self):
 		alloc = self.maxmem
-		for i in awg_memory:
+		for i in self.awg_memory:
 			if alloc > i:
 				allow = i
+		return alloc
 
 
 	def clear_mem(self):

@@ -51,7 +51,7 @@ class pulselib:
 		
 		# Keysight properties.
 		self.backend = 'keysight'
-		self.awg = keysight_awg(self.segments_bin, self.awg_channels_to_physical_locations)
+		self.awg = keysight_awg(self.segments_bin, self.awg_channels_to_physical_locations, self.awg_channels)
 		# self.awg.add_awg('AWG1',awg1)
 		# self.awg.add_awg('AWG2',awg1)
 		# self.awg.add_awg('AWG3',awg1)

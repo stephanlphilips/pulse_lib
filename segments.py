@@ -10,7 +10,7 @@ class segment_container():
 	def __init__(self, name, channels):
 		self.channels = channels
 		self.name = name
-
+		self.waveform_cache = None
 		for i in self.channels:
 			setattr(self, i, segment_single())
 
@@ -33,6 +33,15 @@ class segment_container():
 
 		return time_segment
 
+
+	def prep4upload(self):
+		# make waveform (in chache), determine v_max and v_min
+		# wait for get_waveforms command.
+		return
+
+	def get_waveforms(self, Vpp, offset):
+		# get waforms of all channels. For global Vpp, Voffset settings (per channel).
+		return
 
 def last_edited(f):
 	def wrapper(*args):
