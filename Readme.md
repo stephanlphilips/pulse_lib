@@ -1,7 +1,7 @@
-= Me wrinting a minimalistic readme =
+# Me wrinting a minimalistic readme
 
 This is just a quick and dirty implementation of a pulse library for the keysight modules. 
-I was not really in the mood to read in the 2000 + lines of code of the other libraries so I decied to maka a quick one taylored to the keysiht awg's
+I was not really in the mood to read in the 2000 + lines of code of the other libraries so I decied to maka a quick one taylored to the keysight awg's
 
 The libraries are quite simple, in the sense that that you just start from a pulse lib object 
 
