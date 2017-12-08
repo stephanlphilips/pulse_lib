@@ -1,6 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 
+'''
+ideas:
+
+# Make a virtual sequence.
+# 
+
+'''
 class pulselib:
 	'''
 		Global class that is an organisational element in making the pulses.
@@ -13,15 +20,21 @@ class pulselib:
 		self.awg_channels = ['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5',]
 		self.awg_channels_to_physical_locations = ['here_dict']
 		self.awg_channels_kind = []
-		self.marker_channels =['mkr1', 'mkr2', 'mkr3' ]
-		self.marger_channels_to_location = []
+		self.awg_markers =['mkr1', 'mkr2', 'mkr3' ]
+		self.awg_markers_to_location = []
 		self.delays = []
 		self.convertion_matrix= []
 		self.segments_bin = segment_bin(self.awg_channels)
 
+		self.devices = []
+
+		self.sequencer =  sequencer(self.awg_channels, self.awg_markers)
+		# Keysight properties.
 		self.backend = 'keysight'
 		self.frequency = 1e9
-		self.devices = []
+		self.max_mem = 2e9
+		self.mem_used = 0
+		self.in_mem = []
 
 	def add_awgs(self, awg):
 		for i in awg:
@@ -32,9 +45,18 @@ class pulselib:
 
 	def get_segment(self, name):
 		return self.segments_bin.get(name)
-	def mk_sequence():
-		return
+
+	def add_sequence(self,name,seq):
+		self.sequencer.add_sequence(name, seq)
+
+	def start_sequence(self, name):
+		self.sequencer.start_sequence(name)
+	
+	def show_sequences(self):
+		self.segments_bin.print_segments_info()
+
 	def upload_data():
+
 	    return
 	def play():
 		return
@@ -62,7 +84,6 @@ class segment_container():
 		for i in self.channels:
 			getattr(self, i).starttime = maxtime
 
-
 class segment_single():
 	def __init__(self):
 		self.type = 'default'
@@ -82,8 +103,6 @@ class segment_single():
 		arr[:,0] = arr[:,0] + self.starttime 
 
 		self.my_pulse_data = np.append(self.my_pulse_data,arr, axis=0)
-
-
 
 	def add_block(self,start,stop, amplitude):
 		amp_0 = self.my_pulse_data[-1,1]
@@ -155,12 +174,12 @@ class marker_single():
 	def add(self, start, stop):
 		self.my_pulse_data = np,append(self.my_pulse_data, [[start,0],[start,1],[stop,1],[stop,0]])
 
-
 class segment_bin():
 
 	def __init__(self, channels):
 		self.segment = []
 		self.channels = channels
+		self.virtual_gate_matrix = None
 		return	
 
 	def new(self,name):
@@ -175,16 +194,63 @@ class segment_bin():
 	            return i
 	    raise ValueError("segment not found :(")
 
+	def print_segments_info(self):
+		mystring = "Sequences\n"
+		for i in self.segment:
+			mystring += "\tname: " + i.name + "\n"
+		print(mystring)
+
 	def exists(self, name):
 		for i in self.segment:
 			if i.name ==name:
 				return True
 		return False
 
+	def upload(self, name):
+		time = self.get_max_time(name)
+		upload_data = np.array[len(channels), time]
+		for i in range(len(channels)):
+			upload_data[i] = self.segment.
+
+class sequencer():
+	def __init__(self, channels, markers, segment_bin):
+		self.channels = channels
+		self.markers  = markers
+		self.segment_bin = segment_bin
+		self.sequences = dict()
+
+	def add_sequence(self, name, sequence):
+		self.sequences['name'] = sequence
+
+	def start_sequence(self, name):
+		# Ask segmentbin to check if elements are present, if not -- upload
+		self.segment_bin.upload()
+		# Upload the relevant segments.
+
+class keysight_awg():
+	def __init__(awg_object):
+		self.awg = awg_object
+		self.usable_mem = 1e9
+		self.current_waveform_number = 0
+
+	def upload_waveform(self, wfv):
+		if self.usable_mem - len(wfv) < 0:
+			raise Exception("AWG Full :(. Clear all the ram... Note that this error should normally be prevented automatically.")
+
+		# wfv.astype(np.int16)
+	def clear_mem(self):
+		return
+
+	def check_mem_availability(self, num_pt):
+		return True
+
 
 
 p = pulselib()
-seg = p.mk_segment('test')
+seg = p.mk_segment('INIT')
+seg2 = p.mk_segment('Manip')
+seg3 = p.mk_segment('Readout')
+
 # append functions?
 seg.B0.add_pulse([[10,5]
 				 ,[20,5]])
@@ -206,7 +272,15 @@ seg.B1.add_pulse([[10,0],
 seg.B1.add_block(20,50,2)
 
 seg.B1.add_block(80,90,2)
-seg.B1.plot_sequence()
+# seg.B1.plot_sequence()
+p.show_sequences()
+
+SEQ = [['INIT', 1, 0], ['Manip', 1, 0], ['Readout', 1, 0] ]
+
+p.add_sequence('mysequence', SEQ)
+
+p.start_sequence('mysequence')
+
 # insert in the begining of a segment
 # seg.insert_mode()
 # seg.clear()
