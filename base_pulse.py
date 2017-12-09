@@ -105,6 +105,16 @@ class segment_bin():
 				return i
 		raise ValueError("segment not found :(")
 
+	def used(self, name):
+		''' check if a segment is used  (e.g. that a leas one element is used) 
+		name is a string.
+		'''
+		seg = self.get_segment(name)
+		
+		if seg.total_time == 0:
+			return False
+		return True	
+
 	def print_segments_info(self):
 		mystring = "Sequences\n"
 		for i in self.segment:
@@ -141,35 +151,39 @@ seg2 = p.mk_segment('Manip')
 seg3 = p.mk_segment('Readout')
 
 # append functions?
-seg.B0.add_pulse([[10,5]
-				 ,[20,5]])
+seg.P1.add_pulse([[10,2.5]
+				 ,[20,2.5]])
 
-seg.B0.add_pulse([[20,0],[30,5], [30,0]])
+seg.B0.add_pulse([[20,0],[30,2.5], [30,0]])
 seg.B0.add_block(40,70,2)
 seg.B0.add_pulse([[70,0],
 				 [80,0],
-				 [150,5],
+				 [150,2.5],
 				 [150,0]])
 # seg.B0.repeat(20)
 # seg.B0.wait(20)
 # print(seg.B0.my_pulse_data)
-# seg.reset_time()
+# seg.reset_timevoltage_range_reset_needed()
 seg.B1.add_pulse([[10,0],
-				[10,5],
-				[20,5],
+				[10,1],
+				[20,1],
 				[20,0]])
-seg.B1.add_block(20,50,2)
+seg.B1.add_block(20,50,2.5)
 
-seg.B1.add_block(80,90,2)
+seg.B1.add_block(80,90,2.5)
+
 # seg.B1.plot_sequence()
 p.show_sequences()
 
-SEQ = [['INIT', 1, 0], ['Manip', 1, 0], ['Readout', 1, 0] ]
+SEQ = [['INIT', 1, 0], ['INIT', 1, 0], ['INIT', 1, 0] ]
 
 p.add_sequence('mysequence', SEQ)
 
 p.start_sequence('mysequence')
 
+p.add_sequence('mysequence2', SEQ)
+
+p.start_sequence('mysequence')
 # insert in the begining of a segment
 # seg.insert_mode()
 # seg.clear()
@@ -202,3 +216,5 @@ p.start_sequence('mysequence')
 
 # # pulse
 
+# import datetime
+# print(datetime.datetime.utcfromtimestamp(0))

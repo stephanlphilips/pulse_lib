@@ -44,3 +44,9 @@ That's it for the moment.
 Note that thresolds are chosen automatically. Memory menagment is also taken care of for you  :)
 
 I wrote this text quit late, so don't judge.
+
+Features needed: 
+* auto prescale
+* virtual segmentation
+* advanded (integrated) looping methods
+* more base functions
