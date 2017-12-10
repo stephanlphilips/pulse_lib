@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 from segments import *
 from keysight_fx import *
-
+import uuid
 '''
 ideas:
 
@@ -19,23 +19,23 @@ class pulselib:
 	
 
 	def __init__(self):
-		self.awg_channels = ['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5','I_MW', 'Q_MW', 'M1', 'M2']
-		self.awg_channels_to_physical_locations = [{'B0',('AWG1', 1)},
-													{'P1',('AWG1', 2)},
-													{'B1',('AWG1', 3)},
-													{'P2',('AWG1', 4)},
-													{'B2',('AWG2', 1)},
-													{'P3',('AWG2', 2)},
-													{'B3',('AWG2', 3)},
-													{'P4',('AWG2', 4)},
-													{'B4',('AWG3', 1)},
-													{'P5',('AWG3', 2)},
-													{'B5',('AWG3', 3)},
-													{'B1',('AWG3', 4)},
-													{'I_MW',('AWG4', 1)},
-													{'Q_MW',('AWG4', 2)},
-													{'M1',('AWG4', 3)},
-													{'M2',('AWG4', 4)}]
+		self.awg_channels = ['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5','G1','I_MW', 'Q_MW', 'M1', 'M2']
+		self.awg_channels_to_physical_locations = dict({'B0':('AWG1', 1),
+															'P1':('AWG1', 2),
+															'B1':('AWG1', 3),
+															'P2':('AWG1', 4),
+															'B2':('AWG2', 1),
+															'P3':('AWG2', 2),
+															'B3':('AWG2', 3),
+															'P4':('AWG2', 4),
+															'B4':('AWG3', 1),
+															'P5':('AWG3', 2),
+															'B5':('AWG3', 3),
+															'G1':('AWG3', 4),
+															'I_MW':('AWG4', 1),
+															'Q_MW':('AWG4', 2),
+															'M1':('AWG4', 3),
+															'M2':('AWG4', 4)})
 		self.awg_channels_kind = []
 		# Not implemented
 		self.awg_markers =['mkr1', 'mkr2', 'mkr3' ]
@@ -52,17 +52,17 @@ class pulselib:
 		# Keysight properties.
 		self.backend = 'keysight'
 		self.awg = keysight_awg(self.segments_bin, self.awg_channels_to_physical_locations, self.awg_channels)
-		# self.awg.add_awg('AWG1',awg1)
-		# self.awg.add_awg('AWG2',awg1)
-		# self.awg.add_awg('AWG3',awg1)
-		# self.awg.add_awg('AWG4',awg1)
+		self.awg.add_awg('AWG1','awg1')
+		self.awg.add_awg('AWG2','awg1')
+		self.awg.add_awg('AWG3','awg1')
+		self.awg.add_awg('AWG4','awg1')
 
 
 		self.sequencer =  sequencer(self.awg, self.segments_bin)
 
 	def add_awgs(self, awg):
 		for i in awg:
-			self.devices.append(i)
+			self.awg.add_awg(i)
 
 	def mk_segment(self, name):
 		return self.segments_bin.new(name)
@@ -136,14 +136,49 @@ class sequencer():
 	def __init__(self, awg_system, segment_bin):
 		self.awg = awg_system
 		self.segment_bin = segment_bin
+		self.channels = segment_bin.channels
 		self.sequences = dict()
 
 	def add_sequence(self, name, sequence):
 		self.sequences[name] = sequence
 
 	def start_sequence(self, name):
-		self.awg.upload(self.sequences[name])
+		self.awg.upload(self.sequences[name], self.get_sequence_upload_data(name))
 		self.awg.start(self.sequences[name])
+
+	def get_sequence_upload_data(self, name):
+		'''
+		Function that generates sequence data per channel.
+		It will also assign unique id's to unique sequences (sequence that depends on the time of playback). -> mainly important for iq mod purposes.
+		structure:
+			dict with key of channel:
+			for each channels list of sequence:
+				name of the segments,
+				number of times to play
+				uniqueness -> segment is reusable?
+				identifiers for marking differnt locations in the ram of the awg.
+
+		'''
+		upload_data = dict()
+		# put in a getter to make sure there is no error -- it exists...
+		seq = self.sequences[name]
+
+		for i in self.channels:
+			sequence_data_single_channel = []
+			for k in seq:
+				input_data = {'segment':k[0], 'ntimes':k[1]}
+				unique = getattr(self.segment_bin.get_segment(k[0]), i).unique
+				input_data['unique'] = unique
+				# Make unique uuid's for each segment
+				if unique == True:
+					input_data['identifier'] = [uuid.uuid4() for i in range(k[1])]
+
+				sequence_data_single_channel.append(input_data)
+
+			upload_data[i] = sequence_data_single_channel
+
+		return upload_data
+
 
 p = pulselib()
 seg  = p.mk_segment('INIT')
@@ -179,7 +214,7 @@ seg3.B5.add_block(30,600,0.1)
 seg3.B5.wait(200)
 p.show_sequences()
 
-SEQ = [['INIT', 1, 0], ['Manip', 1, 0], ['INIT', 1, 0] ]
+SEQ = [['INIT', 2, 0], ['Manip', 1, 0], ['INIT', 1, 0] ]
 
 p.add_sequence('mysequence', SEQ)
 
@@ -187,10 +222,10 @@ p.start_sequence('mysequence')
 
 SEQ2 = [['INIT', 1, 0], ['Manip', 1, 0], ['Readout', 1, 0] ]
 
-p.add_sequence('mysequence2', SEQ2)
+# p.add_sequence('mysequence2', SEQ2)
 
 
-p.start_sequence('mysequence2')
+# p.start_sequence('mysequence2')
 # insert in the begining of a segment
 # seg.insert_mode()
 # seg.clear()

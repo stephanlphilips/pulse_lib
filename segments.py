@@ -16,6 +16,7 @@ class segment_container():
 		self.name = name
 		self.waveform_cache = None
 		self._Vmin_max_data = dict()
+
 		for i in self.channels:
 			self._Vmin_max_data[i] = {"v_min" : None, "v_max" : None}
 		
@@ -25,7 +26,7 @@ class segment_container():
 		# for i in self.channels:
 		# 	self.vpp_data[i] = {"V_min" : None, "V_max" : None}
 		
-		# put this in a dict, you might have overwite.. . me layzy
+		# Not superclean should be in a different namespace.
 		for i in self.channels:
 			setattr(self, i, segment_single())
 
@@ -122,6 +123,7 @@ class segment_single():
 		self.my_pulse_data = np.zeros([1,2])
 		self.last = None
 		self.IQ_data = [] #todo later.
+		self.unique = True
 
 	@last_edited
 	def add_pulse(self,array):
@@ -222,4 +224,4 @@ class marker_single():
 		self.my_pulse_data = np.zeros([1,2])
 
 	def add(self, start, stop):
-		self.my_pulse_data = np,append(self.my_pulse_data, [[start,0],[start,1],[stop,1],[stop,0]])
+		self.my_pulse_data = np.append(self.my_pulse_data, [[start,0],[start,1],[stop,1],[stop,0]])

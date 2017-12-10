@@ -7,6 +7,8 @@ class keysight_awg():
 	def __init__(self, segment_bin, channel_locations,channels):
 		self.awg = dict()
 		self.awg_memory = dict()
+		# dict containing the number of the last segment number.
+		self.segment_count = dict()
 		self.current_waveform_number = 0
 
 		self.channel_locations = channel_locations
@@ -39,14 +41,23 @@ class keysight_awg():
 	@property
 	def allocatable_mem(self):
 		alloc = self.maxmem
-		for i in self.awg_memory:
-			if alloc > i:
-				allow = i
+		for i in self.awg_memory.items():
+			if alloc > i[1]:
+				allow = i[1]
 		return alloc
 
-	def upload(self, sequence_data):
+	def get_new_segment_number(self, channel):
+		'''
+		gets a segment number for the new segment. These numbers just need to be unique.
+		'''
+		awg_name = self.channel_locations[channel][0]
+		self.segment_count[awg_name] += 1
+
+		return self.segment_count[awg_name]
+
+	def upload(self, sequence_data_raw, sequence_data_processed):
 		# step 1 collect vmin and vmax data, check if segments are intialized  (e.g. have at least one pulse):
-		for i in sequence_data:
+		for i in sequence_data_raw:
 			segment_name = i[0]
 			if self.segment_bin.used(segment_name) == False:
 				raise ValueError("Empty segment provided .. (segment name: '{}')".format(segment_name))
@@ -56,31 +67,79 @@ class keysight_awg():
 		# step 2 calculate Vpp/Voff needed for each channel.
 		self.adjust_vpp_data()
 
-		# step 3 check memory allocation (e.g. what can we reuse of the old sequences)
-		mem_needed = 0
-		for i in sequence_data:
-			segment_name = i[0]
-			if segment_name in self.segmentdata:
-				if self.segment_bin.get_segment(segment_name).last_mod > self.segmentdata(segment_name):
-					print('discarded , ', segment_name)
-					continue
-			else:
-				mem_needed +=  self.segment_bin.get_segment(segment_name).total_time
-		print(mem_needed)
+		# step 3 check memory allocation (e.g. what can we reuse of the sequences in the memory of the AWG.)
+		mem_needed = dict()
+		for i in self.awg:
+			mem_needed[i] = 0
 
-		# If memory full, clear
-		if mem_needed > self.allocatable_mem:
-			print("memory cleared .. upload will take a bit longer.")
-			self.clear_mem()
+		for chan, sequence_data in sequence_data_processed.items():
+			# loop trough all elements in the sequence and check how much data is needed.
+			t = 0
+			for i in sequence_data:
+				segment_name = i['segment']
+				repetitions= i['ntimes']
+				unique = i['unique']
+
+				# Check if stuff in the memory, if present, needs to be updated.
+				if segment_name in self.segmentdata[chan] and unique == False:
+					if self.segment_bin.get_segment(segment_name).last_mod > self.segmentdata(segment_name):
+						print('Reusing {} for channel {} '.format(segment_name, chan) )
+						continue
+				
+				if unique == True:
+					mem_needed[self.channel_locations[chan][0]] +=  self.segment_bin.get_segment(segment_name).total_time * repetitions
+				else:
+					mem_needed[self.channel_locations[chan][0]] +=  self.segment_bin.get_segment(segment_name).total_time
+
+
+		# If memory full, clear (if one is full it is very likely all others are also full, so we will just clear everything.)
+		for i in self.awg:
+			if mem_needed[i] > self.allocatable_mem:
+				print("memory cleared .. upload will take a bit longer.")
+				self.clear_mem()
 
 		# step 4 upload the sequences to the awg.
-		for i in sequence_data:
-			segment_name = i[0]
-			if segment_name in self.segmentdata:
-				if self.segment_bin.get_segment(segment_name).last_mod <= self.segmentdata(segment_name):
-					segmend_data, channels = self.segment_bin.get_pulse(segment_name)
-					# This is the location to do post processing?
-	
+		for chan, sequence_data in sequence_data_processed.items():
+			# Upload here sequences.
+
+			# Keep counting time of the segments. This is important for IQ data.
+			time = 0
+			for my_segment in sequence_data:
+				segment_name = my_segment['segment']
+				repetitions= my_segment['ntimes']
+				unique = my_segment['unique']
+
+				# Check if we need to skip the upload.
+				if segment_name in self.segmentdata[chan] and unique == False:
+					if self.segment_bin.get_segment(segment_name).last_mod > self.segmentdata(segment_name):
+						continue
+
+				if unique == False:
+					points = get_and_upload_waveform(chan,segment_name, time)
+					time += points
+				else:
+					for uuid in range(repetitions):
+						points = get_and_upload_waveform(chan,segment_name, time, my_segment['identifier'][uuid])
+						time += points
+			
+		# step 5 make the queue
+
+
+	def get_and_upload_waveform(self, channel, segment_name, time, uuid=None):
+		'''
+		get the wavform for channel with the name segment_name.
+		The waveform occurs at time time in the sequence. 
+		This function also adds the waveform to segmentdata variable
+		'''
+		seg_number = get_new_segment_number(chan)
+		segment_data = self.segment_bin.get_pulse(segment_name, chan, time)
+		# upload data
+		if uuid is None:
+			self.segmentdata[channel][segment_name] = seg_number
+		else:
+			self.segmentdata[channel][uuid] = seg_number
+		return len(segment_data)
+
 	def adjust_vmin_vmax_data(self, Vmin_max_data):
 		'''
 		Function that updates the values of the minimun and maximun volages needed for each channels.
@@ -185,9 +244,12 @@ class keysight_awg():
 		name is name you want to give to your awg object. This needs to be unique and should is to describe which
 		channel belongs to which awg.
 		'''
+		# Make sure you start with a empty memory
+
+		# awg.flush_waveform()
 		self.awg[name] = awg, self.maxmem
 		self.awg_memory[name] =self.maxmem
-		self.segdata_awg_mem[name] = dict()
+		self.segment_count[name] = 0
 
 	def clear_mem(self):
 		'''
@@ -198,6 +260,10 @@ class keysight_awg():
 		self.segmentdata = dict()
 		for i in self.awg.items():
 			i[1].flush_waveform()
+
+		for i in self.segment_count.items():
+			i[1] = 0
+
 		for i in self.awg_memory:
 			i = self.maxmem
 		print("Done.")
