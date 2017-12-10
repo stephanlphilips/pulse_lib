@@ -173,17 +173,24 @@ seg.B1.add_block(20,50,2.5)
 seg.B1.add_block(80,90,2.5)
 
 # seg.B1.plot_sequence()
+
+seg2.B5.add_block(30,60,1)
+seg3.B5.add_block(30,600,0.1)
+seg3.B5.wait(200)
 p.show_sequences()
 
-SEQ = [['INIT', 1, 0], ['INIT', 1, 0], ['INIT', 1, 0] ]
+SEQ = [['INIT', 1, 0], ['Manip', 1, 0], ['INIT', 1, 0] ]
 
 p.add_sequence('mysequence', SEQ)
 
 p.start_sequence('mysequence')
 
-p.add_sequence('mysequence2', SEQ)
+SEQ2 = [['INIT', 1, 0], ['Manip', 1, 0], ['Readout', 1, 0] ]
 
-p.start_sequence('mysequence')
+p.add_sequence('mysequence2', SEQ2)
+
+
+p.start_sequence('mysequence2')
 # insert in the begining of a segment
 # seg.insert_mode()
 # seg.clear()

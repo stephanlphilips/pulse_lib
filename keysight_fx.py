@@ -62,10 +62,11 @@ class keysight_awg():
 			segment_name = i[0]
 			if segment_name in self.segmentdata:
 				if self.segment_bin.get_segment(segment_name).last_mod > self.segmentdata(segment_name):
+					print('discarded , ', segment_name)
 					continue
 			else:
 				mem_needed +=  self.segment_bin.get_segment(segment_name).total_time
-		
+		print(mem_needed)
 
 		# If memory full, clear
 		if mem_needed > self.allocatable_mem:

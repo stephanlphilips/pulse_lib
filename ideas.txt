@@ -1,0 +1,6 @@
+IQ mod contienuous implementation. (IQ functions + mullitistage mixing)
+Support for function input
+suport multuDarrrays,
+	label = 
+	mode =parallel/single
+	max_steps 
