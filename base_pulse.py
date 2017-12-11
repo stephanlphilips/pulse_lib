@@ -19,9 +19,8 @@ class pulselib:
 	
 
 	def __init__(self):
+		# awg channels and locations need to be input parameters.
 		self.awg_channels = ['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5','G1','I_MW', 'Q_MW', 'M1', 'M2']
-		# channel type ? - default, IQpair, 
-		# virtual gates
 		self.awg_channels_to_physical_locations = dict({'B0':('AWG1', 1),
 															'P1':('AWG1', 2),
 															'B1':('AWG1', 3),
@@ -224,10 +223,10 @@ p.start_sequence('mysequence')
 
 SEQ2 = [['INIT', 1, 0], ['Manip', 1, 0], ['Readout', 1, 0] ]
 
-p.add_sequence('mysequence2', SEQ2)
+# p.add_sequence('mysequence2', SEQ2)
 
 
-p.start_sequence('mysequence2')
+# p.start_sequence('mysequence2')
 # insert in the begining of a segment
 # seg.insert_mode()
 # seg.clear()

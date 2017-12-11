@@ -24,7 +24,7 @@ class keysight_awg():
 		# Note that this might change when inplementing advanved looping.
 		self.segmentdata = dict()
 		for i in self.channels:
-			self.segmentdata[i] = dict() #name segment + location
+			self.segmentdata[i] = dict() #name segment + location and date of construction of segment
 
 		self.vpp_data = dict()
 		for i in self.channels:
@@ -82,8 +82,7 @@ class keysight_awg():
 
 				# Check if stuff in the memory, if present, needs to be updated.
 				if segment_name in self.segmentdata[chan] and unique == False:
-					if self.segment_bin.get_segment(segment_name).last_mod > self.segmentdata(segment_name):
-						print('Reusing {} for channel {} '.format(segment_name, chan) )
+					if self.segment_bin.get_segment(segment_name).last_mod <= self.segmentdata[chan][segment_name]['last_edit']:
 						continue
 				
 				if unique == True:
@@ -108,10 +107,9 @@ class keysight_awg():
 				segment_name = my_segment['segment']
 				repetitions= my_segment['ntimes']
 				unique = my_segment['unique']
-
 				# Check if we need to skip the upload.
 				if segment_name in self.segmentdata[chan] and unique == False:
-					if self.segment_bin.get_segment(segment_name).last_mod > self.segmentdata(segment_name):
+					if self.segment_bin.get_segment(segment_name).last_mod <= self.segmentdata[chan][segment_name]['last_edit']:
 						continue
 
 				if unique == False:
@@ -122,8 +120,9 @@ class keysight_awg():
 						points = self.get_and_upload_waveform(chan,segment_name, time, my_segment['identifier'][uuid])
 						time += points
 			
-		# step 5 make the queue
-
+		# step 5 make the queue in the AWG.
+		print(sequence_data_processed)
+		
 
 	def get_and_upload_waveform(self, channel, segment_name, time, uuid=None):
 		'''
@@ -132,12 +131,17 @@ class keysight_awg():
 		This function also adds the waveform to segmentdata variable
 		'''
 		seg_number = self.get_new_segment_number(channel)
-		segment_data = self.segment_bin.get_segment(segment_name).get_pulse(channel, time)
+		segment_data = self.segment_bin.get_segment(segment_name).get_waveform(channel, self.vpp_data, time)
+		last_mod = self.segment_bin.get_segment(segment_name).last_mod
 		# upload data
 		if uuid is None:
-			self.segmentdata[channel][segment_name] = seg_number
+			self.segmentdata[channel][segment_name] = dict()
+			self.segmentdata[channel][segment_name]['mem_pointer'] = seg_number
+			self.segmentdata[channel][segment_name]['last_edit'] = last_mod
 		else:
-			self.segmentdata[channel][uuid] = seg_number
+			self.segmentdata[channel][uuid] = dict()
+			self.segmentdata[channel][uuid]['mem_pointer'] = seg_number
+			self.segmentdata[channel][uuid]['last_edit'] = last_mod
 		return len(segment_data)
 
 	def adjust_vmin_vmax_data(self, Vmin_max_data):
@@ -200,8 +204,10 @@ class keysight_awg():
 			vpp_test[i]['v_off']= (vmax + vmin)/2
 
 		# 2) if vpp fals not in old specs, clear memory and add new ranges.
-		if self.vpp_data[self.channels[0]]['v_pp'] is not None or voltage_range_reset_needed == True:
-			self.clear_mem()
+		if self.vpp_data[self.channels[0]]['v_pp'] is None or voltage_range_reset_needed == True:
+			
+			if self.vpp_data[self.channels[0]]['v_pp'] is not None:
+				self.clear_mem()
 
 			for i in self.channels:
 				self.update_vpp_single(vpp_test[i],self.vpp_data[i])
