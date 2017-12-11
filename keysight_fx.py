@@ -115,11 +115,11 @@ class keysight_awg():
 						continue
 
 				if unique == False:
-					points = get_and_upload_waveform(chan,segment_name, time)
+					points = self.get_and_upload_waveform(chan,segment_name, time)
 					time += points
 				else:
 					for uuid in range(repetitions):
-						points = get_and_upload_waveform(chan,segment_name, time, my_segment['identifier'][uuid])
+						points = self.get_and_upload_waveform(chan,segment_name, time, my_segment['identifier'][uuid])
 						time += points
 			
 		# step 5 make the queue
@@ -131,8 +131,8 @@ class keysight_awg():
 		The waveform occurs at time time in the sequence. 
 		This function also adds the waveform to segmentdata variable
 		'''
-		seg_number = get_new_segment_number(chan)
-		segment_data = self.segment_bin.get_pulse(segment_name, chan, time)
+		seg_number = self.get_new_segment_number(channel)
+		segment_data = self.segment_bin.get_segment(segment_name).get_pulse(channel, time)
 		# upload data
 		if uuid is None:
 			self.segmentdata[channel][segment_name] = seg_number

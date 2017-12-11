@@ -123,7 +123,7 @@ class segment_single():
 		self.my_pulse_data = np.zeros([1,2])
 		self.last = None
 		self.IQ_data = [] #todo later.
-		self.unique = True
+		self.unique = False
 
 	@last_edited
 	def add_pulse(self,array):
