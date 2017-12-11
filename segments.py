@@ -87,7 +87,7 @@ class segment_container():
 
 	
 
-	def get_waveform(self, channel, Vpp_data, sequenc_time, return_type = np.int16):
+	def get_waveform(self, channel, Vpp_data, sequenc_time, return_type = np.double):
 		# get waforms for required channels. For global Vpp, Voffset settings (per channel) and expected data type
 		self.prep4upload()
 

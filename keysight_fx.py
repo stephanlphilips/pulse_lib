@@ -2,8 +2,10 @@ import numpy as np
 import datetime
 from copy import deepcopy
 
+import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
+import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
 
-class keysight_awg():
+class keysight_AWG():
 	def __init__(self, segment_bin, channel_locations,channels):
 		self.awg = dict()
 		self.awg_memory = dict()
@@ -14,7 +16,6 @@ class keysight_awg():
 		self.channel_locations = channel_locations
 		self.channels = channels
 
-		self.voff_max = 1.5 # Volt (plus minus)
 		self.vpp_max = 3 #Volt
 
 		# setting for the amount of voltage you can be off from the optimal setting for a channels
@@ -52,7 +53,8 @@ class keysight_awg():
 		'''
 		awg_name = self.channel_locations[channel][0]
 		self.segment_count[awg_name] += 1
-
+		if self.segment_count[awg_name] > 2000 :
+			print("number of segments on the awg (",self.segment_count[awg_name], ")is greater than 2000, this might cause problems?")
 		return self.segment_count[awg_name]
 
 	def upload(self, sequence_data_raw, sequence_data_processed):
@@ -64,7 +66,7 @@ class keysight_awg():
 			v_min_max = self.segment_bin.get_segment(segment_name).Vmin_max_data
 			self.adjust_vmin_vmax_data(v_min_max)
 
-		# step 2 calculate Vpp/Voff needed for each channel.
+		# step 2 calculate Vpp/Voff needed for each channel + assign the voltages to each channel.
 		self.adjust_vpp_data()
 
 		# step 3 check memory allocation (e.g. what can we reuse of the sequences in the memory of the AWG.)
@@ -117,12 +119,52 @@ class keysight_awg():
 					time += points
 				else:
 					for uuid in range(repetitions):
+						# my_segment['identifier'] = list with unique id's
 						points = self.get_and_upload_waveform(chan,segment_name, time, my_segment['identifier'][uuid])
 						time += points
-			
+
 		# step 5 make the queue in the AWG.
-		print(sequence_data_processed)
-		
+		self.flush_queues(self)
+
+		for chan, sequence_data in sequence_data_processed.items():
+			# get relevant awg and channel ()
+			awg, awg_channels = self.channel_locations[chan]
+
+			awg_name = self.channel_locations[chan][0]
+			awg[awg_name]
+
+			# First element needs to have the PXI trigger.
+			first_element = True
+
+			for segmentdata in sequence_data:
+				if segmentdata['unique'] == True:
+					for uuid in segmentdata['identifier']:
+						awg_number = self.channel_locations[chan][1]
+						seg_num = self.segmentdata[chan][uuid]
+						if first_element ==  True:
+							trigger_mode = 2
+							first_element = False
+						else : 
+							trigger_mode = 0
+						start_delay = 0
+						cycles = 1
+						prescaler = 0
+						awg[awg_name].awg_queue_waveform(awg_number,seg_num,trigger_mode,start_delay,cycles,prescaler)
+
+				else:
+					awg_number = self.channel_locations[chan][1]
+					seg_num = self.segmentdata[chan][segmentdata['segment']]
+					if first_element ==  True:
+						trigger_mode = 2
+						first_element = False
+					else :
+						trigger_mode = 0
+
+					start_delay = 0
+					cycles = segmentdata['ntimes']
+					prescaler = 0
+					awg[awg_name].awg_queue_waveform(awg_number,seg_num,trigger_mode,start_delay,cycles,prescaler)
+
 
 	def get_and_upload_waveform(self, channel, segment_name, time, uuid=None):
 		'''
@@ -131,7 +173,13 @@ class keysight_awg():
 		This function also adds the waveform to segmentdata variable
 		'''
 		seg_number = self.get_new_segment_number(channel)
-		segment_data = self.segment_bin.get_segment(segment_name).get_waveform(channel, self.vpp_data, time)
+		segment_data = self.segment_bin.get_segment(segment_name).get_waveform(channel, self.vpp_data, time, np.float32)
+
+		wfv = keysight_awg.SD_AWG.new_waveform_from_double(seg_number, segment_data)
+		
+		awg_name = self.channel_locations[chan][0]
+		awg[awg_name].load_waveform(wfv, seg_number)
+
 		last_mod = self.segment_bin.get_segment(segment_name).last_mod
 		# upload data
 		if uuid is None:
@@ -142,6 +190,7 @@ class keysight_awg():
 			self.segmentdata[channel][uuid] = dict()
 			self.segmentdata[channel][uuid]['mem_pointer'] = seg_number
 			self.segmentdata[channel][uuid]['last_edit'] = last_mod
+
 		return len(segment_data)
 
 	def adjust_vmin_vmax_data(self, Vmin_max_data):
@@ -177,30 +226,28 @@ class keysight_awg():
 		for i in self.channels:
 			vmin = self.v_min_max_combined[i]['v_min']
 			vmax = self.v_min_max_combined[i]['v_max']
-			# Check if voltages are physical
-			if vmax-vmin > self.vpp_max:
-				raise ValueError("input range not supported (voltage peak to peak of {} detected)".format(vmax-vmin))
-			if vmax > self.vpp_max + self.voff_max:
-				raise ValueError("input range not supported (voltage of %d V detected) (max {} V)".format(vmax, self.vpp_max + self.voff_max))
-			if vmin < - self.vpp_max- self.voff_max:
-				raise ValueError("input range not supported (voltage of %d V detected) (min {} V)".format(vmin, -self.vpp_max - self.voff_max))
+			# Check if voltages are physical -- note that the keysight its offset is kind of a not very proper defined parameter.
+			if vmax > self.vpp_max/2:
+				raise ValueError("input range not supported (voltage of {} V detected) (max {} V)".format(vmax, self.vpp_max/2))
+			if vmin < - self.vpp_max/2:
+				raise ValueError("input range not supported (voltage of {} V detected) (min {} V)".format(vmin, -self.vpp_max/2))
 
 			# check if current settings of the awg are fine.
 			if self.vpp_data[self.channels[0]]['v_pp'] is not None:
 				vpp_current  = self.vpp_data[i]['v_pp']
 				voff_current = self.vpp_data[i]['v_off']
 
-				vmin_current = voff_current - vpp_current/2
-				vmax_current = voff_current + vpp_current/2
+				vmin_current = voff_current - vpp_current
+				vmax_current = voff_current + vpp_current
 
 				if vmin_current > vmin or vmax_current < vmax:
 					voltage_range_reset_needed = True
 				# note if the voltages needed are significantly smaller, we also want to do a voltage reset.
-				if vmin_current*(1-self.voltage_tolerance) < vmin or vmax_current*(1-self.voltage_tolerance) > vmax:
+				if vmin_current*(1-2*self.voltage_tolerance) < vmin or vmax_current*(1-2*self.voltage_tolerance) > vmax:
 					voltage_range_reset_needed = True
 
 			# convert to peak to peak and offset voltage.
-			vpp_test[i]['v_pp'] = vmax - vmin
+			vpp_test[i]['v_pp'] =(vmax - vmin)/2
 			vpp_test[i]['v_off']= (vmax + vmin)/2
 
 		# 2) if vpp fals not in old specs, clear memory and add new ranges.
@@ -210,39 +257,44 @@ class keysight_awg():
 				self.clear_mem()
 
 			for i in self.channels:
-				self.update_vpp_single(vpp_test[i],self.vpp_data[i])
+				self.update_vpp_single(vpp_test[i],self.vpp_data[i], i)
 
-	def update_vpp_single(self, new_data, target):
+	def update_vpp_single(self, new_data, target, channel):
 		'''
-		updata the voltages, with the tolerance build in.
+		Update the voltages, with the tolerance build in.
 		'''
 
 		new_vpp = new_data['v_pp'] * (1 + self.voltage_tolerance)
-		if new_vpp > self.vpp_max:
-			new_vpp = self.vpp_max
+		if new_vpp > self.vpp_max/2:
+			new_vpp = self.vpp_max/2
+
+		awg_name = self.channel_locations[channel][0]
+		chan_number = self.channel_locations[channel][1]
+		print(self.awg[awg_name])
+		self.awg[awg_name].set_channel_amplitude(new_vpp,chan_number)
+		self.awg[awg_name].set_channel_offset(new_data['v_off'],chan_number)
 
 		target['v_pp'] = new_vpp
 		target['v_off']= new_data['v_off']
 
-	def start(self, sequence_data):
-		return
+	def start(self):
+		'''
+		Function to apply the set the right triggering for the keysight AWG units.
+		Triggering is done via the PXI triggers to make sure the that the system works correctly.
+		'''
 
+		# use a awg to send the trigger (does not matter which one)(here the first defined channel)
+		awg_name = self.channel_locations[self.channels[0]][0]
+		self.awg[awg_name].awg.PXItriggerWrite(4000,0)
 
-		# mem_needed
-		# for i in 
-		# Ask segmentbin to check if elements are present, if not -- upload
-		# self.segment_bin.upload('INIT')
-		# Upload the relevant segments.
+		# set up the right trigger config
+		for i in awg.items:
+			i[1].awg_config_external_trigger(1,4000,1)
+			i[1].awg_start(1)
 
-		# if self.usable_mem - len(wfv) < 0:
-		# 	raise Exception("AWG Full :(. Clear all the ram... Note that this error should normally be prevented automatically.")
-
-		# wfv.astype(np.int16)
-		return
-
-
-	def check_mem_availability(self, num_pt):
-		return True
+		# trigger the system.
+		# this will keel the waveform playing in a contineous mode.
+		self.awg[awg_name].awg.PXItriggerWrite(4000,1)
 
 	def add_awg(self, name, awg):
 		'''
@@ -253,7 +305,7 @@ class keysight_awg():
 		# Make sure you start with a empty memory
 
 		# awg.flush_waveform()
-		self.awg[name] = awg, self.maxmem
+		self.awg[name] = awg
 		self.awg_memory[name] =self.maxmem
 		self.segment_count[name] = 0
 
@@ -273,3 +325,19 @@ class keysight_awg():
 		for i in self.awg_memory:
 			i = self.maxmem
 		print("Done.")
+
+	def flush_queues(self):
+		'''
+		Remove all the queues form the channels in use.
+		'''
+		for i in self.channel_locations:
+			self.awg[i[0]].awg_flush(i[1])
+
+	def set_channel_properties(self):
+		'''
+		Sets how the channels should behave e.g., for now only arbitrary wave implemented.
+		'''
+
+		for i in self.channel_locations:
+			# 6 is the magic number of the arbitary waveform shape.
+			self.awg[i[0]].set_channel_wave_shape(6,i[1])
