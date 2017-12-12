@@ -87,20 +87,29 @@ class segment_container():
 
 	
 
-	def get_waveforms(self, channels, Vpp_data, return_type = np.int16):
+	def get_waveform(self, channel, Vpp_data, sequenc_time, return_type = np.int16):
 		# get waforms for required channels. For global Vpp, Voffset settings (per channel) and expected data type
 		self.prep4upload()
 
-		upload_data = np.empty([len(channels), self.totaltime], return_type)
+		upload_data = np.empty([int(self.total_time)], dtype = return_type)
 		
+		chan_number = None
+		for i in range(len(self.channels)):
+			if self.channels[i] == channel:
+				chan_number = i
+
+		# do not devide by 0 (means channels is not used..)
+		if Vpp_data[channel]['v_pp'] == 0:
+			Vpp_data[channel]['v_pp'] = 1
+			
 		# normalise according to the channel, put as 
-		for i in range(len(channels)):
-			upload_data[i,:] =((self.waveform_cache[i,:] - V_off[self.channels[i]])/Vpp[self.channels[i]]).astype(return_type)
+		upload_data = ((self.waveform_cache[chan_number,:] - Vpp_data[channel]['v_off'])/Vpp_data[channel]['v_pp']).astype(return_type)
 		
-		self.waveform_cache = None
 		return upload_data
 
-	
+	def clear_chache():
+		return
+
 def last_edited(f):
 	'''
 	just a simpe decoter used to say that a certain wavefrom is updaded and therefore a new upload needs to be made to the awg.
