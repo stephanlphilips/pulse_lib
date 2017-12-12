@@ -57,6 +57,7 @@ class segment_container():
 
 		return self._Vmin_max_data
 
+
 	def reset_time(self):
 		'''
 		Allings all segments togeter and sets the input time to 0,
@@ -75,6 +76,7 @@ class segment_container():
 		for i in self.channels:
 			getattr(self, i).starttime = maxtime
 
+
 	def prep4upload(self):
 		# make waveform (in chache) (only if needed)
 		t_tot = self.total_time
@@ -85,7 +87,6 @@ class segment_container():
 			for i in range(len(self.channels)):
 				self.waveform_cache[i,:] = getattr(self, self.channels[i]).get_sequence(t_tot)
 
-	
 
 	def get_waveform(self, channel, Vpp_data, sequenc_time, return_type = np.double):
 		# get waforms for required channels. For global Vpp, Voffset settings (per channel) and expected data type
@@ -104,11 +105,12 @@ class segment_container():
 			
 		# normalise according to the channel, put as 
 		upload_data = ((self.waveform_cache[chan_number,:] - Vpp_data[channel]['v_off'])/Vpp_data[channel]['v_pp']).astype(return_type)
-		
+
 		return upload_data
 
 	def clear_chache():
 		return
+
 
 def last_edited(f):
 	'''
@@ -155,7 +157,8 @@ class segment_single():
 	def wait(self, wait):
 		amp_0 = self.my_pulse_data[-1,1]
 		t0 = self.my_pulse_data[-1,0]
-		pulse = [wait+t0, amp_0]
+		pulse = [[wait+t0, amp_0]]
+		self.add_pulse(pulse)
 
 	def repeat(self, number):
 		return

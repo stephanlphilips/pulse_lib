@@ -58,9 +58,9 @@ class pulselib:
 		self.backend = 'keysight'
 		self.awg = keysight_AWG(self.segments_bin, self.awg_channels_to_physical_locations, self.awg_channels)
 		self.awg.add_awg('AWG1',awg1)
-		self.awg.add_awg('AWG2',awg1)
-		self.awg.add_awg('AWG3',awg1)
-		self.awg.add_awg('AWG4',awg1)
+		self.awg.add_awg('AWG2',awg2)
+		self.awg.add_awg('AWG3',awg3)
+		self.awg.add_awg('AWG4',awg4)
 
 
 		self.sequencer =  sequencer(self.awg, self.segments_bin)
@@ -149,7 +149,7 @@ class sequencer():
 
 	def start_sequence(self, name):
 		self.awg.upload(self.sequences[name], self.get_sequence_upload_data(name))
-		self.awg.start(self.sequences[name])
+		self.awg.start()
 
 	def get_sequence_upload_data(self, name):
 		'''
@@ -190,9 +190,6 @@ seg  = p.mk_segment('INIT')
 seg2 = p.mk_segment('Manip')
 seg3 = p.mk_segment('Readout')
 
-# append functions?
-seg.P1.add_pulse([[10,0.5]
-				 ,[20,0.5]])
 
 seg.B0.add_pulse([[20,0],[30,0.5], [30,0]])
 seg.B0.add_block(40,70,1)
@@ -200,26 +197,51 @@ seg.B0.add_pulse([[70,0],
 				 [80,0],
 				 [150,0.5],
 				 [150,0]])
+
+# append functions?
+seg.P1.add_pulse([[100,0.5]
+				 ,[800,0.5],
+				  [1400,0]])
+
+seg.B2.add_pulse([[20,0],[30,0.5], [30,0]])
+seg.B2.add_block(40,70,1)
+seg.B2.add_pulse([[70,0],
+				 [80,0],
+				 [150,0.5],
+				 [150,0]])
+
+
+seg.M2.add_block(1,10,1)
+# seg.M2.wait(50)
+# seg.M2.plot_sequence()
 # seg.B0.repeat(20)
 # seg.B0.wait(20)
 # print(seg.B0.my_pulse_data)
 # seg.reset_timevoltage_range_reset_needed()
-seg.B1.add_pulse([[10,0],
-				[10,1],
-				[20,1],
-				[20,0]])
-seg.B1.add_block(20,50,1.4)
-
-seg.B1.add_block(80,90,1.4)
-seg.B1.wait(2000)
+# seg.B2.add_block(30,60,1)
+# seg.B2.add_block(400,800,0.5)
+# seg.B2.add_block(1400,1500,0.5)
 # seg.B1.plot_sequence()
+# seg.M2.add_pulse([[20,0.2],[30,0]])
+# seg.M2.add_block(30,60,1)
+# seg.M2.wait(2000)
+# seg.M2.add_block(90,120,1)
+# seg.M2.plot_sequence()
+# seg.M2.add_block(400,800,0.5)
+# seg.M2.add_block(1400,1500,0.5)
 
-seg2.B5.add_block(30,60,1)
-seg3.B5.add_block(30,600,0.1)
-seg3.B5.wait(2000)
+# seg2.B2.add_block(30,60,0)
+# seg2.B2.add_block(400,800,0.5)
+# seg2.P1.add_block(30,60,0)
+# seg2.P1.add_block(400,800,0.5)
+seg2.B0.add_block(30,60,0.1)
+seg2.B0.add_block(400,800,0.1)
+seg2.B0.wait(2000)
+# seg3.B5.add_block(30,600,0.1)
+# seg3.B5.wait(2000)
 p.show_sequences()
 
-SEQ = [['INIT', 2, 0], ['Manip', 1, 0], ['INIT', 1, 0] ]
+SEQ = [['INIT', 1, 0], ['Manip', 1, 0]]
 
 p.add_sequence('mysequence', SEQ)
 

@@ -1,7 +1,7 @@
 import numpy as np
 import datetime
 from copy import deepcopy
-
+import matplotlib.pyplot as plt
 import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
 import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
 
@@ -39,6 +39,7 @@ class keysight_AWG():
 		
 		self.maxmem = 1e9
 
+
 	@property
 	def allocatable_mem(self):
 		alloc = self.maxmem
@@ -58,6 +59,9 @@ class keysight_AWG():
 		return self.segment_count[awg_name]
 
 	def upload(self, sequence_data_raw, sequence_data_processed):
+		# TODO put at better location later
+		self.set_channel_properties()
+		self.flush_queues()
 		# step 1 collect vmin and vmax data, check if segments are intialized  (e.g. have at least one pulse):
 		for i in sequence_data_raw:
 			segment_name = i[0]
@@ -102,7 +106,7 @@ class keysight_AWG():
 		# step 4 upload the sequences to the awg.
 		for chan, sequence_data in sequence_data_processed.items():
 			# Upload here sequences.
-
+			# plt.figure()
 			# Keep counting time of the segments. This is important for IQ data.
 			time = 0
 			for my_segment in sequence_data:
@@ -116,31 +120,28 @@ class keysight_AWG():
 
 				if unique == False:
 					points = self.get_and_upload_waveform(chan,segment_name, time)
+
 					time += points
 				else:
 					for uuid in range(repetitions):
 						# my_segment['identifier'] = list with unique id's
 						points = self.get_and_upload_waveform(chan,segment_name, time, my_segment['identifier'][uuid])
+
 						time += points
+		print(self.vpp_data)
 
 		# step 5 make the queue in the AWG.
-		self.flush_queues(self)
-
 		for chan, sequence_data in sequence_data_processed.items():
-			# get relevant awg and channel ()
-			awg, awg_channels = self.channel_locations[chan]
-
+			# get relevant awg
 			awg_name = self.channel_locations[chan][0]
-			awg[awg_name]
+			awg_number = self.channel_locations[chan][1]
 
 			# First element needs to have the PXI trigger.
 			first_element = True
-
 			for segmentdata in sequence_data:
 				if segmentdata['unique'] == True:
 					for uuid in segmentdata['identifier']:
-						awg_number = self.channel_locations[chan][1]
-						seg_num = self.segmentdata[chan][uuid]
+						seg_num = self.segmentdata[chan][uuid]['mem_pointer']
 						if first_element ==  True:
 							trigger_mode = 2
 							first_element = False
@@ -149,11 +150,10 @@ class keysight_AWG():
 						start_delay = 0
 						cycles = 1
 						prescaler = 0
-						awg[awg_name].awg_queue_waveform(awg_number,seg_num,trigger_mode,start_delay,cycles,prescaler)
+						self.awg[awg_name].awg_queue_waveform(awg_number,seg_num,trigger_mode,start_delay,cycles,prescaler)
 
 				else:
-					awg_number = self.channel_locations[chan][1]
-					seg_num = self.segmentdata[chan][segmentdata['segment']]
+					seg_num = self.segmentdata[chan][segmentdata['segment']]['mem_pointer']
 					if first_element ==  True:
 						trigger_mode = 2
 						first_element = False
@@ -163,7 +163,7 @@ class keysight_AWG():
 					start_delay = 0
 					cycles = segmentdata['ntimes']
 					prescaler = 0
-					awg[awg_name].awg_queue_waveform(awg_number,seg_num,trigger_mode,start_delay,cycles,prescaler)
+					self.awg[awg_name].awg_queue_waveform(awg_number,seg_num,trigger_mode,start_delay,cycles,prescaler)
 
 
 	def get_and_upload_waveform(self, channel, segment_name, time, uuid=None):
@@ -175,11 +175,12 @@ class keysight_AWG():
 		seg_number = self.get_new_segment_number(channel)
 		segment_data = self.segment_bin.get_segment(segment_name).get_waveform(channel, self.vpp_data, time, np.float32)
 
-		wfv = keysight_awg.SD_AWG.new_waveform_from_double(seg_number, segment_data)
-		
-		awg_name = self.channel_locations[chan][0]
-		awg[awg_name].load_waveform(wfv, seg_number)
+		wfv = keysight_awg.SD_AWG.new_waveform_from_double(0, segment_data)
+		awg_name = self.channel_locations[channel][0]
 
+		self.awg[awg_name].load_waveform(wfv, seg_number)
+		# print("plotting {}, {}".format(channel, segment_name))
+		# plt.plot(segment_data)
 		last_mod = self.segment_bin.get_segment(segment_name).last_mod
 		# upload data
 		if uuid is None:
@@ -252,9 +253,7 @@ class keysight_AWG():
 
 		# 2) if vpp fals not in old specs, clear memory and add new ranges.
 		if self.vpp_data[self.channels[0]]['v_pp'] is None or voltage_range_reset_needed == True:
-			
-			if self.vpp_data[self.channels[0]]['v_pp'] is not None:
-				self.clear_mem()
+			self.clear_mem()
 
 			for i in self.channels:
 				self.update_vpp_single(vpp_test[i],self.vpp_data[i], i)
@@ -263,14 +262,12 @@ class keysight_AWG():
 		'''
 		Update the voltages, with the tolerance build in.
 		'''
-
 		new_vpp = new_data['v_pp'] * (1 + self.voltage_tolerance)
 		if new_vpp > self.vpp_max/2:
 			new_vpp = self.vpp_max/2
-
 		awg_name = self.channel_locations[channel][0]
 		chan_number = self.channel_locations[channel][1]
-		print(self.awg[awg_name])
+
 		self.awg[awg_name].set_channel_amplitude(new_vpp,chan_number)
 		self.awg[awg_name].set_channel_offset(new_data['v_off'],chan_number)
 
@@ -288,9 +285,11 @@ class keysight_AWG():
 		self.awg[awg_name].awg.PXItriggerWrite(4000,0)
 
 		# set up the right trigger config
-		for i in awg.items:
-			i[1].awg_config_external_trigger(1,4000,1)
-			i[1].awg_start(1)
+		for chan_name, chan_data in self.channel_locations.items():
+			self.awg[chan_data[0]].awg_config_external_trigger(chan_data[1],4000,1)
+
+		for chan_name, chan_data in self.channel_locations.items():
+			self.awg[chan_data[0]].awg_start(chan_data[1])
 
 		# trigger the system.
 		# this will keel the waveform playing in a contineous mode.
@@ -317,10 +316,14 @@ class keysight_AWG():
 		print("AWG memory is being cleared.")
 		self.segmentdata = dict()
 		for i in self.awg.items():
-			i[1].flush_waveform()
+			i[1].flush_waveform(True)
 
-		for i in self.segment_count.items():
-			i[1] = 0
+		for awg, count in self.segment_count.items():
+			count = 0
+
+		self.segmentdata = dict()
+		for i in self.channels:
+			self.segmentdata[i] = dict() #name segment + location and date of construction of segment
 
 		for i in self.awg_memory:
 			i = self.maxmem
@@ -330,14 +333,18 @@ class keysight_AWG():
 		'''
 		Remove all the queues form the channels in use.
 		'''
-		for i in self.channel_locations:
-			self.awg[i[0]].awg_flush(i[1])
+		# awg2.awg_stop(1)
+		print("all queue cleared")
+		for channel, channel_loc in self.channel_locations.items():
+			self.awg[channel_loc[0]].awg_stop(channel_loc[1])
+			self.awg[channel_loc[0]].awg_flush(channel_loc[1])
 
 	def set_channel_properties(self):
 		'''
 		Sets how the channels should behave e.g., for now only arbitrary wave implemented.
 		'''
-
-		for i in self.channel_locations:
+		print("channels set.")
+		for channel, channel_loc in self.channel_locations.items():
 			# 6 is the magic number of the arbitary waveform shape.
-			self.awg[i[0]].set_channel_wave_shape(6,i[1])
+			self.awg[channel_loc[0]].set_channel_wave_shape(6,channel_loc[1])
+			self.awg[channel_loc[0]].awg_queue_config(channel_loc[1], 1)
