@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 from segments import *
 from keysight_fx import *
 import uuid
+
+import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
+import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
+
 '''
 ideas:
 
@@ -19,9 +23,8 @@ class pulselib:
 	
 
 	def __init__(self):
+		# awg channels and locations need to be input parameters.
 		self.awg_channels = ['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5','G1','I_MW', 'Q_MW', 'M1', 'M2']
-		# channel type ? - default, IQpair, 
-		# virtual gates
 		self.awg_channels_to_physical_locations = dict({'B0':('AWG1', 1),
 															'P1':('AWG1', 2),
 															'B1':('AWG1', 3),
@@ -46,25 +49,24 @@ class pulselib:
 		self.convertion_matrix= []
 		self.segments_bin = segment_bin(self.awg_channels)
 
-		# awg1 = keysight_awg.SD_AWG('awg1', chassis = 0, slot= 2, channels = 4, triggers= 8)
-		# awg2 = keysight_awg.SD_AWG('awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
-		# awg3 = keysight_awg.SD_AWG('awg3', chassis = 0, slot= 4, channels = 4, triggers= 8)
-		# awg4 = keysight_awg.SD_AWG('awg4', chassis = 0, slot= 5, channels = 4, triggers= 8)
+		awg1 = keysight_awg.SD_AWG('awg1', chassis = 0, slot= 2, channels = 4, triggers= 8)
+		awg2 = keysight_awg.SD_AWG('awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
+		awg3 = keysight_awg.SD_AWG('awg3', chassis = 0, slot= 4, channels = 4, triggers= 8)
+		awg4 = keysight_awg.SD_AWG('awg4', chassis = 0, slot= 5, channels = 4, triggers= 8)
 		
 		# Keysight properties.
 		self.backend = 'keysight'
-		self.awg = keysight_awg(self.segments_bin, self.awg_channels_to_physical_locations, self.awg_channels)
-		self.awg.add_awg('AWG1','awg1')
-		self.awg.add_awg('AWG2','awg1')
-		self.awg.add_awg('AWG3','awg1')
-		self.awg.add_awg('AWG4','awg1')
+		self.awg = keysight_AWG(self.segments_bin, self.awg_channels_to_physical_locations, self.awg_channels)
+		self.awg.add_awg('AWG1',awg1)
+		self.awg.add_awg('AWG2',awg2)
+		self.awg.add_awg('AWG3',awg3)
+		self.awg.add_awg('AWG4',awg4)
 
 
 		self.sequencer =  sequencer(self.awg, self.segments_bin)
 
-	def add_awgs(self, awg):
-		for i in awg:
-			self.awg.add_awg(i)
+	def add_awgs(self, name, awg):
+		self.awg.add_awg(name, awg)
 
 	def mk_segment(self, name):
 		return self.segments_bin.new(name)
@@ -81,11 +83,6 @@ class pulselib:
 	def show_sequences(self):
 		self.segments_bin.print_segments_info()
 
-	def upload_data():
-
-	    return
-	def play():
-		return
 
 class segment_bin():
 
@@ -146,7 +143,7 @@ class sequencer():
 
 	def start_sequence(self, name):
 		self.awg.upload(self.sequences[name], self.get_sequence_upload_data(name))
-		self.awg.start(self.sequences[name])
+		self.awg.start()
 
 	def get_sequence_upload_data(self, name):
 		'''
@@ -187,36 +184,58 @@ seg  = p.mk_segment('INIT')
 seg2 = p.mk_segment('Manip')
 seg3 = p.mk_segment('Readout')
 
-# append functions?
-seg.P1.add_pulse([[10,2.5]
-				 ,[20,2.5]])
 
-seg.B0.add_pulse([[20,0],[30,2.5], [30,0]])
-seg.B0.add_block(40,70,2)
+seg.B0.add_pulse([[20,0],[30,0.5], [30,0]])
+seg.B0.add_block(40,70,1)
 seg.B0.add_pulse([[70,0],
 				 [80,0],
-				 [150,2.5],
+				 [150,0.5],
 				 [150,0]])
+
+# append functions?
+seg.P1.add_pulse([[100,0.5]
+				 ,[800,0.5],
+				  [1400,0]])
+
+seg.B2.add_pulse([[20,0],[30,0.5], [30,0]])
+seg.B2.add_block(40,70,1)
+seg.B2.add_pulse([[70,0],
+				 [80,0],
+				 [150,0.5],
+				 [150,0]])
+
+
+seg.B4.add_block(1,10,1)
+# seg.M2.wait(50)
+# seg.M2.plot_sequence()
 # seg.B0.repeat(20)
 # seg.B0.wait(20)
 # print(seg.B0.my_pulse_data)
 # seg.reset_timevoltage_range_reset_needed()
-seg.B1.add_pulse([[10,0],
-				[10,1],
-				[20,1],
-				[20,0]])
-seg.B1.add_block(20,50,2.5)
-
-seg.B1.add_block(80,90,2.5)
-
+# seg.B2.add_block(30,60,1)
+# seg.B2.add_block(400,800,0.5)
+# seg.B2.add_block(1400,1500,0.5)
 # seg.B1.plot_sequence()
+# seg.M2.add_pulse([[20,0.2],[30,0]])
+# seg.M2.add_block(30,60,1)
+# seg.M2.wait(2000)
+# seg.M2.add_block(90,120,1)
+# seg.M2.plot_sequence()
+# seg.M2.add_block(400,800,0.5)
+# seg.M2.add_block(1400,1500,0.5)
 
-seg2.B5.add_block(30,60,1)
-seg3.B5.add_block(30,600,0.1)
-seg3.B5.wait(200)
+# seg2.B2.add_block(30,60,0)
+# seg2.B2.add_block(400,800,0.5)
+# seg2.P1.add_block(30,60,0)
+# seg2.P1.add_block(400,800,0.5)
+seg2.B0.add_block(30,60,0.1)
+seg2.B0.add_block(400,800,0.1)
+seg2.B0.wait(2000)
+# seg3.B5.add_block(30,600,0.1)
+# seg3.B5.wait(2000)
 p.show_sequences()
 
-SEQ = [['INIT', 2, 0], ['Manip', 1, 0], ['INIT', 1, 0] ]
+SEQ = [['INIT', 1, 0], ['Manip', 1, 0]]
 
 p.add_sequence('mysequence', SEQ)
 
@@ -224,10 +243,10 @@ p.start_sequence('mysequence')
 
 SEQ2 = [['INIT', 1, 0], ['Manip', 1, 0], ['Readout', 1, 0] ]
 
-p.add_sequence('mysequence2', SEQ2)
+# p.add_sequence('mysequence2', SEQ2)
 
 
-p.start_sequence('mysequence2')
+# p.start_sequence('mysequence2')
 # insert in the begining of a segment
 # seg.insert_mode()
 # seg.clear()

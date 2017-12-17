@@ -5,15 +5,75 @@ awg1 = keysight_awg.SD_AWG('awg1', chassis = 0, slot= 2, channels = 4, triggers=
 awg2 = keysight_awg.SD_AWG('awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
 awg3 = keysight_awg.SD_AWG('awg3', chassis = 0, slot= 4, channels = 4, triggers= 8)
 awg4 = keysight_awg.SD_AWG('awg4', chassis = 0, slot= 5, channels = 4, triggers= 8)
+import time
+awg1.flush_waveform()
 
-awg1.set_channel_frequency(50e6,1,True)
-awg1.set_channel_frequency(50e6,2,True)
-awg2.set_channel_frequency(50e6,1,True)
+import numpy as np
+awg1.awg_stop(1)
 
-# set_channel_phase
-awg1.set_channel_amplitude(1,1)
-# set_channel_offset
-awg1.set_channel_wave_shape(4,1)
+a = np.linspace(1,1,50, dtype=np.float32)
+a[0:10] = 0
+b = np.linspace(-1,1,80, dtype=np.float32)
+
+awg1.set_channel_frequency(20e6,1)
+awg1.set_channel_frequency(10e6,2)
+awg2.set_channel_frequency(10e6,1)
+awg4.set_channel_frequency(10e6,4)
+awg1.set_channel_wave_shape(6,1)
+awg1.set_channel_wave_shape(4,2)
+awg2.set_channel_wave_shape(4,1)
+awg4.set_channel_wave_shape(4,4)
+
+amp = 1
+off = 0
+
+awg1.set_channel_amplitude(amp,2)
+awg1.set_channel_offset(off,2)
+awg2.set_channel_amplitude(amp,1)
+awg2.set_channel_offset(off,1)
+awg4.set_channel_amplitude(amp,4)
+awg4.set_channel_offset(off,4)
+# print(b)
+w1 = keysight_awg.SD_AWG.new_waveform_from_double(0, a)
+w2 = keysight_awg.SD_AWG.new_waveform_from_double(0, b)
+
+awg1.set_channel_amplitude(amp,1)
+awg1.set_channel_offset(off,1)
+# awg1.set_channel_wave_shape(6,1)
+# awg1.load_waveform_int16(0, b, 1, verbose=True)
+awg1.load_waveform(w1, 1)
+awg1.load_waveform(w2, 2)
+
+
+awg1.awg_queue_waveform(1,1,0,0,1,0)
+awg1.awg_queue_waveform(1,2,0,0,1,0)
+awg1.awg_queue_waveform(1,1,0,0,2,0)
+awg1.awg_queue_waveform(1,2,0,0,2,0)
+awg1.awg_queue_waveform(1,1,0,0,2,0)
+awg1.awg_queue_waveform(1,2,0,0,2,0)
+
+awg1.awg_queue_config(1, 1)
+awg1.awg_config_external_trigger(1,4001,3)
+
+awg1.awg.PXItriggerWrite(4001,1)
+awg1.awg_start(1)
+awg1.awg.PXItriggerWrite(4001,0)
+awg1.awg.PXItriggerWrite(4001,1)
+
+# awg1.awg_start(1)
+# awg1.awg_trigger(1)
+# time.sleep(10)
+
+# from ctypes import *
+
+awg1.awg.close()
+awg2.awg.close()
+awg3.awg.close()
+awg4.awg.close()
+# # set_channel_phase
+
+# awg1.set_channel_wave_shape(4,1)
+# awg4.set_channel_amplitude(amp,4,)
 
 # awg1.load_waveform
 # load_waveform_int16
