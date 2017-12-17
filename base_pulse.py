@@ -65,9 +65,8 @@ class pulselib:
 
 		self.sequencer =  sequencer(self.awg, self.segments_bin)
 
-	def add_awgs(self, awg):
-		for i in awg:
-			self.awg.add_awg(i)
+	def add_awgs(self, name, awg):
+		self.awg.add_awg(name, awg)
 
 	def mk_segment(self, name):
 		return self.segments_bin.new(name)
@@ -84,11 +83,6 @@ class pulselib:
 	def show_sequences(self):
 		self.segments_bin.print_segments_info()
 
-	def upload_data():
-
-	    return
-	def play():
-		return
 
 class segment_bin():
 
@@ -211,7 +205,7 @@ seg.B2.add_pulse([[70,0],
 				 [150,0]])
 
 
-seg.M2.add_block(1,10,1)
+seg.B4.add_block(1,10,1)
 # seg.M2.wait(50)
 # seg.M2.plot_sequence()
 # seg.B0.repeat(20)

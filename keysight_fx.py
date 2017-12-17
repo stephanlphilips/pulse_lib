@@ -136,14 +136,14 @@ class keysight_AWG():
 			awg_name = self.channel_locations[chan][0]
 			awg_number = self.channel_locations[chan][1]
 
-			# First element needs to have the PXI trigger.
+			# First element needs to have the HVI trigger.
 			first_element = True
 			for segmentdata in sequence_data:
 				if segmentdata['unique'] == True:
 					for uuid in segmentdata['identifier']:
 						seg_num = self.segmentdata[chan][uuid]['mem_pointer']
 						if first_element ==  True:
-							trigger_mode = 2
+							trigger_mode = 1
 							first_element = False
 						else : 
 							trigger_mode = 0
@@ -155,7 +155,7 @@ class keysight_AWG():
 				else:
 					seg_num = self.segmentdata[chan][segmentdata['segment']]['mem_pointer']
 					if first_element ==  True:
-						trigger_mode = 2
+						trigger_mode = 1
 						first_element = False
 					else :
 						trigger_mode = 0
@@ -281,19 +281,11 @@ class keysight_AWG():
 		'''
 
 		# use a awg to send the trigger (does not matter which one)(here the first defined channel)
-		awg_name = self.channel_locations[self.channels[0]][0]
-		self.awg[awg_name].awg.PXItriggerWrite(4000,0)
-
-		# set up the right trigger config
-		for chan_name, chan_data in self.channel_locations.items():
-			self.awg[chan_data[0]].awg_config_external_trigger(chan_data[1],4000,1)
 
 		for chan_name, chan_data in self.channel_locations.items():
 			self.awg[chan_data[0]].awg_start(chan_data[1])
 
-		# trigger the system.
-		# this will keel the waveform playing in a contineous mode.
-		self.awg[awg_name].awg.PXItriggerWrite(4000,1)
+		# Launch the right HVI instance
 
 	def add_awg(self, name, awg):
 		'''
