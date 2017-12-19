@@ -6,7 +6,7 @@ import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
 import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
 
 class keysight_AWG():
-	def __init__(self, segment_bin, channel_locations,channels):
+	def __init__(self, segment_bin, channel_locations,channels, channel_delays):
 		self.awg = dict()
 		self.awg_memory = dict()
 		# dict containing the number of the last segment number.
@@ -15,6 +15,7 @@ class keysight_AWG():
 
 		self.channel_locations = channel_locations
 		self.channels = channels
+		self.channel_delays = channel_delays
 
 		self.vpp_max = 3 #Volt
 
@@ -74,6 +75,7 @@ class keysight_AWG():
 		self.adjust_vpp_data()
 
 		# step 3 check memory allocation (e.g. what can we reuse of the sequences in the memory of the AWG.)
+		tot_channel_delay = self.calculate_total_channel_delay()
 		mem_needed = dict()
 		for i in self.awg:
 			mem_needed[i] = 0
@@ -81,10 +83,30 @@ class keysight_AWG():
 		for chan, sequence_data in sequence_data_processed.items():
 			# loop trough all elements in the sequence and check how much data is needed.
 			t = 0
+
+			# Add artificial delay data points.
+			mem_needed[self.channel_locations[chan][0]] += tot_channel_delay
+			
+			# Check if segments can be reused as expected (if channell has a delay, first and segment cannot be repeated. )
+			num_items  = len(sequence_data)
+			k = 0
 			for i in sequence_data:
 				segment_name = i['segment']
 				repetitions= i['ntimes']
 				unique = i['unique']
+
+				if k == 0 or k == num_items-1:
+					segment_name_delayed += '_' + str(self.channel_delays[chan])
+					# Check if stuff in the memory, if present, needs to be updated.
+					if segment_name_delayed in self.segmentdata[chan] and unique == False:
+						if self.segment_bin.get_segment(segment_name_delayed).last_mod <= self.segmentdata[chan][segment_name_delayed]['last_edit']:
+							repetitions -= 1 
+					else:
+						if unique == True:
+							mem_needed[self.channel_locations[chan][0]] +=  self.segment_bin.get_segment(segment_name_delayed).total_time
+						else:
+							mem_needed[self.channel_locations[chan][0]] +=  self.segment_bin.get_segment(segment_name_delayed).total_time
+
 
 				# Check if stuff in the memory, if present, needs to be updated.
 				if segment_name in self.segmentdata[chan] and unique == False:
@@ -95,6 +117,8 @@ class keysight_AWG():
 					mem_needed[self.channel_locations[chan][0]] +=  self.segment_bin.get_segment(segment_name).total_time * repetitions
 				else:
 					mem_needed[self.channel_locations[chan][0]] +=  self.segment_bin.get_segment(segment_name).total_time
+					
+
 
 
 		# If memory full, clear (if one is full it is very likely all others are also full, so we will just clear everything.)
@@ -337,3 +361,17 @@ class keysight_AWG():
 			# 6 is the magic number of the arbitary waveform shape.
 			self.awg[channel_loc[0]].set_channel_wave_shape(6,channel_loc[1])
 			self.awg[channel_loc[0]].awg_queue_config(channel_loc[1], 1)
+
+	def calculate_total_channel_delay(self):
+		'''
+		function for calculating how many ns time there is a delay in between the channels.
+		Also support for negative delays...
+
+		returns:
+			tot_delay (the total delay)
+		'''
+
+		delays =  np.array( self.channel_delays.values())
+		tot_delay = np.max(delays) - np.min(delays)
+
+		return tot_delay

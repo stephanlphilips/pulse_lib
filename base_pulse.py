@@ -16,9 +16,9 @@ ideas:
 '''
 class pulselib:
 	'''
-		Global class that is an organisational element in making the pulses.
-		The idea is that you first make individula segments,
-		you can than later combine them into a sequence, this sequence will be uploaded
+	Global class that is an organisational element in making the pulses.
+	The idea is that you first make individula segments,
+	you can than later combine them into a sequence, this sequence will be uploaded
 	'''
 	
 
@@ -45,6 +45,11 @@ class pulselib:
 		# Not implemented
 		self.awg_markers =['mkr1', 'mkr2', 'mkr3' ]
 		self.awg_markers_to_location = []
+
+		self.channel_delays = dict()
+		for i in self.channels:
+			channel_delays[i] = 0
+		
 		self.delays = []
 		self.convertion_matrix= []
 		self.segments_bin = segment_bin(self.awg_channels)
@@ -56,7 +61,7 @@ class pulselib:
 		
 		# Keysight properties.
 		self.backend = 'keysight'
-		self.awg = keysight_AWG(self.segments_bin, self.awg_channels_to_physical_locations, self.awg_channels)
+		self.awg = keysight_AWG(self.segments_bin, self.awg_channels_to_physical_locations, self.awg_channels, self.channel_delays)
 		self.awg.add_awg('AWG1',awg1)
 		self.awg.add_awg('AWG2',awg2)
 		self.awg.add_awg('AWG3',awg3)
@@ -64,6 +69,27 @@ class pulselib:
 
 
 		self.sequencer =  sequencer(self.awg, self.segments_bin)
+
+	def add_channel_delay(self, delays):
+		'''
+		Adds to a channel a delay. 
+		The delay is added by adding points in front of the first sequence/or 
+		just after the last sequence. The first value of the sequence will be 
+		taken as an extentsion point.
+
+		Args:
+			delays: dict, e.g. {'P1':20, 'P2:16'} delay P1 with 20 ns and P2 with 16 ns
+
+		Returns:
+			0/Error
+		'''
+		for i in delay.items():
+			if i[0] in self.channels:
+				self.channel_delays[i[0]] = i[1]
+			else:
+				raise ValueError("Channel delay error: Channel '{}' does not exist. Please provide valid input".format(i[0]))
+
+		return 0
 
 	def add_awgs(self, name, awg):
 		self.awg.add_awg(name, awg)
