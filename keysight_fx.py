@@ -1,9 +1,14 @@
 import numpy as np
 import datetime
-from copy import deepcopy
+from copy import deepcopy, copy
 import matplotlib.pyplot as plt
 import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
 import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
+
+import sys
+sys.path.append("C:/Program Files (x86)/Keysight/SD1/Libraries/Python/")
+import keysightSD1
+
 
 class keysight_AWG():
 	def __init__(self, segment_bin, channel_locations,channels, channel_delays):
@@ -18,6 +23,9 @@ class keysight_AWG():
 		self.channel_delays = channel_delays
 
 		self.vpp_max = 3 #Volt
+
+		# init HVI object
+		self.HVI = keysightSD1.SD_HVI()
 
 		# setting for the amount of voltage you can be off from the optimal setting for a channels
 		# e.g. when you are suppose to input
@@ -40,6 +48,9 @@ class keysight_AWG():
 		
 		self.maxmem = 1e9
 
+		# General data
+		self.n_rep = 0 # number of times to repeat the sequence (0 is infinite).
+		self.length_sequence = 1
 
 	@property
 	def allocatable_mem(self):
@@ -65,10 +76,10 @@ class keysight_AWG():
 		self.flush_queues()
 		# step 1 collect vmin and vmax data, check if segments are intialized  (e.g. have at least one pulse):
 		for i in sequence_data_raw:
-			segment_name = i[0]
-			if self.segment_bin.used(segment_name) == False:
-				raise ValueError("Empty segment provided .. (segment name: '{}')".format(segment_name))
-			v_min_max = self.segment_bin.get_segment(segment_name).Vmin_max_data
+			segment_id = i[0]
+			if self.segment_bin.used(segment_id) == False:
+				raise ValueError("Empty segment provided .. (segment name: '{}')".format(segment_id))
+			v_min_max = self.segment_bin.get_segment(segment_id).Vmin_max_data
 			self.adjust_vmin_vmax_data(v_min_max)
 
 		# step 2 calculate Vpp/Voff needed for each channel + assign the voltages to each channel.
@@ -81,44 +92,28 @@ class keysight_AWG():
 			mem_needed[i] = 0
 
 		for chan, sequence_data in sequence_data_processed.items():
-			# loop trough all elements in the sequence and check how much data is needed.
-			t = 0
-
-			# Add artificial delay data points.
-			mem_needed[self.channel_locations[chan][0]] += tot_channel_delay
 			
 			# Check if segments can be reused as expected (if channell has a delay, first and segment cannot be repeated. )
-			num_items  = len(sequence_data)
-			k = 0
 			for i in sequence_data:
-				segment_name = i['segment']
+				segment_id = i['segment']
+				segment_name = i['segment_name']
 				repetitions= i['ntimes']
 				unique = i['unique']
+				pre_delay= i['pre_delay']
+				post_delay = i['post_delay']
 
-				if k == 0 or k == num_items-1:
-					segment_name_delayed += '_' + str(self.channel_delays[chan])
-					# Check if stuff in the memory, if present, needs to be updated.
-					if segment_name_delayed in self.segmentdata[chan] and unique == False:
-						if self.segment_bin.get_segment(segment_name_delayed).last_mod <= self.segmentdata[chan][segment_name_delayed]['last_edit']:
-							repetitions -= 1 
-					else:
-						if unique == True:
-							mem_needed[self.channel_locations[chan][0]] +=  self.segment_bin.get_segment(segment_name_delayed).total_time
-						else:
-							mem_needed[self.channel_locations[chan][0]] +=  self.segment_bin.get_segment(segment_name_delayed).total_time
-
-
-				# Check if stuff in the memory, if present, needs to be updated.
-				if segment_name in self.segmentdata[chan] and unique == False:
-					if self.segment_bin.get_segment(segment_name).last_mod <= self.segmentdata[chan][segment_name]['last_edit']:
-						continue
+				# Check if the segment is in the memory and still up to date (if not, go on.)
+				if self.segment_in_mem(segment_id, segment_name, chan) and unique == False:
+					continue
 				
 				if unique == True:
-					mem_needed[self.channel_locations[chan][0]] +=  self.segment_bin.get_segment(segment_name).total_time * repetitions
+					mem_needed[self.channel_locations[chan][0]] += pre_delay + post_delay + self.segment_bin.get_segment(segment_id).total_time * repetitions
 				else:
-					mem_needed[self.channel_locations[chan][0]] +=  self.segment_bin.get_segment(segment_name).total_time
-					
+					mem_needed[self.channel_locations[chan][0]] += pre_delay + post_delay + self.segment_bin.get_segment(segment_id).total_time
 
+
+		# for i in self.awg:
+		# 	print("memory needed for awg {} is {} points.".format(i,mem_needed[i]))
 
 
 		# If memory full, clear (if one is full it is very likely all others are also full, so we will just clear everything.)
@@ -130,29 +125,32 @@ class keysight_AWG():
 		# step 4 upload the sequences to the awg.
 		for chan, sequence_data in sequence_data_processed.items():
 			# Upload here sequences.
-			# plt.figure()
+
 			# Keep counting time of the segments. This is important for IQ data.
 			time = 0
 			for my_segment in sequence_data:
-				segment_name = my_segment['segment']
+				segment_id = my_segment['segment']
+				segment_name = my_segment['segment_name']
 				repetitions= my_segment['ntimes']
 				unique = my_segment['unique']
-				# Check if we need to skip the upload.
-				if segment_name in self.segmentdata[chan] and unique == False:
-					if self.segment_bin.get_segment(segment_name).last_mod <= self.segmentdata[chan][segment_name]['last_edit']:
-						continue
+				pre_delay= my_segment['pre_delay']
+				post_delay = my_segment['post_delay']
+				
+				# Check if the segment is in the memory and still up to date (if not, go on.)
+				if self.segment_in_mem(segment_id, segment_name, chan) and unique == False:
+					continue
 
 				if unique == False:
-					points = self.get_and_upload_waveform(chan,segment_name, time)
+					points = self.get_and_upload_waveform(chan,my_segment, time)
 
-					time += points
+					time += points*repetitions
 				else:
 					for uuid in range(repetitions):
 						# my_segment['identifier'] = list with unique id's
-						points = self.get_and_upload_waveform(chan,segment_name, time, my_segment['identifier'][uuid])
+						points = self.get_and_upload_waveform(chan,my_segment, time, my_segment['identifier'][uuid])
 
 						time += points
-		print(self.vpp_data)
+			self.length_sequence = time
 
 		# step 5 make the queue in the AWG.
 		for chan, sequence_data in sequence_data_processed.items():
@@ -173,11 +171,11 @@ class keysight_AWG():
 							trigger_mode = 0
 						start_delay = 0
 						cycles = 1
-						prescaler = 0
+						prescaler = segmentdata['prescaler']
 						self.awg[awg_name].awg_queue_waveform(awg_number,seg_num,trigger_mode,start_delay,cycles,prescaler)
 
 				else:
-					seg_num = self.segmentdata[chan][segmentdata['segment']]['mem_pointer']
+					seg_num = self.segmentdata[chan][segmentdata['segment_name']]['mem_pointer']
 					if first_element ==  True:
 						trigger_mode = 1
 						first_element = False
@@ -186,24 +184,47 @@ class keysight_AWG():
 
 					start_delay = 0
 					cycles = segmentdata['ntimes']
-					prescaler = 0
+					prescaler = segmentdata['prescaler']
 					self.awg[awg_name].awg_queue_waveform(awg_number,seg_num,trigger_mode,start_delay,cycles,prescaler)
 
-	def get_and_upload_waveform(self, channel, segment_name, time, uuid=None):
+	def segment_in_mem(self, seg_id, seg_name, channel):
+		'''
+		function that checks is certain segment in already present in the memory of the awg
+		input:
+			1 list item from a sequence element.
+		Returns:
+			True/False
+		'''
+
+		if seg_name in self.segmentdata[channel]:
+			if self.segment_bin.get_segment(seg_id).last_mod <= self.segmentdata[channel][seg_name]['last_edit']:
+				return True
+
+		return False
+
+	def get_and_upload_waveform(self, channel, segment_info, time, uuid=None):
 		'''
 		get the wavform for channel with the name segment_name.
 		The waveform occurs at time time in the sequence. 
 		This function also adds the waveform to segmentdata variable
 		'''
-		segment_data = self.segment_bin.get_segment(segment_name).get_waveform(channel, self.vpp_data, time, np.float32)
+
+		segment_id = segment_info['segment']
+		segment_name = segment_info['segment_name']
+		pre_delay= segment_info['pre_delay']
+		post_delay = segment_info['post_delay']
+
+		# point data of the segment (array to be uploaded).
+		segment_data = self.segment_bin.get_segment(segment_id).get_waveform(channel, self.vpp_data, time, pre_delay, post_delay, np.float32)
 
 		wfv = keysight_awg.SD_AWG.new_waveform_from_double(0, segment_data)
 		awg_name = self.channel_locations[channel][0]
 
+		seg_number = self.get_new_segment_number(channel)
 		self.awg[awg_name].load_waveform(wfv, seg_number)
-		# print("plotting {}, {}".format(channel, segment_name))
+		# print("plotting {}, {}".format(channel, segment_id))
 		# plt.plot(segment_data)
-		last_mod = self.segment_bin.get_segment(segment_name).last_mod
+		last_mod = self.segment_bin.get_segment(segment_id).last_mod
 		# upload data
 		if uuid is None:
 			self.segmentdata[channel][segment_name] = dict()
@@ -301,12 +322,44 @@ class keysight_AWG():
 		Triggering is done via the PXI triggers to make sure the that the system works correctly.
 		'''
 
-		# use a awg to send the trigger (does not matter which one)(here the first defined channel)
+		# Launch the right HVI instance, set right parameters.
+		self.HVI.stop()
 
-		for chan_name, chan_data in self.channel_locations.items():
-			self.awg[chan_data[0]].awg_start(chan_data[1])
+		self.HVI.open("C:/V2_code/HVI/For_loop_single_sequence.HVI")
 
-		# Launch the right HVI instance
+		self.HVI.assignHardwareWithIndexAndSlot(0,0,2)
+		self.HVI.assignHardwareWithIndexAndSlot(1,0,3)
+		self.HVI.assignHardwareWithIndexAndSlot(2,0,4)
+		self.HVI.assignHardwareWithIndexAndSlot(3,0,5)
+
+		# Length of the sequence
+		self.HVI.writeIntegerConstantWithIndex(0, "length_sequence", int(self.length_sequence/10 + 1))
+		self.HVI.writeIntegerConstantWithIndex(1, "length_sequence", int(self.length_sequence/10 + 1))
+		self.HVI.writeIntegerConstantWithIndex(2, "length_sequence", int(self.length_sequence/10 + 1))
+		self.HVI.writeIntegerConstantWithIndex(3, "length_sequence", int(self.length_sequence/10 + 1))
+
+
+		# number of repetitions
+		nrep = self.n_rep
+		if nrep == 0:
+			nrep = 1
+		self.HVI.writeIntegerConstantWithIndex(0, "n_rep", nrep)
+		self.HVI.writeIntegerConstantWithIndex(1, "n_rep", nrep)
+		self.HVI.writeIntegerConstantWithIndex(2, "n_rep", nrep)
+		self.HVI.writeIntegerConstantWithIndex(3, "n_rep", nrep)
+
+		# Inifinite looping
+		step = 1
+		if self.n_rep == 0:
+			step  = 0
+		self.HVI.writeIntegerConstantWithIndex(0, "step", step)
+		self.HVI.writeIntegerConstantWithIndex(1, "step", step)
+		self.HVI.writeIntegerConstantWithIndex(2, "step", step)
+		self.HVI.writeIntegerConstantWithIndex(3, "step", step)
+
+		self.HVI.compile()
+		self.HVI.load()
+		self.HVI.start()
 
 	def add_awg(self, name, awg):
 		'''
@@ -371,7 +424,7 @@ class keysight_AWG():
 			tot_delay (the total delay)
 		'''
 
-		delays =  np.array( self.channel_delays.values())
+		delays =  np.array( list(self.channel_delays.values()))
 		tot_delay = np.max(delays) - np.min(delays)
 
 		return tot_delay

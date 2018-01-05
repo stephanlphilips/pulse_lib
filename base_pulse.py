@@ -47,8 +47,8 @@ class pulselib:
 		self.awg_markers_to_location = []
 
 		self.channel_delays = dict()
-		for i in self.channels:
-			channel_delays[i] = 0
+		for i in self.awg_channels:
+			self.channel_delays[i] = 0
 		
 		self.delays = []
 		self.convertion_matrix= []
@@ -68,7 +68,7 @@ class pulselib:
 		self.awg.add_awg('AWG4',awg4)
 
 
-		self.sequencer =  sequencer(self.awg, self.segments_bin)
+		self.sequencer =  sequencer(self.awg, self.channel_delays, self.segments_bin)
 
 	def add_channel_delay(self, delays):
 		'''
@@ -78,13 +78,13 @@ class pulselib:
 		taken as an extentsion point.
 
 		Args:
-			delays: dict, e.g. {'P1':20, 'P2:16'} delay P1 with 20 ns and P2 with 16 ns
+			delays: dict, e.g. {'P1':20, 'P2':16} delay P1 with 20 ns and P2 with 16 ns
 
 		Returns:
 			0/Error
 		'''
-		for i in delay.items():
-			if i[0] in self.channels:
+		for i in delays.items():
+			if i[0] in self.awg_channels:
 				self.channel_delays[i[0]] = i[1]
 			else:
 				raise ValueError("Channel delay error: Channel '{}' does not exist. Please provide valid input".format(i[0]))
@@ -101,6 +101,12 @@ class pulselib:
 		return self.segments_bin.get(name)
 
 	def add_sequence(self,name,seq):
+		'''
+		name: name for the sequence, if name already present, it will be overwritten.
+		seq: list of list, 
+			e.g. [ ['name segment 1' (str), number of times to play (int), prescale (int)] ]
+			prescale (default 0, see keysight manual) (not all awg's will support this).
+		'''
 		self.sequencer.add_sequence(name, seq)
 
 	def start_sequence(self, name):
@@ -158,16 +164,18 @@ class segment_bin():
 
 
 class sequencer():
-	def __init__(self, awg_system, segment_bin):
+	def __init__(self, awg_system, channel_delays, segment_bin):
 		self.awg = awg_system
 		self.segment_bin = segment_bin
 		self.channels = segment_bin.channels
+		self.channel_delays = channel_delays
 		self.sequences = dict()
 
 	def add_sequence(self, name, sequence):
 		self.sequences[name] = sequence
 
 	def start_sequence(self, name):
+		self.get_sequence_upload_data(name)
 		self.awg.upload(self.sequences[name], self.get_sequence_upload_data(name))
 		self.awg.start()
 
@@ -182,35 +190,122 @@ class sequencer():
 				number of times to play
 				uniqueness -> segment is reusable?
 				identifiers for marking differnt locations in the ram of the awg.
-
+		
 		'''
 		upload_data = dict()
 		# put in a getter to make sure there is no error -- it exists...
 		seq = self.sequences[name]
 
-		for i in self.channels:
+		for chan in self.channels:
 			sequence_data_single_channel = []
-			for k in seq:
-				input_data = {'segment':k[0], 'ntimes':k[1]}
-				unique = getattr(self.segment_bin.get_segment(k[0]), i).unique
-				input_data['unique'] = unique
-				# Make unique uuid's for each segment
-				if unique == True:
-					input_data['identifier'] = [uuid.uuid4() for i in range(k[1])]
+			num_elements = len(seq)
 
-				sequence_data_single_channel.append(input_data)
+			for k in range(len(seq)):
+				segment_play_info = seq[k]
 
-			upload_data[i] = sequence_data_single_channel
+				# if starting segment or finishing segment, here there should be added the delay info.
+				pre_delay, post_delay = (0,0)
+
+				if k == 0:
+					pre_delay = self.get_pre_delay(chan)
+				if k == len(seq)-1:
+					post_delay = self.get_post_delay(chan)
+
+				if pre_delay!=0 or post_delay!=0:
+					rep = segment_play_info[1]
+					segment_play_info[1] = 1
+					input_data = self.generate_input_data(segment_play_info, chan, pre_delay, post_delay)
+					sequence_data_single_channel.append(input_data)
+
+					# If only one, go to next segment in the sequence.
+					if rep == 1 :
+						continue
+					else:
+						segment_play_info[1] = rep -1
+
+				sequence_data_single_channel.append(self.generate_input_data(segment_play_info, chan))
+
+			upload_data[chan] = sequence_data_single_channel
 
 		return upload_data
 
 
+	def generate_input_data(self, segment_play_info, channel, pre_delay=0, post_delay=0):
+		'''
+		function that will generate a dict that defines the input data, this will contain all the neccesary info to upload the segment.
+		returns:
+			dict with sequence info for a cerain channel (for parameters see the code).
+		'''
+		input_data = {'segment': segment_play_info[0], 
+						'segment_name': self.make_segment_name(segment_play_info[0], pre_delay, post_delay),
+						'ntimes': segment_play_info[1],
+						'prescaler': segment_play_info[2],
+						'pre_delay': pre_delay,
+						'post_delay': post_delay}
+		unique = getattr(self.segment_bin.get_segment(segment_play_info[0]), channel).unique
+		input_data['unique'] = unique
+		# Make unique uuid's for each segment
+		if unique == True:
+			input_data['identifier'] = [uuid.uuid4() for i in range(segment_play_info[1])]
+
+		return input_data
+
+	def make_segment_name(self, segment, pre_delay, post_delay):
+		'''
+		function that makes the name of the segment that is delayed.
+		Note that if the delay is 0 there should be no new segment name.
+		'''
+		segment_name = segment
+		
+		if pre_delay!=0 or post_delay!= 0:
+			segment_name = segment + '_' + str(pre_delay) + '_' + str(post_delay)
+
+		return segment_name
+
+	def calculate_total_channel_delay(self):
+		'''
+		function for calculating how many ns time there is a delay in between the channels.
+		Also support for negative delays...
+
+		returns:
+			tot_delay (the total delay)
+			max_delay (hight amount of the delay)
+		'''
+
+		delays =  np.array( list(self.channel_delays.values()))
+		tot_delay = np.max(delays) - np.min(delays)
+
+		return tot_delay, np.max(delays)
+
+	def get_pre_delay(self, channel):
+		'''
+		get the of ns that a channel needs to be pushed forward/backward.
+		returns
+			pre-delay : number of points that need to be pushed in from of the segment
+		'''
+		tot_delay, max_delay = self.calculate_total_channel_delay()
+		delay = self.channel_delays[channel]
+		return max_delay- delay
+
+	def get_post_delay(self, channel):
+		'''
+		get the of ns that a channel needs to be pushed forward/backward.
+		returns
+			post-delay: number of points that need to be pushed after the segment
+		'''
+		tot_delay, max_delay = self.calculate_total_channel_delay()
+		delay = self.channel_delays[channel]
+		return delay - (tot_delay - max_delay)
+
 p = pulselib()
+p.add_channel_delay({'B2':0,})
+
 seg  = p.mk_segment('INIT')
 seg2 = p.mk_segment('Manip')
 seg3 = p.mk_segment('Readout')
 
 
+seg.B0.add_block(2,5,-1)
 seg.B0.add_pulse([[20,0],[30,0.5], [30,0]])
 seg.B0.add_block(40,70,1)
 seg.B0.add_pulse([[70,0],
@@ -219,10 +314,12 @@ seg.B0.add_pulse([[70,0],
 				 [150,0]])
 
 # append functions?
+seg.P1.add_block(2,5,-1)
 seg.P1.add_pulse([[100,0.5]
 				 ,[800,0.5],
 				  [1400,0]])
 
+seg.B2.add_block(2,5,-1)
 seg.B2.add_pulse([[20,0],[30,0.5], [30,0]])
 seg.B2.add_block(40,70,1)
 seg.B2.add_pulse([[70,0],
@@ -230,8 +327,8 @@ seg.B2.add_pulse([[70,0],
 				 [150,0.5],
 				 [150,0]])
 
-
-seg.B4.add_block(1,10,1)
+seg.B4.add_block(2,5,1)
+# seg.B4.add_block(2,10,1)
 # seg.M2.wait(50)
 # seg.M2.plot_sequence()
 # seg.B0.repeat(20)
@@ -261,7 +358,7 @@ seg2.B0.wait(2000)
 # seg3.B5.wait(2000)
 p.show_sequences()
 
-SEQ = [['INIT', 1, 0], ['Manip', 1, 0]]
+SEQ = [['INIT', 1, 0], ['Manip', 1, 0], ['Manip', 1, 0]]
 
 p.add_sequence('mysequence', SEQ)
 

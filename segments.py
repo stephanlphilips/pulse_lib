@@ -14,7 +14,7 @@ class segment_container():
 	def __init__(self, name, channels):
 		self.channels = channels
 		self.name = name
-		self.waveform_cache = None
+
 		self._Vmin_max_data = dict()
 
 		for i in self.channels:
@@ -50,10 +50,10 @@ class segment_container():
 	@property
 	def Vmin_max_data(self):
 		if self.prev_upload < self.last_mod:
-			self.prep4upload()
+
 			for i in range(len(self.channels)):
-				self._Vmin_max_data[self.channels[i]]['v_min'] = np.min(self.waveform_cache[i,:])
-				self._Vmin_max_data[self.channels[i]]['v_max'] = np.max(self.waveform_cache[i,:])
+				self._Vmin_max_data[self.channels[i]]['v_min'] = getattr(self,self.channels[i]).v_min
+				self._Vmin_max_data[self.channels[i]]['v_max'] = getattr(self,self.channels[i]).v_max
 
 		return self._Vmin_max_data
 
@@ -77,34 +77,49 @@ class segment_container():
 			getattr(self, i).starttime = maxtime
 
 
-	def prep4upload(self):
-		# make waveform (in chache) (only if needed)
-		t_tot = self.total_time
+	# def prep4upload(self):
+	# 	# make waveform (in chache) (only if needed)
+	# 	t_tot = self.total_time
 
-		if self.prev_upload < self.last_mod or self.waveform_cache is None:
-			self.waveform_cache = np.empty([len(self.channels), int(t_tot)])
+	# 	if self.prev_upload < self.last_mod or self.waveform_cache is None:
+	# 		self.waveform_cache = np.empty([len(self.channels), int(t_tot)])
 
-			for i in range(len(self.channels)):
-				self.waveform_cache[i,:] = getattr(self, self.channels[i]).get_sequence(t_tot)
+	# 		for i in range(len(self.channels)):
+	# 			self.waveform_cache[i,:] = getattr(self, self.channels[i]).get_segment(t_tot)
 
 
-	def get_waveform(self, channel, Vpp_data, sequenc_time, return_type = np.double):
-		# get waforms for required channels. For global Vpp, Voffset settings (per channel) and expected data type
-		self.prep4upload()
+	def get_waveform(self, channel, Vpp_data, sequence_time, pre_delay=0, post_delay = 0, return_type = np.double):
+		'''
+		function to get the raw data of a waveform,
+		inputs:
+			channel: channel name of the waveform you want
+			Vpp_data: contains peak to peak voltage and offset for each channel
+			sequence time: efffective time in the sequence when the segment starts, this can be important for when using mulitple segments with IQ modulation.
+			pre_delay: extra offset in from of the waveform (start at negative time) (for a certain channel, as defined in channel delays)
+			post_delay: time gets appended to the waveform (for a certain channel)
+			return type: type of the wavefrom (must be numpy compatible). Here number between -1 and 1.
+		returns:
+			waveform as a numpy array with the specified data type.
+		'''
+		# self.prep4upload()
 
-		upload_data = np.empty([int(self.total_time)], dtype = return_type)
+
+		# upload_data = np.empty([int(self.total_time) + pre_delay + post_delay], dtype = return_type)
 		
-		chan_number = None
-		for i in range(len(self.channels)):
-			if self.channels[i] == channel:
-				chan_number = i
+		waveform_raw = getattr(self, channel).get_segment(self.total_time, sequence_time, pre_delay, post_delay)
+
+		# chan_number = None
+		# for i in range(len(self.channels)):
+		# 	if self.channels[i] == channel:
+		# 		chan_number = i
 
 		# do not devide by 0 (means channels is not used..)
 		if Vpp_data[channel]['v_pp'] == 0:
 			Vpp_data[channel]['v_pp'] = 1
 			
 		# normalise according to the channel, put as 
-		upload_data = ((self.waveform_cache[chan_number,:] - Vpp_data[channel]['v_off'])/Vpp_data[channel]['v_pp']).astype(return_type)
+		upload_data = ((waveform_raw - Vpp_data[channel]['v_off'])/Vpp_data[channel]['v_pp']).astype(return_type)
+
 		return upload_data
 
 	def clear_chache():
@@ -177,12 +192,18 @@ class segment_single():
 	def get_total_time(self):
 		return self.my_pulse_data[-1,0]
 
-	def get_sequence(self, points = None):
+	def get_segment(self, points= None, t_start = 0, pre_delay = 0, post_delay = 0):
 		'''
-		Returns a numpy array that contains the points for each ns
-		points is the expected lenght.
+		input:
+			Number of points of the raw sequence (None, if you just want to plot it. (without the delays))
+			t_start: effective start time in the sequence, needed for unique segments  (phase coherent microwaves between segments)
+			pre_delay : number of points to push before the sequence
+			post delay: number of points to push after the sequence.
+		Returns:
+			A numpy array that contains the points for each ns
+			points is the expected lenght.
 		'''
-		t, wvf = self._generate_sequence(points)
+		t, wvf = self._generate_segment(points, t_start, pre_delay, post_delay)
 		return wvf
 
 	@property
@@ -194,20 +215,22 @@ class segment_single():
 		return np.min(self.my_pulse_data[:,1])
 
 
-	def _generate_sequence(self, t_tot= None):
+	def _generate_segment(self, t_tot= None, t_start = 0, pre_delay = 0, post_delay = 0):
+		# TODO implement t_start feature.
+
 		# 1 make base sequence:
 		if t_tot is None:
 			t_tot = self.total_time
 
-		times = np.linspace(0, int(t_tot-1), int(t_tot))
-		my_sequence = np.zeros([int(t_tot)])
+		times = np.linspace(-pre_delay, int(t_tot-1 + post_delay), int(t_tot + pre_delay + post_delay))
+		my_sequence = np.zeros([int(t_tot + pre_delay + post_delay)])
 
 
 		for i in range(0,len(self.my_pulse_data)-1):
 			my_loc = np.where(times < self.my_pulse_data[i+1,0])[0]
 			my_loc = np.where(times[my_loc] >= self.my_pulse_data[i,0])[0]
 
-			if my_loc.size==0:
+			if my_loc.size == 0:
 				continue;
 
 			end_voltage = self.my_pulse_data[i,1] + \
@@ -220,8 +243,8 @@ class segment_single():
 
 		return times, my_sequence
 
-	def plot_sequence(self):
-		x,y = self._generate_sequence()
+	def plot_segment(self):
+		x,y = self._generate_segment()
 		plt.plot(x,y)
 		plt.show()
 		
