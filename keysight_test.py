@@ -5,6 +5,8 @@ awg1 = keysight_awg.SD_AWG('awg1', chassis = 0, slot= 2, channels = 4, triggers=
 awg2 = keysight_awg.SD_AWG('awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
 awg3 = keysight_awg.SD_AWG('awg3', chassis = 0, slot= 4, channels = 4, triggers= 8)
 awg4 = keysight_awg.SD_AWG('awg4', chassis = 0, slot= 5, channels = 4, triggers= 8)
+
+
 import time
 awg1.flush_waveform()
 
@@ -59,6 +61,10 @@ awg1.awg.PXItriggerWrite(4001,1)
 awg1.awg_start(1)
 awg1.awg.PXItriggerWrite(4001,0)
 awg1.awg.PXItriggerWrite(4001,1)
+
+
+
+
 
 # awg1.awg_start(1)
 # awg1.awg_trigger(1)

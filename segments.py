@@ -240,7 +240,9 @@ class segment_single():
 
 			start_stop_values = np.linspace(self.my_pulse_data[i,1],end_voltage,my_loc.size);
 			my_sequence[my_loc] = start_stop_values;
-
+		#max_init = np.max(np.abs(my_sequence))
+		#my_sequence = flt.gaussTaperFilter(my_sequence)
+		#my_sequence /= np.max(np.abs(my_sequence))
 		return times, my_sequence
 
 	def plot_segment(self):

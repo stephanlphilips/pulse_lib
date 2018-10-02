@@ -1,9 +1,12 @@
+import sys
+sys.path.append('C:\Program Files (x86)\Keysight\SD1\Libraries\Python')
+sys.path.append("C:\\V2_code\\Qcodes")
+
 import numpy as np
 import matplotlib.pyplot as plt 
 from segments import *
 from keysight_fx import *
 import uuid
-
 import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
 import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
 
@@ -14,6 +17,7 @@ ideas:
 # 
 
 '''
+
 class pulselib:
 	'''
 	Global class that is an organisational element in making the pulses.
@@ -298,36 +302,153 @@ class sequencer():
 		return delay - (tot_delay - max_delay)
 
 p = pulselib()
-p.add_channel_delay({'B2':0,})
+p.add_channel_delay({'P4':7,})
+p.add_channel_delay({'M2':-115,})
 
-seg  = p.mk_segment('INIT')
+#%%
+p.sequencer =  sequencer(p.awg, p.channel_delays, p.segments_bin)
+
+seg = p.mk_segment('INIT')
+	
 seg2 = p.mk_segment('Manip')
 seg3 = p.mk_segment('Readout')
 
 
-seg.B0.add_block(2,5,-1)
-seg.B0.add_pulse([[20,0],[30,0.5], [30,0]])
-seg.B0.add_block(40,70,1)
-seg.B0.add_pulse([[70,0],
-				 [80,0],
-				 [150,0.5],
-				 [150,0]])
 
+
+# seg.B4.add_block(0,10,1)
+# seg.B4.wait(100)
+# seg.B4.add_block(0,10,1)
+
+# seg.B4.add_block(200,300,1)
+seg.B2.add_block(0, 20, 1.5)
+seg.B2.add_block(10000, 10010, 1)
+seg.B2.add_block(10010, 10112, 0)
+
+seg.B0.add_block(80, 100, 1.5)
+seg.B0.add_block(100, 130, -1.5)
+
+amp = np.linspace(0,1,50)
+period = 1000
+t = 0
+for i in range(50):
+	seg.B4.add_block(t, t+period, amp[i])
+	t+= period
+seg.B4.repeat(5)
+
+amp = np.linspace(0,1,50)
+period = 1000*50
+t = 0
+for i in range(50):
+	seg.I_MW.add_block(t, t+period, amp[i])
+	t+= period
+
+seg.G1.add_block(100, 130, 1)
+seg.M2.add_block(100, 130, 1)
+
+# seg.B0.add_block(20,205,1)
+# seg.B0.add_block(205,285,-1)sd
+# seg.B0.add_block(20,205,1)
+# seg.B0.add_block(20,50000,1)
+
+
+# segs = [seg.B0, seg.P1, seg.B1, seg.P2]
+
+# amp = 0.25
+# for i in segs:
+# 	i.add_pulse([[0,-amp]])
+# 	# i.add_block(20,25, -amp + 3)
+# 	# i.add_block(60,65, -amp + 2)
+# 	# i.add_block(100,105, -amp + 1)
+# 	# i.add_block(140,145, -amp + 0.5)
+# 	# i.add_block(180,185, -amp + 0.2)
+# 	t = 10
+# 	for j in range(1,50):
+# 		i.add_block(t,t+j*2,amp)
+# 		t = t+j*2
+# 		t = t + 50
+
+# 	i.add_pulse([[10000,-amp]])
+
+
+# amp = 1
+
+# seg.P1.add_pulse([
+#         [0,-amp],
+#         [10,amp],
+#         [9000,amp],
+#         [9000,-amp],
+#         [14000,-amp]])
+
+# seg.B4.add_pulse([
+#         [0,-amp],
+#         [10,amp],
+#         [9000,amp],
+#         [9000,-amp],
+#         [14000,-amp]])
+
+
+# t = 0 
+# amp = 0.1
+# seg.B4.add_pulse([
+#         [0,-amp]])
+
+# for i in range(1,50):
+# 	seg.B4.add_block(t,t+i*2,amp)
+# 	t = t+i*2
+# 	t = t + 50
+
+
+# t = 0
+# seg.P1.add_pulse([
+#         [0,-amp]])
+
+# for i in range(1,50):
+# 	seg.P1.add_block(t,t+i*2,amp)
+# 	t = t+i*2
+# 	t = t + 50
+# seg.B4.add_pulse([
+#         [0,-1.5],
+#         [40,-1.5], 
+#         [40,1.5],
+#         [80,0],
+#         [80,-0.75],
+#         [90,-0.75]])
+# seg.B4.add_block(100,110,-0.75+0.15)
+# seg.B4.add_block(120,130,-0.75+0.1)
+# seg.B4.add_block(140,150,-0.75+0.05)
+# seg.B4.add_pulse([
+#         [200,0],
+#         [210,1],
+#         [210,-0.2],
+#         [240,0],
+#         [275,1.3],
+#         [275,-0.75],
+#         [300,-0.75],
+#         [300,-0.5],
+#         [310,-0.5],
+#         [310,0]])
+
+
+# seg.B4.add_block(10,20000,0.3)
+# seg.P5.add_block(10,20000,-0.3)
+# seg.B5.add_block(10,20000,-0.3)
+# seg.G1.add_block(10,20000,0.3)
 # append functions?
-seg.P1.add_block(2,5,-1)
-seg.P1.add_pulse([[100,0.5]
-				 ,[800,0.5],
-				  [1400,0]])
+# seg.P1.add_block(2,5,-1)
+# seg.P1.add_pulse([[100,0.5]
+# 				 ,[800,0.5],
+# 				  [1400,0]])
 
-seg.B2.add_block(2,5,-1)
-seg.B2.add_pulse([[20,0],[30,0.5], [30,0]])
-seg.B2.add_block(40,70,1)
-seg.B2.add_pulse([[70,0],
-				 [80,0],
-				 [150,0.5],
-				 [150,0]])
+# seg.B2.add_block(2,5,-1)
+# seg.B2.add_pulse([[20,0],[30,0.5], [30,0]])
+# seg.B2.add_block(40,70,1)
+# seg.B2.add_pulse([[70,0],
+# 				 [80,0],
+# 				 [150,0.5],
+# 				 [150,0]])
 
-seg.B4.add_block(2,5,1)
+# seg.B4.add_block(2,5,1)
 # seg.B4.add_block(2,10,1)
 # seg.M2.wait(50)
 # seg.M2.plot_sequence()
@@ -348,17 +469,17 @@ seg.B4.add_block(2,5,1)
 # seg.M2.add_block(1400,1500,0.5)
 
 # seg2.B2.add_block(30,60,0)
-# seg2.B2.add_block(400,800,0.5)
+# seg2.B2.add_block(400,2000,0.1)
 # seg2.P1.add_block(30,60,0)
 # seg2.P1.add_block(400,800,0.5)
-seg2.B0.add_block(30,60,0.1)
-seg2.B0.add_block(400,800,0.1)
-seg2.B0.wait(2000)
+# seg2.B0.add_block(30,60,0.1)
+# seg2.B0.add_block(400,800,0.1)
+# seg2.B0.wait(2000)
 # seg3.B5.add_block(30,600,0.1)
 # seg3.B5.wait(2000)
 p.show_sequences()
 
-SEQ = [['INIT', 1, 0], ['Manip', 1, 0], ['Manip', 1, 0]]
+SEQ = [['INIT', 1, 0]]
 
 p.add_sequence('mysequence', SEQ)
 
@@ -367,7 +488,6 @@ p.start_sequence('mysequence')
 SEQ2 = [['INIT', 1, 0], ['Manip', 1, 0], ['Readout', 1, 0] ]
 
 # p.add_sequence('mysequence2', SEQ2)
-
 
 # p.start_sequence('mysequence2')
 # insert in the begining of a segment

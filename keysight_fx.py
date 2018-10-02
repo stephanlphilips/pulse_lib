@@ -9,6 +9,8 @@ import sys
 sys.path.append("C:/Program Files (x86)/Keysight/SD1/Libraries/Python/")
 import keysightSD1
 
+import time as tt
+
 
 class keysight_AWG():
 	def __init__(self, segment_bin, channel_locations,channels, channel_delays):
@@ -215,13 +217,26 @@ class keysight_AWG():
 		post_delay = segment_info['post_delay']
 
 		# point data of the segment (array to be uploaded).
-		segment_data = self.segment_bin.get_segment(segment_id).get_waveform(channel, self.vpp_data, time, pre_delay, post_delay, np.float32)
+		time1 = tt.time()
 
-		wfv = keysight_awg.SD_AWG.new_waveform_from_double(0, segment_data)
+		segment_data = self.segment_bin.get_segment(segment_id).get_waveform(channel, self.vpp_data, time, pre_delay, post_delay, np.float32)
+		# print(channel)
+		# print(np.min(segment_data))
+		# print(np.max(segment_data))
+		time2 = tt.time()
+		# segment_data.tolist()
 		awg_name = self.channel_locations[channel][0]
+		wfv = self.awg[awg_name].wave.newFromArrayInteger(0,(segment_data*32767).astype(np.int))
+		wfv = keysight_awg.SD_AWG.new_waveform_from_double(0, segment_data.tolist())
+		time3 = tt.time()
 
 		seg_number = self.get_new_segment_number(channel)
 		self.awg[awg_name].load_waveform(wfv, seg_number)
+		time4 = tt.time()
+		print ('getting waveform took %0.3f ms' % ( (time2-time1)*1000.0))
+		print ('conversion numpy to c took %0.3f ms' % ( (time3-time2)*1000.0))
+		print ('upload took %0.3f ms' % ( (time4-time3)*1000.0))
+
 		# print("plotting {}, {}".format(channel, segment_id))
 		# plt.plot(segment_data)
 		last_mod = self.segment_bin.get_segment(segment_id).last_mod
@@ -293,10 +308,11 @@ class keysight_AWG():
 			vpp_test[i]['v_pp'] =(vmax - vmin)/2
 			vpp_test[i]['v_off']= (vmax + vmin)/2
 
+
 		# 2) if vpp fals not in old specs, clear memory and add new ranges.
 		if self.vpp_data[self.channels[0]]['v_pp'] is None or voltage_range_reset_needed == True:
 			self.clear_mem()
-
+			print(self.vpp_data)
 			for i in self.channels:
 				self.update_vpp_single(vpp_test[i],self.vpp_data[i], i)
 
@@ -309,6 +325,8 @@ class keysight_AWG():
 			new_vpp = self.vpp_max/2
 		awg_name = self.channel_locations[channel][0]
 		chan_number = self.channel_locations[channel][1]
+		print("vpp settings:")
+		print(channel, new_vpp,new_data['v_off'])
 
 		self.awg[awg_name].set_channel_amplitude(new_vpp,chan_number)
 		self.awg[awg_name].set_channel_offset(new_data['v_off'],chan_number)
@@ -327,16 +345,18 @@ class keysight_AWG():
 
 		self.HVI.open("C:/V2_code/HVI/For_loop_single_sequence.HVI")
 
-		self.HVI.assignHardwareWithIndexAndSlot(0,0,2)
-		self.HVI.assignHardwareWithIndexAndSlot(1,0,3)
-		self.HVI.assignHardwareWithIndexAndSlot(2,0,4)
-		self.HVI.assignHardwareWithIndexAndSlot(3,0,5)
+		self.HVI.assignHardwareWithUserNameAndModuleID("Module 0", self.awg['AWG1'].awg)
+		self.HVI.assignHardwareWithUserNameAndModuleID("Module 1", self.awg['AWG2'].awg)
+		self.HVI.assignHardwareWithUserNameAndModuleID("Module 2", self.awg['AWG3'].awg)
+		self.HVI.assignHardwareWithUserNameAndModuleID("Module 3", self.awg['AWG4'].awg)
+
+		
 
 		# Length of the sequence
-		self.HVI.writeIntegerConstantWithIndex(0, "length_sequence", int(self.length_sequence/10 + 1))
-		self.HVI.writeIntegerConstantWithIndex(1, "length_sequence", int(self.length_sequence/10 + 1))
-		self.HVI.writeIntegerConstantWithIndex(2, "length_sequence", int(self.length_sequence/10 + 1))
-		self.HVI.writeIntegerConstantWithIndex(3, "length_sequence", int(self.length_sequence/10 + 1))
+		self.HVI.writeIntegerConstantWithIndex(0, "length_sequence", int(self.length_sequence/10 + 100))
+		self.HVI.writeIntegerConstantWithIndex(1, "length_sequence", int(self.length_sequence/10 + 100))
+		self.HVI.writeIntegerConstantWithIndex(2, "length_sequence", int(self.length_sequence/10 + 100))
+		self.HVI.writeIntegerConstantWithIndex(3, "length_sequence", int(self.length_sequence/10 + 100))
 
 
 		# number of repetitions
@@ -351,15 +371,19 @@ class keysight_AWG():
 		# Inifinite looping
 		step = 1
 		if self.n_rep == 0:
-			step  = 0
+			step = 0
 		self.HVI.writeIntegerConstantWithIndex(0, "step", step)
 		self.HVI.writeIntegerConstantWithIndex(1, "step", step)
 		self.HVI.writeIntegerConstantWithIndex(2, "step", step)
 		self.HVI.writeIntegerConstantWithIndex(3, "step", step)
 
 		self.HVI.compile()
+			
 		self.HVI.load()
 		self.HVI.start()
+		# for channel, channel_loc in self.channel_locations.items():
+		# 	self.awg[channel_loc[0]].AWGstartMultiple(0xF)
+		# 	self.awg[channel_loc[0]].AWGtriggerMultiple(0xF)
 
 	def add_awg(self, name, awg):
 		'''
@@ -369,7 +393,9 @@ class keysight_AWG():
 		'''
 		# Make sure you start with a empty memory
 
-		# awg.flush_waveform()
+		# Make sure we are applying the correct pulse correction
+		awg.awg.FPGAload(r"C:\Users\LocalAdmin\Downloads\square_test\firmware_BaseBandPulses_Tap15_4CH_3_73.sbp")
+		
 		self.awg[name] = awg
 		self.awg_memory[name] =self.maxmem
 		self.segment_count[name] = 0
@@ -399,21 +425,27 @@ class keysight_AWG():
 		'''
 		Remove all the queues form the channels in use.
 		'''
+			
 		# awg2.awg_stop(1)
 		print("all queue cleared")
 		for channel, channel_loc in self.channel_locations.items():
 			self.awg[channel_loc[0]].awg_stop(channel_loc[1])
 			self.awg[channel_loc[0]].awg_flush(channel_loc[1])
 
+
 	def set_channel_properties(self):
 		'''
 		Sets how the channels should behave e.g., for now only arbitrary wave implemented.
 		'''
 		print("channels set.")
+		
+
 		for channel, channel_loc in self.channel_locations.items():
 			# 6 is the magic number of the arbitary waveform shape.
-			self.awg[channel_loc[0]].set_channel_wave_shape(6,channel_loc[1])
+			self.awg[channel_loc[0]].set_channel_wave_shape(keysightSD1.SD_Waveshapes.AOU_AWG,channel_loc[1])
 			self.awg[channel_loc[0]].awg_queue_config(channel_loc[1], 1)
+		for awg in self.awg:
+			self.awg[awg].awg.setDigitalFilterMode(2)
 
 	def calculate_total_channel_delay(self):
 		'''
