@@ -46,6 +46,13 @@ class pulselib:
 															'M1':('AWG4', 3),
 															'M2':('AWG4', 4)})
 		self.awg_channels_kind = []
+
+		self.awg_virtual_channels = {'virtual_gates_names_virt' : ['vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5'],
+									 'virtual_gates_names_real' : ['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5'],
+									 'virtual_gate_matrix' : np.eye(11)}
+		self.awg_virtual_channels['virtual_gate_matrix'][0,1] = 0.1
+		self.awg_virtual_channels['virtual_gate_matrix'][0,2] = 0.1
+
 		# Not implemented
 		self.awg_markers =['mkr1', 'mkr2', 'mkr3' ]
 		self.awg_markers_to_location = []
@@ -56,7 +63,7 @@ class pulselib:
 		
 		self.delays = []
 		self.convertion_matrix= []
-		self.segments_bin = segment_bin(self.awg_channels)
+		self.segments_bin = segment_bin(self.awg_channels, self.awg_virtual_channels)
 
 		awg1 = keysight_awg.SD_AWG('awg1', chassis = 0, slot= 2, channels = 4, triggers= 8)
 		awg2 = keysight_awg.SD_AWG('awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
@@ -122,16 +129,16 @@ class pulselib:
 
 class segment_bin():
 
-	def __init__(self, channels):
+	def __init__(self, channels, virtual_gate_matrix=None):
 		self.segment = []
 		self.channels = channels
-		self.virtual_gate_matrix = None
+		self.virtual_gate_matrix = virtual_gate_matrix
 		return	
 
 	def new(self,name):
 		if self.exists(name):
 			raise ValueError("sement with the name : % \n alreadt exists"%name)
-		self.segment.append(segment_container(name,self.channels))
+		self.segment.append(segment_container(name,self.channels, self.virtual_gate_matrix))
 		return self.get_segment(name)
 
 	def get_segment(self, name):
@@ -288,8 +295,9 @@ class sequencer():
 			pre-delay : number of points that need to be pushed in from of the segment
 		'''
 		tot_delay, max_delay = self.calculate_total_channel_delay()
+		max_pre_delay = tot_delay - max_delay
 		delay = self.channel_delays[channel]
-		return max_delay- delay
+		return delay + max_pre_delay
 
 	def get_post_delay(self, channel):
 		'''
@@ -299,10 +307,12 @@ class sequencer():
 		'''
 		tot_delay, max_delay = self.calculate_total_channel_delay()
 		delay = self.channel_delays[channel]
-		return delay - (tot_delay - max_delay)
+		print(tot_delay, max_delay, delay)
+		print("post_delay", delay - (tot_delay - max_delay))
+		return -delay + max_delay
 
 p = pulselib()
-p.add_channel_delay({'P4':7,})
+p.add_channel_delay({'B4':-3,})
 p.add_channel_delay({'M2':-115,})
 
 #%%
@@ -321,30 +331,29 @@ seg3 = p.mk_segment('Readout')
 # seg.B4.add_block(0,10,1)
 
 # seg.B4.add_block(200,300,1)
-seg.B2.add_block(0, 20, 1.5)
-seg.B2.add_block(10000, 10010, 1)
-seg.B2.add_block(10010, 10112, 0)
+seg.B0.add_block(0, 10, 1.5)
+# seg.B0.add_block(10000, 10010, 1)
+# seg.B0.add_block(10010, 10112, 0)
+seg.B0.wait(10000)
+seg.B4.add_block(0, 10, -1.5)
+seg.B4.wait(10000)
+# amp = np.linspace(0,1,50)
+# period = 1000
+# t = 0
+# for i in range(50):
+# 	seg.B4.add_block(t, t+period, amp[i])
+# 	t+= period
+# seg.B4.repeat(5)
 
-seg.B0.add_block(80, 100, 1.5)
-seg.B0.add_block(100, 130, -1.5)
+# amp = np.linspace(0,1,50)
+# period = 1000*50
+# t = 0
+# for i in range(50):
+# 	seg.I_MW.add_block(t, t+period, amp[i])
+# 	t+= period
 
-amp = np.linspace(0,1,50)
-period = 1000
-t = 0
-for i in range(50):
-	seg.B4.add_block(t, t+period, amp[i])
-	t+= period
-seg.B4.repeat(5)
-
-amp = np.linspace(0,1,50)
-period = 1000*50
-t = 0
-for i in range(50):
-	seg.I_MW.add_block(t, t+period, amp[i])
-	t+= period
-
-seg.G1.add_block(100, 130, 1)
-seg.M2.add_block(100, 130, 1)
+# seg.G1.add_block(100, 130, 1)
+# seg.M2.add_block(100, 130, 1)
 
 # seg.B0.add_block(20,205,1)
 # seg.B0.add_block(205,285,-1)sd

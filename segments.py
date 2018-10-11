@@ -2,6 +2,11 @@ import numpy as np
 import datetime
 import matplotlib.pyplot as plt
 import copy
+import time
+from time import time as t
+import pstats, cProfile
+
+import segments_c_func as seg_func
 class segment_container():
 	'''
     Class containing all the single segments for for a series of channels.
@@ -146,8 +151,9 @@ class segment_single():
 		self.type = 'default'
 		self.to_swing = False
 		self.starttime = 0
+		# variable specifing the laetest change to the waveforms
 		self._last_edit = datetime.datetime.now()
-		self.my_pulse_data = np.zeros([1,2])
+		self.my_pulse_data = np.zeros([1,2], dtype=np.double)
 		self.sin_data = []
 		self.numpy_data = []
 		self.last = None
@@ -159,7 +165,7 @@ class segment_single():
 		# local copy of self that will be used to count up the virtual gates.
 		self._pulse_data_all = None
 		# variable specifing the lastest time the pulse_data_all is updated
-		self.last_render = datetime.datetime.now()
+		self.last_render = datetime.datetime.now() 
 
 	def add_reference_channel(self, channel_name, segment_data, multiplication_factor):
 		'''
@@ -198,9 +204,9 @@ class segment_single():
 		add a block pulse on top of the existing pulse.
 		'''
 		if start != 0:
-			pulse = np.array([[0,0], [start + self.starttime, 0], [start + self.starttime,amplitude], [stop + self.starttime, amplitude], [stop + self.starttime, 0]])
+			pulse = np.array([[0,0], [start + self.starttime, 0], [start + self.starttime,amplitude], [stop + self.starttime, amplitude], [stop + self.starttime, 0]], dtype=np.double)
 		else:
-			pulse = np.array([[start + self.starttime, 0], [start + self.starttime,amplitude], [stop + self.starttime, amplitude], [stop + self.starttime, 0]])
+			pulse = np.array([[start + self.starttime, 0], [start + self.starttime,amplitude], [stop + self.starttime, amplitude], [stop + self.starttime, 0]], dtype=np.double)
 		self.my_pulse_data = self._add_up_pulse_data(pulse)
 
 	@last_edited
@@ -244,13 +250,14 @@ class segment_single():
 		back_pulse_corr = None
 		# check if there is twice the same starting number 
 		
-		if self.my_pulse_data[0,0] == self.my_pulse_data[1,0]:
+		if my_pulse_data_copy[0,0] == my_pulse_data_copy[1,0]:
 			front_pulse_corr = my_pulse_data_copy[0]
 			my_pulse_data_copy = my_pulse_data_copy[1:]
 
-		if self.my_pulse_data[-1,0] == self.my_pulse_data[-2,0]:
+		if my_pulse_data_copy[-1,0] == my_pulse_data_copy[-2,0]:
 			back_pulse_corr = my_pulse_data_copy[-1]
 			my_pulse_data_copy = my_pulse_data_copy[:-1]
+
 
 		pulse_data = np.zeros([my_pulse_data_copy.shape[0]*number, my_pulse_data_copy.shape[1]])
 
@@ -297,12 +304,18 @@ class segment_single():
 		'''
 		new_segment = segment_single()
 		if type(other) is segment_single:
-			new_segment.my_pulse_data = self._add_up_pulse_data(other.my_pulse_data)
-			sin_data = self.sin_data
+			if len(other.my_pulse_data) == 1:
+				new_segment.my_pulse_data = copy.copy(self.my_pulse_data)
+			elif len(self.my_pulse_data) == 1:
+				new_segment.my_pulse_data = copy.copy(other.my_pulse_data)
+			else:
+				new_segment.my_pulse_data = self._add_up_pulse_data(other.my_pulse_data)
+
+			sin_data = copy.copy(self.sin_data)
 			sin_data.extend(other.sin_data)
 			new_segment.sin_data = sin_data
 		elif type(other) == int or type(other) == float:
-			new_pulse = self.my_pulse_data
+			new_pulse = copy.copy(self.my_pulse_data)
 			new_pulse[:,1] += other
 			new_segment.my_pulse_data = new_pulse
 			new_segment.sin_data = self.sin_data
@@ -324,12 +337,12 @@ class segment_single():
 		if type(other) is segment_single:
 			raise NotImplemented
 		elif type(other) == int or type(other) == float or type(other) == np.float64:
-			new_pulse = self.my_pulse_data
+			new_pulse = copy.copy(self.my_pulse_data)
 			new_pulse[:,1] *= other
 			new_segment.my_pulse_data = new_pulse
 			sin_data = []
 			for i in self.sin_data:
-				my_sin = i
+				my_sin = copy.copy(i)
 				my_sin['amplitude'] *=other
 				sin_data.append(my_sin)
 
@@ -345,7 +358,7 @@ class segment_single():
 	def _add_up_pulse_data(self, new_pulse):
 		'''
 		add a pulse up to the current pulse in the memory.
-		new_pulse --> defailt format as in the add_pulse function
+		new_pulse --> default format as in the add_pulse function
 		'''
 		my_pulse_data_copy = self.my_pulse_data
 		# step 1: make sure both pulses have the same length
@@ -355,29 +368,53 @@ class segment_single():
 		elif self.total_time > new_pulse[-1,0]:
 			to_insert = [[my_pulse_data_copy[-1,0],new_pulse[-1,1]]]
 			new_pulse = self._insert_arrays(new_pulse, to_insert, len(new_pulse)-1)
-
-
-		# step 2: construct time indices of new array
-		times = np.unique(list(self.my_pulse_data[:,0]) + list(new_pulse[:,0]))
-
-		new_times = []
-		for time in times:
-			n_times = max(len(np.where(time == my_pulse_data_copy[:,0])[0]), len(np.where(time == new_pulse[:,0])[0]))
-			new_times.extend([time]*n_times)
-		new_times = np.array(new_times)
 		
-		my_pulse_data_tmp = np.zeros([len(new_times),2])
-		my_pulse_data_tmp[:,0] = new_times
-		new_pulse_tmp = np.zeros([len(new_times),2])
-		new_pulse_tmp[:,0] = new_times
 
-		# step 3: add missing values to tmp vars.
-		my_pulse_data_tmp = interpolate_pulse(my_pulse_data_tmp, my_pulse_data_copy)
-		new_pulse_tmp = interpolate_pulse(new_pulse_tmp, new_pulse)
+		# t2 = t()
+		# # step 2: construct time indices of new array
+		# times = np.unique(list(self.my_pulse_data[:,0]) + list(new_pulse[:,0]))
 
+		# new_times = []
+		# for time in times:
+		# 	n_times = max(len(np.where(time == my_pulse_data_copy[:,0])[0]), len(np.where(time == new_pulse[:,0])[0]))
+		# 	new_times.extend([time]*n_times)
+		# new_times = np.array(new_times)
+
+		# my_pulse_data_tmp = np.zeros([len(new_times),2], dtype=np.double)
+		# my_pulse_data_tmp[:,0] = new_times
+		# new_pulse_tmp = np.zeros([len(new_times),2], dtype=np.double)
+		# new_pulse_tmp[:,0] = new_times
+
+		# t3 = t()
+		# # # step 3: add missing values to tmp vars.
+		# # seg_func.interpolate_pulse(my_pulse_data_tmp, my_pulse_data_copy)
+		# # seg_func.interpolate_pulse(new_pulse_tmp, new_pulse)
+		
+		# t4 = t()
+		# my_pulse_data_tmp = interpolate_pulse(my_pulse_data_tmp, my_pulse_data_copy)
+		# new_pulse_tmp = interpolate_pulse(new_pulse_tmp, new_pulse)
+		
+		# t5 = t()
+
+
+		# print("generation of new time points", t3-t2)
+		
+		# t3 = t()
+		# my_pulse_data_tmp, new_pulse_tmp = interpolate_pulses(my_pulse_data_copy, new_pulse)
+		# t4 = t()
+		my_pulse_data_tmp, new_pulse_tmp = seg_func.interpolate_pulses(my_pulse_data_copy, new_pulse)
+		# t5 = t()
+		# print("interpolation of the pulses python", t4-t3)
+		# print("interpolation of the pulses cython", t5-t4)
+		# print("pulse A:")
+		# print(list(my_pulse_data_copy))
+		# print(list(my_pulse_data_tmp))
+		# print("pulse B:")
+		# print(list(new_pulse))
+		# print(list(new_pulse_tmp))
 		# step 4 contruct final pulse
-		final_pulse = np.zeros([len(new_times),2])
-		final_pulse[:,0] = new_times
+		final_pulse = np.zeros([len(my_pulse_data_tmp),2])
+		final_pulse[:,0] = my_pulse_data_tmp[:,0]
 		final_pulse[:,1] +=  my_pulse_data_tmp[:,1]  + new_pulse_tmp[:,1]
 
 		return final_pulse
@@ -403,29 +440,64 @@ class segment_single():
 			t_start: effective start time in the sequence, needed for unique segments  (phase coherent microwaves between segments)
 			pre_delay : number of points to push before the sequence
 			post delay: number of points to push after the sequence.
+
 		Returns:
 			A numpy array that contains the points for each ns
 			points is the expected lenght.
 		'''
-		t, wvf = self._generate_segment(points, t_start, pre_delay, post_delay)
+		t, wvf = self._generate_segment(pre_delay, post_delay)
 		return wvf
+
+	def get_vmax(self):
+		'''
+		calculate the maximum voltage in the current segment_single.
+
+		Mote that the function now will only look at pulse data and sin data. It will count up the maxima of both the get to a absulute maxima
+		this could be done more exacly by first rendering the whole sequence, and then searching for the maximum in there.
+		Though current one is faster. When limiting, this should be changed (though here one shuold implment some smart chaching to avaid havinf to calculate the whole waveform twice).
+		'''
+		max_pulse_data = np.max(self.my_pulse_data[:,1])
+		max_amp_sin = 0.0
+
+		for i in self.sin_data:
+			if max_amp_sin < i['amplitude']:
+				max_amp_sin = i['amplitude']
+		return max_pulse_data + max_amp_sin
+
+	def get_vmin(self):
+		'''
+		calculate the maximum voltage in the current segment_single.
+
+		Mote that the function now will only look at pulse data and sin data. It will count up the maxima of both the get to a absulute maxima
+		this could be done more exacly by first rendering the whole sequence, and then searching for the maximum in there.
+		Though current one is faster. When limiting, this should be changed (though here one shuold implment some smart chaching to avaid havinf to calculate the whole waveform twice).
+		'''
+
+		max_pulse_data = np.min(self.my_pulse_data[:,1])
+		max_amp_sin = 0
+
+		for i in self.sin_data:
+			if max_amp_sin < i['amplitude']:
+				max_amp_sin = i['amplitude']
+
+		return max_pulse_data - max_amp_sin
 
 	@property
 	def v_max(self):
-		return np.max(self.my_pulse_data[:,1])
+		return self.pulse_data_all.get_vmax()
 
 	@property
 	def v_min(self):
-		return np.min(self.my_pulse_data[:,1])
+		return self.pulse_data_all.get_vmin()
 
 	@property
 	def pulse_data_all(self):
-		if self.last_edit > self.last_render:
+		if self.last_edit > self.last_render or self._pulse_data_all is None:
 			self._pulse_data_all = copy.copy(self)
-
 			for ref_chan in self.reference_channels:
 				self._pulse_data_all += ref_chan['segment']*ref_chan['multiplication_factor']
 
+			self.last_render = self.last_edit
 		return self._pulse_data_all
 
 	@property
@@ -451,27 +523,30 @@ class segment_single():
 		times = np.linspace(-pre_delay, int(t_tot-1 + post_delay), int(t_tot + pre_delay + post_delay))
 		my_sequence = np.zeros([int(t_tot + pre_delay + post_delay)])
 
-
+		t = time.time()
 		for i in range(0,len(pulse_data_all.my_pulse_data)-1):
 			t0 = int(pulse_data_all.my_pulse_data[i,0])
 			t1 = int(pulse_data_all.my_pulse_data[i+1,0])
 			my_sequence[t0 + pre_delay: t1 + pre_delay] = np.linspace(pulse_data_all.my_pulse_data[i,1], pulse_data_all.my_pulse_data[i+1,1], t1-t0)
 		
+		t1 = time.time()
+		print("rendering pulse_data (s)",t1-t)
 		for sin_data_item in pulse_data_all.sin_data:
 			start = int(round(sin_data_item['start_time'])) + pre_delay
 			stop =  int(round(sin_data_item['stop_time'])) + pre_delay
 			amp  =  sin_data_item['amplitude']
 			freq =  sin_data_item['frequency']
 			phase = sin_data_item['phase_offset']
-
 			my_sequence[start:stop] += amp*np.sin(np.linspace(start, stop-1, stop-start)*freq*1e-9*2*np.pi + phase)
+		t2 = time.time()
+		print("sin_data (s)",t2-t1)
 
 		return times, my_sequence
 
 	def plot_segment(self):
 		x,y = self._generate_segment()
 		plt.plot(x,y)
-		plt.show()
+		# plt.show()
 
 	@staticmethod
 	def _insert_arrays(src_array, to_insert, insert_position):
@@ -506,42 +581,178 @@ class marker_single():
 	def add(self, start, stop):
 		self.my_pulse_data = np.append(self.my_pulse_data, [[start,0],[start,1],[stop,1],[stop,0]])
 
-def interpolate_pulse(new_pulse, old_pulse):
-	'''
-	interpolate value in new_pulse that are not present in the old pulse array
-	Args: 
-		new_pulse: 2D array containin the timings and amplitudes desciribing the pulse
-		old_pulse: 2D array, but from the old one
-	Return:
-		new_pulse, with interpolated values
+# def interpolate_pulse(new_pulse, old_pulse):
+# 	'''
+# 	interpolate value in new_pulse that are not present in the old pulse array
+# 	Args: 
+# 		new_pulse: 2D array containing the timings and amplitudes desciribing the pulse
+# 		old_pulse: 2D array, but from the old one
+# 	Return:
+# 		new_pulse, with interpolated values
 
-	# note this only works if old pulse and new pulse do have the same starting argument.
-	'''
-	skip_next_iteration = False
+# 	# note this only works if old pulse and new pulse do have the same starting argument.
+# 	'''
+# 	skip_next_iteration = False
 
-	for i in range(len(new_pulse)):
-		if skip_next_iteration == True:
-			skip_next_iteration = False
+# 	for i in range(len(new_pulse)):
+# 		if skip_next_iteration == True:
+# 			skip_next_iteration = False
+# 			continue
+# 		# print(old_pulse)
+# 		# idx = np.searchsorted(old_pulse[:,0], new_pulse[i,0])
+		
+# 		# times = []
+# 		# if new_pulse[i,0] == old_pulse[idx,0]:
+# 		# 	times.append(idx)
+# 		# 	if  new_pulse[i +1,0] == old_pulse[idx,0]:
+# 		# 		times.append(idx)
+# 		# print(times)
+# 		times = np.where(new_pulse[i,0] == old_pulse[:,0])[0]
+
+# 		if len(times) == 1:
+# 			new_pulse[i,1] = old_pulse[times[0],1]
+# 			if i != len(new_pulse)-1:
+# 				if new_pulse[i+1,0] == new_pulse[i,0]:
+# 					new_pulse[i+1,1] = old_pulse[times[0],1]
+# 					skip_next_iteration = True
+# 		elif len(times) == 2:
+# 			new_pulse[i:i+2,:] = old_pulse[times,:]
+# 			skip_next_iteration = True
+# 		elif new_pulse[i,0] >= old_pulse[-1,0]:
+# 			new_pulse[i,1] = new_pulse[-1,1]
+# 		else:
+# 			# prev_point = np.searchsorted(old_pulse[:,0],new_pulse[i,0]) - 1
+# 			# next_point = np.searchsorted(old_pulse[:,0],new_pulse[i,0], side='left')
+
+# 			# print(next_point)
+# 			prev_point = np.where(old_pulse[:,0] <= new_pulse[i,0])[0][-1]
+# 			next_point = np.where(old_pulse[:,0] >= new_pulse[i,0])[0][ 0]
+# 			# print("wanted", next_point)
+
+# 			interpolation = calc_value_point_in_between(old_pulse[prev_point], old_pulse[next_point], new_pulse[i,0])
+# 			new_pulse[i,1] = interpolation
+
+# 	return new_pulse
+
+# def calc_value_point_in_between(ref1, ref2, time):
+# 		'''
+# 		calculate amplitude of waveform at the certain time 
+# 		Args:
+# 			ref1 : time1 and amplitude1  (part of a pulse object)
+# 			ref2 : time2 and amplitude2 at a different time (part of a pulse object)
+# 			time : time at which you want to know to ampltitude (should be inbetween t1 and t2)
+# 		Returns:
+# 			amplitude at time 
+# 		'''
+# 		a = (ref2[1]- ref1[1])/(ref2[0]- ref1[0])
+# 		c = ref1[1] - a*ref1[0]
+
+		return a*time + c
+
+def interpolate_pulses(pulse_1, pulse_2):
+	'''
+	function that generates common times of two pulses. To be used to interpolate them
+	Args:
+		pulse_1 : np.ndarray (2d, double)
+		pulse 2 : np.ndarray (2d, double)
+	Returns:
+		pulse_1_interpolated : np.ndarray (2d, double)
+		pulse_2_interpolated : np.ndarray (2d, double)
+	'''
+
+	data_1 = pulse_1[:,1]
+	data_2 = pulse_2[:,1]
+	time_series1 = pulse_1[:,0]
+	time_series2 = pulse_2[:,0]
+	
+	new_times = [0]*(len(time_series1)+ len(time_series2))
+	new_data_1 = [0]*(len(time_series1)+ len(time_series2))
+	new_data_2 = [0]*(len(time_series1)+ len(time_series2))
+	missing_idx_1 = [0]*(len(time_series2))
+	missing_idx_2 = [0]*(len(time_series1))
+
+	k = len(new_times)
+	i = len(time_series1) -1
+	j = len(time_series2) -1
+
+	mi_1 = len(missing_idx_1) -1
+	mi_2 = len(missing_idx_2) -1
+
+	local_indice = k - 1
+
+	while (i >= 0 or j >=0):
+		k -= 1
+		if j < 0  or (i>=0 and time_series1[i] >= time_series2[j]):
+			if time_series1[i] == time_series2[j]:
+				new_data_2[k] = data_2[j]
+				j -=1
+			else:
+				missing_idx_2[mi_2] = k
+				mi_2 -= 1
+
+			new_times[local_indice] = time_series1[i]
+			new_data_1[k] = data_1[i]
+			local_indice -= 1
+			i -= 1
+		else:
+			new_times[local_indice] = time_series2[j]
+			local_indice -= 1
+			new_data_2[k] = data_2[j]
+			missing_idx_1[mi_1] = k
+			mi_1 -= 1
+			j -= 1
+
+	pulse_1_interpolated = np.empty([len(new_times)-local_indice -1, 2], dtype = np.double)
+	pulse_2_interpolated = np.empty([len(new_times)-local_indice -1, 2], dtype = np.double)
+
+	pulse_1_interpolated[:,0] = new_times[local_indice+1:]
+	pulse_1_interpolated[:,1] = new_data_1[local_indice+1:]
+
+	pulse_2_interpolated[:,0] = new_times[local_indice+1:]
+	pulse_2_interpolated[:,1] = new_data_2[local_indice+1:]
+
+	add_missing_values(pulse_1_interpolated, np.array(missing_idx_1[mi_1+1:]) - mi_1 - 1)
+	add_missing_values(pulse_2_interpolated, np.array(missing_idx_2[mi_1+1:]) - mi_2 - 1)
+	
+	return pulse_1_interpolated, pulse_2_interpolated
+
+
+def add_missing_values(pulse, indexes):
+	'''
+	Adds missing values to a pulse at the indexes given.
+	Args:
+		pulse (np.ndarray[dim=2])
+		indexes ([:]) : index values that need to be filled in.
+	Returns:
+		None
+	'''
+	for i in range(len(indexes)):
+		if indexes[i] == 0:
+			pulse[0,1] = 0
 			continue
 
-		times = np.where(new_pulse[i,0] == old_pulse[:,0])[0]
-		if len(times) == 1:
-			new_pulse[i,1] = old_pulse[times[0],1]
-			if i != len(new_pulse)-1:
-				if new_pulse[i+1,0] == new_pulse[i,0]:
-					new_pulse[i+1,1] = old_pulse[times[0],1]
-					skip_next_iteration = True
-		elif len(times) == 2:
-			new_pulse[i:i+2,:] = old_pulse[times,:]
-			skip_next_iteration = True
-		else:
-			prev_point = np.where(old_pulse[:,0] <= new_pulse[i,0])[0][-1]
-			next_point = np.where(old_pulse[:,0] >= new_pulse[i,0])[0][ 0]
+		next_idx = get_next_value_idx(pulse, indexes, i)
+		pulse[indexes[i], 1] = calc_value_point_in_between(pulse[indexes[i]-1], pulse[next_idx], pulse[indexes[i], 0])
 
-			interpolation = calc_value_point_in_between(old_pulse[prev_point], old_pulse[next_point], new_pulse[i,0])
-			new_pulse[i,1] = interpolation
 
-	return new_pulse
+def get_next_value_idx(pulse, index, i):
+	idx = 0
+	value_found = False
+	if i == len(index) -1 :
+		return index[i]+1
+
+	while(value_found != True):
+		if i == len(index)-1:
+			idx = index[i]+1
+			value_found = True
+
+		elif index[i] != index[i+1] -1 :
+			idx = index[i]+1
+			value_found = True
+		i+=1
+		
+	return idx
+
 
 def calc_value_point_in_between(ref1, ref2, time):
 		'''
@@ -582,19 +793,33 @@ if __name__ == '__main__':
 									 'virtual_gate_matrix' : np.eye(11)}
 	awg_virtual_channels['virtual_gate_matrix'][0,1] = 0.1
 	awg_virtual_channels['virtual_gate_matrix'][0,2] = 0.1
+	t0 = time.time()
 	a = segment_container('test', awg_channels, awg_virtual_channels)
 
-	print(a.P1.reference_channels)
-	print(a.P1.last_edit)
-	print(a.P1.pulse_data_all)
-	# a.vP1.add_block(1,10,50)
-	# a.vP2.add_block(20,30,50)
-	a.vP3.add_block(10,60,50)
-	a.vP3.add_sin(20,500, 1, 1e7)
-	a.vP3.repeat(10)
-	print(a.P1.last_edit)
+	# print(a.P1.reference_channels)
+	# print(a.P1.last_edit)
+	# print(a.P1.pulse_data_all)
+	# a.P1.add_block(15,50,50)
+	# a.P1.add_block(20,30,50)
+	# for i in range(500):
+	# 	a.P1.add_block(10+ i*50,200+ i*50,50)
+	# t2 = time.time()
+	# print("constructinng waveform : ", t2-t0)
+	a.P1.wait(5000)
+
+	# a.vP3.add_sin(20,2000, 1, 1e7)
+	# a.P1.repeat(1)
+	# print(a.P1.v_max)
+
+	# print(a.P1.v_max)
+	# a.vP3.repeat(5)
+	# print(a.P1.v_min)
 
 	# print(a.P1.reference_channels[1]['name'])
 	# print(a.P1.reference_channels[1]['segment'].my_pulse_data)
-
-	a.P1.plot_segment()
+	# a,b = a.P1._generate_segment()
+	# print(len(b))
+	# t1 = time.time()
+	# print("construct_elements", t1 - t0)
+	a.P1._generate_segment()
+	plt.show()
