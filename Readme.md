@@ -1,17 +1,17 @@
 # Me wrinting a minimalistic readme
 
-This is a simple pulse library that is made to work together with the Keysight AWG. The main motivation for this library was to have a very easy and strucutred way to make waveforms. Als attention is given to performance so the constrution of the waveform should always be faster then upload time (challaging if you upload goes via pcie). Note that it is not the intention to support other systems with this project. 
+This is a simple pulse library that is made to work together with the Keysight AWG. The main motivation for this library was to have a very easy and structured way to make waveforms. Also attention is given to performance so the constrution of the waveform should always be faster then upload time (this was challaging if you upload goes via pcie + if you use python). Performance critical parts are written in cython. Note that it is not the intention to support other AWG systems with this project (though the pulse builder should be genereric).
 
 Features now include:
 * Native support for virtual gates
 * support for any pulse and sine waves (phase coherent atm)
 * Sequencing
-* delay in aeg lines.
+* delay in awg lines.
 
 Todo list:
 * Fully multidimensionlisation of the segment object (with matrix operators)
 * Memory segmentation on the keysight awg. This will be needed if you want to upload during an experiment.
-* faster add function for block funtion (now performace issues of more then ~2000 elements in a sequence (not nice to call a lot)).
+* Faster add function for block funtion (now performace issues if more than ~2000 elements in a sequence (not nice to call a lot)).
 * advanced (integrated) looping methods -- decorator approach + looping class. Support for calibarion arguments? -- this should be enegnneerd well.
 * more base functions
 	* e.g. (IQ toolkit and IQ virtual channels) -- IF IQ is key for high performance (for IQ offset).
@@ -63,3 +63,80 @@ Virtual gates are also supported. This can simply be done by definig:
 ```
 The virtual gates are simply acceible by calling seg.virtualchannelname
 Note that thresolds are chosen automatically. Memory menagment is also taken care of for you  :)
+
+
+Some examples of commonly made pulses:
+* 1D scan
+```python
+seg  = p.mk_segment('1D_scan')
+#lets sweep the virtual plunger,
+n_points = 100
+swing = 1000 #mV
+period = 1000 #ns
+
+v_start =swing/2
+step = swing/npoints
+
+for i in range(n_points):
+	seg.vP1.add_block(i*period, (i+1)period, v_start + i*step)
+#done.
+```
+* 2D scan
+```python
+seg  = p.mk_segment('2D_scan')
+#lets sweep the virtual plunger 1 versus virtual plunger 2,
+n_points1 = 100
+n_points2 = 100
+
+swing1 = 1000 #mV
+swing2 = 1000 #mV
+
+period = 1000 #ns
+period1 = period #ns
+period2 = period*n_points1 #ns
+
+
+v_start1 =swing1/2
+step1 = swing1/npoints1
+v_start1 =swing1/2
+step1 = swing1/npoints1
+
+for i in range(n_points1):
+	seg.vP1.add_block(i*period1, (i+1)period1, v_start1 + i*step1)
+seg.repeat(n_points2)
+for i in range(n_points2):
+	seg.vP1.add_block(i*period2, (i+1)period2, v_start2 + i*step2)
+#done.
+```
+* 2D FM scan
+```python
+lets build on top of the perv sample. let att the modulation on the real plungers (1 and 2) and barrier (2).
+seg.P1.add_sin(10e6, ...)
+...
+
+```
+* Ramsey experiment
+```python
+seg  = p.mk_segment('Ramsey')
+
+# do pi pulse
+
+# wait -- use a loop object (has access to default numpy operators if it is numerical
+seg.IQ.wait( lp.linspace(5,20e3, 500) )
+# reset time
+
+# do pi pulse
+```
+* Rabi experiment (power vs frequency of the pulse)
+```python
+seg  = p.mk_segment('RABI')
+
+t0 = 0
+t1 = 50
+freq = lp.linspace(1e9,1.1e9, 500, axis= 0)
+amp = lp.linspace(5,20e3, 500, axis= 1)
+phase = 0
+seg.IQ.sin(t0,t1,freq, amp, phase)
+```
+
+# working with calibarated elemements.
