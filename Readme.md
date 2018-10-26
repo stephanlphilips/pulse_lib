@@ -64,6 +64,13 @@ Virtual gates are also supported. This can simply be done by definig:
 The virtual gates are simply acceible by calling seg.virtualchannelname
 Note that thresolds are chosen automatically. Memory menagment is also taken care of for you  :)
 
+There is also a virtual gate the can be defined for IQ channnels. This takes automatically care of IQ math for you (makes it super easy to work on IF. 
+```python
+	awg_IQ_channels = {'vIQ_channels' : ['IQ1','IQ2']
+			'rIQ_channels'	[['P1','P2']['P3','P4']],
+			'LO_freq' :[qcodes_param/float]
+			}
+```
 
 Some examples of commonly made pulses:
 * 1D scan
