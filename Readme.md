@@ -130,7 +130,7 @@ seg  = p.mk_segment('Ramsey')
 seg.IQ.add_sin(0,100e-9,freq = 2e9, amp = 10, phase = 0)
 # wait -- use a loop object (has access to default numpy operators if it is numerical)
 times = lp.linspace(5,20e3, 500, axis=0, name="time", unit="ns")
-seg.IQ.wait(  )
+seg.IQ.wait(times)
 # reset time
 seg.IQ.reset_time()
 # do pi/2 pulse
