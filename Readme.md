@@ -122,28 +122,32 @@ seg.P1.add_sin(10e6, ...)
 ...
 
 ```
-* Ramsey experiment
+* Ramsey experiment (using loops)
 ```python
 seg  = p.mk_segment('Ramsey')
 
-# do pi pulse
-
-# wait -- use a loop object (has access to default numpy operators if it is numerical
-seg.IQ.wait( lp.linspace(5,20e3, 500) )
+# do pi/2 pulse
+seg.IQ.add_sin(0,100e-9,freq = 2e9, amp = 10, phase = 0)
+# wait -- use a loop object (has access to default numpy operators if it is numerical)
+times = lp.linspace(5,20e3, 500, axis=0, name="time", unit="ns")
+seg.IQ.wait(  )
 # reset time
-
-# do pi pulse
+seg.IQ.reset_time()
+# do pi/2 pulse
+seg.IQ.add_sin(0,100e-9,freq = 2e9, amp = 10, phase = 0)
 ```
-* Rabi experiment (power vs frequency of the pulse)
+One can see that here a call to a single loopobject it made. We will be sweeping from 50ns to 20us. This sweep axis is 0 (first axis). The default is always a new axis. You only need to explicitely specify it if you want to parameters to be coupled (e.g. swept on the same axis). The name is optional and can be used for plotting, same for the unit.
+
+* Rabi experiment (power vs frequency of the pulse): Good example of a two dimensioal sweep
 ```python
 seg  = p.mk_segment('RABI')
 
 t0 = 0
 t1 = 50
-freq = lp.linspace(1e9,1.1e9, 500, axis= 0)
-amp = lp.linspace(5,20e3, 500, axis= 1)
+freq = lp.linspace(1e9,1.1e9, 500, axis= 0, name="frequency", unit="Hz")
+amp = lp.linspace(5,20e3, 500, axis= 1, name="VoltageIQ", unit="a.u.")
 phase = 0
-seg.IQ.sin(t0,t1,freq, amp, phase)
+seg.IQ.add_sin(t0,t1,freq, amp, phase)
 ```
 
 # working with calibarated elemements.
