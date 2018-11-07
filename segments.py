@@ -16,7 +16,7 @@ class segment_container():
 	Class returns vmin/vmax data to awg object
 	Class returns upload data as a int16 array to awg object.
     '''
-	def __init__(self, name, channels, virtual_gates = None):
+	def __init__(self, name, channels, virtual_gates = None, IQ_channels=None):
 		self.channels = channels
 		self.virtual_gates = virtual_gates
 		self.name = name
@@ -368,51 +368,9 @@ class segment_single():
 		elif self.total_time > new_pulse[-1,0]:
 			to_insert = [[my_pulse_data_copy[-1,0],new_pulse[-1,1]]]
 			new_pulse = self._insert_arrays(new_pulse, to_insert, len(new_pulse)-1)
-		
-
-		# t2 = t()
-		# # step 2: construct time indices of new array
-		# times = np.unique(list(self.my_pulse_data[:,0]) + list(new_pulse[:,0]))
-
-		# new_times = []
-		# for time in times:
-		# 	n_times = max(len(np.where(time == my_pulse_data_copy[:,0])[0]), len(np.where(time == new_pulse[:,0])[0]))
-		# 	new_times.extend([time]*n_times)
-		# new_times = np.array(new_times)
-
-		# my_pulse_data_tmp = np.zeros([len(new_times),2], dtype=np.double)
-		# my_pulse_data_tmp[:,0] = new_times
-		# new_pulse_tmp = np.zeros([len(new_times),2], dtype=np.double)
-		# new_pulse_tmp[:,0] = new_times
-
-		# t3 = t()
-		# # # step 3: add missing values to tmp vars.
-		# # seg_func.interpolate_pulse(my_pulse_data_tmp, my_pulse_data_copy)
-		# # seg_func.interpolate_pulse(new_pulse_tmp, new_pulse)
-		
-		# t4 = t()
-		# my_pulse_data_tmp = interpolate_pulse(my_pulse_data_tmp, my_pulse_data_copy)
-		# new_pulse_tmp = interpolate_pulse(new_pulse_tmp, new_pulse)
-		
-		# t5 = t()
-
-
-		# print("generation of new time points", t3-t2)
-		
-		# t3 = t()
-		# my_pulse_data_tmp, new_pulse_tmp = interpolate_pulses(my_pulse_data_copy, new_pulse)
-		# t4 = t()
+			
 		my_pulse_data_tmp, new_pulse_tmp = seg_func.interpolate_pulses(my_pulse_data_copy, new_pulse)
-		# t5 = t()
-		# print("interpolation of the pulses python", t4-t3)
-		# print("interpolation of the pulses cython", t5-t4)
-		# print("pulse A:")
-		# print(list(my_pulse_data_copy))
-		# print(list(my_pulse_data_tmp))
-		# print("pulse B:")
-		# print(list(new_pulse))
-		# print(list(new_pulse_tmp))
-		# step 4 contruct final pulse
+
 		final_pulse = np.zeros([len(my_pulse_data_tmp),2])
 		final_pulse[:,0] = my_pulse_data_tmp[:,0]
 		final_pulse[:,1] +=  my_pulse_data_tmp[:,1]  + new_pulse_tmp[:,1]
@@ -430,8 +388,6 @@ class segment_single():
 			total_time = self.my_pulse_data[-1,0]
 		return total_time
 
-	def get_total_time(self, segment):
-		return self.my_pulse_data[-1,0]
 
 	def get_segment(self, points= None, t_start = 0, pre_delay = 0, post_delay = 0):
 		'''
