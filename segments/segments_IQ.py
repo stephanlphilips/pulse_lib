@@ -18,57 +18,10 @@ As data format we will use a class to store
 '''
 import segments_base as seg_base
 import numpy as np
-class linspace():
-	"""docstring for linspace"""
-	def __init__(self, start, stop, n_steps = 50, name = "undefined", unit = 'a.u.', axis = -1):
-		self.data = np.linspace(start, stop, n_steps)
-		self.name = name
-		self.unit = unit
-		self.axis = axis
-	def __len__(self):
-		return len(self.data)
+from data_handling_functions import loop_controller, IQ_data, linspace
 
-def loop_controller(func):
-	'''
-	Checks if there are there are parameters given that are loopable.
 
-	If loop:
-		* then check how many new loop parameters on which axis
-		* extend data format to the right shape (simple python list used).
-		* loop over the data and add called function
 
-	if no loop, just apply func on all data (easy)
-	'''
-	def wrapper(*args, **kwargs):
-		obj = args[0]
-
-		loop_info_args = []
-		loop_info_kwargs = []
-
-		for i in range(1,len(args)):
-			if type(args[i]) == linspace : 
-				info = {
-				'nth_arg': i,
-				'name': args[i].name,
-				'len': len(args[i]),
-				'axis': args[i].axis,
-				'data' : args[i].data}
-				loop_info_args.append(info)
-
-		for i in range(1,len(kwargs)):
-			if type(kwargs.values()[i]) == linspace : 
-				info = {
-				'nth_arg': i,
-				'name': kwargs.values()[i].name,
-				'len': len(kwargs.values()[i]),
-				'axis': kwargs.values()[i].axis,
-				'data' : kwargs.values()[i].data}
-				loop_info_kwargs.append(info)
-		
-		
-		print(loop_info_args, loop_info_kwargs)
-
-	return wrapper
 
 class segment_single_IQ(seg_base.segment_single):
 	"""Standard single segment """
@@ -78,8 +31,8 @@ class segment_single_IQ(seg_base.segment_single):
 		'''
 
 		super(seg_base.segment_single, self).__init__()
-		self.data = IQ_data(LO)
-		self.LO = LO
+		self.data = np.empty([1], dtype=object)
+		self.data[0] = IQ_data(LO)
 	
 		self.ndim = 0
 		self.shape = []
@@ -105,7 +58,7 @@ class segment_single_IQ(seg_base.segment_single):
 			'amplitude' : amp,
 			'phase' : phase,
 			}
-		self.IQ_data.add_simple_data(data)
+		self.data_tmp.add_simple_data(data)
 
 	def add_chirp(self, t0, t1, f0, f1, amp):
 		'''
@@ -125,7 +78,7 @@ class segment_single_IQ(seg_base.segment_single):
 			'frequency2' : f1,
 			'amplitude' : amp,
 			}
-		self.IQ_data.add_simple_data(data)
+		self.data_tmp.add_simple_data(data)
 
 	def add_AM_sin(self, t0, t1, freq, amp, phase, mod=None):
 		'''
@@ -146,7 +99,7 @@ class segment_single_IQ(seg_base.segment_single):
 			'phase' : phase,
 			'mod' : mod
 			}
-		self.IQ_data.add_simple_data(data)
+		self.data_tmp.add_simple_data(data)
 
 	def add_FM_sin(self, t0, t1, freq, amp, phase, mod=None):
 		'''
@@ -167,7 +120,7 @@ class segment_single_IQ(seg_base.segment_single):
 			'phase' : phase,
 			'mod' : mod
 			}
-		self.IQ_data.add_simple_data(data)
+		self.data_tmp.add_simple_data(data)
 
 	def add_PM_sin(self, t0, t1, freq, amp, phase, mod=None):
 		'''
@@ -189,7 +142,7 @@ class segment_single_IQ(seg_base.segment_single):
 			'mod' : mod
 			}
 
-		self.IQ_data.add_simple_data(data)
+		self.data_tmp.add_simple_data(data)
 
 	def add_numpy_IQ(self,I, Q):
 		raise NotImplemented
@@ -199,26 +152,3 @@ class segment_single_IQ(seg_base.segment_single):
 
 	def get_Q(self):
 		return
-
-class IQ_data():
-	"""class that manages the data used for generating IQ data"""
-	def __init__(self, LO):
-		self.LO = LO
-		self.simple_IQ_data = []
-		self.MOD_IQ_data = []
-		self.numpy_IQ_data = []
-
-	def add_simple_data(self, input_dict):
-		self.simple_IQ_data.append(input_dict)
-	
-	def add_mod_data (self, input_dict):
-		self.simple_IQ_data.append(input_dict)
-
-	def add_numpy_IQ(self, input_dict):
-		self.numpy_IQ_data.append(input_dict)
-
-
-
-
-t = segment_single_IQ(1e9)
-t.add_sin(0,10e-9, linspace(0,100, name="Freq", axis=1), linspace(0,100, name="Amp", axis=0), 0)

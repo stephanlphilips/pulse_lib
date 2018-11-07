@@ -1,7 +1,8 @@
 import numpy as np
 import datetime
 
-import data_handling_functions as DHF
+from data_handling_functions import loop_controller, linspace
+from data_classes import pulse_data
 import copy
 
 def last_edited(f):
@@ -27,7 +28,8 @@ class segment_single():
 		
 		# store data in numpy looking object for easy operator access.
 		self.data = np.empty([1], dtype=object)
-		self.data[0] = DHF.pulse_data()
+		self.data[0] = pulse_data()
+
 
 		self.last = None
 		self.unique = False
@@ -50,7 +52,8 @@ class segment_single():
 		virtual_segment = {'name': channel_name, 'segment': segment_data, 'multiplication_factor': multiplication_factor}
 		self.reference_channels.append(virtual_segment)
 
-	@last_edited
+	# @last_edited
+	@loop_controller
 	def add_pulse(self,array):
 		'''
 		Add manually a pulse.
@@ -68,10 +71,11 @@ class segment_single():
 		arr = np.asarray(array)
 		arr[1:,0] = arr[1:,0] + self.starttime 
 
-		self.data.add_pulse_data(arr)
+		self.data_tmp.add_pulse_data(arr)
 
 
-	@last_edited
+	# @last_edited
+	@loop_controller
 	def add_block(self,start,stop, amplitude):
 		'''
 		add a block pulse on top of the existing pulse.
@@ -80,25 +84,28 @@ class segment_single():
 			pulse = np.array([[0,0], [start + self.starttime, 0], [start + self.starttime,amplitude], [stop + self.starttime, amplitude], [stop + self.starttime, 0]], dtype=np.double)
 		else:
 			pulse = np.array([[start + self.starttime, 0], [start + self.starttime,amplitude], [stop + self.starttime, amplitude], [stop + self.starttime, 0]], dtype=np.double)
-		self.data.add_pulse_data(pulse)
+
+		self.data_tmp.add_pulse_data(pulse)
 
 	@last_edited
+	@loop_controller
 	def wait(self, wait):
 		'''
 		wait for x ns after the lastest wave element that was programmed.
 		'''
-		amp_0 = self.data.my_pulse_data[-1,1]
-		t0 = self.data.total_time
+		amp_0 = self.data_tmp.my_pulse_data[-1,1]
+		t0 = self.data_tmp.total_time
 		pulse = [[wait+t0, amp_0]]
 		self.add_pulse(pulse)
 
 	@last_edited
+	@loop_controller
 	def add_sin(self, start, stop, amp, freq, phase_offset=0):
 		'''
 		add a sinus to the current segment, parameters should be self exlenatory.
 		The pulse will have a relative phase (as this is needed to all IQ work).
 		'''
-		self.data.add_sin_data(
+		self.data_tmp.add_sin_data(
 			{'start_time' : start + self.starttime,
 			'stop_time' : stop + self.starttime,
 			'amplitude' : amp,
@@ -106,6 +113,7 @@ class segment_single():
 			'phase_offset' : phase_offset})
 
 	@last_edited
+	@loop_controller
 	def repeat(self, number):
 		'''
 		repeat a waveform n times.
@@ -114,9 +122,9 @@ class segment_single():
 			return
 
 		# if repeating elemenets with double points in the start/end, we don't want them in the segement, so we will strip the first and add them later (back in the big sequence).
-		my_pulse_data_copy = copy.copy(self.data.my_pulse_data)
-		if my_pulse_data_copy[-1,0] < self.total_time:
-			my_pulse_data_copy = np.append(my_pulse_data_copy, [[self.total_time, my_pulse_data_copy[-1,1]]], axis=0)
+		my_pulse_data_copy = copy.copy(self.data_tmp.my_pulse_data)
+		if my_pulse_data_copy[-1,0] < self.data_tmp.total_time:
+			my_pulse_data_copy = np.append(my_pulse_data_copy, [[self.data_tmp.total_time, my_pulse_data_copy[-1,1]]], axis=0)
 
 		front_pulse_corr = None
 		back_pulse_corr = None
@@ -134,7 +142,7 @@ class segment_single():
 		pulse_data = np.zeros([my_pulse_data_copy.shape[0]*number, my_pulse_data_copy.shape[1]])
 
 		sin_data = []
-		total_time = self.total_time
+		total_time = self.data_tmp.total_time
 		indices = 0
 
 		for i in range(number):
@@ -144,7 +152,7 @@ class segment_single():
 			pulse_data[indices:indices + new_pulse.shape[0]] = new_pulse
 			indices += new_pulse.shape[0]
 
-			for sin_data_item in self.data.sin_data:
+			for sin_data_item in self.data_tmp.sin_data:
 				sin_data_item_new = copy.copy(sin_data_item)
 				sin_data_item_new['start_time'] += total_time*i
 				sin_data_item_new['stop_time'] += total_time*i
@@ -163,10 +171,11 @@ class segment_single():
 			corr_pulse[-1] = back_pulse_corr
 			pulse_data = corr_pulse
 
-		self.data.my_pulse_data = pulse_data
-		self.data.sin_data = sin_data
+		self.data_tmp.my_pulse_data = pulse_data
+		self.data_tmp.sin_data = sin_data
 
 	@last_edited
+	@loop_controller
 	def add_np(self,start, array):
 		raise NotImplemented
 
@@ -227,27 +236,7 @@ class segment_single():
 	def __truediv__(self, other):
 		raise NotImplemented
 
-	def _add_up_pulse_data(self, new_pulse):
-		'''
-		add a pulse up to the current pulse in the memory.
-		new_pulse --> default format as in the add_pulse function
-		'''
-		my_pulse_data_copy = self.my_pulse_data
-		# step 1: make sure both pulses have the same length
-		if self.total_time < new_pulse[-1,0]:
-			to_insert = [[new_pulse[-1,0],my_pulse_data_copy[-1,1]]]
-			my_pulse_data_copy = self._insert_arrays(my_pulse_data_copy, to_insert, len(my_pulse_data_copy)-1)
-		elif self.total_time > new_pulse[-1,0]:
-			to_insert = [[my_pulse_data_copy[-1,0],new_pulse[-1,1]]]
-			new_pulse = self._insert_arrays(new_pulse, to_insert, len(new_pulse)-1)
-		
-		my_pulse_data_tmp, new_pulse_tmp = seg_func.interpolate_pulses(my_pulse_data_copy, new_pulse)
 
-		final_pulse = np.zeros([len(my_pulse_data_tmp),2])
-		final_pulse[:,0] = my_pulse_data_tmp[:,0]
-		final_pulse[:,1] +=  my_pulse_data_tmp[:,1]  + new_pulse_tmp[:,1]
-
-		return final_pulse
 
 	@property
 	def total_time(self,):
@@ -330,36 +319,14 @@ class segment_single():
 		plt.plot(x,y)
 		# plt.show()
 
-	@staticmethod
-	def _insert_arrays(src_array, to_insert, insert_position):
-		'''
-		insert pulse points in array
-		Args:
-			src_array : 2D pulse table
-			to_insert : 2D pulse table to be inserted in the source
-			insert_position: after which point the insertion needs to happen
-		'''
-
-		# calcute how long the piece is you want to insert
-		dim_insert = len(to_insert)
-		insert_position += 1
-
-		new_arr = np.zeros([src_array.shape[0]+dim_insert, src_array.shape[1]])
-		
-		new_arr[:insert_position, :] = src_array[:insert_position, :]
-		new_arr[insert_position:(insert_position + dim_insert), :] = to_insert
-		new_arr[(insert_position + dim_insert):] = src_array[insert_position :]
-
-		return new_arr
-
-
 			
 
 # seg = segment_single()
-# seg.add_block(0,10,2)
+# seg.add_block(0,linspace(2,20,18, axis=1),2)
 # seg.wait(20)
 # seg.add_sin(0,20,1,1e9,0)
 # seg.repeat(5)
 
-# print(seg.data.my_pulse_data)
-# print(seg.data.sin_data)
+# print(seg.data.shape)
+# print(seg.data[0,0].my_pulse_data)
+# print(seg.data[0,0].sin_data)

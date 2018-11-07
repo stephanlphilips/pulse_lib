@@ -110,11 +110,17 @@ class pulse_data():
 
 		return new_arr
 
+	def __copy__(self):
+		my_copy = pulse_data()
+		my_copy.my_pulse_data = copy.copy(self.my_pulse_data)
+		my_copy.sin_data = copy.copy(self.sin_data)
+		my_copy.numpy_data = copy.copy(self.numpy_data)
+		return my_copy
 
-class IQ_data(pulse_data):
-	"""class that manages the data used for generating IQ data"""
+class IQ_data():
+	"""class that manages the data used for generating IQ data
+	"""
 	def __init__(self, LO):
-		super(pulse_data, self).__init__()
 		self.LO = LO
 		self.simple_IQ_data = []
 		self.MOD_IQ_data = []
@@ -129,6 +135,12 @@ class IQ_data(pulse_data):
 	def add_numpy_IQ(self, input_dict):
 		self.numpy_IQ_data.append(input_dict)
 
+	def __copy__(self,):
+		my_copy = IQ_data(self.LO)
+		my_copy.simple_IQ_data = copy.copy(self.simple_IQ_data)
+		my_copy.MOD_IQ_data = copy.copy(self.MOD_IQ_data)
+		my_copy.numpy_IQ_data = copy.copy(self.numpy_IQ_data)
+		return my_copy
 
 def update_dimension(data, new_dimension_info):
 	'''
@@ -140,13 +152,14 @@ def update_dimension(data, new_dimension_info):
 	Returns:
 		data (np.ndarray[dtype = object]) : same as input data, but with new_dimension_info.
 	'''
+
 	new_dimension_info = np.array(new_dimension_info)
 
 	for i in range(len(new_dimension_info)):
 		if data.ndim < i+1:
-			data = _add_dimensions(data, new_dimension_info[-i+1:])
+			data = _add_dimensions(data, new_dimension_info[-i-1:])
 
-		if list(data.shape)[-i -1] != new_dimension_info[-i -1]:
+		elif list(data.shape)[-i -1] != new_dimension_info[-i -1]:
 			shape = list(data.shape)
 			shape[-i-1] = new_dimension_info[-i-1]
 			data = _extend_dimensions(data, shape)
@@ -163,7 +176,7 @@ def _add_dimensions(data, shape):
 	"""
 	new_data = np.empty(np.array(shape), dtype=object)
 	for i in range(shape[0]):
-		new_data[i] = copy.deepcopy(data)
+		new_data[i] = cpy_numpy_shallow(data)
 	return new_data
 
 def _extend_dimensions(data, shape):
@@ -182,15 +195,201 @@ def _extend_dimensions(data, shape):
 		if data.shape[i] != shape[i]:
 			if i == 0:
 				for j in range(len(new_data)):
-					new_data[j] = copy.deepcopy(data)
+					new_data[j] = cpy_numpy_shallow(data)
 			else:
 				new_data = new_data.swapaxes(i, 0)
 				data = data.swapaxes(i, 0)
 
 				for j in range(len(new_data)):
-					new_data[j] = copy.deepcopy(data)
+					new_data[j] = cpy_numpy_shallow(data)
 				
 				new_data = new_data.swapaxes(i, 0)
 
 
 	return new_data
+
+def cpy_numpy_shallow(data):
+	'''
+	Makes a shallow copy of an numpy object array.
+	
+	Args:
+		data : data element
+	'''
+	if type(data) != np.ndarray:
+		return copy(data)
+
+	if data.shape == (1,):
+		return copy.copy(data[0])
+
+	shape = data.shape
+	data_flat = data.flatten()
+	new_arr = np.empty(data_flat.shape, dtype=object)
+
+	for i in range(len(new_arr)):
+		new_arr[i] = copy.copy(data_flat[i])
+
+	return new_data
+
+def cpy_numpy_shallow(data):
+	'''
+	Makes a shallow copy of an numpy object array.
+	
+	Args:
+		data : data element
+	'''
+	if type(data) != np.ndarray:
+		return copy(data)
+
+	if data.shape == (1,):
+		return copy.copy(data[0])
+
+	shape = data.shape
+	data_flat = data.flatten()
+	new_arr = np.empty(data_flat.shape, dtype=object)
+
+	for i in range(len(new_arr)):
+		new_arr[i] = copy.copy(data_flat[i])
+
+	new_arr = new_arr.reshape(shape)
+	return new_arr
+
+def loop_controller(func):
+	'''
+	Checks if there are there are parameters given that are loopable.
+
+	If loop:
+		* then check how many new loop parameters on which axis
+		* extend data format to the right shape (simple python list used).
+		* loop over the data and add called function
+
+	if no loop, just apply func on all data (easy)
+	'''
+	def wrapper(*args, **kwargs):
+		obj = args[0]
+
+		loop_info_args = []
+		loop_info_kwargs = []
+
+		for i in range(1,len(args)):
+			if type(args[i]) == linspace : 
+				info = {
+				'nth_arg': i,
+				'name': args[i].name,
+				'len': len(args[i]),
+				'axis': args[i].axis,
+				'data' : args[i].data}
+				loop_info_args.append(info)
+
+		for key in kwargs.keys():
+			if type(kwargs[key]) == linspace : 
+				info = {
+				'nth_arg': key,
+				'name': kwargs[key].name,
+				'len': len(kwargs[key]),
+				'axis': kwargs[key].axis,
+				'data' : kwargs[key].data}
+				loop_info_kwargs.append(info)
+		
+		
+		for lp in loop_info_args:
+			new_dim = get_new_dim_loop(obj.data.shape, lp)
+			obj.data = update_dimension(obj.data, new_dim)
+		
+		for lp in loop_info_kwargs:
+			new_dim = get_new_dim_loop(obj.data.shape, lp)
+			obj.data = update_dimension(obj.data, new_dim)
+
+		loop_over_data(func, obj.data, args, loop_info_args, kwargs, loop_info_kwargs)
+
+	return wrapper
+
+def loop_over_data(func, data, args, args_info, kwargs, kwargs_info):
+	'''
+	recursive function to apply the 
+
+	Args:
+		func : function to execute
+		data : data of the segment
+		args: arugments that are provided
+		args_info : argument info is provided (e.g. axis updates)
+		kwargs : kwargs provided
+		kwarfs_info : same as args_info
+		loop_dimension
+
+
+	Returns:
+		None
+	'''
+	shape = list(data.shape)
+	n_dim = len(shape)
+
+	# copy the input --> we will fill in the arrays
+	args_cpy = list(copy.copy(args))
+	kwargs_cpy = copy.copy(kwargs)
+
+	for i in range(shape[0]):
+		for arg in args_info:
+			if arg['axis'] == n_dim-1:
+				args_cpy[arg['nth_arg']] = args[arg['nth_arg']].data[i]
+		for kwarg in kwargs_info:
+			if arg['axis'] == n_dim-1:
+				kwargs_cpy[kwargs_info['nth_arg']] = kwargs[kwargs_info['nth_arg']].data[i]
+
+		if n_dim == 1:
+			# we are at the lowest level of the loop.
+			args_cpy[0].data_tmp = data[i]
+			func(*args_cpy, **kwargs_cpy)
+		else:
+			# clean up args, kwards
+			loop_over_data(func, data[i], args_cpy, args_info, kwargs_cpy, kwargs_info)
+
+def get_new_dim_loop(current_dim, loop_spec):
+	'''
+	function to get new dimensions from a loop spec.
+	
+	Args:
+		current_dim [tuple/array] : current dimensions of the data object 
+		loop_spec [dict] : format of the loop
+	
+	Returns:
+		new_dim [array] : new dimensions of the data obeject when one would include the loop spec
+	'''
+	current_dim = list(current_dim)
+	new_dim = []
+	if loop_spec["axis"] == -1:
+		new_dim = [loop_spec["len"]] + current_dim
+		# assign new axis.
+		loop_spec["axis"] = len(new_dim) - 1
+	else:
+		if loop_spec["axis"] >= len(current_dim):
+			new_dim = [1]*(loop_spec["axis"]+1)
+			for i in range(len(current_dim)):
+				new_dim[loop_spec["axis"]-len(current_dim)+1 + i] = current_dim[i]
+			new_dim[0] = loop_spec["len"]
+		else:
+			if current_dim[-1-loop_spec["axis"]] == loop_spec["len"]:
+				new_dim = current_dim
+			elif current_dim[-1-loop_spec["axis"]] == 1:
+				new_dim = current_dim
+				new_dim[-1-loop_spec["axis"]] = loop_spec['len']
+			else:
+				raise ValueError("Dimensions on loop axis {} not compatible with previous loops\n\
+					(current dimensions is {}, wanted is {}).\n\
+					Please change loop axis or update the length.".format(loop_spec["axis"],
+					current_dim[loop_spec["axis"]], loop_spec["len"]))
+
+	return new_dim
+
+def update_labels(data_object, loop_spec):
+	pass
+
+class linspace():
+	"""docstring for linspace"""
+	def __init__(self, start, stop, n_steps = 50, name = "undefined", unit = 'a.u.', axis = -1):
+		self.data = np.linspace(start, stop, n_steps)
+		self.name = name
+		self.unit = unit
+		self.axis = axis
+	def __len__(self):
+		return len(self.data)
+
