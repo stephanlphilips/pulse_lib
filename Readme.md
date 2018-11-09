@@ -43,7 +43,8 @@ To generate virtual channels for IQ signals, you can add the following code:
 ```python
 	awg_IQ_channels = {'vIQ_channels' : ['IQ1','IQ2'],
 			'rIQ_channels'	[['I1','Q1']['I2','Q2']],
-			'LO_freq' :[qcodes_param/float]
+			'LO_freq' :[MW_source.frequency, 1e9]
+			# do not put the brackets for the MW source
 			}
 	p.add_IQ_virt_channels(awg_IQ_channels)
 ```
