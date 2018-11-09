@@ -92,7 +92,8 @@ This sequence can be added to the pulse object and next be uploaded.
 ```
 
 
-# Some examples of commonly made pulses:
+# Some examples of easy pulses:
+(more advanced examples follow later)
 * 1D scan
 ```python
 seg  = p.mk_segment('1D_scan')
