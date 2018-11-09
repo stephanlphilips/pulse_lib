@@ -1,4 +1,4 @@
-# Me wrinting a minimalistic readme
+# Introduction
 
 This is a simple pulse library that is made to work together with the Keysight AWG. The main motivation for this library was to have a very easy and structured way to make waveforms. Also attention is given to performance for the construction of the waveform. The construction should always be faster than upload time (this was challaging since the upload goes via pcie + python ..). Performance critical parts are written in cython. Note that it is not the intention to support other AWG systems with this project (though the pulse builder should be genereric).
 
@@ -7,36 +7,73 @@ Features now include:
 * support for any pulse and sine waves (phase coherent atm)
 * Sequencing
 * delay in awg lines.
+* Fully multidimensionlisation of the segment object (with matrix operators) ==> advanced (integrated) looping methods -- decorator approach + looping class. 
+* IQ toolkit and IQ virtual channels -- Full suppport for single sideband modulation (in combination with phase/amp/frequency modulation)
 
-In progress:
-* Fully multidimensionlisation of the segment object (with matrix operators)
-* advanced (integrated) looping methods -- decorator approach + looping class. Support for calibarion arguments? -- this should be enegnneerd well.
-* more base functions
-	* e.g. (IQ toolkit and IQ virtual channels) -- IF IQ is key for high performance (for IQ offset).
-	* Normal channels phase coherennt or not??
 	
-Todo list:
+TODO list:
+* Update virtual gate matrix function
+* more base functions
+* Support for calibarion arguments? -- this should be engineered well.
 * Memory segmentation on the keysight awg. This will be needed if you want to upload during an experiment.
 * Faster add function for block funtion (now performace issues if more than ~2000 elements in a sequence (not nice to call a lot)).
-* support for memory segmentation for the keysight -- upload during experiment capelibility
 
-Below are some basic commands that show how the library works. 
+# Initializing the library
 
-Let's start by creating a pulse object. This is the main object that can be used to generate segments and sequences. The pulse object is best created in the station.
+The general object that will manage all the segments and the interection with the AWG is the pulse object. The pulse object is best created in the station.
 ```python
 	p = pulselib()
 ```
 
-One Could now define some segments for the experiment.
+Let's add the physical channels on the AWG,
+```python
+	p.TODO()
+```
+
+You might also want to define some virtual gates,
+this can simply be done by defining:
+```python
+	awg_virtual_channels = {'virtual_gates_names_virt' :
+		['vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5'],
+				'virtual_gates_names_real' :
+		['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5'],
+		 'virtual_gate_matrix' : np.eye(11)
+	}
+	p.add_virtual_gates(awg_virtual_gates)
+```
+The matrix can be updated with:
+```python
+	p.update_virtual_gate_matrix(my_matrix)
+```
+To generate virtual channels for IQ signals, you can add the following code:
+```python
+	awg_IQ_channels = {'vIQ_channels' : ['qubit_1','qubit_2'],
+			'rIQ_channels' : [['I','Q'],['I','Q']],
+			'LO_freq' :[MW_source.frequency, 1e9]
+			# do not put the brackets for the MW source
+			}
+	
+	p.add_IQ_virt_channels(awg_IQ_channels)
+```
+Where the virtual channels are the new names of the new channels created to do IQ channals. Each of these channels refer to a real channel (note that you can refer to the same real channel multiple times). It is recomendable to create one IQ virtual channel for each qubit.
+
+The code above can be placed in your station.
+
+# Generating segments
+
+Segments come by default in containers (e.g. for all the channels (real/virtual) you defined).
+Note that all segments in these containers are assumed to have the same length (so P1, P2, P3, ...).
+
+An example of defining some segments.
 ```python
 
 	seg  = p.mk_segment('INIT')
 	seg2 = p.mk_segment('Manip')
 	seg3 = p.mk_segment('Readout')
 ```
-These segments containers, where the segment for each gat can be accessed by calling seg.gate. Where gate is the name of the real/virtual gate you specified.
+Each segment has a unique name. This name we will use later for playback.
 
-NOTE: A core idea of the package is that all the segments in the segment container (e.g. seg, seg2, seg3) have the same length.
+## Making your first pulse
 
 To each segments you can add basic waveforms. Here you are free to add anything you want. 
 Some examples follow (times are by default in ns).
@@ -48,6 +85,7 @@ Some examples follow (times are by default in ns).
 	seg.B0.reset_time(). # resets time back to zero in segment. Al the commannds we run before will be put at a negative time.
 	seg.B0.add_block(0,10,2) # this pulse will be placed directly after the wait()
 ```
+# Playback of pulses
 
 Once pulses are added, you can define a sequence like:
 ```python
@@ -61,24 +99,9 @@ This sequence can be added to the pulse object and next be uploaded.
 	p.start_sequence('mysequence')
 ```
 
-Virtual gates are also supported. This can simply be done by definig:
-```python
-	awg_virtual_channels = {'virtual_gates_names_virt' : ['vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5'],
-									 'virtual_gates_names_real' : ['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5'],
-									 'virtual_gate_matrix' : np.eye(11)}
-```
-The virtual gates are simply accesible by calling seg.virtual_channel_name
-Note that thresolds are chosen automatically. Memory menagment is also taken care of for you  :)
 
-There is also a virtual gate the can be defined for IQ channnels. This takes automatically care of IQ math for you (makes it super easy to work with IF based schemes). 
-```python
-	awg_IQ_channels = {'vIQ_channels' : ['IQ1','IQ2']
-			'rIQ_channels'	[['I1','Q1']['I2','Q2']],
-			'LO_freq' :[qcodes_param/float]
-			}
-```
-
-Some examples of commonly made pulses:
+# Some examples of easy pulses:
+(more advanced examples follow later)
 * 1D scan
 ```python
 seg  = p.mk_segment('1D_scan')
