@@ -5,6 +5,12 @@ import segments_std as seg_std
 import numpy as np
 import datetime
 
+"""
+TODO : 
+implement reset time for all channels.
+force right dimensions.
+
+"""
 
 class segment_container():
 	'''
@@ -37,7 +43,7 @@ class segment_container():
 		if virtual_gates is not None:
 			# make segments for virtual gates.
 			for i in self.virtual_gates['virtual_gates_names_virt']:
-				setattr(self, i, segment_single())
+				setattr(self, i, seg_base.segment_single())
 
 			# add reference in real gates.
 			for i in range(len(self.virtual_gates['virtual_gates_names_virt'])):
@@ -49,6 +55,20 @@ class segment_container():
 						current_channel.add_reference_channel(self.virtual_gates['virtual_gates_names_virt'][virt_channel], 
 							getattr(self, self.virtual_gates['virtual_gates_names_virt'][virt_channel]),
 							virtual_gates_values[virt_channel])
+
+		if IQ_channels is not None:
+			for i in range(len(IQ_channels['vIQ_channels'])):
+				setattr(self, IQ_channels['vIQ_channels'][i], seg_IQ.segment_single_IQ(IQ_channels['LO_freq'][i]))
+
+			for i in range(len(IQ_channels['rIQ_channels'])):
+				I_channel = getattr(self, IQ_channels['rIQ_channels'][i][0])
+				Q_channel = getattr(self, IQ_channels['rIQ_channels'][i][1])
+				I_channel.add_IQ_ref_channel(IQ_channels['vIQ_channels'][i],
+					getattr(self, IQ_channels['vIQ_channels'][i]), 'I')
+				Q_channel.add_IQ_ref_channel(IQ_channels['vIQ_channels'][i],
+					getattr(self, IQ_channels['vIQ_channels'][i]), 'Q')
+
+
 	@property
 	def total_time(self):
 		time_segment = 0
@@ -132,4 +152,12 @@ class segment_container():
 	def clear_chache():
 		return
 
-t =  segment_container("test", ['P1', 'P2', 'P3', 'I', 'Q'])
+awg_IQ_channels = {'vIQ_channels' : ['qubit_1','qubit_2'],
+			'rIQ_channels' : [['I','Q'],['I','Q']],
+			'LO_freq' :[1e9, 1e9]
+			# do not put the brackets for the MW source
+			}
+
+seg =  segment_container("test", ['P1', 'P2', 'P3', 'I', 'Q'], IQ_channels= awg_IQ_channels)
+
+seg.qubit_1

@@ -1,7 +1,7 @@
 import numpy as np
 import datetime
 
-from data_handling_functions import loop_controller, linspace
+from data_handling_functions import loop_controller, linspace, get_union_of_shapes, update_dimension
 from data_classes import pulse_data
 import copy
 
@@ -22,7 +22,7 @@ class segment_single():
 	def __init__(self):
 		self.type = 'default'
 		self.to_swing = False
-		self.starttime = 0
+
 		# variable specifing the laetest change to the waveforms
 		self._last_edit = datetime.datetime.now()
 		
@@ -36,6 +36,8 @@ class segment_single():
 
 		# references to other channels (for virtual gates).
 		self.reference_channels = []
+		# reference channels for IQ virtual channels
+		self.IQ_ref_channels = []
 		# local copy of self that will be used to count up the virtual gates.
 		self._pulse_data_all = None
 		# variable specifing the lastest time the pulse_data_all is updated
@@ -52,7 +54,22 @@ class segment_single():
 		virtual_segment = {'name': channel_name, 'segment': segment_data, 'multiplication_factor': multiplication_factor}
 		self.reference_channels.append(virtual_segment)
 
-	# @last_edited
+	def add_IQ_ref_channel(self, channel_name, pointer_to_channel, I_or_Q_part):
+		'''
+		Add a reference to an IQ channel. Same principle as for the virtual one.
+		Args:
+			channel_name (str): human readable name of the virtual channel
+			pointer_to_channel (*segment_single_IQ): pointer to segment_single_IQ object
+			I_or_Q_part (str) : 'I' or 'Q' to indicate that the reference is to the I or Q part of the signal.
+		'''
+		virtual_IQ_segment = {'name': channel_name, 'segment': pointer_to_channel, 'I/Q': I_or_Q_part}
+		self.IQ_ref_channels.append(virtual_IQ_segment)
+		
+	@loop_controller
+	def reset_time(self):
+		self.data_tmp.reset_time()
+
+	@last_edited
 	@loop_controller
 	def add_pulse(self,array):
 		'''
@@ -65,25 +82,25 @@ class segment_single():
 		'''
 		if array[0] != [0.,0.]:
 			array = [[0,0]] + array
-		if self.starttime != 0:
+		if self.data_tmp.start_time != 0:
 			array = [[0,0]] + array
 
 		arr = np.asarray(array)
-		arr[1:,0] = arr[1:,0] + self.starttime 
+		arr[1:,0] = arr[1:,0] + self.data_tmp.start_time 
 
 		self.data_tmp.add_pulse_data(arr)
 
 
-	# @last_edited
+	@last_edited
 	@loop_controller
 	def add_block(self,start,stop, amplitude):
 		'''
 		add a block pulse on top of the existing pulse.
 		'''
 		if start != 0:
-			pulse = np.array([[0,0], [start + self.starttime, 0], [start + self.starttime,amplitude], [stop + self.starttime, amplitude], [stop + self.starttime, 0]], dtype=np.double)
+			pulse = np.array([[0,0], [start + self.data_tmp.start_time, 0], [start + self.data_tmp.start_time,amplitude], [stop + self.data_tmp.start_time, amplitude], [stop + self.data_tmp.start_time, 0]], dtype=np.double)
 		else:
-			pulse = np.array([[start + self.starttime, 0], [start + self.starttime,amplitude], [stop + self.starttime, amplitude], [stop + self.starttime, 0]], dtype=np.double)
+			pulse = np.array([[start + self.data_tmp.start_time, 0], [start + self.data_tmp.start_time,amplitude], [stop + self.data_tmp.start_time, amplitude], [stop + self.data_tmp.start_time, 0]], dtype=np.double)
 
 		self.data_tmp.add_pulse_data(pulse)
 
@@ -106,8 +123,8 @@ class segment_single():
 		The pulse will have a relative phase (as this is needed to all IQ work).
 		'''
 		self.data_tmp.add_sin_data(
-			{'start_time' : start + self.starttime,
-			'stop_time' : stop + self.starttime,
+			{'start_time' : start + self.data_tmp.start_time,
+			'stop_time' : stop + self.data_tmp.start_time,
 			'amplitude' : amp,
 			'frequency' : freq,
 			'phase_offset' : phase_offset})
@@ -185,22 +202,17 @@ class segment_single():
 		'''
 		new_segment = segment_single()
 		if type(other) is segment_single:
-			if len(other.my_pulse_data) == 1:
-				new_segment.my_pulse_data = copy.copy(self.my_pulse_data)
-			elif len(self.my_pulse_data) == 1:
-				new_segment.my_pulse_data = copy.copy(other.my_pulse_data)
-			else:
-				new_segment.my_pulse_data = self._add_up_pulse_data(other.my_pulse_data)
+			shape1 = self.data.shape
+			shape2 = other.data.shape
+			new_shape = get_union_of_shapes(shape1, shape2)
+			other.data = update_dimension(other.data, new_shape)
+			self.data= update_dimension(self.data, new_shape)
+			new_segment.data = copy.copy(self.data)
+			new_segment.data += other.data
 
-			sin_data = copy.copy(self.sin_data)
-			sin_data.extend(other.sin_data)
-			new_segment.sin_data = sin_data
 		elif type(other) == int or type(other) == float:
-			new_pulse = copy.copy(self.my_pulse_data)
-			new_pulse[:,1] += other
-			new_segment.my_pulse_data = new_pulse
-			new_segment.sin_data = self.sin_data
-
+			new_segment.data = copy.copy(self.data)
+			new_segment.data += other
 		else:
 			raise TypeError("Please add up segment_single type or a number ")
 
@@ -214,23 +226,22 @@ class segment_single():
 		muliplication operator for segment_single
 		'''
 		new_segment = segment_single()
-
+		
 		if type(other) is segment_single:
-			raise NotImplemented
-		elif type(other) == int or type(other) == float or type(other) == np.float64:
-			new_pulse = copy.copy(self.my_pulse_data)
-			new_pulse[:,1] *= other
-			new_segment.my_pulse_data = new_pulse
-			sin_data = []
-			for i in self.sin_data:
-				my_sin = copy.copy(i)
-				my_sin['amplitude'] *=other
-				sin_data.append(my_sin)
+			shape1 = self.data.shape
+			shape2 = other.data.shape
+			new_shape = get_union_of_shapes(shape1, shape2)
+			other.data = update_dimension(other.data, new_shape)
+			self.data= update_dimension(self.data, new_shape)
+			new_segment.data = copy.copy(self.data)
+			new_segment.data *= other.data
 
-			new_segment.sin_data = sin_data
+		elif type(other) == int or type(other) == float:
+			new_segment.data = copy.copy(self.data)
+			new_segment.data *= other
 		else:
 			raise TypeError("Please add up segment_single type or a number ")
-		
+
 		return new_segment
 
 	def __truediv__(self, other):
@@ -324,9 +335,13 @@ class segment_single():
 # seg = segment_single()
 # seg.add_block(0,linspace(2,20,18, axis=1),2)
 # seg.wait(20)
+# seg.reset_time()
 # seg.add_sin(0,20,1,1e9,0)
-# seg.repeat(5)
+# # seg.repeat(5)
 
 # print(seg.data.shape)
-# print(seg.data[0,0].my_pulse_data)
+# print(seg.data[0,0].my_pulse_data.T)
+# # print(seg.data[0,0].sin_data)
+
+# seg*=2 
 # print(seg.data[0,0].sin_data)
