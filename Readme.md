@@ -24,6 +24,12 @@ The general object that will manage all the segments and the interection with th
 ```python
 	p = pulselib()
 ```
+
+Let's add the physical channels on the AWG,
+```python
+	p.TODO()
+```
+
 You might also want to define some virtual gates,
 this can simply be done by defining:
 ```python
