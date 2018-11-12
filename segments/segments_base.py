@@ -3,6 +3,8 @@ import datetime
 
 from data_handling_functions import loop_controller, linspace, get_union_of_shapes, update_dimension
 from data_classes import pulse_data
+
+from segments_c_func import py_calc_value_point_in_between
 import copy
 
 def last_edited(f):
@@ -21,7 +23,6 @@ class segment_single():
 	'''
 	def __init__(self):
 		self.type = 'default'
-		self.to_swing = False
 
 		# variable specifing the laetest change to the waveforms
 		self._last_edit = datetime.datetime.now()
@@ -75,7 +76,7 @@ class segment_single():
 		'''
 		Add manually a pulse.
 		Args: 
-			array (np.ndarray): array with times of the pulse.
+			array (list): array with times of the pulse.
 
 		format array: 
 		[[t0, Amp0],[t1, Amp1], ... [tn, Ampn]]
@@ -109,11 +110,18 @@ class segment_single():
 	def wait(self, wait):
 		'''
 		wait for x ns after the lastest wave element that was programmed.
+		Args:
+			wait (double) : time in ns to wait
 		'''
 		amp_0 = self.data_tmp.my_pulse_data[-1,1]
 		t0 = self.data_tmp.total_time
-		pulse = [[wait+t0, amp_0]]
-		self.add_pulse(pulse)
+
+		if [t0, amp_0] != [0.,0.]:
+			pulse = np.asarray([[0,0],[t0, amp_0],[wait+t0, amp_0]])
+		else:
+			pulse = np.asarray([[t0, amp_0],[wait+t0, amp_0]])
+
+		self.data_tmp.add_pulse_data(pulse)
 
 	@last_edited
 	@loop_controller
@@ -121,19 +129,27 @@ class segment_single():
 		'''
 		add a sinus to the current segment, parameters should be self exlenatory.
 		The pulse will have a relative phase (as this is needed to all IQ work).
+		Args:
+			start (double) : start time in ns of the pulse
+			stop (double) : stop time in ns of the pulse
+			amp (double) : amplitude of the pulse
+			freq (double) : frequency of the pulse
+			phase_offset (double) : offset in phase is needed
 		'''
 		self.data_tmp.add_sin_data(
 			{'start_time' : start + self.data_tmp.start_time,
 			'stop_time' : stop + self.data_tmp.start_time,
 			'amplitude' : amp,
 			'frequency' : freq,
-			'phase_offset' : phase_offset})
+			'phase' : phase_offset})
 
 	@last_edited
 	@loop_controller
 	def repeat(self, number):
 		'''
 		repeat a waveform n times.
+		Args:
+			number (int) : number of ties to repeat the waveform
 		'''
 		if number <= 1:
 			return
@@ -254,20 +270,21 @@ class segment_single():
 		return self.data.total_time
 
 
-	def get_segment(self, points= None, t_start = 0, pre_delay = 0, post_delay = 0):
+	def get_segment(self, index,total_time = None, pre_delay = 0, post_delay = 0, sample_rate=1e9):
 		'''
 		input:
-			Number of points of the raw sequence (None, if you just want to plot it. (without the delays))
-			t_start: effective start time in the sequence, needed for unique segments  (phase coherent microwaves between segments)
+			index of segment (list) : which segment to render (e.g. [0] if dimension is 1 or [2,5,10] if dimension is 3)
+			total_time : total time of the segment in ns () (if not given the total time of the segment will be rendered)
 			pre_delay : number of points to push before the sequence
 			post delay: number of points to push after the sequence.
+			sample rate : #/s (number of samples per second)
 
 		Returns:
 			A numpy array that contains the points for each ns
 			points is the expected lenght.
 		'''
-		t, wvf = self._generate_segment(pre_delay, post_delay)
-		return wvf
+		t, wvf = self._generate_segment(index, total_time, pre_delay, post_delay, sample_rate)
+		return t, wvf
 
 	@property
 	def v_max(self):
@@ -279,12 +296,18 @@ class segment_single():
 
 	@property
 	def pulse_data_all(self):
+		'''
+		pulse data object that contains the counted op data of all the reference channels (e.g. IQ and virtual gates).
+		'''
 		if self.last_edit > self.last_render or self._pulse_data_all is None:
-			self._pulse_data_all = copy.copy(self)
+			self._pulse_data_all = copy.copy(self.data)
 			for ref_chan in self.reference_channels:
-				self._pulse_data_all += ref_chan['segment']*ref_chan['multiplication_factor']
+				self._pulse_data_all += ref_chan['segment'].data*ref_chan['multiplication_factor']
+			for ref_chan in self.IQ_ref_channels:
+				self._pulse_data_all += ref_chan['segment'].get_IQ_data(ref_chan['I/Q'])
 
 			self.last_render = self.last_edit
+
 		return self._pulse_data_all
 
 	@property
@@ -292,10 +315,13 @@ class segment_single():
 		for i in self.reference_channels:
 			if self._last_edit < i['segment']._last_edit:
 				self._last_edit = i['segment']._last_edit
+		for i in self.IQ_ref_channels:
+			if self._last_edit < i['segment']._last_edit:
+				self._last_edit = i['segment']._last_edit
 
 		return self._last_edit
 	
-	def _generate_segment(self, pre_delay = 0, post_delay = 0):
+	def _generate_segment(self, index, total_time=None, pre_delay = 0, post_delay = 0, sample_rate = 1e9):
 		'''
 		generate numpy array of the segment
 		Args:
@@ -303,26 +329,61 @@ class segment_single():
 			post_delay: extend the pulse for x ns
 		'''
 
+		# express in Gs/s
+		sample_rate = sample_rate*1e-9
+		sample_time_step = 1/sample_rate
 
-		pulse_data_all = self.pulse_data_all
-		t_tot = pulse_data_all.total_time
-
-		times = np.linspace(-pre_delay, int(t_tot-1 + post_delay), int(t_tot + pre_delay + post_delay))
-		my_sequence = np.zeros([int(t_tot + pre_delay + post_delay)])
-
-		for i in range(0,len(pulse_data_all.my_pulse_data)-1):
-			t0 = int(pulse_data_all.my_pulse_data[i,0])
-			t1 = int(pulse_data_all.my_pulse_data[i+1,0])
-			my_sequence[t0 + pre_delay: t1 + pre_delay] = np.linspace(pulse_data_all.my_pulse_data[i,1], pulse_data_all.my_pulse_data[i+1,1], t1-t0)
 		
-		for sin_data_item in pulse_data_all.sin_data:
-			start = int(round(sin_data_item['start_time'])) + pre_delay
-			stop =  int(round(sin_data_item['stop_time'])) + pre_delay
+		# get object with the concerning data
+		flat_index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
+		pulse_data_all_curr_seg = self.pulse_data_all.flat[flat_index]
+
+		t_tot = total_time
+		if total_time is None:
+			t_tot = pulse_data_all_curr_seg.total_time
+
+		t_tot_pt = get_effective_point_number(t_tot, sample_time_step)
+		pre_delay_pt = get_effective_point_number(pre_delay, sample_time_step)
+		post_delay_pt = get_effective_point_number(post_delay, sample_time_step)
+
+		# render the time (maybe this should be removed...)
+		times = np.linspace(-pre_delay_pt*sample_time_step, (t_tot_pt + post_delay_pt)*sample_time_step-sample_time_step, t_tot_pt + pre_delay_pt + post_delay_pt)
+		my_sequence = np.zeros([t_tot_pt + pre_delay_pt + post_delay_pt])
+
+		for i in range(0,len(pulse_data_all_curr_seg.my_pulse_data)-1):
+			t0_pt = get_effective_point_number(pulse_data_all_curr_seg.my_pulse_data[i,0], sample_time_step)
+			t1_pt = get_effective_point_number(pulse_data_all_curr_seg.my_pulse_data[i+1,0], sample_time_step)
+			t0 = t0_pt*sample_time_step
+			t1 = t1_pt*sample_time_step
+			if t0 > t_tot:
+				continue
+			elif t1 > t_tot:
+				val = py_calc_value_point_in_between(pulse_data_all_curr_seg.my_pulse_data[i,:], pulse_data_all_curr_seg.my_pulse_data[i,:], t_tot)
+				my_sequence[t0_pt + pre_delay_pt: t_tot_pt + pre_delay_pt] = np.linspace(
+					pulse_data_all_curr_seg.my_pulse_data[i,1], 
+					val, t_tot_pt-t0_pt)
+			else:
+				my_sequence[t0_pt + pre_delay_pt: t1_pt + pre_delay_pt] = np.linspace(pulse_data_all_curr_seg.my_pulse_data[i,1], pulse_data_all_curr_seg.my_pulse_data[i+1,1], t1_pt-t0_pt)
+		
+		for sin_data_item in pulse_data_all_curr_seg.sin_data:
+			if sin_data_item['start_time'] > t_tot:
+				continue
+			elif sin_data_item['stop_time'] > t_tot:
+				stop = t_tot_pt + pre_delay_pt
+			else:
+				stop =  get_effective_point_number(sin_data_item['stop_time'], sample_time_step) + pre_delay_pt
+			
+			start = get_effective_point_number(sin_data_item['start_time'], sample_time_step) + pre_delay_pt
+			start_t  = (start - pre_delay_pt)*sample_time_step
+			stop_t  = (stop - pre_delay_pt)*sample_time_step
+
 			amp  =  sin_data_item['amplitude']
 			freq =  sin_data_item['frequency']
-			phase = sin_data_item['phase_offset']
-			my_sequence[start:stop] += amp*np.sin(np.linspace(start, stop-1, stop-start)*freq*1e-9*2*np.pi + phase)
-
+			phase = sin_data_item['phase']
+			print("redering freq = ",freq*1e-9*2*np.pi, phase)
+			print(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase)
+			my_sequence[start:stop] += amp*np.sin(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase)
+			print(amp*np.sin(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase))
 		return times, my_sequence
 
 	def plot_segment(self):
@@ -330,18 +391,18 @@ class segment_single():
 		plt.plot(x,y)
 		# plt.show()
 
-			
+def get_effective_point_number(time, time_step):
+	'''
+	function that discretizes time depending on the sample rate of the AWG.
+	Args:
+		time (double): time in ns of which you want to know how many points the AWG needs to get there
+		time_step (double) : time step of the AWG (ns)
 
-# seg = segment_single()
-# seg.add_block(0,linspace(2,20,18, axis=1),2)
-# seg.wait(20)
-# seg.reset_time()
-# seg.add_sin(0,20,1,1e9,0)
-# # seg.repeat(5)
+	Returns:
+		how many points you need to get to the desired time step.
+	'''
+	n_pt, mod = divmod(time, time_step)
+	if mod > time_step/2:
+		n_pt += 1
 
-# print(seg.data.shape)
-# print(seg.data[0,0].my_pulse_data.T)
-# # print(seg.data[0,0].sin_data)
-
-# seg*=2 
-# print(seg.data[0,0].sin_data)
+	return int(n_pt)

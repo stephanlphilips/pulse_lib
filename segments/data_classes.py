@@ -29,6 +29,7 @@ class pulse_data():
 	@property
 	def total_time(self,):
 		total_time = 0
+
 		for sin_data_item in self.sin_data:
 			if sin_data_item['stop_time'] > total_time:
 				total_time = sin_data_item['stop_time']
@@ -239,26 +240,25 @@ class IQ_data():
 		my_copy.start_time = copy.copy(self.start_time)
 		return my_copy
 
-	def get_I(self,):
+	def get_IQ_data(self, I_or_Q):
+		"""
+		get data object containing the I or Q part of the IQ signal
+		Args:
+			I_or_Q (str) : string 'I' or 'Q' to indicate which part of the signal to return
+		Returns:
+			new_data (pulse_data) : normal pulse_data object.
+		"""
 		new_data = pulse_data()
 		
 		for i in self.simple_IQ_data:
 			my_input = copy.copy(i)
 			my_input['frequency'] -= self.LO
-			new_data.add_sin_data(input)
+			if I_or_Q == 'Q':
+				my_input['phase'] += np.pi/2
+			new_data.add_sin_data(my_input)
 
 		return new_data
 
-	def get_Q(self,):
-		new_data = pulse_data()
-		
-		for i in self.simple_IQ_data:
-			my_input = copy.copy(i)
-			my_input['frequency'] -= self.LO
-			my_input['phase'] += np.pi/2
-			new_data.add_sin_data(input)
-
-		return new_data
 
 	def __add__(self,):
 		# aussume we do not need this.

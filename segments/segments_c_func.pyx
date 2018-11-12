@@ -210,6 +210,9 @@ cdef int get_next_value_idx(int[:] index, int i):
 
 	return idx
 
+def py_calc_value_point_in_between(ref1, ref2, time):
+	return calc_value_point_in_between(ref1, ref2, time)
+
 cdef double calc_value_point_in_between(double[:] ref1, double[:] ref2, double time):
 		'''
 		calculate amplitude of waveform at the certain time 

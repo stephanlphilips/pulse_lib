@@ -154,10 +154,7 @@ class segment_container():
 
 awg_IQ_channels = {'vIQ_channels' : ['qubit_1','qubit_2'],
 			'rIQ_channels' : [['I','Q'],['I','Q']],
-			'LO_freq' :[1e9, 1e9]
+			'LO_freq' :[2e9, 1e9]
 			# do not put the brackets for the MW source
 			}
 
-seg =  segment_container("test", ['P1', 'P2', 'P3', 'I', 'Q'], IQ_channels= awg_IQ_channels)
-
-seg.qubit_1
