@@ -19,9 +19,9 @@ As data format we will use a class to store
 import numpy as np
 import datetime
 
-from segments_base import segment_single, last_edited
-from data_handling_functions import loop_controller, linspace
-from data_classes import IQ_data
+from segments.segments_base import segment_single, last_edited
+from segments.data_handling_functions import loop_controller, linspace
+from segments.data_classes import IQ_data
 
 
 

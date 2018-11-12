@@ -1,6 +1,6 @@
-import segments_base as seg_base
-import segments_IQ as seg_IQ
-import segments_std as seg_std
+import segments.segments_base as seg_base
+import segments.segments_IQ as seg_IQ
+import segments.segments_std as seg_std
 
 import numpy as np
 import datetime
@@ -151,10 +151,3 @@ class segment_container():
 
 	def clear_chache():
 		return
-
-awg_IQ_channels = {'vIQ_channels' : ['qubit_1','qubit_2'],
-			'rIQ_channels' : [['I','Q'],['I','Q']],
-			'LO_freq' :[2e9, 1e9]
-			# do not put the brackets for the MW source
-			}
-

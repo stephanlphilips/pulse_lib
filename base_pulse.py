@@ -4,11 +4,11 @@ sys.path.append("C:\\V2_code\\Qcodes")
 
 import numpy as np
 import matplotlib.pyplot as plt 
-from segments import *
+from segments.segments import segment_container
 from keysight_fx import *
 import uuid
-import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
-import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
+# import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
+# import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
 
 '''
 ideas:
@@ -28,58 +28,34 @@ class pulselib:
 
 	def __init__(self):
 		# awg channels and locations need to be input parameters.
-		self.awg_channels = ['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5','G1','I_MW', 'Q_MW', 'M1', 'M2']
-		self.awg_channels_to_physical_locations = dict({'B0':('AWG1', 1),
-															'P1':('AWG1', 2),
-															'B1':('AWG1', 3),
-															'P2':('AWG1', 4),
-															'B2':('AWG2', 1),
-															'P3':('AWG2', 2),
-															'B3':('AWG2', 3),
-															'P4':('AWG2', 4),
-															'B4':('AWG3', 1),
-															'P5':('AWG3', 2),
-															'B5':('AWG3', 3),
-															'G1':('AWG3', 4),
-															'I_MW':('AWG4', 1),
-															'Q_MW':('AWG4', 2),
-															'M1':('AWG4', 3),
-															'M2':('AWG4', 4)})
-		self.awg_channels_kind = []
-
-		self.awg_virtual_channels = {'virtual_gates_names_virt' : ['vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5'],
-									 'virtual_gates_names_real' : ['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5'],
-									 'virtual_gate_matrix' : np.eye(11)}
-		self.awg_virtual_channels['virtual_gate_matrix'][0,1] = 0.1
-		self.awg_virtual_channels['virtual_gate_matrix'][0,2] = 0.1
-
-		# Not implemented
-		self.awg_markers =['mkr1', 'mkr2', 'mkr3' ]
-		self.awg_markers_to_location = []
-
+		self.awg_channels = []
+		self.awg_channels_to_physical_locations = []
+		self.awg_virtual_channels = None
+		self.awg_IQ_channels = None
+		self.awg_devices = []
+		
 		self.channel_delays = dict()
-		for i in self.awg_channels:
-			self.channel_delays[i] = 0
+		
 		
 		self.delays = []
 		self.convertion_matrix= []
-		self.segments_bin = segment_bin(self.awg_channels, self.awg_virtual_channels)
 
-		awg1 = keysight_awg.SD_AWG('awg1', chassis = 0, slot= 2, channels = 4, triggers= 8)
-		awg2 = keysight_awg.SD_AWG('awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
-		awg3 = keysight_awg.SD_AWG('awg3', chassis = 0, slot= 4, channels = 4, triggers= 8)
-		awg4 = keysight_awg.SD_AWG('awg4', chassis = 0, slot= 5, channels = 4, triggers= 8)
-		
 		# Keysight properties.
 		self.backend = 'keysight'
-		self.awg = keysight_AWG(self.segments_bin, self.awg_channels_to_physical_locations, self.awg_channels, self.channel_delays)
-		self.awg.add_awg('AWG1',awg1)
-		self.awg.add_awg('AWG2',awg2)
-		self.awg.add_awg('AWG3',awg3)
-		self.awg.add_awg('AWG4',awg4)
 
+		self.segments_bin = None
+		self.sequencer = None
 
-		self.sequencer =  sequencer(self.awg, self.channel_delays, self.segments_bin)
+	def define_channels(self, my_input):
+		'''
+		define the channels and their location 
+		Args:
+			my_input (dict): dict of the channel name (str) as key and name of the instrument (as given in add_awgs()) (str) and channel (int) as tuple (e.g. {'chan1' : ('AWG1', 1), ... })
+		'''
+		self.awg_channels_to_physical_locations = my_input
+		self.awg_channels = my_input.keys()
+		for i in self.awg_channels:
+			self.channel_delays[i] = 0
 
 	def add_channel_delay(self, delays):
 		'''
@@ -103,7 +79,46 @@ class pulselib:
 		return 0
 
 	def add_awgs(self, name, awg):
-		self.awg.add_awg(name, awg)
+		'''
+		add a awg to the library
+		Args:
+			name (str) : name you want to give to a peculiar AWG
+			awg (object) : qcodes object of the concerning AWG
+		'''
+		self.awg_channels.append([name, awg])
+
+	def add_virtual_gates(self, virtual_gates):
+		'''
+		define virtual gates for the gate set.
+		Args:
+			virtual_gates (dict): needs to have the following keys:
+				'virtual_gates_names_virt' : should constain a list with the channel names of the virtual gates
+				'virtual_gates_names_real' : should constain a list with the channel names of the read gates (should be as long as the virtual ones)
+				'virtual_gate_matrix' : numpy array representing the virtual gate matrix
+		'''
+		self.awg_virtual_channels = virtual_gates
+
+	def update_virtual_gate_matrix(self, new_matrix):
+		raise NotImplemented
+
+	def add_IQ_virt_channels(self, IQ_virt_channels):
+		'''
+		function to define virtual IQ channels (a channel that combined the I and Q channel for MW applications):
+		Args:
+			IQ_virt_channels (dict): a dictionary that needs to contain the following keys:
+				'vIQ_channels' : list of names of virtual IQ channels
+				'r_IQ_channels': list of list, where in each list the two reference channels (I and Q) are denoted (see docs for example).
+				'LO_freq'(function/double) : local oscillating frequency of the source. Will be used to do automaticcally convert the freq a SSB signal.  
+		'''
+		self.awg_IQ_channels = IQ_virt_channels
+
+	def finish_init(self):
+		# function that finishes the initialisation
+		self.segments_bin = segment_bin(self.awg_channels, self.awg_virtual_channels, self.awg_IQ_channels)
+		self.awg = keysight_AWG(self.segments_bin, self.awg_channels_to_physical_locations, self.awg_channels, self.channel_delays)
+		for i in self.awg_devices:
+			self.awg.add_awg(i[0], i[1])
+		self.sequencer =  sequencer(self.awg, self.channel_delays, self.segments_bin)
 
 	def mk_segment(self, name):
 		return self.segments_bin.new(name)
@@ -129,16 +144,16 @@ class pulselib:
 
 class segment_bin():
 
-	def __init__(self, channels, virtual_gate_matrix=None):
+	def __init__(self, channels, virtual_gate_matrix=None, IQ_virt_chan=None):
 		self.segment = []
 		self.channels = channels
 		self.virtual_gate_matrix = virtual_gate_matrix
-		return	
+		self.IQ_virt_chan = IQ_virt_chan	
 
 	def new(self,name):
 		if self.exists(name):
 			raise ValueError("sement with the name : % \n alreadt exists"%name)
-		self.segment.append(segment_container(name,self.channels, self.virtual_gate_matrix))
+		self.segment.append(segment_container(name,self.channels, self.virtual_gate_matrix, self.IQ_virt_chan))
 		return self.get_segment(name)
 
 	def get_segment(self, name):
@@ -312,224 +327,67 @@ class sequencer():
 		return -delay + max_delay
 
 p = pulselib()
-p.add_channel_delay({'B4':-3,})
-p.add_channel_delay({'M2':-115,})
 
-#%%
-p.sequencer =  sequencer(p.awg, p.channel_delays, p.segments_bin)
+awg1 = None
+awg2 = None
+awg3 = None
+awg4 = None
 
-seg = p.mk_segment('INIT')
+# add to pulse_lib
+p.add_awgs('AWG1',awg1)
+p.add_awgs('AWG2',awg2)
+p.add_awgs('AWG3',awg3)
+p.add_awgs('AWG4',awg4)
+
+# define channels
+awg_channels_to_physical_locations = dict({'B0':('AWG1', 1), 'P1':('AWG1', 2),
+	'B1':('AWG1', 3), 'P2':('AWG1', 4),
+	'B2':('AWG2', 1), 'P3':('AWG2', 2),
+	'B3':('AWG2', 3), 'P4':('AWG2', 4),
+	'B4':('AWG3', 1), 'P5':('AWG3', 2),
+	'B5':('AWG3', 3), 'G1':('AWG3', 4),
+	'I_MW':('AWG4', 1), 'Q_MW':('AWG4', 2),	
+	'M1':('AWG4', 3), 'M2':('AWG4', 4)})
 	
+p.define_channels(awg_channels_to_physical_locations)
+
+# format : dict of channel name with delay in ns (can be posive/negative)
+p.add_channel_delay({'I_MW':50, 'Q_MW':50, 'M1':20, 'M2':-25, })
+
+awg_virtual_gates = {'virtual_gates_names_virt' :
+	['vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5'],
+			'virtual_gates_names_real' :
+	['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5'],
+	 'virtual_gate_matrix' : np.eye(11)
+}
+p.add_virtual_gates(awg_virtual_gates)
+
+awg_IQ_channels = {'vIQ_channels' : ['qubit_1','qubit_2'],
+			'rIQ_channels' : [['I_MW','Q_MW'],['I_MW','Q_MW']],
+			'LO_freq' :[2e9, 1e9]
+			# do not put the brackets for the MW source
+			# e.g. MW_source.frequency
+			}
+	
+p.add_IQ_virt_channels(awg_IQ_channels)
+
+p.finish_init()
+
+seg  = p.mk_segment('INIT')
 seg2 = p.mk_segment('Manip')
 seg3 = p.mk_segment('Readout')
 
+seg.vP1.add_block(0,10,1)
 
 
-
-# seg.B4.add_block(0,10,1)
-# seg.B4.wait(100)
-# seg.B4.add_block(0,10,1)
-
-# seg.B4.add_block(200,300,1)
-seg.B0.add_block(0, 10, 1.5)
-# seg.B0.add_block(10000, 10010, 1)
-# seg.B0.add_block(10010, 10112, 0)
-seg.B0.wait(10000)
-seg.B4.add_block(0, 10, -1.5)
-seg.B4.wait(10000)
-# amp = np.linspace(0,1,50)
-# period = 1000
-# t = 0
-# for i in range(50):
-# 	seg.B4.add_block(t, t+period, amp[i])
-# 	t+= period
-# seg.B4.repeat(5)
-
-# amp = np.linspace(0,1,50)
-# period = 1000*50
-# t = 0
-# for i in range(50):
-# 	seg.I_MW.add_block(t, t+period, amp[i])
-# 	t+= period
-
-# seg.G1.add_block(100, 130, 1)
-# seg.M2.add_block(100, 130, 1)
-
-# seg.B0.add_block(20,205,1)
-# seg.B0.add_block(205,285,-1)sd
-# seg.B0.add_block(20,205,1)
-# seg.B0.add_block(20,50000,1)
-
-
-# segs = [seg.B0, seg.P1, seg.B1, seg.P2]
-
-# amp = 0.25
-# for i in segs:
-# 	i.add_pulse([[0,-amp]])
-# 	# i.add_block(20,25, -amp + 3)
-# 	# i.add_block(60,65, -amp + 2)
-# 	# i.add_block(100,105, -amp + 1)
-# 	# i.add_block(140,145, -amp + 0.5)
-# 	# i.add_block(180,185, -amp + 0.2)
-# 	t = 10
-# 	for j in range(1,50):
-# 		i.add_block(t,t+j*2,amp)
-# 		t = t+j*2
-# 		t = t + 50
-
-# 	i.add_pulse([[10000,-amp]])
-
-
-# amp = 1
-
-# seg.P1.add_pulse([
-#         [0,-amp],
-#         [10,amp],
-#         [9000,amp],
-#         [9000,-amp],
-#         [14000,-amp]])
-
-# seg.B4.add_pulse([
-#         [0,-amp],
-#         [10,amp],
-#         [9000,amp],
-#         [9000,-amp],
-#         [14000,-amp]])
-
-
-# t = 0 
-# amp = 0.1
-# seg.B4.add_pulse([
-#         [0,-amp]])
-
-# for i in range(1,50):
-# 	seg.B4.add_block(t,t+i*2,amp)
-# 	t = t+i*2
-# 	t = t + 50
-
-
-# t = 0
-# seg.P1.add_pulse([
-#         [0,-amp]])
-
-# for i in range(1,50):
-# 	seg.P1.add_block(t,t+i*2,amp)
-# 	t = t+i*2
-# 	t = t + 50
-# seg.B4.add_pulse([
-#         [0,-1.5],
-#         [40,-1.5], 
-#         [40,1.5],
-#         [80,0],
-#         [80,-0.75],
-#         [90,-0.75]])
-# seg.B4.add_block(100,110,-0.75+0.15)
-# seg.B4.add_block(120,130,-0.75+0.1)
-# seg.B4.add_block(140,150,-0.75+0.05)
-# seg.B4.add_pulse([
-#         [200,0],
-#         [210,1],
-#         [210,-0.2],
-#         [240,0],
-#         [275,1.3],
-#         [275,-0.75],
-#         [300,-0.75],
-#         [300,-0.5],
-#         [310,-0.5],
-#         [310,0]])
-
-
-# seg.B4.add_block(10,20000,0.3)
-# seg.P5.add_block(10,20000,-0.3)
-# seg.B5.add_block(10,20000,-0.3)
-# seg.G1.add_block(10,20000,0.3)
-# append functions?
-# seg.P1.add_block(2,5,-1)
-# seg.P1.add_pulse([[100,0.5]
-# 				 ,[800,0.5],
-# 				  [1400,0]])
-
-# seg.B2.add_block(2,5,-1)
-# seg.B2.add_pulse([[20,0],[30,0.5], [30,0]])
-# seg.B2.add_block(40,70,1)
-# seg.B2.add_pulse([[70,0],
-# 				 [80,0],
-# 				 [150,0.5],
-# 				 [150,0]])
-
-# seg.B4.add_block(2,5,1)
-# seg.B4.add_block(2,10,1)
-# seg.M2.wait(50)
-# seg.M2.plot_sequence()
-# seg.B0.repeat(20)
-# seg.B0.wait(20)
-# print(seg.B0.my_pulse_data)
-# seg.reset_timevoltage_range_reset_needed()
-# seg.B2.add_block(30,60,1)
-# seg.B2.add_block(400,800,0.5)
-# seg.B2.add_block(1400,1500,0.5)
-# seg.B1.plot_sequence()
-# seg.M2.add_pulse([[20,0.2],[30,0]])
-# seg.M2.add_block(30,60,1)
-# seg.M2.wait(2000)
-# seg.M2.add_block(90,120,1)
-# seg.M2.plot_sequence()
-# seg.M2.add_block(400,800,0.5)
-# seg.M2.add_block(1400,1500,0.5)
-
-# seg2.B2.add_block(30,60,0)
-# seg2.B2.add_block(400,2000,0.1)
-# seg2.P1.add_block(30,60,0)
-# seg2.P1.add_block(400,800,0.5)
-# seg2.B0.add_block(30,60,0.1)
-# seg2.B0.add_block(400,800,0.1)
-# seg2.B0.wait(2000)
-# seg3.B5.add_block(30,600,0.1)
-# seg3.B5.wait(2000)
-p.show_sequences()
-
-SEQ = [['INIT', 1, 0]]
-
-p.add_sequence('mysequence', SEQ)
-
-p.start_sequence('mysequence')
-
-SEQ2 = [['INIT', 1, 0], ['Manip', 1, 0], ['Readout', 1, 0] ]
-
-# p.add_sequence('mysequence2', SEQ2)
-
-# p.start_sequence('mysequence2')
-# insert in the begining of a segment
-# seg.insert_mode()
-# seg.clear()
-
-# # class channel_data_obj():
-# #     #object containing the data for a specific channels
-# #     #the idea is that all the data is parmeterised and will be constuceted whenever the function is called.
-
-# #     self.my_data_array = np.empty()
-    
-# #     add_data
-
-# # class block_pulses:
-# #     # class to make block pulses
-
-
-# # how to do pulses
-# # -> sin?
-# # -> pulses?
-# # -> step_pulses
-
-# # p = pulselin()
-
-# # seg = pulselib.mk_segment('manip')
-# # seg.p1.add_pulse(10,50, 20, prescaler= '1')
-# # seg.p3.add_pulse(12,34, 40,)
-# # seg.k2.add_pulse_advanced([pulse sequence])
-# # seg.add_np(array, tstart_t_stop
-# # seg.p5.add_sin(14,89, freq, phase, amp)
-
-# # pulse
-
-# import datetime
-# print(datetime.datetime.utcfromtimestamp(0))
+# B0 is the barrier 0 channel
+# adds a linear ramp from 10 to 20 ns with amplitude of 5 to 10.
+seg.B0.add_pulse([[10.,0.],[10.,5.],[20.,10.],[20.,0.]])
+# add a block pulse of 2V from 40 to 70 ns, to whaterver waveform is already there
+seg.B0.add_block(40,70,2)
+# just waits (e.g. you want to ake a segment 50 ns longer)
+seg.B0.wait(50)
+# resets time back to zero in segment. Al the commannds we run before will be put at a negative time.
+seg.B0.reset_time()
+# this pulse will be placed directly after the wait()
+seg.B0.add_block(0,10,2)

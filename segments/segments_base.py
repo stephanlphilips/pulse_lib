@@ -1,10 +1,10 @@
 import numpy as np
 import datetime
 
-from data_handling_functions import loop_controller, linspace, get_union_of_shapes, update_dimension
-from data_classes import pulse_data
+from segments.data_handling_functions import loop_controller, linspace, get_union_of_shapes, update_dimension
+from segments.data_classes import pulse_data
 
-from segments_c_func import py_calc_value_point_in_between
+from segments.segments_c_func import py_calc_value_point_in_between
 import copy
 
 def last_edited(f):

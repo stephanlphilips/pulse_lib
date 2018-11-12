@@ -2,7 +2,7 @@ import numpy as np
 import copy
 
 
-import segments_c_func as seg_func
+import segments.segments_c_func as seg_func
 
 
 class pulse_data():

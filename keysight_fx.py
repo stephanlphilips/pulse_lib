@@ -2,12 +2,12 @@ import numpy as np
 import datetime
 from copy import deepcopy, copy
 import matplotlib.pyplot as plt
-import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
-import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
+# import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
+# import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
 
 import sys
 sys.path.append("C:/Program Files (x86)/Keysight/SD1/Libraries/Python/")
-import keysightSD1
+# import keysightSD1
 
 import time as tt
 
@@ -27,7 +27,7 @@ class keysight_AWG():
 		self.vpp_max = 3 #Volt
 
 		# init HVI object
-		self.HVI = keysightSD1.SD_HVI()
+		# self.HVI = keysightSD1.SD_HVI()
 
 		# setting for the amount of voltage you can be off from the optimal setting for a channels
 		# e.g. when you are suppose to input
@@ -394,7 +394,7 @@ class keysight_AWG():
 		# Make sure you start with a empty memory
 
 		# Make sure we are applying the correct pulse correction
-		awg.awg.FPGAload(r"C:\Users\LocalAdmin\Downloads\square_test\firmware_BaseBandPulses_Tap15_4CH_3_73.sbp")
+		# awg.awg.FPGAload(r"C:\Users\LocalAdmin\Downloads\square_test\firmware_BaseBandPulses_Tap15_4CH_3_73.sbp"))
 		
 		self.awg[name] = awg
 		self.awg_memory[name] =self.maxmem
