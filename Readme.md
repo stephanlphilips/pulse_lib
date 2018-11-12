@@ -60,7 +60,7 @@ Now we have some channels, we can also specity delays (e.g. due to different len
 You might also want to define some virtual gates,
 this can simply be done by defining:
 ```python
-	awg_virtual_channels = {'virtual_gates_names_virt' :
+	add_virtual_gates = {'virtual_gates_names_virt' :
 		['vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5'],
 				'virtual_gates_names_real' :
 		['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5'],
@@ -112,12 +112,17 @@ Each segment has a unique name. This name we will use later for playback.
 To each segments you can add basic waveforms. Here you are free to add anything you want. 
 Some examples follow (times are by default in ns).
 ```python
-	seg.B0.add_pulse([[10,0],[10,5],[20,10],[20,0]]) # adds a linear ramp from 10 to 20 ns with amplitude of 5 to 10.
 	# B0 is the barrier 0 channel
-	seg.B0.add_block(40,70,2) # add a block pulse of 2V from 40 to 70 ns, to whaterver waveform is already there
-	seg.B0.wait(50) # just waits (e.g. you want to ake a segment 50 ns longer)
-	seg.B0.reset_time(). # resets time back to zero in segment. Al the commannds we run before will be put at a negative time.
-	seg.B0.add_block(0,10,2) # this pulse will be placed directly after the wait()
+	# adds a linear ramp from 10 to 20 ns with amplitude of 5 to 10.
+	seg.B0.add_pulse([[10.,0.],[10.,5.],[20.,10.],[20.,0.]])
+	# add a block pulse of 2V from 40 to 70 ns, to whaterver waveform is already there
+	seg.B0.add_block(40,70,2)
+	# just waits (e.g. you want to ake a segment 50 ns longer)
+	seg.B0.wait(50)
+	# resets time back to zero in segment. Al the commannds we run before will be put at a negative time.
+	seg.B0.reset_time()
+	# this pulse will be placed directly after the wait()
+	seg.B0.add_block(0,10,2)
 ```
 # Playback of pulses
 
