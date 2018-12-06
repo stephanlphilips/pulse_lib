@@ -22,6 +22,7 @@ TODO list:
 
 The general object that will manage all the segments and the interection with the AWG is the pulse object. The pulse object is best created in the station.
 ```python
+	from pulse_lib.base_pulse import pulselib
 	p = pulselib()
 ```
 
