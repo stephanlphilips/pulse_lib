@@ -22,6 +22,7 @@ TODO list:
 
 The general object that will manage all the segments and the interection with the AWG is the pulse object. The pulse object is best created in the station.
 ```python
+	from pulse_lib.base_pulse import pulselib
 	p = pulselib()
 ```
 
@@ -60,7 +61,7 @@ Now we have some channels, we can also specity delays (e.g. due to different len
 You might also want to define some virtual gates,
 this can simply be done by defining:
 ```python
-	add_virtual_gates = {'virtual_gates_names_virt' :
+	awg_virtual_gates = {'virtual_gates_names_virt' :
 		['vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5'],
 				'virtual_gates_names_real' :
 		['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5'],
@@ -75,7 +76,7 @@ The matrix can be updated with (not yet implemented):
 To generate virtual channels for IQ signals, you can add the following code:
 ```python
 	awg_IQ_channels = {'vIQ_channels' : ['qubit_1','qubit_2'],
-			'rIQ_channels' : [['I','Q'],['I','Q']],
+			'rIQ_channels' : [['I_MW','Q_MW'],['I_MW','Q_MW']],
 			'LO_freq' :[MW_source.frequency, 1e9]
 			# do not put the brackets for the MW source
 			# e.g. MW_source.frequency

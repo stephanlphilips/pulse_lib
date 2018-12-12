@@ -1,6 +1,10 @@
 import pulse_lib.segments.segments_base as seg_base
 import pulse_lib.segments.segments_IQ as seg_IQ
+<<<<<<< HEAD
 from pulse_lib.segments.data_handling_functions import find_common_dimension, update_dimension
+=======
+
+>>>>>>> be8e3ee341abbfd6eab9bfdf0d3c0817cbb416b4
 import numpy as np
 import datetime
 

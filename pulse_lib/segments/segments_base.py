@@ -360,8 +360,62 @@ class segment_single():
 		flat_index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
 		pulse_data_all_curr_seg = self.pulse_data_all.flat[flat_index]
 
+<<<<<<< HEAD
 		total_time = pulse_data_all_curr_seg.total_time
 		my_sequence = pulse_data_all_curr_seg.render(pre_delay, total_time + post_delay, sample_rate)
+=======
+		t_tot = total_time
+		if total_time is None:
+			t_tot = pulse_data_all_curr_seg.total_time
+
+		t_tot_pt = get_effective_point_number(t_tot, sample_time_step)
+		pre_delay_pt = get_effective_point_number(pre_delay, sample_time_step)
+		post_delay_pt = get_effective_point_number(post_delay, sample_time_step)
+
+		# render the time (maybe this should be removed...)
+		times = np.linspace(-pre_delay_pt*sample_time_step, (t_tot_pt + post_delay_pt)*sample_time_step-sample_time_step, t_tot_pt + pre_delay_pt + post_delay_pt)
+		my_sequence = np.zeros([t_tot_pt + pre_delay_pt + post_delay_pt])
+
+		for i in range(0,len(pulse_data_all_curr_seg.my_pulse_data)-1):
+			t0_pt = get_effective_point_number(pulse_data_all_curr_seg.my_pulse_data[i,0], sample_time_step)
+			t1_pt = get_effective_point_number(pulse_data_all_curr_seg.my_pulse_data[i+1,0], sample_time_step)
+			t0 = t0_pt*sample_time_step
+			t1 = t1_pt*sample_time_step
+			if t0 > t_tot:
+				continue
+			elif t1 > t_tot:
+				val = py_calc_value_point_in_between(pulse_data_all_curr_seg.my_pulse_data[i,:], pulse_data_all_curr_seg.my_pulse_data[i,:], t_tot)
+				my_sequence[t0_pt + pre_delay_pt: t_tot_pt + pre_delay_pt] = np.linspace(
+					pulse_data_all_curr_seg.my_pulse_data[i,1], 
+					val, t_tot_pt-t0_pt)
+			else:
+				my_sequence[t0_pt + pre_delay_pt: t1_pt + pre_delay_pt] = np.linspace(pulse_data_all_curr_seg.my_pulse_data[i,1], pulse_data_all_curr_seg.my_pulse_data[i+1,1], t1_pt-t0_pt)
+		
+		for sin_data_item in pulse_data_all_curr_seg.sin_data:
+			if sin_data_item['start_time'] > t_tot:
+				continue
+			elif sin_data_item['stop_time'] > t_tot:
+				stop = t_tot_pt + pre_delay_pt
+			else:
+				stop =  get_effective_point_number(sin_data_item['stop_time'], sample_time_step) + pre_delay_pt
+			
+			start = get_effective_point_number(sin_data_item['start_time'], sample_time_step) + pre_delay_pt
+			start_t  = (start - pre_delay_pt)*sample_time_step
+			stop_t  = (stop - pre_delay_pt)*sample_time_step
+
+			amp  =  sin_data_item['amplitude']
+			freq =  sin_data_item['frequency']
+			phase = sin_data_item['phase']
+			print("redering freq = ",freq*1e-9*2*np.pi, phase)
+			print(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase)
+			my_sequence[start:stop] += amp*np.sin(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase)
+			print(amp*np.sin(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase))
+		return times, my_sequence
+
+	def plot_segment(self):
+		plt.plot(*self._generate_segment())
+		# plt.show()
+>>>>>>> be8e3ee341abbfd6eab9bfdf0d3c0817cbb416b4
 
 		return my_sequence
 
