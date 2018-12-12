@@ -1,6 +1,46 @@
+from pulse_lib.segments.looping import linspace
+from pulse_lib.segments.data_classes import data_container
 import numpy as np
 import copy
 
+
+def find_common_dimension(dim_1, dim_2):
+	'''
+	finds the union of two dimensions
+	Args:
+		dim_1 (list/tuple) : list with dimensions of a first data object
+		dim_2 (list/tuple) : list with dimensions of a second data object
+	Returns:
+		dim_comb (list) : the common dimensions of the of both dimensions provided
+
+	Will raise error is dimensions are not compatible
+	'''
+	dim_1 = list(dim_1)[::-1]
+	dim_2 = list(dim_2)[::-1]
+	dim_comb = []
+	
+	# estimate size of new dimension
+	n_dim = len(dim_1)
+	if len(dim_2) > n_dim:
+		n_dim = len(dim_2)
+
+	# combine both
+	for i in range(n_dim):
+		if len(dim_2) <= i:
+			dim_comb.append(dim_1[i])
+		elif len(dim_1) <= i:
+			dim_comb.append(dim_2[i])
+		else:
+			if dim_1[i] == dim_2[i]:
+				dim_comb.append(dim_2[i])
+			elif dim_1[i] == 1:
+				dim_comb.append(dim_2[i])
+			elif dim_2[i] == 1:
+				dim_comb.append(dim_1[i])
+			else:
+				raise ValueError("Error in combining dimensions of two data objects. This error is most likely caused by looping over two variables with different dimensions along the same axis.")
+
+	return dim_comb[::-1]
 
 def update_dimension(data, new_dimension_info):
 	'''
@@ -34,7 +74,7 @@ def _add_dimensions(data, shape):
 		data (np.ndarray[dtype = object]) : numpy object that contains all the segment data of every iteration.
 		shape (list/np.ndarray) : list of the new dimensions of the array
 	"""
-	new_data = np.empty(np.array(shape), dtype=object)
+	new_data =  data_container(shape = shape)
 	for i in range(shape[0]):
 		new_data[i] = cpy_numpy_shallow(data)
 	return new_data
@@ -50,7 +90,7 @@ def _extend_dimensions(data, shape):
 		shape (list/np.ndarray) : list of the new dimensions of the array (should have the same lenght as the dimension of the data!)
 	'''
 
-	new_data = np.empty(np.array(shape), dtype=object)
+	new_data = data_container(shape = shape)
 	for i in range(len(shape)):
 		if data.shape[i] != shape[i]:
 			if i == 0:
@@ -68,27 +108,6 @@ def _extend_dimensions(data, shape):
 
 	return new_data
 
-def cpy_numpy_shallow(data):
-	'''
-	Makes a shallow copy of an numpy object array.
-	
-	Args:
-		data : data element
-	'''
-	if type(data) != np.ndarray:
-		return copy(data)
-
-	if data.shape == (1,):
-		return copy.copy(data[0])
-
-	shape = data.shape
-	data_flat = data.flatten()
-	new_arr = np.empty(data_flat.shape, dtype=object)
-
-	for i in range(len(new_arr)):
-		new_arr[i] = copy.copy(data_flat[i])
-
-	return new_data
 
 def cpy_numpy_shallow(data):
 	'''
@@ -97,7 +116,7 @@ def cpy_numpy_shallow(data):
 	Args:
 		data : data element
 	'''
-	if type(data) != np.ndarray:
+	if type(data) != data_container:
 		return copy(data)
 
 	if data.shape == (1,):
@@ -276,15 +295,4 @@ def get_union_of_shapes(shape1, shape2):
 		else:
 			raise ValueError("Dimension Mismatch when trying to combine two data object. The first object has on axis {} a dimension of {}, where the second one has a dimension of {}".format(i, shape1[i], shape2[i]))
 	return tuple(new_shape)
-
-
-class linspace():
-	"""docstring for linspace"""
-	def __init__(self, start, stop, n_steps = 50, name = "undefined", unit = 'a.u.', axis = -1):
-		self.data = np.linspace(start, stop, n_steps)
-		self.name = name
-		self.unit = unit
-		self.axis = axis
-	def __len__(self):
-		return len(self.data)
 

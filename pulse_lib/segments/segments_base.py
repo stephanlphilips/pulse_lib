@@ -1,11 +1,12 @@
 import numpy as np
 import datetime
 
-from pulse_lib.segments.data_handling_functions import loop_controller, linspace, get_union_of_shapes, update_dimension
-from pulse_lib.segments.data_classes import pulse_data
+from pulse_lib.segments.data_handling_functions import loop_controller, get_union_of_shapes, update_dimension
+from pulse_lib.segments.data_classes import pulse_data, data_container, get_effective_point_number
 
-from pulse_lib.segments.segments_c_func import py_calc_value_point_in_between
 import copy
+
+import matplotlib.pyplot as plt
 
 def last_edited(f):
 	'''
@@ -28,9 +29,7 @@ class segment_single():
 		self._last_edit = datetime.datetime.now()
 		
 		# store data in numpy looking object for easy operator access.
-		self.data = np.empty([1], dtype=object)
-		self.data[0] = pulse_data()
-
+		self.data = data_container(pulse_data())
 
 		self.last = None
 		self.unique = False
@@ -116,12 +115,25 @@ class segment_single():
 		amp_0 = self.data_tmp.my_pulse_data[-1,1]
 		t0 = self.data_tmp.total_time
 
-		if [t0, amp_0] != [0.,0.]:
-			pulse = np.asarray([[0,0],[t0, amp_0],[wait+t0, amp_0]])
-		else:
-			pulse = np.asarray([[t0, amp_0],[wait+t0, amp_0]])
+		pulse = np.asarray([[t0, 0],[wait+t0, 0]])
 
 		self.data_tmp.add_pulse_data(pulse)
+
+	@last_edited
+	@loop_controller
+	def wait_until(self, time):
+		'''
+		makes a wait for the waveform until a certain point in time.
+		Args:
+			time (double) : time in ns that there must be a point inside the waveform
+		'''
+		if self.data_tmp.start_time + time <= self.data_tmp.total_time:
+			pass
+		else:
+			pulse = np.asarray([[0, 0],[self.data_tmp.start_time + time, 0]])
+
+			self.data_tmp.add_pulse_data(pulse)
+
 
 	@last_edited
 	@loop_controller
@@ -270,11 +282,10 @@ class segment_single():
 		return self.data.total_time
 
 
-	def get_segment(self, index,total_time = None, pre_delay = 0, post_delay = 0, sample_rate=1e9):
+	def get_segment(self, index, pre_delay = 0, post_delay = 0, sample_rate=1e9):
 		'''
 		input:
 			index of segment (list) : which segment to render (e.g. [0] if dimension is 1 or [2,5,10] if dimension is 3)
-			total_time : total time of the segment in ns () (if not given the total time of the segment will be rendered)
 			pre_delay : number of points to push before the sequence
 			post delay: number of points to push after the sequence.
 			sample rate : #/s (number of samples per second)
@@ -283,16 +294,30 @@ class segment_single():
 			A numpy array that contains the points for each ns
 			points is the expected lenght.
 		'''
-		t, wvf = self._generate_segment(index, total_time, pre_delay, post_delay, sample_rate)
+		t, wvf = self._generate_segment(index, pre_delay, post_delay, sample_rate)
 		return t, wvf
 
-	@property
-	def v_max(self):
-		return self.pulse_data_all.get_vmax()
+	def v_max(self, index, sample_rate = 1e9):
+		index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
 
-	@property
-	def v_min(self):
-		return self.pulse_data_all.get_vmin()
+		return self.pulse_data_all.flat[index].get_vmax()
+
+	def v_min(self, index, sample_rate = 1e9):
+		index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
+		return self.pulse_data_all.flat[index].get_vmin()
+
+	def integrate(self, index, pre_delay = 0, post_delay = 0, sample_rate = 1e9):
+		'''
+		get integral value of the waveform (e.g. to calculate an automatic compensation)
+		Args:
+			index (tuple) : index of the concerning waveform
+			pre_delay (double) : ns to delay before the pulse
+			post_delay (double) : ns to delay after the pulse
+			sample_rate (double) : rate at which to render the pulse
+		returns: intergral value
+		'''
+		index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
+		return self.pulse_data_all.flat[index].integrate_waveform(pre_delay, post_delay, sample_rate)
 
 	@property
 	def pulse_data_all(self):
@@ -321,88 +346,45 @@ class segment_single():
 
 		return self._last_edit
 	
-	def _generate_segment(self, index, total_time=None, pre_delay = 0, post_delay = 0, sample_rate = 1e9):
+	def _generate_segment(self, index, pre_delay = 0, post_delay = 0, sample_rate = 1e9):
 		'''
 		generate numpy array of the segment
 		Args:
+			index (tuple) : index of the segement to generate
 			pre_delay: predelay of the pulse (in ns) (e.g. for compensation of diffent coax length's)
 			post_delay: extend the pulse for x ns
+			sample rate (double) : sample rate of the pulse to be rendered at.
 		'''
 
-		# express in Gs/s
-		sample_rate = sample_rate*1e-9
-		sample_time_step = 1/sample_rate
-
-		
 		# get object with the concerning data
 		flat_index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
 		pulse_data_all_curr_seg = self.pulse_data_all.flat[flat_index]
 
-		t_tot = total_time
-		if total_time is None:
-			t_tot = pulse_data_all_curr_seg.total_time
+		total_time = pulse_data_all_curr_seg.total_time
+		my_sequence = pulse_data_all_curr_seg.render(pre_delay, total_time + post_delay, sample_rate)
 
-		t_tot_pt = get_effective_point_number(t_tot, sample_time_step)
-		pre_delay_pt = get_effective_point_number(pre_delay, sample_time_step)
-		post_delay_pt = get_effective_point_number(post_delay, sample_time_step)
+		return my_sequence
 
-		# render the time (maybe this should be removed...)
-		times = np.linspace(-pre_delay_pt*sample_time_step, (t_tot_pt + post_delay_pt)*sample_time_step-sample_time_step, t_tot_pt + pre_delay_pt + post_delay_pt)
-		my_sequence = np.zeros([t_tot_pt + pre_delay_pt + post_delay_pt])
+	def plot_segment(self, index = [0], render_full = True):
+		'''
+		Args:
+			index : index of which segment to plot
+			render full (bool) : do full render (e.g. also get data form virtual channels). Put True if you want to see the waveshape send to the AWG.
+		'''
+		# standard 1 Gs/s
+		sample_rate = 1e9
+		sample_time_step = 1/sample_rate
 
-		for i in range(0,len(pulse_data_all_curr_seg.my_pulse_data)-1):
-			t0_pt = get_effective_point_number(pulse_data_all_curr_seg.my_pulse_data[i,0], sample_time_step)
-			t1_pt = get_effective_point_number(pulse_data_all_curr_seg.my_pulse_data[i+1,0], sample_time_step)
-			t0 = t0_pt*sample_time_step
-			t1 = t1_pt*sample_time_step
-			if t0 > t_tot:
-				continue
-			elif t1 > t_tot:
-				val = py_calc_value_point_in_between(pulse_data_all_curr_seg.my_pulse_data[i,:], pulse_data_all_curr_seg.my_pulse_data[i,:], t_tot)
-				my_sequence[t0_pt + pre_delay_pt: t_tot_pt + pre_delay_pt] = np.linspace(
-					pulse_data_all_curr_seg.my_pulse_data[i,1], 
-					val, t_tot_pt-t0_pt)
-			else:
-				my_sequence[t0_pt + pre_delay_pt: t1_pt + pre_delay_pt] = np.linspace(pulse_data_all_curr_seg.my_pulse_data[i,1], pulse_data_all_curr_seg.my_pulse_data[i+1,1], t1_pt-t0_pt)
-		
-		for sin_data_item in pulse_data_all_curr_seg.sin_data:
-			if sin_data_item['start_time'] > t_tot:
-				continue
-			elif sin_data_item['stop_time'] > t_tot:
-				stop = t_tot_pt + pre_delay_pt
-			else:
-				stop =  get_effective_point_number(sin_data_item['stop_time'], sample_time_step) + pre_delay_pt
-			
-			start = get_effective_point_number(sin_data_item['start_time'], sample_time_step) + pre_delay_pt
-			start_t  = (start - pre_delay_pt)*sample_time_step
-			stop_t  = (stop - pre_delay_pt)*sample_time_step
+		if render_full == True:
+			flat_index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
+			pulse_data_curr_seg = self.pulse_data_all.flat[flat_index]
+		else:
+			flat_index = np.ravel_multi_index(tuple(index), self.data.shape)
+			pulse_data_curr_seg = self.data.flat[flat_index]
 
-			amp  =  sin_data_item['amplitude']
-			freq =  sin_data_item['frequency']
-			phase = sin_data_item['phase']
-			print("redering freq = ",freq*1e-9*2*np.pi, phase)
-			print(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase)
-			my_sequence[start:stop] += amp*np.sin(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase)
-			print(amp*np.sin(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase))
-		return times, my_sequence
+		y = pulse_data_curr_seg.render(0, pulse_data_curr_seg.total_time, sample_rate)
+		x = np.linspace(0, pulse_data_curr_seg.total_time*sample_time_step-sample_time_step, len(y))
 
-	def plot_segment(self):
-		x,y = self._generate_segment()
 		plt.plot(x,y)
-		# plt.show()
+		plt.show()
 
-def get_effective_point_number(time, time_step):
-	'''
-	function that discretizes time depending on the sample rate of the AWG.
-	Args:
-		time (double): time in ns of which you want to know how many points the AWG needs to get there
-		time_step (double) : time step of the AWG (ns)
-
-	Returns:
-		how many points you need to get to the desired time step.
-	'''
-	n_pt, mod = divmod(time, time_step)
-	if mod > time_step/2:
-		n_pt += 1
-
-	return int(n_pt)

@@ -1,7 +1,6 @@
 import pulse_lib.segments.segments_base as seg_base
 import pulse_lib.segments.segments_IQ as seg_IQ
-import pulse_lib.segments.segments_std as seg_std
-
+from pulse_lib.segments.data_handling_functions import find_common_dimension, update_dimension
 import numpy as np
 import datetime
 
@@ -21,29 +20,32 @@ class segment_container():
 	Class returns vmin/vmax data to awg object
 	Class returns upload data as a int16 array to awg object.
     '''
-	def __init__(self, name, channels, virtual_gates = None, IQ_channels=None):
-		self.channels = channels
+	def __init__(self, name, real_channels, virtual_gates = None, IQ_channels=None):
+		# physical channels
+		self.r_channels = []
+		# physical + virtual channels
+		self.channels = []
 		self.virtual_gates = virtual_gates
 		self.name = name
 		self._Vmin_max_data = dict()
 
-		for i in self.channels:
+		for i in real_channels:
 			self._Vmin_max_data[i] = {"v_min" : None, "v_max" : None}
 		
 		self.prev_upload = datetime.datetime.utcfromtimestamp(0)
 
-		# self.vpp_data = dict()
-		# for i in self.channels:
-		# 	self.vpp_data[i] = {"V_min" : None, "V_max" : None}
 		
 		# Not superclean should be in a different namespace.
-		for i in self.channels:
+		for i in real_channels:
 			setattr(self, i, seg_base.segment_single())
+			self.channels.append(i)
+			self.r_channels.append(i)
 
 		if virtual_gates is not None:
 			# make segments for virtual gates.
 			for i in self.virtual_gates['virtual_gates_names_virt']:
 				setattr(self, i, seg_base.segment_single())
+				self.channels.append(i)
 
 			# add reference in real gates.
 			for i in range(len(self.virtual_gates['virtual_gates_names_virt'])):
@@ -59,6 +61,7 @@ class segment_container():
 		if IQ_channels is not None:
 			for i in range(len(IQ_channels['vIQ_channels'])):
 				setattr(self, IQ_channels['vIQ_channels'][i], seg_IQ.segment_single_IQ(IQ_channels['LO_freq'][i]))
+				self.channels.append(IQ_channels['vIQ_channels'][i])
 
 			for i in range(len(IQ_channels['rIQ_channels'])):
 				I_channel = getattr(self, IQ_channels['rIQ_channels'][i][0])
@@ -70,13 +73,25 @@ class segment_container():
 
 
 	@property
-	def total_time(self):
-		time_segment = 0
-		for i in self.channels:
-			if time_segment <= getattr(self, i).total_time:
-				time_segment = getattr(self, i).total_time
+	def total_time(self,):
+		'''
+		get the total time that will be uploaded for this segment to the AWG
+		Returns:
+			times (np.ndarray) : numpy array with the total time (maximum of all the channels), for all the different loops executed.
+		'''
+		self.__extend_dim_all_waveforms()
 
-		return time_segment
+		shape = list(getattr(self, self.channels[0]).data.shape)
+		n_channels = len(self.channels)
+		
+		time_data = np.empty([n_channels] + shape)
+		
+		for i in range(len(self.channels)):
+			time_data[i] = getattr(self, self.channels[i]).total_time
+
+		times = np.amax(time_data, axis = 0)
+
+		return times
 
 	@property
 	def last_mod(self):
@@ -96,7 +111,6 @@ class segment_container():
 
 		return self._Vmin_max_data
 
-
 	def reset_time(self):
 		'''
 		Allings all segments togeter and sets the input time to 0,
@@ -106,14 +120,7 @@ class segment_container():
 		-> totaltime will be 140 ns,
 		when you now as a new pulse (e.g. at time 0, it will actually occur at 140 ns in both blocks)
 		'''
-		maxtime = 0
-		for i in self.channels:
-			k = getattr(self, i)
-			t = k.get_total_time()
-			if t > maxtime:
-				maxtime = t
-		for i in self.channels:
-			getattr(self, i).starttime = maxtime
+		raise NotImplemented
 
 	def get_waveform(self, channel, Vpp_data, sequence_time, pre_delay=0, post_delay = 0, return_type = np.double):
 		'''
@@ -149,5 +156,22 @@ class segment_container():
 
 		return upload_data
 
-	def clear_chache():
-		return
+	def clear_chache(self):
+		raise NotImplemented
+
+	def __extend_dim_all_waveforms(self):
+		"""
+		function to make sure that all the waveforms have the same dimentionality.
+		Note that the mode here is copy and not referencing.
+		"""
+
+		# find global dimension
+		my_dimension = (1,)
+		for i in self.channels:
+			dim = getattr(self, i).data.shape
+			my_dimension = find_common_dimension(my_dimension, dim)
+
+		# now update the size
+		for i in self.channels:
+			getattr(self, i).data = update_dimension(getattr(self, i).data, my_dimension)
+

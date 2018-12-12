@@ -20,8 +20,8 @@ import numpy as np
 import datetime
 
 from pulse_lib.segments.segments_base import segment_single, last_edited
-from pulse_lib.segments.data_handling_functions import loop_controller, linspace
-from pulse_lib.segments.data_classes import IQ_data
+from pulse_lib.segments.data_handling_functions import loop_controller
+from pulse_lib.segments.data_classes import IQ_data, data_container
 
 
 
@@ -38,8 +38,7 @@ class segment_single_IQ(segment_single):
 		'''
 
 		super(segment_single, self).__init__()
-		self.data = np.empty([1], dtype=object)
-		self.data[0] = IQ_data(LO)
+		self.data = data_container(IQ_data(LO))
 		
 		self._last_edit = datetime.datetime.now()
 
@@ -198,12 +197,3 @@ class segment_single_IQ(segment_single):
 		return data
 
 
-
-# seg = segment_single_IQ(1e9)
-# seg.add_sin(0, linspace(5,105,100, axis = 0), 100, 1.1e9)
-
-# seg.reset_time()
-# seg.add_global_phase(0.1)
-# seg.add_sin(0, linspace(5,105,100, axis = 0), 1.1e9, 10)
-
-# print(seg._last_edit)
