@@ -9,7 +9,7 @@ Features now include:
 * delay in awg lines.
 * Fully multidimensionlisation of the segment object (with matrix operators) ==> advanced (integrated) looping methods -- decorator approach + looping class. 
 * IQ toolkit and IQ virtual channels -- Full suppport for single sideband modulation (in combination with phase/amp/frequency modulation)
-
+* Multithreaded upload module for the keysight units. Upload sequences while doing playback.
 	
 TODO list:
 * Update virtual gate matrix function
