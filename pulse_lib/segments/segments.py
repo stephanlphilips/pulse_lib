@@ -1,5 +1,7 @@
 import pulse_lib.segments.segments_base as seg_base
 import pulse_lib.segments.segments_IQ as seg_IQ
+import pulse_lib.segments.looping as lp
+
 from pulse_lib.segments.data_handling_functions import find_common_dimension, update_dimension
 
 import numpy as np
@@ -121,7 +123,17 @@ class segment_container():
 		-> totaltime will be 140 ns,
 		when you now as a new pulse (e.g. at time 0, it will actually occur at 140 ns in both blocks)
 		'''
-		raise NotImplemented
+		
+		times = self.total_time
+
+		loop_obj = lp.loop_obj()
+		loop_obj.add_data(times, list(range(len(times.shape)-1, -1,-1)))
+
+		for i in self.channels:
+			segment = getattr(self, i)
+			segment.reset_time(loop_obj)
+
+
 
 	def get_waveform(self, channel, Vpp_data, sequence_time, pre_delay=0, post_delay = 0, return_type = np.double):
 		'''
@@ -160,19 +172,23 @@ class segment_container():
 	def clear_chache(self):
 		raise NotImplemented
 
+	@property
+	def shape(self):
+		'''
+		get combined shape of all the waveforms
+		'''
+		my_shape = (1,)
+		for i in self.channels:
+			dim = getattr(self, i).data.shape
+			my_shape = find_common_dimension(my_shape, dim)
+
+		return my_shape
+	
 	def __extend_dim_all_waveforms(self):
 		"""
 		function to make sure that all the waveforms have the same dimentionality.
 		Note that the mode here is copy and not referencing.
 		"""
-
-		# find global dimension
-		my_dimension = (1,)
 		for i in self.channels:
-			dim = getattr(self, i).data.shape
-			my_dimension = find_common_dimension(my_dimension, dim)
-
-		# now update the size
-		for i in self.channels:
-			getattr(self, i).data = update_dimension(getattr(self, i).data, my_dimension)
+			getattr(self, i).data = update_dimension(getattr(self, i).data, self.shape)
 

@@ -41,9 +41,16 @@ class pulse_data():
             total_time = self.my_pulse_data[-1,0]
         return total_time
 
-    def reset_time(self,):
-        self.start_time = self.total_time
+    def reset_time(self, time = None):
+        if time is not None:
+            if self.start_time + time <= self.total_time:
+                pass
+            else:
+                pulse = np.asarray([[0, 0],[self.start_time + time, 0]])
+                self.add_pulse_data(pulse)
 
+        self.start_time = self.total_time
+        
     def get_vmax(self,sample_rate = 1e9):
         '''
         calculate the maximum voltage in the current segment_single.
@@ -347,8 +354,11 @@ class IQ_data():
 
         return total_time
 
-    def reset_time(self,):
-        self.start_time = self.total_time
+    def reset_time(self, time = None):
+        if time is not None:
+            self.start_time = None
+        else:
+            self.start_time = self.total_time
 
     def __copy__(self,):
         my_copy = IQ_data(self.LO)

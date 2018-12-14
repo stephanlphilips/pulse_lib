@@ -1,4 +1,4 @@
-from pulse_lib.segments.looping import linspace
+from pulse_lib.segments.looping import loop_obj
 from pulse_lib.segments.data_classes import data_container
 import numpy as np
 import copy
@@ -150,29 +150,32 @@ def loop_controller(func):
 		loop_info_kwargs = []
 
 		for i in range(1,len(args)):
-			if type(args[i]) == linspace : 
+			if isinstance(args[i], loop_obj): 
 				info = {
 				'nth_arg': i,
-				'name': args[i].name,
+				'name': args[i].names,
+				'shape' : args[i].shape,
 				'len': len(args[i]),
 				'axis': args[i].axis,
 				'data' : args[i].data}
 				loop_info_args.append(info)
 
 		for key in kwargs.keys():
-			if type(kwargs[key]) == linspace : 
+			if isinstance(kwargs[key], loop_obj):
 				info = {
 				'nth_arg': key,
-				'name': kwargs[key].name,
+				'name': kwargs[key].names,
+				'shape' : args[i].shape,
 				'len': len(kwargs[key]),
 				'axis': kwargs[key].axis,
 				'data' : kwargs[key].data}
 				loop_info_kwargs.append(info)
 		
-		
 		for lp in loop_info_args:
-			new_dim = get_new_dim_loop(obj.data.shape, lp)
-			obj.data = update_dimension(obj.data, new_dim)
+			for i in range(len(lp['axis'])-1,-1,-1):
+				new_dim, axis = get_new_dim_loop(obj.data.shape, lp['axis'][i], lp['shape'][i])
+				lp['axis'][i] = axis
+				obj.data = update_dimension(obj.data, new_dim)
 		
 		for lp in loop_info_kwargs:
 			new_dim = get_new_dim_loop(obj.data.shape, lp)
@@ -208,10 +211,10 @@ def loop_over_data(func, data, args, args_info, kwargs, kwargs_info):
 
 	for i in range(shape[0]):
 		for arg in args_info:
-			if arg['axis'] == n_dim-1:
+			if n_dim-1 in arg['axis']:
 				args_cpy[arg['nth_arg']] = args[arg['nth_arg']].data[i]
 		for kwarg in kwargs_info:
-			if arg['axis'] == n_dim-1:
+			if n_dim-1 in kwarg['axis']:
 				kwargs_cpy[kwargs_info['nth_arg']] = kwargs[kwargs_info['nth_arg']].data[i]
 
 		if n_dim == 1:
@@ -222,42 +225,45 @@ def loop_over_data(func, data, args, args_info, kwargs, kwargs_info):
 			# clean up args, kwards
 			loop_over_data(func, data[i], args_cpy, args_info, kwargs_cpy, kwargs_info)
 
-def get_new_dim_loop(current_dim, loop_spec):
+def get_new_dim_loop(current_dim, axis, shape):
 	'''
 	function to get new dimensions from a loop spec.
 	
 	Args:
-		current_dim [tuple/array] : current dimensions of the data object 
-		loop_spec [dict] : format of the loop
+		current_dim [tuple/array] : current dimensions of the data object. 
+		axis [int] : on which axis to put the new loop dimension.
+		len [int] : the number of elements that a are along that loop axis.
 	
 	Returns:
 		new_dim [array] : new dimensions of the data obeject when one would include the loop spec
+		axis [int] : axis on which a loop variable was put (if free assign option was used (axis of -1))
 	'''
+
 	current_dim = list(current_dim)
 	new_dim = []
-	if loop_spec["axis"] == -1:
-		new_dim = [loop_spec["len"]] + current_dim
+	if axis == -1:
+		new_dim = [shape] + current_dim
 		# assign new axis.
-		loop_spec["axis"] = len(new_dim) - 1
+		axis = len(new_dim) - 1
 	else:
-		if loop_spec["axis"] >= len(current_dim):
-			new_dim = [1]*(loop_spec["axis"]+1)
+		if axis >= len(current_dim):
+			new_dim = [1]*(axis+1)
 			for i in range(len(current_dim)):
-				new_dim[loop_spec["axis"]-len(current_dim)+1 + i] = current_dim[i]
-			new_dim[0] = loop_spec["len"]
+				new_dim[axis-len(current_dim)+1 + i] = current_dim[i]
+			new_dim[0] = shape
 		else:
-			if current_dim[-1-loop_spec["axis"]] == loop_spec["len"]:
+			if current_dim[-1-axis] == shape:
 				new_dim = current_dim
-			elif current_dim[-1-loop_spec["axis"]] == 1:
+			elif current_dim[-1-axis] == 1:
 				new_dim = current_dim
-				new_dim[-1-loop_spec["axis"]] = loop_spec['len']
+				new_dim[-1-axis] = shape
 			else:
 				raise ValueError("Dimensions on loop axis {} not compatible with previous loops\n\
 					(current dimensions is {}, wanted is {}).\n\
-					Please change loop axis or update the length.".format(loop_spec["axis"],
-					current_dim[loop_spec["axis"]], loop_spec["len"]))
+					Please change loop axis or update the length.".format(axis,
+					current_dim[axis], shape))
 
-	return new_dim
+	return new_dim, axis
 
 def update_labels(data_object, loop_spec):
 	pass

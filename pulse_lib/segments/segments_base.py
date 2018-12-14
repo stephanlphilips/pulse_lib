@@ -64,10 +64,16 @@ class segment_single():
 		'''
 		virtual_IQ_segment = {'name': channel_name, 'segment': pointer_to_channel, 'I/Q': I_or_Q_part}
 		self.IQ_ref_channels.append(virtual_IQ_segment)
-		
+	
+	@last_edited
 	@loop_controller
-	def reset_time(self):
-		self.data_tmp.reset_time()
+	def reset_time(self, time=None):
+		'''
+		resets the time back to zero after a certain point
+		Args: 
+			time (double) : (optional), after time to reset back to 0. Note that this is absolute time and not rescaled time.
+		'''
+		self.data_tmp.reset_time(time)
 
 	@last_edited
 	@loop_controller
@@ -118,22 +124,6 @@ class segment_single():
 		pulse = np.asarray([[t0, 0],[wait+t0, 0]])
 
 		self.data_tmp.add_pulse_data(pulse)
-
-	@last_edited
-	@loop_controller
-	def wait_until(self, time):
-		'''
-		makes a wait for the waveform until a certain point in time.
-		Args:
-			time (double) : time in ns that there must be a point inside the waveform
-		'''
-		if self.data_tmp.start_time + time <= self.data_tmp.total_time:
-			pass
-		else:
-			pulse = np.asarray([[0, 0],[self.data_tmp.start_time + time, 0]])
-
-			self.data_tmp.add_pulse_data(pulse)
-
 
 	@last_edited
 	@loop_controller
@@ -294,8 +284,8 @@ class segment_single():
 			A numpy array that contains the points for each ns
 			points is the expected lenght.
 		'''
-		t, wvf = self._generate_segment(index, pre_delay, post_delay, sample_rate)
-		return t, wvf
+		wvf = self._generate_segment(index, pre_delay, post_delay, sample_rate)
+		return wvf
 
 	def v_max(self, index, sample_rate = 1e9):
 		index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
