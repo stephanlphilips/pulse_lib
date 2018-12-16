@@ -3,20 +3,20 @@
 This is a simple pulse library that is made to work together with the Keysight AWG. The main motivation for this library was to have a very easy and structured way to make waveforms. Also attention is given to performance for the construction of the waveform. The construction should always be faster than upload time (this was challaging since the upload goes via pcie + python ..). Performance critical parts are written in cython. Note that it is not the intention to support other AWG systems with this project (though the pulse builder should be genereric).
 
 Features now include:
-* Native support for virtual gates
 * support for any pulse and sine waves (phase coherent atm)
 * Sequencing
 * delay in awg lines.
-* Fully multidimensionlisation of the segment object (with matrix operators) ==> advanced (integrated) looping methods -- decorator approach + looping class. 
-* IQ toolkit and IQ virtual channels -- Full suppport for single sideband modulation (in combination with phase/amp/frequency modulation)
-* Multithreaded upload module for the keysight units. Upload sequences while doing playback.
-	
+* Fully multidimensional. Execute any command as a loop in any dimension.
+* Short and clean syntax. No sympy.
+* Native support for virtual gates
+* IQ toolkit and IQ virtual channels -- Full suppport for single sideband modulation (Along with PM/AM/FM)
+* High speed uploader that supports upload during playback.
+
 TODO list:
 * Update virtual gate matrix function
-* more base functions
+* include a ramp function
 * Support for calibarion arguments? -- this should be engineered well.
-* Memory segmentation on the keysight awg. This will be needed if you want to upload during an experiment.
-* Faster add function for block funtion (now performace issues if more than ~2000 elements in a sequence (not nice to call a lot)).
+* HVI2 integration
 
 # Initializing the library
 
