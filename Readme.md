@@ -14,7 +14,6 @@ Features now include:
 
 TODO list:
 * Update virtual gate matrix function
-* include a ramp function
 * Support for calibarion arguments? -- this should be engineered well.
 * HVI2 integration
 
