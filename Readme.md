@@ -21,7 +21,8 @@ TODO bugs and small things to fix,
 * Remake the sequence object
 * make segments appendable
 * how the deal with names of segments. Are they really needed?
-* Make multimensiolisation module via referencing instead of copying
+* deal with names and units of the loops
+* Make multidemensionnalisation module via referencing instead of copying
 
 # Initializing the library
 
