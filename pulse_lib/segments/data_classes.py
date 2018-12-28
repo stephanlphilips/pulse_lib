@@ -42,12 +42,10 @@ class pulse_data():
         return total_time
 
     def reset_time(self, time = None):
+
         if time is not None:
-            if self.start_time + time <= self.total_time:
-                pass
-            else:
-                pulse = np.asarray([[0, 0],[self.start_time + time, 0]])
-                self.add_pulse_data(pulse)
+            pulse = np.asarray([[0, 0],[time, 0]])
+            self.add_pulse_data(pulse)
 
         self.start_time = self.total_time
         
@@ -133,31 +131,33 @@ class pulse_data():
 
         # get number of points that need to be rendered
         # TODO -- remove the pre-delay
-        t_tot_pt = get_effective_point_number(t_tot, sample_time_step)
+        t_tot_pt = get_effective_point_number(t_tot, sample_time_step) + 1
         pre_delay_pt = get_effective_point_number(pre_delay, sample_time_step)
         post_delay_pt = get_effective_point_number(post_delay, sample_time_step)
 
-
         my_sequence = np.zeros([int(t_tot_pt + pre_delay_pt + post_delay_pt)])
-
         # start rendering pulse data
         for i in range(0,len(self.my_pulse_data)-1):
             t0_pt = get_effective_point_number(self.my_pulse_data[i,0], sample_time_step)
-            t1_pt = get_effective_point_number(self.my_pulse_data[i+1,0], sample_time_step)
+            t1_pt = get_effective_point_number(self.my_pulse_data[i+1,0], sample_time_step) + 1
             t0 = t0_pt*sample_time_step
             t1 = t1_pt*sample_time_step
             if t0 > t_tot:
                 continue
-            elif t1 > t_tot:
+            elif t1 > t_tot + sample_time_step:
+                print(t1, t_tot)
+                print(self.my_pulse_data[i,:], self.my_pulse_data[i+1,:], t_tot)
                 val = py_calc_value_point_in_between(self.my_pulse_data[i,:], self.my_pulse_data[i+1,:], t_tot)
                 my_sequence[t0_pt + pre_delay_pt: t_tot_pt + pre_delay_pt] = np.linspace(
                     self.my_pulse_data[i,1], 
                     val, t_tot_pt-t0_pt)
             else:
                 my_sequence[t0_pt + pre_delay_pt: t1_pt + pre_delay_pt] = np.linspace(self.my_pulse_data[i,1], self.my_pulse_data[i+1,1], t1_pt-t0_pt)
+        
         # top off the sequence -- default behavior, extend the last value
-        pt = get_effective_point_number(self.my_pulse_data[i+1,0], sample_time_step)
-        my_sequence[pt + pre_delay_pt:] = self.my_pulse_data[i+1,1]
+        if len(self.my_pulse_data) > 1:
+            pt = get_effective_point_number(self.my_pulse_data[i+1,0], sample_time_step)
+            my_sequence[pt + pre_delay_pt:] = self.my_pulse_data[i+1,1]
 
         for sin_data_item in self.sin_data:
             if sin_data_item['start_time'] > t_tot:
@@ -316,7 +316,7 @@ class pulse_data():
         
         return new_data
 
-class IQ_data():
+class IQ_data(pulse_data):
     """
     class that manages the data used for generating IQ data
     """
@@ -327,6 +327,8 @@ class IQ_data():
         self.numpy_IQ_data = []
         self.start_time = 0
         self.global_phase = 0
+        # just introduced for wait command (no pulse data stored)
+        self.my_pulse_data = np.zeros([1,2], dtype=np.double)
 
     def add_simple_data(self, input_dict):
         self.simple_IQ_data.append(input_dict)
@@ -352,13 +354,19 @@ class IQ_data():
             if IQ_data_item['stop_time'] > total_time:
                 total_time = IQ_data_item['stop_time']
 
+        if self.my_pulse_data[-1,0] > total_time:
+            total_time = self.my_pulse_data[-1,0]
+
         return total_time
 
     def reset_time(self, time = None):
         if time is not None:
-            self.start_time = None
+            self.start_time = time
         else:
             self.start_time = self.total_time
+
+        pulse = np.asarray([[0, 0],[self.start_time, 0]])
+        self.add_pulse_data(pulse)
 
     def __copy__(self,):
         my_copy = IQ_data(self.LO)
@@ -367,6 +375,7 @@ class IQ_data():
         my_copy.numpy_IQ_data = copy.copy(self.numpy_IQ_data)
         my_copy.global_phase = copy.copy(self.global_phase)
         my_copy.start_time = copy.copy(self.start_time)
+        my_copy.my_pulse_data = copy.copy(self.my_pulse_data)
         return my_copy
 
     def get_IQ_data(self, I_or_Q):

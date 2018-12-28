@@ -40,14 +40,14 @@ class segment_container():
 		
 		# Not superclean should be in a different namespace.
 		for i in real_channels:
-			setattr(self, i, seg_base.segment_single())
+			setattr(self, i, seg_base.segment_single(i))
 			self.channels.append(i)
 			self.r_channels.append(i)
 
 		if virtual_gates is not None:
 			# make segments for virtual gates.
 			for i in self.virtual_gates['virtual_gates_names_virt']:
-				setattr(self, i, seg_base.segment_single())
+				setattr(self, i, seg_base.segment_single(i))
 				self.channels.append(i)
 
 			# add reference in real gates.
@@ -63,7 +63,7 @@ class segment_container():
 
 		if IQ_channels is not None:
 			for i in range(len(IQ_channels['vIQ_channels'])):
-				setattr(self, IQ_channels['vIQ_channels'][i], seg_IQ.segment_single_IQ(IQ_channels['LO_freq'][i]))
+				setattr(self, IQ_channels['vIQ_channels'][i], seg_IQ.segment_single_IQ(IQ_channels['vIQ_channels'][i], IQ_channels['LO_freq'][i]))
 				self.channels.append(IQ_channels['vIQ_channels'][i])
 
 			for i in range(len(IQ_channels['rIQ_channels'])):

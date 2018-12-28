@@ -2,7 +2,7 @@ import numpy as np
 
 
 class loop_obj():
-	"""objecet that initializes some standard fields that need to be there in a loop object"""
+	"""object that initializes some standard fields that need to be there in a loop object"""
 	def __init__(self):
 		# little inspiration from qcodes parameter ...
 		self.names = list()
@@ -11,26 +11,33 @@ class loop_obj():
 		self.dtype = None
 	
 	def add_data(self, data, axis = None, names = None, units = None):
-		self.data = data
-		self.dtype = data.dtype
+		self.data = np.asarray(data)
+		self.dtype = self.data.dtype
+
 		if axis is None:
-			self.axis = [-1]*len(data)
+			self.axis = [-1]*len(self.data)
+		elif type(axis) == int:
+			self.axis = [axis]
 		else:
-			if len(axis) != len(data.shape):
+			if len(axis) != len(self.data.shape):
 				raise ValueError("Provided incorrect dimensions for the axis.")
 			self.axis = axis
 		
 		if names is None:
-			self.names = ["undefined"]*len(data)
+			self.names = ["undefined"]*len(self.data)
+		elif type(names) == str:
+			self.names = [names]
 		else:
-			if len(names) != len(data.shape):
+			if len(names) != len(self.data.shape):
 				raise ValueError("Provided incorrect dimensions for the axis.")
 			self.names = names
 
 		if units is None:
-			self.units = ["a.u"]*len(data)
+			self.units = ["a.u"]*len(self.data)
+		elif type(units) == str:
+			self.units = [units]
 		else:
-			if len(units) != len(data.shape):
+			if len(units) != len(self.data.shape):
 				raise ValueError("Provided incorrect dimensions for the axis.")
 			self.units = units
 
@@ -52,6 +59,17 @@ class loop_obj():
 			partial.dtype = self.dtype
 			partial.data = self.data[key]
 			return partial
+
+	def __add__(self, other):
+		self.data += other
+	def __mul__(self, other):
+		self.data *= other
+
+	def __sub__(self, other):
+		self.data -= other
+	def __truediv__(self, other):
+		self.data += self.data/other
+
 
 	
 class linspace(loop_obj):

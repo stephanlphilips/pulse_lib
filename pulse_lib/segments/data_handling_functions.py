@@ -238,7 +238,6 @@ def get_new_dim_loop(current_dim, axis, shape):
 		new_dim [array] : new dimensions of the data obeject when one would include the loop spec
 		axis [int] : axis on which a loop variable was put (if free assign option was used (axis of -1))
 	'''
-
 	current_dim = list(current_dim)
 	new_dim = []
 	if axis == -1:

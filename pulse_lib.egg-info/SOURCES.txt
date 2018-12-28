@@ -6,10 +6,10 @@ pulse_lib.egg-info/PKG-INFO
 pulse_lib.egg-info/SOURCES.txt
 pulse_lib.egg-info/dependency_links.txt
 pulse_lib.egg-info/top_level.txt
-pulse_lib/segments/segments_c_func.c
 pulse_lib/segments/__init__.py
 pulse_lib/segments/data_classes.py
 pulse_lib/segments/data_handling_functions.py
+pulse_lib/segments/looping.py
 pulse_lib/segments/segments.py
 pulse_lib/segments/segments_IQ.py
 pulse_lib/segments/segments_base.py

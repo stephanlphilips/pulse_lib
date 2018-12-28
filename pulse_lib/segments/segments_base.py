@@ -22,9 +22,9 @@ class segment_single():
 	Class defining single segments for one sequence.
 	This is at the moment rather basic. Here should be added more fuctions.
 	'''
-	def __init__(self):
+	def __init__(self, name):
 		self.type = 'default'
-
+		self.name = name
 		# variable specifing the laetest change to the waveforms
 		self._last_edit = datetime.datetime.now()
 		
@@ -109,6 +109,31 @@ class segment_single():
 			pulse = np.array([[start + self.data_tmp.start_time, 0], [start + self.data_tmp.start_time,amplitude], [stop + self.data_tmp.start_time, amplitude], [stop + self.data_tmp.start_time, 0]], dtype=np.double)
 
 		self.data_tmp.add_pulse_data(pulse)
+	
+	@last_edited
+	@loop_controller
+	def add_ramp(self, start, stop, amplitude, keep_amplitude=False):
+		'''
+		Makes a linear ramp
+		Args:
+			start (double) : starting time of the ramp
+			stop (double) : stop time of the ramp
+			amplitude : total hight of the ramp, starting from the base point
+			keep_amplitude : when pulse is done, keep reached amplitude for time infinity
+		'''
+
+		if keep_amplitude == False:
+			if start != 0:
+				pulse = np.array([[0,0], [start + self.data_tmp.start_time, 0], [stop + self.data_tmp.start_time, amplitude], [stop + self.data_tmp.start_time, 0]], dtype=np.double)
+			else:
+				pulse = np.array([[start + self.data_tmp.start_time, 0],  [stop + self.data_tmp.start_time, amplitude], [stop + self.data_tmp.start_time, 0]], dtype=np.double)
+		else:
+			if start != 0:
+				pulse = np.array([[0,0], [start + self.data_tmp.start_time, 0], [stop + self.data_tmp.start_time, amplitude] ], dtype=np.double)
+			else:
+				pulse = np.array([[start + self.data_tmp.start_time, 0],  [stop + self.data_tmp.start_time, amplitude] ], dtype=np.double)
+
+		self.data_tmp.add_pulse_data(pulse)
 
 	@last_edited
 	@loop_controller
@@ -121,7 +146,7 @@ class segment_single():
 		amp_0 = self.data_tmp.my_pulse_data[-1,1]
 		t0 = self.data_tmp.total_time
 
-		pulse = np.asarray([[t0, 0],[wait+t0, 0]])
+		pulse = np.asarray([[t0, 0],[wait+t0, 0]], dtype=np.double)
 
 		self.data_tmp.add_pulse_data(pulse)
 
@@ -218,7 +243,7 @@ class segment_single():
 		'''
 		define addition operator for segment_single
 		'''
-		new_segment = segment_single()
+		new_segment = segment_single(self.name)
 		if type(other) is segment_single:
 			shape1 = self.data.shape
 			shape2 = other.data.shape
@@ -375,6 +400,6 @@ class segment_single():
 		y = pulse_data_curr_seg.render(0, pulse_data_curr_seg.total_time, sample_rate)
 		x = np.linspace(0, pulse_data_curr_seg.total_time*sample_time_step-sample_time_step, len(y))
 
-		plt.plot(x,y)
-		plt.show()
+		plt.plot(x,y, label=self.name)
+		# plt.show()
 

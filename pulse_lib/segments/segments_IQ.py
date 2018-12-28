@@ -31,11 +31,12 @@ class segment_single_IQ(segment_single):
 	Standard single segment for IQ purposes
 	todo --> add global phase and time shift in the data class instead of this one (cleaner and more generic).
 	"""
-	def __init__(self, LO):
+	def __init__(self, name, LO):
 		'''
 		Args: frequency of the LO (in Hz). 
 		Tip, make on of these segments for each qubit. Then you get a very clean implementation of reference frame changes!
 		'''
+		self.name = name
 
 		super(segment_single, self).__init__()
 		self.data = data_container(IQ_data(LO))
