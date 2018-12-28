@@ -1,6 +1,6 @@
 # Introduction
 
-This is a simple pulse library that is made to work together with the Keysight AWG. The main motivation for this library was to have a very easy and structured way to make waveforms. Also attention is given to performance for the construction of the waveform. The construction should always be faster than upload time (this was challaging since the upload goes via pcie + python ..). Performance critical parts are written in cython. Note that it is not the intention to support other AWG systems with this project (though the pulse builder should be genereric).
+This is a simple pulse library that is made to work together with the Keysight AWG. The main motivation for this library was to have a very easy and structured way to make waveforms that is focussed towards choherent control on spin qubits. Attention is given to performance for the construction of the waveform. The construction should always be faster than upload time (this was challaging since the upload goes via pcie + python ..), as you would not want your expirment to be delayed by a slow pulse library. Performance critical parts are written in cython. Note that it is not the intention to support other AWG systems with this project (though the pulse builder should be genereric).
 
 Features now include:
 * support for any pulse and sine waves (phase coherent atm)
@@ -17,6 +17,12 @@ TODO list:
 * include a ramp function
 * Support for calibarion arguments? -- this should be engineered well.
 * HVI2 integration
+
+TODO bugs and small things to fix,
+* Remake the sequence object
+* make segments appendable
+* how the deal with names of segments. Are they really needed?
+* Make multimensiolisation module via referencing instead of copying
 
 # Initializing the library
 
