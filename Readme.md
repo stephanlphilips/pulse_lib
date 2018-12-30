@@ -16,14 +16,12 @@ TODO list:
 * Update virtual gate matrix function
 * Support for calibarion arguments? -- this should be engineered well.
 * HVI2 integration
+* cython/c++ object of keysight objects to fully release the GIL
 
 TODO bugs and small things to fix,
-* Remake the sequence object
 * make segments appendable
-* how the deal with names of segments. Are they really needed?
 * deal with names and units of the loops
-* Make multidemensionnalisation module via referencing instead of copying
-
+* make cut function
 
 !! keysight AWG's their waveforms need to have a length of modulo 10 !! (related to the clock of the AWG)
 --> segments are concatenated for this purose when uploading (e.g. upload happens in one big chunk)
