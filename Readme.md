@@ -25,7 +25,9 @@ TODO bugs and small things to fix,
 * Make multidemensionnalisation module via referencing instead of copying
 
 
-!! keysight AWG's their waveforms need to have a length of modulo 10 !!
+!! keysight AWG's their waveforms need to have a length of modulo 10 !! (related to the clock of the AWG)
+--> segments are concatenated for this purose when uploading (e.g. upload happens in one big chunk)
+
 # Initializing the library
 
 The general object that will manage all the segments and the interection with the AWG is the pulse object. The pulse object is best created in the station.
