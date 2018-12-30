@@ -20,7 +20,7 @@ TODO list:
 
 TODO bugs and small things to fix,
 * make segments appendable
-* deal with names and units of the loops
+* deal with names and units of the loops + setpoints variable
 * make cut function
 
 !! keysight AWG's their waveforms need to have a length of modulo 10 !! (related to the clock of the AWG)
