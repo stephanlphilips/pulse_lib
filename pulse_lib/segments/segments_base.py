@@ -331,8 +331,11 @@ class segment_single():
 			sample_rate (double) : rate at which to render the pulse
 		returns: intergral value
 		'''
-		index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
-		return self.pulse_data_all.flat[index].integrate_waveform(pre_delay, post_delay, sample_rate)
+		flat_index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
+		pulse_data_all_curr_seg = self.pulse_data_all.flat[flat_index]
+
+		total_time = pulse_data_all_curr_seg.total_time
+		return pulse_data_all_curr_seg.integrate_waveform(pre_delay, total_time + post_delay, sample_rate)
 
 	@property
 	def pulse_data_all(self):
@@ -376,8 +379,12 @@ class segment_single():
 		pulse_data_all_curr_seg = self.pulse_data_all.flat[flat_index]
 
 		total_time = pulse_data_all_curr_seg.total_time
-		my_sequence = pulse_data_all_curr_seg.render(pre_delay, total_time + post_delay, sample_rate)
+		import time
+		s = time.time()
 
+		my_sequence = pulse_data_all_curr_seg.render(pre_delay, post_delay, sample_rate)
+		stop = time.time()
+		print(stop-s)
 		return my_sequence
 
 	def plot_segment(self, index = [0], render_full = True):

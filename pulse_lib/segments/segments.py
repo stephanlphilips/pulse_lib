@@ -3,6 +3,7 @@ import pulse_lib.segments.segments_IQ as seg_IQ
 import pulse_lib.segments.looping as lp
 
 from pulse_lib.segments.data_handling_functions import find_common_dimension, update_dimension
+import uuid
 
 import numpy as np
 import datetime
@@ -23,13 +24,13 @@ class segment_container():
 	Class returns vmin/vmax data to awg object
 	Class returns upload data as a int16 array to awg object.
     '''
-	def __init__(self, name, real_channels, virtual_gates = None, IQ_channels=None):
+	def __init__(self, real_channels, virtual_gates = None, IQ_channels=None):
 		# physical channels
 		self.r_channels = []
 		# physical + virtual channels
 		self.channels = []
 		self.virtual_gates = virtual_gates
-		self.name = name
+		self.id = uuid.uuid4()
 		self._Vmin_max_data = dict()
 
 		for i in real_channels:
@@ -82,7 +83,7 @@ class segment_container():
 		Returns:
 			times (np.ndarray) : numpy array with the total time (maximum of all the channels), for all the different loops executed.
 		'''
-		self.__extend_dim_all_waveforms()
+		self.extend_dim()
 
 		shape = list(getattr(self, self.channels[0]).data.shape)
 		n_channels = len(self.channels)
@@ -135,40 +136,19 @@ class segment_container():
 
 
 
-	def get_waveform(self, channel, Vpp_data, sequence_time, pre_delay=0, post_delay = 0, return_type = np.double):
+	def get_waveform(self, channel, index = [0], pre_delay=0, post_delay = 0, sample_rate=1e9):
 		'''
 		function to get the raw data of a waveform,
 		inputs:
-			channel: channel name of the waveform you want
-			Vpp_data: contains peak to peak voltage and offset for each channel
-			sequence time: efffective time in the sequence when the segment starts, this can be important for when using mulitple segments with IQ modulation.
-			pre_delay: extra offset in from of the waveform (start at negative time) (for a certain channel, as defined in channel delays)
-			post_delay: time gets appended to the waveform (for a certain channel)
-			return type: type of the wavefrom (must be numpy compatible). Here number between -1 and 1.
+			channel (str) : channel name of the waveform you want
+			index (tuple) :
+			pre_delay (int) : extra offset in from of the waveform (start at negative time) (for a certain channel, as defined in channel delays)
+			post_delay (int) : time gets appended to the waveform (for a certain channel)
 		returns:
-			waveform as a numpy array with the specified data type.
+			np.ndarray[ndim=1, dtype=double] : waveform as a numpy array
 		'''
-		# self.prep4upload()
-
-
-		# upload_data = np.empty([int(self.total_time) + pre_delay + post_delay], dtype = return_type)
+		return getattr(self, channel).get_segment(index, pre_delay, post_delay, sample_rate)
 		
-		waveform_raw = getattr(self, channel).get_segment(self.total_time, sequence_time, pre_delay, post_delay)
-
-		# chan_number = None
-		# for i in range(len(self.channels)):
-		# 	if self.channels[i] == channel:
-		# 		chan_number = i
-
-		# do not devide by 0 (means channels is not used..)
-		if Vpp_data[channel]['v_pp'] == 0:
-			Vpp_data[channel]['v_pp'] = 1
-			
-		# normalise according to the channel, put as 
-		upload_data = ((waveform_raw - Vpp_data[channel]['v_off'])/Vpp_data[channel]['v_pp']).astype(return_type)
-
-		return upload_data
-
 	def clear_chache(self):
 		raise NotImplemented
 
@@ -183,12 +163,16 @@ class segment_container():
 			my_shape = find_common_dimension(my_shape, dim)
 
 		return my_shape
-	
-	def __extend_dim_all_waveforms(self):
-		"""
-		function to make sure that all the waveforms have the same dimentionality.
-		Note that the mode here is copy and not referencing.
-		"""
-		for i in self.channels:
-			getattr(self, i).data = update_dimension(getattr(self, i).data, self.shape)
 
+	def extend_dim(self, shape=None, ref = False):
+		'''
+		extend the dimensions of the waveform to a given shape.
+		Args:
+			shape (tuple) : shape of the new waveform
+			ref (bool) : put to True if you want to extend the dimension by using pointers instead of making full copies.
+		'''
+		if shape is None:
+			shape = self.shape
+
+		for i in self.channels:
+			getattr(self, i).data = update_dimension(getattr(self, i).data, shape, ref)

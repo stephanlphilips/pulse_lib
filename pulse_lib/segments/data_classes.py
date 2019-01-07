@@ -5,7 +5,7 @@ import copy
 import pulse_lib.segments.segments_c_func as seg_func
 from pulse_lib.segments.segments_c_func import py_calc_value_point_in_between
 
-
+import time
 
 class pulse_data():
     """object that saves all the pulse data that is present in an segment object.
@@ -53,20 +53,25 @@ class pulse_data():
         '''
         calculate the maximum voltage in the current segment_single.
 
-        Just makes a quick render and checks the maximum voltage.
+        If sine waves included, will take the maximum of the total render. Tf not, it just takes the max of the pulse data.
         '''
-        return np.max(self.render(sample_rate=1e9, clear_cache_on_exit = False))
+        if len(self.sin_data) == 0:
+            return np.max(self.my_pulse_data[:,1])
+        else:
+            return np.max(self.render(sample_rate=1e9, clear_cache_on_exit = False))
 
     def get_vmin(self,sample_rate = 1e9):
         '''
         calculate the maximum voltage in the current segment_single.
 
-        Just makes q quick render and gets the minium voltage.
-        '''
+        If sine waves included, will take the minimum of the total render. Tf not, it just takes the min of the pulse data.
+        ''' 
+        if len(self.sin_data) == 0:
+            return np.min(self.my_pulse_data[:,1])
+        else:   
+            return np.min(self.render(sample_rate=1e9, clear_cache_on_exit = False))
 
-        return np.min(self.render(sample_rate=1e9, clear_cache_on_exit = False))
-
-    def integrate_waveform(self, start_time, stop_time, sample_rate):
+    def integrate_waveform(self, pre_delay, post_delay, sample_rate):
         '''
         takes a full integral of the currently scheduled waveform.
         Args:
@@ -76,39 +81,55 @@ class pulse_data():
         Returns:
             integrate (double) : the integrated value of the waveform (unit is mV/sec).
         '''
-        wvf = self.render(start_time, stop_time, sample_rate, clear_cache_on_exit = False)
+        integrated_value = 0
+        if len(self.sin_data) == 0 and pre_delay <= 0 and post_delay>= 0:
 
-        return np.trapz(wvf, dx=1/sample_rate)
+            sample_rate = self.waveform_cache['sample_rate']*1e-9
+            sample_time_step = 1/sample_rate
+            pre_delay_eff = get_effective_point_number(pre_delay, sample_time_step)*sample_time_step
+            post_delay_eff = get_effective_point_number(post_delay, sample_time_step)*sample_time_step
 
-    def render(self, start_time = 0, stop_time = -1, sample_rate=1e9, clear_cache_on_exit = True):
+            for i in range(len(self.my_pulse_data)-1):
+                integrated_value += (self.my_pulse_data[i,1] + self.my_pulse_data[i+1,1])/2*(self.my_pulse_data[i+1,0] - self.my_pulse_data[i,0])
+            integrated_value += pre_delay_eff*self.my_pulse_data[0,1] +post_delay_eff*self.my_pulse_data[-1,1]
+            integrated_value *= 1e-9
+        else:
+            print("analytical integral")
+            wvf = self.render(pre_delay, post_delay, sample_rate, clear_cache_on_exit = False)
+            integrated_value = np.trapz(wvf, dx=1/sample_rate)
+
+        return integrated_value
+    def render(self, pre_delay = 0, post_delay = 0, sample_rate=1e9, clear_cache_on_exit = False):
         '''
         renders pulse
         Args:
-            start_time (double) : from which points the rendering needs to start
-            stop_time (double) : to which point the rendering needs to go (default (-1), to entire segement)
+            pre_delay (double) : amount of time to put before the sequence the rendering needs to start
+            post_delay (double) : to which point in time the rendering needs to go
             sample_rate (double) : rate at which the AWG will be run
             clear_cache_on_exit (bool) : clear the cache on exit (e.g. when you uploaded this waveform to the AWG, remove reference so the garbarge collector can remove it). The ensured low memory occupation.
         returns
             pulse (np.ndarray) : numpy array of the pulse
         '''
-        '''
-        generate numpy array of the segment
-        Args:
-            pre_delay: predelay of the pulse (in ns) (e.g. for compensation of diffent coax length's)
-            post_delay: extend the pulse for x ns
-        '''
 
         # If no render performed, generate full waveform, we will cut out the right size if needed
         if len(self.waveform_cache) == 0 or self.waveform_cache['sample_rate'] != sample_rate:
+            pre_delay_wvf = pre_delay
+            if pre_delay > 0:
+                pre_delay_wvf = 0
+            post_delay_wvf = post_delay
+            if post_delay < 0:
+                pre_delay_wvf = 0
+
             self.waveform_cache = {
                 'sample_rate' : sample_rate,
-                'waveform' : self.__render(sample_rate)
+                'waveform' : self.__render(sample_rate, pre_delay_wvf, post_delay_wvf),
+                'pre_delay': pre_delay,
+                'post_delay' : post_delay
             }
 
+
         # get the waveform
-        my_waveform = self.waveform_cache['waveform']
-        if start_time != 0 or stop_time != -1:
-            my_waveform = self.resize_waveform(start_time, stop_time, sample_rate)
+        my_waveform = self.get_resized_waveform(pre_delay, post_delay)
         
         # clear cache if needed
         if clear_cache_on_exit == True:
@@ -116,7 +137,7 @@ class pulse_data():
 
         return my_waveform
 
-    def __render(self, sample_rate):
+    def __render(self, sample_rate, pre_delay = 0, post_delay = 0):
         '''
         make a full rendering of the waveform at a predermined sample rate.
         '''
@@ -124,15 +145,13 @@ class pulse_data():
         sample_rate = sample_rate*1e-9
         sample_time_step = 1/sample_rate
 
+        start = time.time()
         
         t_tot = self.total_time
-        pre_delay = 0
-        post_delay = 0
 
         # get number of points that need to be rendered
-        # TODO -- remove the pre-delay
         t_tot_pt = get_effective_point_number(t_tot, sample_time_step) + 1
-        pre_delay_pt = get_effective_point_number(pre_delay, sample_time_step)
+        pre_delay_pt = - get_effective_point_number(pre_delay, sample_time_step)
         post_delay_pt = get_effective_point_number(post_delay, sample_time_step)
 
         my_sequence = np.zeros([int(t_tot_pt + pre_delay_pt + post_delay_pt)])
@@ -145,15 +164,18 @@ class pulse_data():
             if t0 > t_tot:
                 continue
             elif t1 > t_tot + sample_time_step:
-                print(t1, t_tot)
-                print(self.my_pulse_data[i,:], self.my_pulse_data[i+1,:], t_tot)
-                val = py_calc_value_point_in_between(self.my_pulse_data[i,:], self.my_pulse_data[i+1,:], t_tot)
-                my_sequence[t0_pt + pre_delay_pt: t_tot_pt + pre_delay_pt] = np.linspace(
-                    self.my_pulse_data[i,1], 
-                    val, t_tot_pt-t0_pt)
+                if self.my_pulse_data[i,:] == self.my_pulse_data[i+1,:]:
+                    my_sequence[t0_pt + pre_delay_pt: t_tot_pt + pre_delay_pt] = self.my_pulse_data[i,1]
+                else:
+                    val = py_calc_value_point_in_between(self.my_pulse_data[i,:], self.my_pulse_data[i+1,:], t_tot)
+                    my_sequence[t0_pt + pre_delay_pt: t_tot_pt + pre_delay_pt] = np.linspace(
+                        self.my_pulse_data[i,1], 
+                        val, t_tot_pt-t0_pt)
             else:
-                my_sequence[t0_pt + pre_delay_pt: t1_pt + pre_delay_pt] = np.linspace(self.my_pulse_data[i,1], self.my_pulse_data[i+1,1], t1_pt-t0_pt)
-        
+                if self.my_pulse_data[i,1] == self.my_pulse_data[i+1,1]:
+                    my_sequence[t0_pt + pre_delay_pt: t1_pt + pre_delay_pt] = self.my_pulse_data[i,1]
+                else:
+                    my_sequence[t0_pt + pre_delay_pt: t1_pt + pre_delay_pt] = np.linspace(self.my_pulse_data[i,1], self.my_pulse_data[i+1,1], t1_pt-t0_pt)
         # top off the sequence -- default behavior, extend the last value
         if len(self.my_pulse_data) > 1:
             pt = get_effective_point_number(self.my_pulse_data[i+1,0], sample_time_step)
@@ -177,42 +199,60 @@ class pulse_data():
             
             my_sequence[start:stop] += amp*np.sin(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase)
 
+        stop = time.time()
+
         return my_sequence
         
         
 
-    def resize_waveform(self, start_time, stop_time, sample_rate):
+    def get_resized_waveform(self, pre_delay, post_delay):
         '''
         extend/shrink an existing waveform
+        Args:
+            pre_delay (double) : ns to add before
+            post_delay (double) : ns to add after the waveform
+        Returns:
+            waveform (np.ndarray[ndim=1, dtype=double])
         '''
-        sample_rate = sample_rate*1e-9
+
+        sample_rate = self.waveform_cache['sample_rate']*1e-9
         sample_time_step = 1/sample_rate
 
-        cache = self.waveform_cache['waveform']
+        pre_delay_pt = get_effective_point_number(pre_delay, sample_time_step)
+        post_delay_pt = get_effective_point_number(post_delay, sample_time_step)
 
-        t_tot = len(cache)
-        t_before_pt = get_effective_point_number(start_time, sample_time_step)
-        t_after_pt = t_tot
+        wvf_pre_delay_pt = get_effective_point_number(self.waveform_cache['pre_delay'], sample_time_step)
+        wvf_post_delay_pt = get_effective_point_number(self.waveform_cache['post_delay'], sample_time_step)
 
-        if stop_time != -1:
-            t_after_pt = get_effective_point_number(stop_time, sample_time_step)
+        # points to add/remove from existing waveform
+        n_pt_before = - pre_delay_pt + wvf_pre_delay_pt
+        n_pt_after = post_delay_pt - wvf_post_delay_pt
 
-        new_waveform =  np.zeros([t_after_pt- t_before_pt])
-
-        if t_before_pt >= 0:
-            if t_after_pt <= t_tot:
-                new_waveform = cache[t_before_pt:t_after_pt]
+        # if cutting is possible (prefered since no copying is involved)
+        if n_pt_before <= 0 and n_pt_after <= 0:
+            if n_pt_after == 0:
+                return self.waveform_cache['waveform'][-n_pt_before:]
             else:
-                new_waveform[:t_tot-t_before_pt] = cache[t_before_pt:t_tot]
-                new_waveform[t_tot-t_before_pt:] = self.my_pulse_data[-1,1]
+                return self.waveform_cache['waveform'][-n_pt_before: n_pt_after]
         else:
-            if t_after_pt <= t_tot:
-                new_waveform[-t_before_pt:] = cache[0:t_after_pt]
-            else:
-                new_waveform[-t_before_pt:t_tot-t_before_pt] = cache
-                new_waveform[-t_before_pt + t_tot:] = self.my_pulse_data[-1,1]
+            n_pt = len(self.waveform_cache['waveform']) + n_pt_after + n_pt_before
+            new_waveform =  np.zeros((n_pt, ))
 
-        return new_waveform
+            if n_pt_before > 0:
+                new_waveform[0:n_pt_before] = self.my_pulse_data[0,1]
+                if n_pt_after < 0:
+                    new_waveform[n_pt_before:] = self.waveform_cache['waveform'][:n_pt_after]
+                elif n_pt_after == 0:
+                    new_waveform[n_pt_before:] = self.waveform_cache['waveform']
+                else:
+                    new_waveform[n_pt_before:-n_pt_after] = self.waveform_cache['waveform']
+            else:
+                new_waveform[:-n_pt_after] = self.waveform_cache['waveform'][-n_pt_before:]
+
+            if n_pt_after > 0:
+                new_waveform[-n_pt_after:] =  self.my_pulse_data[-1,1]
+
+            return new_waveform
 
     def _add_up_pulse_data(self, new_pulse):
         '''

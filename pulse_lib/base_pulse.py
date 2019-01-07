@@ -1,11 +1,9 @@
-import sys
-sys.path.append('C:\Program Files (x86)\Keysight\SD1\Libraries\Python')
-sys.path.append("C:\\V2_code\\Qcodes")
-
 import numpy as np
 import matplotlib.pyplot as plt 
 from pulse_lib.segments.segments import segment_container
 from pulse_lib.keysight_fx import *
+from pulse_lib.sequencer import sequencer
+from pulse_lib.keysight.uploader import keysight_uploader
 import uuid
 # import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
 # import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
@@ -24,8 +22,6 @@ class pulselib:
 	The idea is that you first make individula segments,
 	you can than later combine them into a sequence, this sequence will be uploaded
 	'''
-	
-
 	def __init__(self):
 		# awg channels and locations need to be input parameters.
 		self.awg_channels = []
@@ -35,10 +31,12 @@ class pulselib:
 		self.awg_devices = []
 		
 		self.channel_delays = dict()
-		
-		
+		self.channel_delays_computed = dict()
+		self.channel_compenstation_limits = dict()
+
 		self.delays = []
 		self.convertion_matrix= []
+		self.voltage_limits_correction = dict()
 
 		# Keysight properties.
 		self.backend = 'keysight'
@@ -56,6 +54,8 @@ class pulselib:
 		self.awg_channels = my_input.keys()
 		for i in self.awg_channels:
 			self.channel_delays[i] = 0
+			self.channel_delays_computed[i] = (0,0)
+			self.channel_compenstation_limits[i] = (1500,1500)
 
 	def add_channel_delay(self, delays):
 		'''
@@ -76,7 +76,23 @@ class pulselib:
 			else:
 				raise ValueError("Channel delay error: Channel '{}' does not exist. Please provide valid input".format(i[0]))
 
+		self.__process_channel_delays()
 		return 0
+
+	def add_chanel_compenstation_limits(self, limits):
+		'''
+		add voltage limitations per channnel that can be used to make sure that the intragral of the total voltages is 0.
+		Args:
+			limits (dict) : dict with limits e.g. {'B0':(-100,500), ... }
+		Returns:
+			None
+		'''
+		for i in limits.items():
+			if i[0] in self.awg_channels:
+				self.channel_compenstation_limits[i[0]] = i[1]
+			else:
+				raise ValueError("Channel voltage compenstation error: Channel '{}' does not exist. Please provide valid input".format(i[0]))
+
 
 	def add_awgs(self, name, awg):
 		'''
@@ -114,181 +130,40 @@ class pulselib:
 
 	def finish_init(self):
 		# function that finishes the initialisation
-		self.segments_bin = segment_bin(self.awg_channels, self.awg_virtual_channels, self.awg_IQ_channels)
 		self.awg = keysight_AWG(self.segments_bin, self.awg_channels_to_physical_locations, self.awg_channels, self.channel_delays)
 		for i in self.awg_devices:
 			self.awg.add_awg(i[0], i[1])
-		self.sequencer =  sequencer(self.awg, self.channel_delays, self.segments_bin)
+		self.uploader = keysight_uploader(self.awg, self.awg_channels, self.channel_delays_computed, self.channel_compenstation_limits)
 
-	def mk_segment(self, name):
-		return self.segments_bin.new(name)
-
-	def get_segment(self, name):
-		return self.segments_bin.get(name)
-
-	def add_sequence(self,name,seq):
+	def mk_segment(self):
 		'''
-		name: name for the sequence, if name already present, it will be overwritten.
+		generate a new segment.
+		Returns:
+			segment (segment_container) : returns a container that contains all the previously defined gates.
+		'''
+		return segment_container(self.awg_channels, self.awg_virtual_channels, self.awg_IQ_channels)
+
+	def mk_sequence(self,seq):
+		'''
 		seq: list of list, 
 			e.g. [ ['name segment 1' (str), number of times to play (int), prescale (int)] ]
 			prescale (default 0, see keysight manual) (not all awg's will support this).
 		'''
-		self.sequencer.add_sequence(name, seq)
+		seq_obj = sequencer(self.uploader, self.voltage_limits_correction)
+		seq_obj.add_sequence(seq)
+		return seq_obj
 
-	def start_sequence(self, name):
-		self.sequencer.start_sequence(name)
-		
-	def show_sequences(self):
-		self.segments_bin.print_segments_info()
-
-
-class segment_bin():
-
-	def __init__(self, channels, virtual_gate_matrix=None, IQ_virt_chan=None):
-		self.segment = []
-		self.channels = channels
-		self.virtual_gate_matrix = virtual_gate_matrix
-		self.IQ_virt_chan = IQ_virt_chan	
-
-	def new(self,name):
-		if self.exists(name):
-			raise ValueError("sement with the name : % \n alreadt exists"%name)
-		self.segment.append(segment_container(name,self.channels, self.virtual_gate_matrix, self.IQ_virt_chan))
-		return self.get_segment(name)
-
-	def get_segment(self, name):
-		for i in self.segment:
-			if i.name == name:
-				return i
-		raise ValueError("segment not found :(")
-
-	def used(self, name):
-		''' check if a segment is used  (e.g. that a leas one element is used) 
-		name is a string.
+	def __process_channel_delays(self):
 		'''
-		seg = self.get_segment(name)
-		
-		if seg.total_time == 0:
-			return False
-		return True	
-
-	def print_segments_info(self):
-		mystring = "Sequences\n"
-		for i in self.segment:
-			mystring += "\tname: " + i.name + "\n"
-		print(mystring)
-
-	def exists(self, name):
-		for i in self.segment:
-			if i.name ==name:
-				return True
-		return False
-
-	def get_time_segment(self, name):
-		return self.get_segment(name).total_time
-
-
-
-class sequencer():
-	def __init__(self, awg_system, channel_delays, segment_bin):
-		self.awg = awg_system
-		self.segment_bin = segment_bin
-		self.channels = segment_bin.channels
-		self.channel_delays = channel_delays
-		self.sequences = dict()
-
-	def add_sequence(self, name, sequence):
-		self.sequences[name] = sequence
-
-	def start_sequence(self, name):
-		self.get_sequence_upload_data(name)
-		self.awg.upload(self.sequences[name], self.get_sequence_upload_data(name))
-		self.awg.start()
-
-	def get_sequence_upload_data(self, name):
+		Makes a variable that contains the amount of points that need to be put before and after when a upload is performed.
 		'''
-		Function that generates sequence data per channel.
-		It will also assign unique id's to unique sequences (sequence that depends on the time of playback). -> mainly important for iq mod purposes.
-		structure:
-			dict with key of channel:
-			for each channels list of sequence:
-				name of the segments,
-				number of times to play
-				uniqueness -> segment is reusable?
-				identifiers for marking differnt locations in the ram of the awg.
-		
-		'''
-		upload_data = dict()
-		# put in a getter to make sure there is no error -- it exists...
-		seq = self.sequences[name]
+		self.channel_delays_computed = dict()
 
-		for chan in self.channels:
-			sequence_data_single_channel = []
-			num_elements = len(seq)
-
-			for k in range(len(seq)):
-				segment_play_info = seq[k]
-
-				# if starting segment or finishing segment, here there should be added the delay info.
-				pre_delay, post_delay = (0,0)
-
-				if k == 0:
-					pre_delay = self.get_pre_delay(chan)
-				if k == len(seq)-1:
-					post_delay = self.get_post_delay(chan)
-
-				if pre_delay!=0 or post_delay!=0:
-					rep = segment_play_info[1]
-					segment_play_info[1] = 1
-					input_data = self.generate_input_data(segment_play_info, chan, pre_delay, post_delay)
-					sequence_data_single_channel.append(input_data)
-
-					# If only one, go to next segment in the sequence.
-					if rep == 1 :
-						continue
-					else:
-						segment_play_info[1] = rep -1
-
-				sequence_data_single_channel.append(self.generate_input_data(segment_play_info, chan))
-
-			upload_data[chan] = sequence_data_single_channel
-
-		return upload_data
+		for channel in self.channel_delays:
+			self.channel_delays_computed[channel] = (self.__get_pre_delay(channel), self.__get_post_delay(channel))
 
 
-	def generate_input_data(self, segment_play_info, channel, pre_delay=0, post_delay=0):
-		'''
-		function that will generate a dict that defines the input data, this will contain all the neccesary info to upload the segment.
-		returns:
-			dict with sequence info for a cerain channel (for parameters see the code).
-		'''
-		input_data = {'segment': segment_play_info[0], 
-						'segment_name': self.make_segment_name(segment_play_info[0], pre_delay, post_delay),
-						'ntimes': segment_play_info[1],
-						'prescaler': segment_play_info[2],
-						'pre_delay': pre_delay,
-						'post_delay': post_delay}
-		unique = getattr(self.segment_bin.get_segment(segment_play_info[0]), channel).unique
-		input_data['unique'] = unique
-		# Make unique uuid's for each segment
-		if unique == True:
-			input_data['identifier'] = [uuid.uuid4() for i in range(segment_play_info[1])]
-
-		return input_data
-
-	def make_segment_name(self, segment, pre_delay, post_delay):
-		'''
-		function that makes the name of the segment that is delayed.
-		Note that if the delay is 0 there should be no new segment name.
-		'''
-		segment_name = segment
-		
-		if pre_delay!=0 or post_delay!= 0:
-			segment_name = segment + '_' + str(pre_delay) + '_' + str(post_delay)
-
-		return segment_name
-
-	def calculate_total_channel_delay(self):
+	def __calculate_total_channel_delay(self):
 		'''
 		function for calculating how many ns time there is a delay in between the channels.
 		Also support for negative delays...
@@ -303,28 +178,29 @@ class sequencer():
 
 		return tot_delay, np.max(delays)
 
-	def get_pre_delay(self, channel):
+	def __get_pre_delay(self, channel):
 		'''
 		get the of ns that a channel needs to be pushed forward/backward.
 		returns
 			pre-delay : number of points that need to be pushed in from of the segment
 		'''
-		tot_delay, max_delay = self.calculate_total_channel_delay()
+		tot_delay, max_delay = self.__calculate_total_channel_delay()
 		max_pre_delay = tot_delay - max_delay
 		delay = self.channel_delays[channel]
-		return delay + max_pre_delay
+		return -(delay + max_pre_delay)
 
-	def get_post_delay(self, channel):
+	def __get_post_delay(self, channel):
 		'''
 		get the of ns that a channel needs to be pushed forward/backward.
 		returns
 			post-delay: number of points that need to be pushed after the segment
 		'''
-		tot_delay, max_delay = self.calculate_total_channel_delay()
+		tot_delay, max_delay = self.__calculate_total_channel_delay()
 		delay = self.channel_delays[channel]
-		print(tot_delay, max_delay, delay)
-		print("post_delay", delay - (tot_delay - max_delay))
+
 		return -delay + max_delay
+
+
 
 
 if __name__ == '__main__':
@@ -358,9 +234,9 @@ if __name__ == '__main__':
 
 	awg_virtual_gates = {'virtual_gates_names_virt' :
 		['vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5'],
-				'virtual_gates_names_real' :
+			'virtual_gates_names_real' :
 		['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5'],
-		 'virtual_gate_matrix' : np.eye(11)
+			'virtual_gate_matrix' : np.eye(11)
 	}
 	p.add_virtual_gates(awg_virtual_gates)
 
@@ -375,9 +251,9 @@ if __name__ == '__main__':
 
 	p.finish_init()
 
-	seg  = p.mk_segment('INIT')
-	seg2 = p.mk_segment('Manip')
-	seg3 = p.mk_segment('Readout')
+	seg  = p.mk_segment()
+	seg2 = p.mk_segment()
+	seg3 = p.mk_segment()
 
 	seg.vP1.add_block(0,10,1)
 

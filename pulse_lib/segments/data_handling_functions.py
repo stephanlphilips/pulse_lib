@@ -42,13 +42,13 @@ def find_common_dimension(dim_1, dim_2):
 
 	return dim_comb[::-1]
 
-def update_dimension(data, new_dimension_info):
+def update_dimension(data, new_dimension_info, use_ref = False):
 	'''
 	update dimension of the data object to the one specified in new dimension_info
 	Args:
 		data (np.ndarray[dtype = object]) : numpy object that contains all the segment data of every iteration.
 		new_dimension_info (list/np.ndarray) : list of the new dimensions of the array
-
+		use_ref (bool) : use pointer to copy, or take full copy (False is full copy)
 	Returns:
 		data (np.ndarray[dtype = object]) : same as input data, but with new_dimension_info.
 	'''
@@ -62,24 +62,25 @@ def update_dimension(data, new_dimension_info):
 		elif list(data.shape)[-i -1] != new_dimension_info[-i -1]:
 			shape = list(data.shape)
 			shape[-i-1] = new_dimension_info[-i-1]
-			data = _extend_dimensions(data, shape)
+			data = _extend_dimensions(data, shape, use_ref)
 
 	return data
 
-def _add_dimensions(data, shape):
+def _add_dimensions(data, shape, use_ref):
 	"""
 	Function that can be used to add and extra dimension of an array object. A seperate function is needed since we want to make a copy and not a reference.
 	Note that only one dimension can be extended!
 	Args:
 		data (np.ndarray[dtype = object]) : numpy object that contains all the segment data of every iteration.
 		shape (list/np.ndarray) : list of the new dimensions of the array
+		use_ref (bool) : use pointer to copy, or take full copy (False is full copy)
 	"""
 	new_data =  data_container(shape = shape)
 	for i in range(shape[0]):
-		new_data[i] = cpy_numpy_shallow(data)
+		new_data[i] = cpy_numpy_shallow(data, use_ref)
 	return new_data
 
-def _extend_dimensions(data, shape):
+def _extend_dimensions(data, shape, use_ref):
 	'''
 	Extends the dimensions of a existing array object. This is useful if one would have first defined sweep axis 2 without defining axis 1.
 	In this case axis 1 is implicitly made, only harbouring 1 element.
@@ -88,6 +89,7 @@ def _extend_dimensions(data, shape):
 	Args:
 		data (np.ndarray[dtype = object]) : numpy object that contains all the segment data of every iteration.
 		shape (list/np.ndarray) : list of the new dimensions of the array (should have the same lenght as the dimension of the data!)
+		use_ref (bool) : use pointer to copy, or take full copy (False is full copy)
 	'''
 
 	new_data = data_container(shape = shape)
@@ -95,13 +97,13 @@ def _extend_dimensions(data, shape):
 		if data.shape[i] != shape[i]:
 			if i == 0:
 				for j in range(len(new_data)):
-					new_data[j] = cpy_numpy_shallow(data)
+					new_data[j] = cpy_numpy_shallow(data, use_ref)
 			else:
 				new_data = new_data.swapaxes(i, 0)
 				data = data.swapaxes(i, 0)
 
 				for j in range(len(new_data)):
-					new_data[j] = cpy_numpy_shallow(data)
+					new_data[j] = cpy_numpy_shallow(data, use_ref)
 				
 				new_data = new_data.swapaxes(i, 0)
 
@@ -109,27 +111,45 @@ def _extend_dimensions(data, shape):
 	return new_data
 
 
-def cpy_numpy_shallow(data):
+def cpy_numpy_shallow(data, use_ref):
 	'''
 	Makes a shallow copy of an numpy object array.
 	
 	Args:
 		data : data element
+		use_ref (bool) : use reference to copy
 	'''
-	if type(data) != data_container:
-		return copy(data)
+	if use_ref == True:
+		if type(data) != data_container:
+			return data
 
-	if data.shape == (1,):
-		return copy.copy(data[0])
+		if data.shape == (1,):
+			return data[0]
 
-	shape = data.shape
-	data_flat = data.flatten()
-	new_arr = np.empty(data_flat.shape, dtype=object)
+		shape = data.shape
+		data_flat = data.flatten()
+		new_arr = np.empty(data_flat.shape, dtype=object)
 
-	for i in range(len(new_arr)):
-		new_arr[i] = copy.copy(data_flat[i])
+		for i in range(len(new_arr)):
+			new_arr[i] = data_flat[i]
 
-	new_arr = new_arr.reshape(shape)
+		new_arr = new_arr.reshape(shape)
+
+	else:
+		if type(data) != data_container:
+			return copy(data)
+
+		if data.shape == (1,):
+			return copy.copy(data[0])
+
+		shape = data.shape
+		data_flat = data.flatten()
+		new_arr = np.empty(data_flat.shape, dtype=object)
+
+		for i in range(len(new_arr)):
+			new_arr[i] = copy.copy(data_flat[i])
+
+		new_arr = new_arr.reshape(shape)
 	return new_arr
 
 def loop_controller(func):

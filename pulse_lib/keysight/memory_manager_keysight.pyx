@@ -1,7 +1,11 @@
 import numpy as np
+cimport numpy as np
 
 
-class Memory_manager():
+ from cpython cimport array
+
+
+cdef class Memory_manager():
 	"""
 	Object that manages the occupation of the memory of the AWG.
 	
@@ -11,31 +15,30 @@ class Memory_manager():
 
 	A compelling reason not to reuse segments would be in the assumption one would regularly use DSP which would make it hard to reuse things.
 	"""
-	def __init__(self, AWG, RAM_QTY):
+	cdef double[:,:] memory_cells
+	cdef segment_occupation_AWG segm_occup
+
+	def __init__(self):
 		'''
 		Initialize memory management object.
 		'''
 		
 		# make division of memory[ HARDCODED ...]: (assume sorted from big to small)
-		memory_cells = [
+		self.memory_cells = np.array([
 			[1e8,4],
 			[5e7,4],
 			[1e7,4],
 			[5e6,8],
 			[1e6,40],
 			[1e5,500],
-			[1e4,5000],
-			[5e3,20000],
-			[1e3,50000]
-		]
-		# m = 0
-		# for i in memory_cells:
-		# 	m += i[0]*i[1]
-		# 	print(m, 'n_points')
+			[1e4,1400],
+			# [5e3,20000],
+			# [1e3,50000]
+		], dtype=double)
 
-		self.segm_occup = segment_occupation_AWG(memory_cells)
+		self.segm_occup = segment_occupation_AWG(self.memory_cells)
 
-	def get_upload_slot(self, n_points):
+	cpdef int get_upload_slot(self, int n_points):
 		'''
 		get a location where the data can be uploaded in the memory.
 		Args:
@@ -43,12 +46,9 @@ class Memory_manager():
 		returns:
 			segment_number (int) : the segment number where the segment can be uploaded to in the memory of the AWG.
 		'''
-
-		seg_number, max_size = self.segm_occup.request_new_segment(n_points)
-
-		return seg_number
+		return self.segm_occup.request_new_segment(n_points)
 		
-	def release_memory(self,segments):
+	cpdef void release_memory(self, int[:] segments):
 		'''
 		release memory when segments are not longer needed.
 		Args:
@@ -57,7 +57,7 @@ class Memory_manager():
 		for i in segments:
 			self.segm_occup.free_segment(i)
 
-class segment_occupation_AWG():
+cdef class segment_occupation_AWG():
 	"""
 	Object that manages the occupation of the memory of the AWG.
 	
@@ -67,11 +67,15 @@ class segment_occupation_AWG():
 
 	A compelling reason not to reuse segments would be in the assumption one would regularly use DSP which would make it hard to reuse things.
 	"""
-	def __init__(self, segment_distribution):
-		self.segment_distribution = np.array(segment_distribution)
+	cdef double[:,:] segment_distribution
+	cdef int[:] memory_sizes
+	cdef int[:] index_info
+	cdef array.array seg_data
+	def __init__(self, double[:,:] segment_distribution):
+		self.segment_distribution = segment_distribution
 		self.memory_sizes = np.sort(self.segment_distribution[:,0])
 		self.index_info = np.zeros([len(self.memory_sizes)])
-		seg_data = []
+		seg_data = array.array([]
 		k = 0
 		for i in segment_distribution:
 			seg_numbers = np.arange(i[1]) + k
@@ -81,13 +85,17 @@ class segment_occupation_AWG():
 
 		self.seg_data = dict(seg_data)
 
-	def request_new_segment(self,size):
+	cpdef request_new_segment(self, int size):
 		'''
 		Request a new segment in the memory with a certain size
 		Args:
 			size (int) :  size you want to reserve in the AWG memory
 		'''
-		valid_sizes = np.where(size < self.memory_sizes)[0]
+		cdef array.array valid_sizes = ('int', [1, 2, 3])
+
+		for i in range(len(self.memory_sizes)):
+			if size < self.memory_sizes[i]:
+				valid_sizes.append(i)
 
 		for i in valid_sizes:
 			seg_numbers = self.seg_data[self.memory_sizes[i]]
@@ -99,7 +107,7 @@ class segment_occupation_AWG():
 			# means no segment available
 			return -1, 0
 
-	def free_segment(self, seg_number):
+	cpdef free_segment(self, int seg_number):
 		'''
 		adds a segment as free back to the usable segment pool
 		Args:

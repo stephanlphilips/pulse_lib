@@ -2,6 +2,21 @@ from pulse_lib.base_pulse import pulselib
 import numpy as np
 import matplotlib.pyplot as plt
 
+# w1 = 10e6*np.pi*2
+# w2 = 10.1e6*np.pi*2
+# phase = np.pi
+
+# t = np.linspace(0, 1e-5, 2000)
+
+# a = np.sin(w1*t)
+# b = np.sin(w2*t)
+
+# d = np.sin(w2*t + phase)
+
+# plt.plot(t,a+b)
+# plt.plot(t,a+d)
+
+# plt.show()
 p = pulselib()
 
 # add to pulse_lib
@@ -40,6 +55,7 @@ awg_virtual_gates = {
 }
 p.add_virtual_gates(awg_virtual_gates)
 
+p.add_chanel_compenstation_limits({'P1': (-100,100),'P2': (-100,100),'B0': (-50,50),'B1': (-50,50)})
 awg_IQ_channels = {
 	'vIQ_channels' : ['qubit_1','qubit_2'],
 	'rIQ_channels' : [['I_MW1','Q_MW1'],['I_MW2','Q_MW2']],
@@ -68,18 +84,18 @@ P2_operating_point =15
 P1_detuning_pulse = -20
 P2_detuning_pulse = -35
 
-seg1  = p.mk_segment('INIT')
+seg1  = p.mk_segment()
 
-seg1.P1.add_block(0,1e6, P1_unload_Q2)
-seg1.P2.add_block(0,1e6, P2_unload_Q2)
+seg1.P1.add_block(0,1e4, P1_unload_Q2)
+seg1.P2.add_block(0,1e4, P2_unload_Q2)
 seg1.reset_time()
 seg1.P1.add_block(0,100e3, P1_hotspot)
 seg1.P2.add_block(0,100e3, P2_hotspot)
 seg1.reset_time()
-seg1.P2.add_block(0,3e6, P1_load_init_Q2)
-seg1.P2.add_block(0,3e6, P2_load_init_Q2)
+seg1.P2.add_block(0,3e4, P1_load_init_Q2)
+seg1.P2.add_block(0,3e4, P2_load_init_Q2)
 
-seg2  = p.mk_segment('MANIP')
+seg2  = p.mk_segment()
 
 #let's make a loop over the 4 possible input combinations
 import pulse_lib.segments.looping as lp
@@ -164,9 +180,56 @@ seg2.reset_time()
 # seg2.Q_MW2.plot_segment([3])
 # plt.legend()
 
-plt.figure()
-seg1.P1.plot_segment()
-seg1.P2.plot_segment()
-plt.show()
+# plt.figure()
+# seg1.P1.plot_segment()
+# seg1.P2.plot_segment()
+# plt.show()
 
-seg3  = p.mk_segment('Readout')
+seg3  = p.mk_segment()
+seg3.P1.add_block(0,1e4, 0.4)
+
+channel = 'P1'
+pre_delay = -5
+post_delay = 0
+index = [0]
+neutralize = True
+sample_rate = 1e9
+import time
+
+wvf = seg1.get_waveform(channel, index, pre_delay, post_delay, sample_rate)
+pre_delay = 0
+post_delay = 0
+
+
+
+start = time.time()
+intgral = 0
+if neutralize == True:
+	intgral = getattr(seg1, channel).integrate(index, pre_delay, post_delay, sample_rate)
+vmin = getattr(seg1, channel).v_min(index, sample_rate)
+vmax = getattr(seg1, channel).v_max(index, sample_rate)
+stop = time.time()
+
+
+
+# t = np.linspace(0,400,50000)
+# k = np.empty(501000)
+# import time
+# start = time.time()
+# t = np.zeros([500000])
+# stop = time.time()
+# print(stop-start, len(t))
+
+
+
+
+# # sequence using default settings
+# sequence = [seg1,seg2,seg3]
+# # same sequence using extended settings (n_rep = 1, prescalor = 1)
+# # sequence = [[seg1,1, 1],[seg2,1, 1],[seg3,1, 1]]
+
+# my_seq = p.mk_sequence(sequence)
+# my_seq.upload([0])
+
+# p.uploader.uploader()
+
