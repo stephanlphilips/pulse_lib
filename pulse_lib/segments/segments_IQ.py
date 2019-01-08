@@ -37,7 +37,8 @@ class segment_single_IQ(segment_single):
 		Tip, make on of these segments for each qubit. Then you get a very clean implementation of reference frame changes!
 		'''
 		self.name = name
-
+		self.type = 'IQ_virtual'
+		self.render_mode = False
 		super(segment_single, self).__init__()
 		self.data = data_container(IQ_data(LO))
 		

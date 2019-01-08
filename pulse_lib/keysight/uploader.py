@@ -68,9 +68,11 @@ class keysight_uploader():
 				priority = i.priority 
 
 		# get the job
-		for i in self.upload_queue:
-			if i.priority == priority:
-				return i
+		for i in range(len(self.upload_queue)):
+			if self.upload_queue[i].priority == priority:
+				job = self.upload_queue[i]
+				self.upload_queue.pop(i)
+				return job
 
 		return None
 
@@ -113,7 +115,7 @@ class keysight_uploader():
 
 			pre_delay = 0
 			post_delay = 0
-
+			print("\n\n\n new call on pulse data\n\n")
 			for i in range(len(job.sequence)):
 
 				seg = job.sequence[i][0]
@@ -121,6 +123,7 @@ class keysight_uploader():
 				prescaler = job.sequence[i][2]
 				
 				# TODO add precaler in as sample rate
+				print(getattr(seg, 'P1')._pulse_data_all)
 				for channel in self.channel_map:
 					if i == 0:
 						pre_delay = self.channel_delays[channel][0]
@@ -143,7 +146,7 @@ class keysight_uploader():
 					post_delay = 0
 
 			
-			
+			end1 = time.time()
 			# 2) perform DC correction (if needed)
 			'''
 			Steps: [TODO : best way to include sample rate here? (by default now 1GS/s)]
@@ -159,12 +162,12 @@ class keysight_uploader():
 			for chan in waveform_cache:
 				waveform_cache[chan].generate_voltage_compensation(compensation_time)
 			end = time.time()
-			print(end - start)
+			print("time needed to render and compenstate",end - start)
+			print("rendering = ", end1 - start)
+			print("compensation = ", end - end1)
 			# 3) DSP correction
 			# TODO later
 
-
-			self.upload = False
 
 class upload_job(object):
 	"""docstring for upload_job"""
@@ -178,8 +181,6 @@ class upload_job(object):
 			priority (int) : priority of the job (the higher one will be excuted first)
 		'''
 		# TODO make custom function for this. This should just extend time, not reset it.
-		for seq in sequence:
-			seq[0].reset_time()
 		self.sequence = sequence
 		self.id = seq_id
 		self.index = index
@@ -191,8 +192,7 @@ class upload_job(object):
 		self.DSP =True
 		self.DSP_func = DSP
 
-	def assign_upload_locations(self):
-		pass
+
 
 class waveform_upload_chache():
 	"""object that holds some cache for uploads and does some basic calculations"""

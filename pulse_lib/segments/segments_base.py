@@ -13,6 +13,8 @@ def last_edited(f):
 	just a simpe decoter used to say that a certain wavefrom is updaded and therefore a new upload needs to be made to the awg.
 	'''
 	def wrapper(*args):
+		if args[0].render_mode == True:
+			ValueError("cannot alter this segment, this segment ({}) in render mode.".format(args[0].name))
 		args[0]._last_edit = datetime.datetime.now()
 		return f(*args)
 	return wrapper
@@ -22,9 +24,15 @@ class segment_single():
 	Class defining single segments for one sequence.
 	This is at the moment rather basic. Here should be added more fuctions.
 	'''
-	def __init__(self, name):
-		self.type = 'default'
+	def __init__(self, name, segment_type = 'render'):
+		'''
+		Args:
+			name (str): name of the segment usually the channel name
+			segment_type (str) : type of the segment (e.g. 'render' --> to be rendered, 'virtual'--> no not render.)
+		'''
+		self.type = segment_type
 		self.name = name
+		self.render_mode = False
 		# variable specifing the laetest change to the waveforms
 		self._last_edit = datetime.datetime.now()
 		
@@ -67,13 +75,13 @@ class segment_single():
 	
 	@last_edited
 	@loop_controller
-	def reset_time(self, time=None):
+	def reset_time(self, time=None, extend_only = False):
 		'''
 		resets the time back to zero after a certain point
 		Args: 
 			time (double) : (optional), after time to reset back to 0. Note that this is absolute time and not rescaled time.
 		'''
-		self.data_tmp.reset_time(time)
+		self.data_tmp.reset_time(time, extend_only)
 
 	@last_edited
 	@loop_controller
@@ -379,12 +387,8 @@ class segment_single():
 		pulse_data_all_curr_seg = self.pulse_data_all.flat[flat_index]
 
 		total_time = pulse_data_all_curr_seg.total_time
-		import time
-		s = time.time()
 
 		my_sequence = pulse_data_all_curr_seg.render(pre_delay, post_delay, sample_rate)
-		stop = time.time()
-		print(stop-s)
 		return my_sequence
 
 	def plot_segment(self, index = [0], render_full = True):

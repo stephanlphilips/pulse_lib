@@ -188,28 +188,44 @@ seg2.reset_time()
 seg3  = p.mk_segment()
 seg3.P1.add_block(0,1e4, 0.4)
 
-channel = 'P1'
-pre_delay = -5
-post_delay = 0
-index = [0]
-neutralize = True
-sample_rate = 1e9
-import time
 
-wvf = seg1.get_waveform(channel, index, pre_delay, post_delay, sample_rate)
-pre_delay = 0
-post_delay = 0
+# seg1.extend_dim(seg2.shape, ref=True)
+# # print(seg1.B0.data)
+
+# channel = 'P1'
+# pre_delay = -5
+# post_delay = 0
+# index = [0]
+# neutralize = True
+# sample_rate = 1e9
+# import time
+
+# start = time.time()
+# wvf = seg1.get_waveform(channel, [0], pre_delay, post_delay, sample_rate)
+# stop = time.time()
+# print(stop-start, len(wvf))
+
+# start = time.time()
+# wvf = seg1.get_waveform(channel, [1], pre_delay, post_delay, sample_rate)
+# stop = time.time()
+# print(stop-start, len(wvf))
+
+# wvf = seg1.get_waveform(channel, [1], pre_delay, post_delay, sample_rate)
+# print(seg1.P1._pulse_data_all[1])
+
+# stop = time.time()
+# print(stop-start, len(wvf))
+# pre_delay = 0
+# post_delay = 0
 
 
 
-start = time.time()
-intgral = 0
-if neutralize == True:
-	intgral = getattr(seg1, channel).integrate(index, pre_delay, post_delay, sample_rate)
-vmin = getattr(seg1, channel).v_min(index, sample_rate)
-vmax = getattr(seg1, channel).v_max(index, sample_rate)
-stop = time.time()
-
+# intgral = 0
+# if neutralize == True:
+# 	intgral = getattr(seg1, channel).integrate(index, pre_delay, post_delay, sample_rate)
+# vmin = getattr(seg1, channel).v_min(index, sample_rate)
+# vmax = getattr(seg1, channel).v_max(index, sample_rate)
+# print(intgral)
 
 
 # t = np.linspace(0,400,50000)
@@ -223,13 +239,16 @@ stop = time.time()
 
 
 
-# # sequence using default settings
-# sequence = [seg1,seg2,seg3]
-# # same sequence using extended settings (n_rep = 1, prescalor = 1)
-# # sequence = [[seg1,1, 1],[seg2,1, 1],[seg3,1, 1]]
+# sequence using default settings
+sequence = [seg1,seg2,seg3]
+# same sequence using extended settings (n_rep = 1, prescalor = 1)
+sequence = [[seg1,1, 1],[seg2,1, 1],[seg3,1, 1]]
 
-# my_seq = p.mk_sequence(sequence)
-# my_seq.upload([0])
+my_seq = p.mk_sequence(sequence)
+my_seq.upload([0])
+my_seq.upload([1])
+my_seq.upload([2])
+my_seq.upload([3])
 
-# p.uploader.uploader()
+p.uploader.uploader()
 

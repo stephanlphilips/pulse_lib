@@ -30,6 +30,7 @@ class segment_container():
 		# physical + virtual channels
 		self.channels = []
 		self.virtual_gates = virtual_gates
+		self.render_mode = False
 		self.id = uuid.uuid4()
 		self._Vmin_max_data = dict()
 
@@ -48,7 +49,7 @@ class segment_container():
 		if virtual_gates is not None:
 			# make segments for virtual gates.
 			for i in self.virtual_gates['virtual_gates_names_virt']:
-				setattr(self, i, seg_base.segment_single(i))
+				setattr(self, i, seg_base.segment_single(i, 'virtual'))
 				self.channels.append(i)
 
 			# add reference in real gates.
@@ -115,8 +116,11 @@ class segment_container():
 
 		return self._Vmin_max_data
 
-	def reset_time(self):
+	def reset_time(self, extend_only = False):
 		'''
+		Args:
+			extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms...].
+			
 		Allings all segments togeter and sets the input time to 0,
 		e.g. , 
 		chan1 : waveform until 70 ns
@@ -132,7 +136,7 @@ class segment_container():
 
 		for i in self.channels:
 			segment = getattr(self, i)
-			segment.reset_time(loop_obj)
+			segment.reset_time(loop_obj, extend_only)
 
 
 
@@ -170,9 +174,35 @@ class segment_container():
 		Args:
 			shape (tuple) : shape of the new waveform
 			ref (bool) : put to True if you want to extend the dimension by using pointers instead of making full copies.
+		If referencing is True, a pre-render will already be performed to make sure nothing is rendered double. 
 		'''
 		if shape is None:
 			shape = self.shape
 
 		for i in self.channels:
-			getattr(self, i).data = update_dimension(getattr(self, i).data, shape, ref)
+			if self.render_mode == False:
+				getattr(self, i).data = update_dimension(getattr(self, i).data, shape, ref)
+			
+			if getattr(self, i).type == 'render' and self.render_mode == True:
+				getattr(self, i)._pulse_data_all = update_dimension(getattr(self, i)._pulse_data_all, shape, ref)
+
+	def enter_rendering_mode(self):
+		'''
+		put the segments into rendering mode, which means that they cannot be changed. All segments will get their final length at this moment.
+		'''
+		self.reset_time()
+		self.render_mode = True
+		for i in self.channels:
+			getattr(self, i).render_mode =  True
+			# make a pre-render all all the pulse data (e.g. compose channels, do not render in full).
+			if getattr(self, i).type == 'render':
+				getattr(self, i).pulse_data_all
+
+	def exit_rendering_mode(self):
+		'''
+		exit rendering mode and clear all the ram that was used for the rendering.
+		'''
+		self.render_mode = False
+		for i in self.channels:
+			getattr(self, i).render_mode =  False
+			getattr(self, i)._pulse_data_all = None

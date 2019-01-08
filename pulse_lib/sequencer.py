@@ -59,13 +59,12 @@ class sequencer():
 		
 		# update dimensionality of all sequennce objects
 		for i in self.sequence:
+			i[0].enter_rendering_mode()
 			self._shape = find_common_dimension(i[0].shape, self._shape)
 
 		self._shape = tuple(self._shape)
 
 		for i in self.sequence:
-			# NOTE : referencing going on here no copy!
-			# TODO : check if there is a need to revert the dimension back when done with the experiment.
 			i[0].extend_dim(self._shape, ref=True)
 
 	def add_dsp(self, dps_corr):

@@ -41,13 +41,13 @@ class pulse_data():
             total_time = self.my_pulse_data[-1,0]
         return total_time
 
-    def reset_time(self, time = None):
+    def reset_time(self, time = None, extend_only = False):
 
         if time is not None:
             pulse = np.asarray([[0, 0],[time, 0]])
             self.add_pulse_data(pulse)
-
-        self.start_time = self.total_time
+        if extend_only == False:
+            self.start_time = self.total_time
         
     def get_vmax(self,sample_rate = 1e9):
         '''
@@ -82,23 +82,23 @@ class pulse_data():
             integrate (double) : the integrated value of the waveform (unit is mV/sec).
         '''
         integrated_value = 0
-        if len(self.sin_data) == 0 and pre_delay <= 0 and post_delay>= 0:
+        # if len(self.sin_data) == 0 and pre_delay <= 0 and post_delay>= 0:
 
-            sample_rate = self.waveform_cache['sample_rate']*1e-9
-            sample_time_step = 1/sample_rate
-            pre_delay_eff = get_effective_point_number(pre_delay, sample_time_step)*sample_time_step
-            post_delay_eff = get_effective_point_number(post_delay, sample_time_step)*sample_time_step
+        sample_rate = self.waveform_cache['sample_rate']*1e-9
+        sample_time_step = 1/sample_rate
+        pre_delay_eff = get_effective_point_number(pre_delay, sample_time_step)*sample_time_step
+        post_delay_eff = get_effective_point_number(post_delay, sample_time_step)*sample_time_step
 
-            for i in range(len(self.my_pulse_data)-1):
-                integrated_value += (self.my_pulse_data[i,1] + self.my_pulse_data[i+1,1])/2*(self.my_pulse_data[i+1,0] - self.my_pulse_data[i,0])
-            integrated_value += pre_delay_eff*self.my_pulse_data[0,1] +post_delay_eff*self.my_pulse_data[-1,1]
-            integrated_value *= 1e-9
-        else:
-            print("analytical integral")
-            wvf = self.render(pre_delay, post_delay, sample_rate, clear_cache_on_exit = False)
-            integrated_value = np.trapz(wvf, dx=1/sample_rate)
+        for i in range(len(self.my_pulse_data)-1):
+            integrated_value += (self.my_pulse_data[i,1] + self.my_pulse_data[i+1,1])/2*(self.my_pulse_data[i+1,0] - self.my_pulse_data[i,0])
+        integrated_value += pre_delay_eff*self.my_pulse_data[0,1] +post_delay_eff*self.my_pulse_data[-1,1]
+        integrated_value *= 1e-9
+        # else: # slow way ...
+        #     wvf = self.render(pre_delay, post_delay, sample_rate, clear_cache_on_exit = False)
+        #     integrated_value = np.trapz(wvf, dx=1/sample_rate)
 
         return integrated_value
+
     def render(self, pre_delay = 0, post_delay = 0, sample_rate=1e9, clear_cache_on_exit = False):
         '''
         renders pulse
@@ -112,6 +112,7 @@ class pulse_data():
         '''
 
         # If no render performed, generate full waveform, we will cut out the right size if needed
+
         if len(self.waveform_cache) == 0 or self.waveform_cache['sample_rate'] != sample_rate:
             pre_delay_wvf = pre_delay
             if pre_delay > 0:
@@ -126,7 +127,6 @@ class pulse_data():
                 'pre_delay': pre_delay,
                 'post_delay' : post_delay
             }
-
 
         # get the waveform
         my_waveform = self.get_resized_waveform(pre_delay, post_delay)
@@ -201,9 +201,7 @@ class pulse_data():
 
         stop = time.time()
 
-        return my_sequence
-        
-        
+        return my_sequence      
 
     def get_resized_waveform(self, pre_delay, post_delay):
         '''
@@ -399,11 +397,12 @@ class IQ_data(pulse_data):
 
         return total_time
 
-    def reset_time(self, time = None):
-        if time is not None:
-            self.start_time = time
-        else:
-            self.start_time = self.total_time
+    def reset_time(self, time = None, extend_only = False):
+        if extend_only == False:
+            if time is not None:
+                self.start_time = time
+            else:
+                self.start_time = self.total_time
 
         pulse = np.asarray([[0, 0],[self.start_time, 0]])
         self.add_pulse_data(pulse)
