@@ -165,9 +165,11 @@ class keysight_uploader():
 			print("time needed to render and compenstate",end - start)
 			print("rendering = ", end1 - start)
 			print("compensation = ", end - end1)
+			
 			# 3) DSP correction
 			# TODO later
 
+			# 4) 
 
 class upload_job(object):
 	"""docstring for upload_job"""
