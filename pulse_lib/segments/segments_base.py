@@ -270,7 +270,7 @@ class segment_single():
 		return new_segment
 
 	def __sub__(self, other):
-		raise NotImplemented
+		return self.__add__(other*-1)
 
 	def __mul__(self, other):
 		'''
@@ -298,8 +298,27 @@ class segment_single():
 	def __truediv__(self, other):
 		raise NotImplemented
 
+	@last_edited
+	@loop_controller
+	def append(self, other, time = None):
+		'''
+		Put the other segment behind this one.
+		Args:
+			other (segment_single) : the segment to be appended
+			time (double) : attach at the given time (if None, append at total_time of the segment)
+		'''
+		if time is None:
+			self.append(other, self.total_time)
+		else:
+			# append pulse_data
+			self.data_tmp
 
+			# append sine data
 
+	def prepend(self, other):
+		'''
+		Insert other before the current waveform
+		'''
 	@property
 	def total_time(self,):
 		return self.data.total_time
