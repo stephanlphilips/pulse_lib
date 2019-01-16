@@ -2,7 +2,7 @@ import threading as th
 import numpy as np
 import time
 from pulse_lib.keysight.AWG_memory_manager import Memory_manager
-
+from pulse_lib.keysight.uploader_core.uploader import waveform_upload_chache
 def mk_thread(function):
     def wrapper(*args, **kwargs):
         thread = th.Thread(target=function, args=args, kwargs=kwargs)
@@ -123,7 +123,6 @@ class keysight_uploader():
 				prescaler = job.sequence[i][2]
 				
 				# TODO add precaler in as sample rate
-				print(getattr(seg, 'P1')._pulse_data_all)
 				for channel in self.channel_map:
 					if i == 0:
 						pre_delay = self.channel_delays[channel][0]
@@ -140,7 +139,7 @@ class keysight_uploader():
 					vmin = getattr(seg, channel).v_min(job.index, sample_rate)
 					vmax = getattr(seg, channel).v_max(job.index, sample_rate)
 					
-					waveform_cache[channel].add_data(wvf, integral, (vmin, vmax))
+					waveform_cache[channel].add_data(wvf, (vmin, vmax), integral)
 
 					pre_delay = 0
 					post_delay = 0
@@ -155,10 +154,19 @@ class keysight_uploader():
 				c) add segments with the compenstated pulse for the given total time.
 			'''
 			compensation_time = 0
+			wvf_npt = 0
 			for chan in waveform_cache:
 				if waveform_cache[chan].compensation_time > compensation_time:
 					compensation_time = waveform_cache[chan].compensation_time 
+					wvf_npt = waveform_cache[chan].npt
+			# make sure we have modulo 10 time
+			total_pt = compensation_time + wvf_npt
+			mod = total_pt%10
+			if mod != 0:
+				total_pt += 10-mod
+			compensation_time = total_pt - wvf_npt
 
+			#generate the compensation
 			for chan in waveform_cache:
 				waveform_cache[chan].generate_voltage_compensation(compensation_time)
 			end = time.time()

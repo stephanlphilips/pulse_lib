@@ -1,17 +1,37 @@
 import uploader
+import time 
+
+
+class AWG(object):
+	"""docstring for AWG"""
+	def __init__(self, name):
+		self.name = name
+		self.chassis = 0
+		self.slot = 0
+		self.type = "DEMO"
+
+AWG1 = AWG("AWG1")
+AWG2 = AWG("AWG2")
+AWG3 = AWG("AWG3")
+AWG4 = AWG("AWG4")
+		
+
 
 t = uploader.keysight_upload_module()
-# t.add_awg_module("AWG1", 0 , 1)
+t.add_awg_module(AWG1)
+t.add_awg_module(AWG2)
+t.add_awg_module(AWG3)
+t.add_awg_module(AWG4)
+
 import numpy as np
 up = uploader.waveform_upload_chache((-0.1,0.1))
-up.add_data(np.linspace(0,10,5000), (0.,10.), 1000.)
-up.add_data(np.linspace(0,10,5000), (0.,10.), 1000.)
+wvf =np.linspace(10,10.,10000, dtype=np.double)
+up.add_data(wvf, (0.,10.), 1000.)
+# up.add_data(np.linspace(0,10,5000), (0.,10.), 1000000.)
 
-print(up.integral)
-print(up.compensation_time)
 
-awg_channels_to_physical_locations = dict({'B0':('AWG1', 1), 'P1':('AWG1', 2),
-		'B1':('AWG1', 3), 'P2':('AWG1', 4),
+awg_channels_to_physical_locations = dict({'B0':('AWG1', 1), 'P1':('AWG1', 2), 
+'B1':('AWG1', 3), 'P2':('AWG1', 4),
 		'B2':('AWG2', 1), 'P3':('AWG2', 2),
 		'B3':('AWG2', 3), 'P4':('AWG2', 4),
 		'B4':('AWG3', 1), 'P5':('AWG3', 2),
@@ -20,8 +40,26 @@ awg_channels_to_physical_locations = dict({'B0':('AWG1', 1), 'P1':('AWG1', 2),
 		'M1':('AWG4', 3), 'M2':('AWG4', 4)})
 
 c = uploader.waveform_cache_container(awg_channels_to_physical_locations)
+
 for key, val in awg_channels_to_physical_locations.items():
 	c[key] = up
 
-print(c.npt)
-# t.add_upload_data(c)
+s =time.time()
+t.add_upload_data(c)
+stop = time.time()
+print("time eplaced = {}".format(stop-s))
+
+# def rescale(wfv, Vmin, Vmax):
+# 	voff = (Vmax  + Vmin)/2
+# 	vpp  = (Vmax - Vmin)
+# 	bitscale = 65535
+# 	single_bit_step = 0.5/65535
+# 	offset_factor = voff + single_bit_step*vpp
+# 	rescaling_factor = bitscale/vpp
+
+# 	return (wfv - offset_factor)*rescaling_factor
+
+# print(rescale(np.linspace(0,1,50), 0,1))
+
+
+

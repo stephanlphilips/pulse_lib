@@ -1,132 +1,31 @@
 from libcpp cimport bool
 from libc.stdlib cimport malloc, free
-
-cdef extern from "SD_WAVE.h":
-	cdef cppclass SD_Wave:
-		SD_Wave(const char *waveformFile, char *name = 0);
-		SD_Wave(int waveformType, int waveformPoints, double *waveformDataA, double *waveformDataB = 0);
-		SD_Wave(int waveformType, int waveformPoints, int *waveformDataA, int *waveformDataB = 0);
-		SD_Wave(const SD_Wave *waveform);
-
-		short *getPointVector() const;
-		int getPoints() const;
-		int getStatus() const;
-		int getType() const;
-
-cdef extern from "SD_Module.h":
-	cdef cppclass SD_Module:
-		SD_Module(int)
-		int moduleCount()
-		int getProductName(int , int , char *)
-		int getProductName(int , char *)
-		int getSerialNumber(int , int , char *)
-		int getSerialNumber(int , char *)
-		int getType(int , int )
-		int getType(int )
-		int getChassis(int )
-		int getSlot(int )
-
-		int open(const char *partNumber, const char *serialNumber);
-		int open(const char *partNumber, int nChassis, int nSlot);
-		int open(const char* productName, const char* serialNumber, int compatibility);
-		int open(const char* productName, int chassis, int slot, int compatibility);
-		bool isOpened() const;
-		int close();
-
-		int runSelfTest();
-		int getStatus() const;
-		char *getSerialNumber(char *serialNumber) const;
-		char *getProductName(char *productName) const;
-		double getFirmwareVersion() const;
-		double getHardwareVersion() const;
-		int getChassis() const;
-		int getSlot() const;
-		const char *moduleName() const;
-
-		# # //FPGA
-		# int FPGAreadPCport(int port, int *buffer, int nDW, int address, SD_AddressingMode::SD_AddressingMode addressMode = SD_AddressingMode::AUTOINCREMENT, SD_AccessMode::SD_AccessMode accessMode = SD_AccessMode::DMA);
-		# int FPGAwritePCport(int port, int *buffer, int nDW, int address, SD_AddressingMode::SD_AddressingMode addressMode = SD_AddressingMode::AUTOINCREMENT, SD_AccessMode::SD_AccessMode accessMode = SD_AccessMode::DMA);
-		# int FPGAload(const char *fileName);
-		# int FPGAreset(SD_ResetMode::SD_ResetMode mode = SD_ResetMode::PULSE);
-
-		# //HVI Variables
-		int readRegister(int varNumber, int &errorOut) const;
-		int readRegister(const char *varName, int &errorOut) const;
-		double readRegister(int varNumber, const char *unit, int &errorOut) const;
-		double readRegister(const char *varName, const char *unit, int &errorOut) const;
-		int writeRegister(int varNumber, int varValue);
-		int writeRegister(const char *varName, int varValue);
-		int writeRegister(int varNumber, double value, const char *unit);
-		int writeRegister(const char *varName, double value, const char *unit);
-
-		# //PXItrigger
-		int PXItriggerWrite(int nPXItrigger, int value);
-		int PXItriggerRead(int nPXItrigger) const;
-
-		# //DAQ
-		int DAQconfig(int nDAQ, int nDAQpointsPerCycle, int nCycles, int prescaler, int triggerMode);
-		int DAQbufferPoolRelease(int nDAQ);
-		int DAQcounterRead(int nDAQ) const;
-		int DAQtrigger(int nDAQ);
-		int DAQstart(int nDAQ);
-		int DAQpause(int nDAQ);
-		int DAQresume(int nDAQ);
-		int DAQflush(int nDAQ);
-		int DAQstop(int nDAQ);
-		int DAQtriggerMultiple(int DAQmask);
-		int DAQstartMultiple(int DAQmask);
-		int DAQpauseMultiple(int DAQmask);
-		int DAQresumeMultiple(int DAQmask);
-		int DAQflushMultiple(int DAQmask);
-		int DAQstopMultiple(int DAQmask);
-
-		# //Extenal Trigger
-		int translateTriggerPXItoExternalTriggerLine(int trigger) const;
-		int translateTriggerIOtoExternalTriggerLine(int trigger) const;
-		int WGtriggerExternalConfig(int nAWG, int externalSource, int triggerBehavior, bool sync = true);
-		int DAQtriggerExternalConfig(int nDAQ, int externalSource, int triggerBehavior, bool sync = false);
-
-		# //AWG
-		int waveformGetAddress(int waveformNumber);
-		int waveformGetMemorySize(int waveformNumber);
-		int waveformMemoryGetWriteAddress();
-		int waveformMemorySetWriteAddress(int writeAddress);
-
-		int waveformReLoad(int waveformType, int waveformPoints, short *waveformDataRaw, int waveformNumber, int paddingMode = 0);
-		int waveformReLoad(SD_Wave *waveformObject, int waveformNumber, int paddingMode = 0);
-
-		int waveformLoad(int waveformType, int waveformPoints, short *waveformDataRaw, int waveformNumber, int paddingMode = 0);
-		int waveformLoad(SD_Wave *waveformObject, int waveformNumber, int paddingMode = 0);
-		int waveformFlush();
-
-		# //HVI management
-		int openHVI(const char *fileHVI);
-		int compileHVI();
-		int compilationErrorMessageHVI(int errorIndex, char *message, int maxSize);
-		int loadHVI();
-
-		# //HVI Control
-		int startHVI();
-		int pauseHVI();
-		int resumeHVI();
-		int stopHVI();
-		int resetHVI();
-
-		# // P2P
-		int DAQp2pStop(int nChannel);
-		unsigned long long pipeSinkAddr(int nPipeSink) const;
-		int DAQp2pConfig(int nChannel, int dataSize, int timeOut, unsigned long long pipeSink) const;
-
-
-
-ctypedef SD_Module* SD_Module_ptr
 from libcpp.vector cimport vector
 from libcpp.string cimport string
 from libcpp.pair cimport pair
 from libcpp.map cimport map as mapcpp
+from cython.operator import dereference, postincrement
+from libc.stdio cimport printf
 
 import numpy as np
 cimport numpy as np
+
+cdef extern from "keysight_awg_post_processing_and_upload.h":
+	cdef cppclass cpp_uploader:
+		cpp_uploader() except +
+		void add_awg_module(string name, string module_type, int chassis, int slot)
+		void add_upload_job(mapcpp[string, mapcpp[int, waveform_raw_upload_data]] *upload_data)
+
+	struct waveform_raw_upload_data:
+		vector[double*] *wvf_data
+		# np added here already as you cannot fetch it without the gil 
+		vector[int] *wvf_npt
+		pair[double, double] *min_max_voltage
+		vector[double*] *DSP_param
+		short *upload_data
+		int npt
+
+
 
 cdef struct s_waveform_info:
 	pair[double, double] min_max_voltage
@@ -134,118 +33,54 @@ cdef struct s_waveform_info:
 
 ctypedef s_waveform_info waveform_info
 
-cdef class s_waveform_raw_upload_data:
-	cdef vector[double[:]] *wvf_data
-	# np added here already as you cannot fetch it without the gil 
-	cdef vector[int] *wvf_npt
-	cdef pair[double, double] *min_max_voltage
-	cdef vector[double[:]] *DSP_param
-	cdef short *upload_data
-	cdef int npt
-
-
-
-ctypedef s_waveform_raw_upload_data waveform_raw_upload_data
-
-
 cdef class keysight_upload_module():
 	"""
 	This is a speraturate module for the upload in keysight units. This module also does some last post processing on the waveform (e.g. DSP/convert to short/extend them, so they fit into the memory ...)
 	The upload in writtin in C, so can be fully run without gil in a multhithreaded way. 
 	This module is in now way a replacement for the python module and has as main function to get the waveform into the memory
 	"""
-	cdef mapcpp[string, SD_Module_ptr] AWG_modules
-	cdef int error_handle
+	cdef cpp_uploader *keysight_uploader
 
-	def add_awg_module(self, str name, int chassis, int slot):
-		cdef SD_Module* awg_module
-		cdef char* module_name
+	def __cinit__(self):
+		self.keysight_uploader = new cpp_uploader()
 
-		awg_module = new SD_Module(0)
-		
-		module_name = ""
-		self.error_handle = awg_module.getProductName(chassis, slot, module_name)
-		self.__check_error()
-
-		self.error_handle = awg_module.open(module_name, chassis, slot, 1)
-		self.__check_error()
-
-		self.AWG_modules[name.encode()] = awg_module
+	def add_awg_module(self, module):
+		'''
+		add an AWG module to the keysight object.
+		Args:
+			module (qCodeS driver) : qcodes object of the AWG
+		'''
+		self.keysight_uploader.add_awg_module(module.name.encode(), module.type.encode(), module.chassis, module.slot)
 
 	def add_upload_data(self, waveform_cache_container waveform_cache):
 		cdef mapcpp[string, mapcpp[int, waveform_raw_upload_data]] *AWG_raw_upload_data
 		AWG_raw_upload_data = &waveform_cache.AWG_raw_upload_data
 		
-
-		# make cache's
-		cdef int n_points = waveform_cache.npt
-
-		cdef np.ndarray[dtype=short, ndim=1] waveform_data_raw = np.empty((n_points,), dtype=np.short)
-		cdef short[:] waveform_data_raw_view = waveform_data_raw
-
-
-		# from here all in in c!
-		for i in range(AWG_raw_upload_data.size()):
-			# Already assign memory for the final data
-			pass
-
-	cdef void rescale_concateneate_and_convert_to_16_bit_number(self, waveform_raw_upload_data* upload_data) nogil:
-		'''
-		low level function the voltages to 0/1 range and making a conversion to 16 bits.
-		All voltages are also concatenated
-		'''
-
-
-		upload_data.upload_data = <short *> malloc(upload_data.npt * sizeof(short))
-
-		cdef int i, idx_view, wvf_id  = 0
-
-		cdef double[:] wvf_ptr
-		cdef double v_offset = (upload_data.min_max_voltage.second + upload_data.min_max_voltage.first)/2
-		cdef double v_pp = upload_data.min_max_voltage.second - upload_data.min_max_voltage.first
-
-		for wvf_id in range(upload_data.wvf_npt.size()):
-			# wvf_ptr = upload_data.wvf_data.at(wvf_id)
-		# 	for idx_view in range(upload_data.wvf_npt.at(wvf_id)):
-		# 		upload_data.upload_data[i] = <short> (( wvf_ptr[idx_view] - v_offset)/v_pp)
-		# 		i+= 1
-			pass
-			
-	# cdef void getzvpp_voff(self, waveform_raw_upload_data* upload_data, double *vpp, double *voff):
-	# 	'''
-	# 	Calculate the total voltage offset and peak to peak voltage to be uploaded.
-	# 	'''
-	# 	cdef double Vmin = upload_data.wvf_info[0].min_max_voltage.first
-	# 	cdef double Vmin = upload_data.wvf_info[0].min_max_voltage.first
-
-
-
-	cdef __check_error(self):
-		if self.error_handle != 0:
-			raise ValueError(self.error_handle)
-
+		self.keysight_uploader.add_upload_job(AWG_raw_upload_data)
 
 cdef class waveform_upload_chache():
 	"""object that holds some cache for uploads and does some basic calculations"""
 	cdef vector[waveform_info] wvf_info
-	cdef vector[double[:]] wvf_data
-	cdef vector[double[:]] wvf_npt
+	cdef vector[double *] wvf_data
+	cdef vector[int] wvf_npt
 	cdef pair[double, double] min_max_voltage
 	cdef pair[double, double] compenstation_limit
 	cdef int _npt
+	cdef list data
+
 	def __init__(self, compenstation_limit):
 		self.compenstation_limit = compenstation_limit
 		self._npt = 0
+		self.data = []
 
-	def add_data(self, wvf, v_min_max, integral):
+	def add_data(self, np.ndarray[np.double_t,ndim=1] wvf, v_min_max, integral):
 		'''
 		wvf (np.ndarray[ndim = 1, dtype=double]) : waveform
 		v_min_max (tuple) : maximum/minimum voltage of the current segment
 		integral (double) : integrated value of the waveform
 		'''
 		cdef waveform_info data_info
-		cdef double[:] wvf_ptr = wvf
-		
+
 		if self._npt == 0:
 			self.min_max_voltage = v_min_max
 		else:
@@ -254,14 +89,18 @@ cdef class waveform_upload_chache():
 			if self.min_max_voltage.second < v_min_max[1]:
 				self.min_max_voltage.second = v_min_max[1]
 
-		self._npt += wvf_ptr.size
+		self._npt += wvf.size
 
 		data_info.min_max_voltage = v_min_max
 		data_info.integral = integral
 
 		self.wvf_info.push_back(data_info)
-		self.wvf_data.push_back(wvf_ptr)
-		self.wvf_npt.push_back(wvf_ptr.size)
+		cdef double* my_data =  <double*> wvf.data
+		self.wvf_data.push_back(my_data)
+		# use dummy python list for reference counting ..
+		self.data.append(wvf)
+
+		self.wvf_npt.push_back(wvf.size)
 
 	@property
 	def integral(self):
@@ -308,8 +147,10 @@ cdef class waveform_upload_chache():
 		cdef waveform_raw_upload_data raw_data
 
 		raw_data.wvf_data = &self.wvf_data
+		raw_data.wvf_npt = &self.wvf_npt
 		raw_data.min_max_voltage = &self.min_max_voltage
 		raw_data.npt = self._npt
+
 		return raw_data
 
 cdef class waveform_cache_container():
