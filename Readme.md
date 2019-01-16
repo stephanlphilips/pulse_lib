@@ -20,7 +20,7 @@ TODO list:
 * add DSP module (must also be C++)
 
 TODO bugs and small things to fix,
-* make segments appendable
+* make segments appendable - preendatable | make them splittable
 * deal with names and units of the loops + setpoints variable
 * make cut function
 
