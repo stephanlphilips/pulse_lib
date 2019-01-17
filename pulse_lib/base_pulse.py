@@ -4,6 +4,8 @@ from pulse_lib.segments.segments import segment_container
 from pulse_lib.keysight_fx import *
 from pulse_lib.sequencer import sequencer
 from pulse_lib.keysight.uploader import keysight_uploader
+from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
+
 import uuid
 # import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
 # import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
@@ -25,11 +27,12 @@ class pulselib:
 	def __init__(self):
 		# awg channels and locations need to be input parameters.
 		self.awg_channels = []
-		self.awg_channels_to_physical_locations = []
+		self.awg_channels_to_physical_locations = dict()
 		self.awg_virtual_channels = None
 		self.awg_IQ_channels = None
-		self.awg_devices = []
-		
+		self.awg_devices = dict()
+		self.cpp_uploader = keysight_upload_module()
+
 		self.channel_delays = dict()
 		self.channel_delays_computed = dict()
 		self.channel_compenstation_limits = dict()
@@ -79,7 +82,7 @@ class pulselib:
 		self.__process_channel_delays()
 		return 0
 
-	def add_chanel_compenstation_limits(self, limits):
+	def add_channel_compenstation_limits(self, limits):
 		'''
 		add voltage limitations per channnel that can be used to make sure that the intragral of the total voltages is 0.
 		Args:
@@ -101,7 +104,8 @@ class pulselib:
 			name (str) : name you want to give to a peculiar AWG
 			awg (object) : qcodes object of the concerning AWG
 		'''
-		self.awg_channels.append([name, awg])
+		self.awg_devices[name] =awg
+		self.cpp_uploader.add_awg_module(name, awg)
 
 	def add_virtual_gates(self, virtual_gates):
 		'''
@@ -130,10 +134,7 @@ class pulselib:
 
 	def finish_init(self):
 		# function that finishes the initialisation
-		self.awg = keysight_AWG(self.segments_bin, self.awg_channels_to_physical_locations, self.awg_channels, self.channel_delays)
-		for i in self.awg_devices:
-			self.awg.add_awg(i[0], i[1])
-		self.uploader = keysight_uploader(self.awg, self.awg_channels, self.channel_delays_computed, self.channel_compenstation_limits)
+		self.uploader = keysight_uploader(self.awg_devices, self.cpp_uploader, self.awg_channels, self.awg_channels_to_physical_locations , self.channel_delays_computed, self.channel_compenstation_limits)
 
 	def mk_segment(self):
 		'''
@@ -206,16 +207,25 @@ class pulselib:
 if __name__ == '__main__':
 	p = pulselib()
 
-	awg1 = None
-	awg2 = None
-	awg3 = None
-	awg4 = None
+	
+	class AWG(object):
+		"""docstring for AWG"""
+		def __init__(self, name):
+			self.name = name
+			self.chassis = 0
+			self.slot = 0
+			self.type = "DEMO"
 
+	AWG1 = AWG("AWG1")
+	AWG2 = AWG("AWG2")
+	AWG3 = AWG("AWG3")
+	AWG4 = AWG("AWG4")
+		
 	# add to pulse_lib
-	p.add_awgs('AWG1',awg1)
-	p.add_awgs('AWG2',awg2)
-	p.add_awgs('AWG3',awg3)
-	p.add_awgs('AWG4',awg4)
+	p.add_awgs('AWG1',AWG1)
+	p.add_awgs('AWG2',AWG2)
+	p.add_awgs('AWG3',AWG3)
+	p.add_awgs('AWG4',AWG4)
 
 	# define channels
 	awg_channels_to_physical_locations = dict({'B0':('AWG1', 1), 'P1':('AWG1', 2),

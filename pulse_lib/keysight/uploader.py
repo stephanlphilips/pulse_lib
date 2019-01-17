@@ -2,7 +2,7 @@ import threading as th
 import numpy as np
 import time
 from pulse_lib.keysight.AWG_memory_manager import Memory_manager
-from pulse_lib.keysight.uploader_core.uploader import waveform_upload_chache
+from pulse_lib.keysight.uploader_core.uploader import waveform_cache_container,waveform_upload_chache
 def mk_thread(function):
     def wrapper(*args, **kwargs):
         thread = th.Thread(target=function, args=args, kwargs=kwargs)
@@ -16,11 +16,13 @@ class keysight_uploader():
 	"""
 	Object responsible for uploading waveforms to the keysight AWG in a timely fashion.
 	"""
-	def __init__(self, AWGs, channel_locations, channel_delays, channel_compenstation_limits):
+	def __init__(self, AWGs, cpp_uploader,channel_names, channel_locations, channel_delays, channel_compenstation_limits):
 		'''
 		Initialize the keysight uploader. 
 		Args:
-			AWGs (list<QcodesIntrument>) : list with AWG's
+			AWGs (dict<awg_name,QcodesIntrument>) : list with AWG's
+			cpp_uploader (keysight_upload_module) : class that performs normalisation and conversion of the wavorm to short + upload.
+			channel_names(list) : list with all the names of the channels
 			channel_locations (dict): dict with channel and AWG+channel location
 			channel_compenstation_limits (dict) : dict with channel name as key and tuple as value with lower and upper limit
 		Returns:
@@ -29,8 +31,9 @@ class keysight_uploader():
 		self.memory_allocation = dict()
 		self.upload = True
 		# TODO reinit memory on start-up
-		# for i in AWGs:
-		# 	self.memory_allocation[i.name] = Memory_manager()
+		self.AWGs = AWGs
+		self.cpp_uploader =cpp_uploader
+		self.channel_names = channel_names
 		self.channel_map = channel_locations
 		self.channel_delays = channel_delays
 		self.channel_compenstation_limits = channel_compenstation_limits
@@ -89,8 +92,8 @@ class keysight_uploader():
 		1) get all the upload data
 		2) perform DC correction (if needed)
 		3) perform DSP correction (if needed)
-		4) convert data in an aprropriate upload format (c++)
-		4) upload all data (c++)
+		4a) convert data in an aprropriate upload format (c++)
+		4b) upload all data (c++)
 		5) write in the job object the resulting locations of sequences that have been uploaded.
 
 		'''
@@ -107,15 +110,12 @@ class keysight_uploader():
 			start = time.time()
 
 			# 1) get all the upload data -- construct object to hall the rendered data
-			waveform_cache = dict()
-			for i in self.channel_map:
-				waveform_cache[i] = waveform_upload_chache(self.channel_compenstation_limits[i])
-
+			waveform_cache = waveform_cache_container(self.channel_map, self.channel_compenstation_limits)
 			
 
 			pre_delay = 0
 			post_delay = 0
-			print("\n\n\n new call on pulse data\n\n")
+			print("\n\nnew call on pulse data\n")
 			for i in range(len(job.sequence)):
 
 				seg = job.sequence[i][0]
@@ -123,7 +123,7 @@ class keysight_uploader():
 				prescaler = job.sequence[i][2]
 				
 				# TODO add precaler in as sample rate
-				for channel in self.channel_map:
+				for channel in self.channel_names:
 					if i == 0:
 						pre_delay = self.channel_delays[channel][0]
 					if i == len(job.sequence) -1:
@@ -153,31 +153,22 @@ class keysight_uploader():
 				b) make sure time is modulo 10 (do that here?)
 				c) add segments with the compenstated pulse for the given total time.
 			'''
-			compensation_time = 0
-			wvf_npt = 0
-			for chan in waveform_cache:
-				if waveform_cache[chan].compensation_time > compensation_time:
-					compensation_time = waveform_cache[chan].compensation_time 
-					wvf_npt = waveform_cache[chan].npt
-			# make sure we have modulo 10 time
-			total_pt = compensation_time + wvf_npt
-			mod = total_pt%10
-			if mod != 0:
-				total_pt += 10-mod
-			compensation_time = total_pt - wvf_npt
-
-			#generate the compensation
-			for chan in waveform_cache:
-				waveform_cache[chan].generate_voltage_compensation(compensation_time)
-			end = time.time()
-			print("time needed to render and compenstate",end - start)
-			print("rendering = ", end1 - start)
-			print("compensation = ", end - end1)
+			waveform_cache.generate_DC_compenstation()
+			
+			end2 = time.time()
 			
 			# 3) DSP correction
 			# TODO later
 
-			# 4) 
+			# 4a+b)
+			self.cpp_uploader.add_upload_data(waveform_cache)
+			end3 = time.time()
+			print("time needed to render and compenstate",end3 - start)
+			print("rendering = ", end1 - start)
+			print("compensation = ", end2 - end1)
+			print("cpp conversion to short = ", end3 - end2)
+			
+
 
 class upload_job(object):
 	"""docstring for upload_job"""
@@ -203,166 +194,3 @@ class upload_job(object):
 		self.DSP_func = DSP
 
 
-
-class waveform_upload_chache():
-	"""object that holds some cache for uploads and does some basic calculations"""
-	def __init__(self, compenstation_limit):
-		self.data = []
-		self.min_max_voltage = (0,0)
-		self.compenstation_limit = compenstation_limit
-
-	def add_data(self, wvf, integral, v_min_max):
-		'''
-		wvf (np.ndarray[ndim = 1, dtype=double]) : waveform
-		integral (double) : integrated value of the waveform
-		v_min_max (tuple) : maximum/minimum voltage of the current segment
-		'''
-		data = {'wvf' : wvf, 'integral' : integral, 'v_min_max' : v_min_max}
-		self.data.append(data)
-
-	@property
-	def integral(self):
-		integral = 0
-		for i in self.data:
-			integral += i['integral']
-		return integral
-
-	@property
-	def compensation_time(self):
-		'''
-		return the minimal compensation time that is needed.
-		Returns:
-			compensation_time : minimal duration that is needed for the voltage compensation
-		'''
-		comp_time = self.integral
-		if comp_time <= 0:
-			return -comp_time / self.compenstation_limit[1]
-		else:
-			return -comp_time / self.compenstation_limit[0]
-
-	def get_min_max(self):
-		'''
-		get min/maximum voltage that is saved in this object.
-		'''
-		pass
-
-	def generate_voltage_compensation(self, time):
-		'''
-		make a voltage compenstation pulse of time t
-		Args:
-			time (double) : time of the compenstation in ns
-		'''
-		if round(time) == 0:
-			voltage = 0
-		else:
-			voltage = self.integral/round(time)
-
-		wvf = np.full((int(round(time)),), voltage)
-		data = {'wvf' : wvf, 'integral' : -self.integral, 'v_min_max' : (voltage, voltage)}
-		self.data.append(data)
-
-
-		
-		
-
-
-# class sequencer():
-# 	def __init__(self, awg_system, channel_delays, segment_bin):
-# 		self.awg = awg_system
-# 		self.segment_bin = segment_bin
-# 		self.channels = segment_bin.channels
-# 		self.channel_delays = channel_delays
-# 		self.sequences = dict()
-
-# 	def add_sequence(self, name, sequence):
-# 		self.sequences[name] = sequence
-
-# 	def start_sequence(self, name):
-# 		self.get_sequence_upload_data(name)
-# 		self.awg.upload(self.sequences[name], self.get_sequence_upload_data(name))
-# 		self.awg.start()
-
-# 	def get_sequence_upload_data(self, name):
-# 		'''
-# 		Function that generates sequence data per channel.
-# 		It will also assign unique id's to unique sequences (sequence that depends on the time of playback). -> mainly important for iq mod purposes.
-# 		structure:
-# 			dict with key of channel:
-# 			for each channels list of sequence:
-# 				name of the segments,
-# 				number of times to play
-# 				uniqueness -> segment is reusable?
-# 				identifiers for marking differnt locations in the ram of the awg.
-		
-# 		'''
-# 		upload_data = dict()
-# 		# put in a getter to make sure there is no error -- it exists...
-# 		seq = self.sequences[name]
-
-# 		for chan in self.channels:
-# 			sequence_data_single_channel = []
-# 			num_elements = len(seq)
-
-# 			for k in range(len(seq)):
-# 				segment_play_info = seq[k]
-
-# 				# if starting segment or finishing segment, here there should be added the delay info.
-# 				pre_delay, post_delay = (0,0)
-
-# 				if k == 0:
-# 					pre_delay = self.get_pre_delay(chan)
-# 				if k == len(seq)-1:
-# 					post_delay = self.get_post_delay(chan)
-
-# 				if pre_delay!=0 or post_delay!=0:
-# 					rep = segment_play_info[1]
-# 					segment_play_info[1] = 1
-# 					input_data = self.generate_input_data(segment_play_info, chan, pre_delay, post_delay)
-# 					sequence_data_single_channel.append(input_data)
-
-# 					# If only one, go to next segment in the sequence.
-# 					if rep == 1 :
-# 						continue
-# 					else:
-# 						segment_play_info[1] = rep -1
-
-# 				sequence_data_single_channel.append(self.generate_input_data(segment_play_info, chan))
-
-# 			upload_data[chan] = sequence_data_single_channel
-
-# 		return upload_data
-
-
-# 	def generate_input_data(self, segment_play_info, channel, pre_delay=0, post_delay=0):
-# 		'''
-# 		function that will generate a dict that defines the input data, this will contain all the neccesary info to upload the segment.
-# 		returns:
-# 			dict with sequence info for a cerain channel (for parameters see the code).
-# 		'''
-# 		input_data = {'segment': segment_play_info[0], 
-# 						'segment_name': self.make_segment_name(segment_play_info[0], pre_delay, post_delay),
-# 						'ntimes': segment_play_info[1],
-# 						'prescaler': segment_play_info[2],
-# 						'pre_delay': pre_delay,
-# 						'post_delay': post_delay}
-# 		unique = getattr(self.segment_bin.get_segment(segment_play_info[0]), channel).unique
-# 		input_data['unique'] = unique
-# 		# Make unique uuid's for each segment
-# 		if unique == True:
-# 			input_data['identifier'] = [uuid.uuid4() for i in range(segment_play_info[1])]
-
-# 		return input_data
-
-# 	def make_segment_name(self, segment, pre_delay, post_delay):
-# 		'''
-# 		function that makes the name of the segment that is delayed.
-# 		Note that if the delay is 0 there should be no new segment name.
-# 		'''
-# 		segment_name = segment
-		
-# 		if pre_delay!=0 or post_delay!= 0:
-# 			segment_name = segment + '_' + str(pre_delay) + '_' + str(post_delay)
-
-# 		return segment_name
-
-		

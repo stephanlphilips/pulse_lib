@@ -11,11 +11,6 @@ import numpy as np
 cimport numpy as np
 
 cdef extern from "keysight_awg_post_processing_and_upload.h":
-	cdef cppclass cpp_uploader:
-		cpp_uploader() except +
-		void add_awg_module(string name, string module_type, int chassis, int slot)
-		void add_upload_job(mapcpp[string, mapcpp[int, waveform_raw_upload_data]] *upload_data)
-
 	struct waveform_raw_upload_data:
 		vector[double*] *wvf_data
 		# np added here already as you cannot fetch it without the gil 
@@ -23,9 +18,17 @@ cdef extern from "keysight_awg_post_processing_and_upload.h":
 		pair[double, double] *min_max_voltage
 		vector[double*] *DSP_param
 		short *upload_data
-		int npt
+		int *npt
 
+ctypedef waveform_raw_upload_data* waveform_raw_upload_data_ptr
 
+cdef extern from "keysight_awg_post_processing_and_upload.h":
+
+	cdef cppclass cpp_uploader:
+		cpp_uploader() except +
+		void add_awg_module(string name, string module_type, int chassis, int slot) nogil
+		void add_upload_job(mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *upload_data) nogil
+		void release_memory(mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *upload_data) nogil
 
 cdef struct s_waveform_info:
 	pair[double, double] min_max_voltage
@@ -44,22 +47,97 @@ cdef class keysight_upload_module():
 	def __cinit__(self):
 		self.keysight_uploader = new cpp_uploader()
 
-	def add_awg_module(self, module):
+	def add_awg_module(self, name, module):
 		'''
 		add an AWG module to the keysight object.
 		Args:
 			module (qCodeS driver) : qcodes object of the AWG
 		'''
-		self.keysight_uploader.add_awg_module(module.name.encode(), module.type.encode(), module.chassis, module.slot)
+		self.keysight_uploader.add_awg_module(name.encode(), module.type.encode(), module.chassis, module.slot)
 
 	def add_upload_data(self, waveform_cache_container waveform_cache):
-		cdef mapcpp[string, mapcpp[int, waveform_raw_upload_data]] *AWG_raw_upload_data
+		cdef mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data
 		AWG_raw_upload_data = &waveform_cache.AWG_raw_upload_data
+
+		with nogil:
+			self.keysight_uploader.add_upload_job(AWG_raw_upload_data)
+
+	cdef release_memory(self, mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data):
+		self.keysight_uploader.release_memory(AWG_raw_upload_data)
+
+
+cdef class waveform_cache_container():
+	cdef mapcpp[string, pair[string, int]] channel_to_AWG_map
+	cdef mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] AWG_raw_upload_data
+	cdef dict waveform_chache_python
+
+	def __init__(self, channel_to_AWG_map_py, voltage_limits):
+		'''
+		Initialize the waveform cache.
+		Args:
+			channel_to_AWG_map_py (dict<str channel_name, tuple<str AWG_name, int channel_number>)
+			voltage_limits (dict<str channel_name, typle<double min_voltage, double max_voltage>)
+		'''
+		self.waveform_chache_python = dict()
+
+		for key, value in channel_to_AWG_map_py.items():
+			new_value = (value[0].encode(), value[1])
+			self.channel_to_AWG_map[key.encode()] = new_value
+
+			waveform_cache = waveform_upload_chache(voltage_limits[key])
+			self.waveform_chache_python[key] = waveform_cache
+			self.AWG_raw_upload_data[new_value[0]][new_value[1]] = waveform_cache.return_raw_data()
+
+	def __getitem__(self, str key):
+		'''
+		get waveform_upload_chache object
+		Args:
+			key (str) : name of the channel
+		'''
+		return self.waveform_chache_python[key]
+
+	@property
+	def npt(self):
+		'''
+		Return the number of point that is saved in the caches (= total number of points that need to be uploaded).
+
+		Note that it is assumed that you run this function when all the caches have been populated and have similar size.
+		If you want to know npt per chache, you should call self['channel_name'].npt
+		'''
+		if len(self.waveform_chache_python) == 0 :
+			raise ValueError("No waveforms presents in waveform chache container ...")
 		
-		self.keysight_uploader.add_upload_job(AWG_raw_upload_data)
+		# get first key of chache object (the pyton one)
+		idx = next(iter(self.waveform_chache_python))
+		return self[idx].npt
+
+	def generate_DC_compenstation(self):
+		'''
+		generate a DC compensation of the pulse.
+		As assuallly we put condensaters in between the AWG and the gate on the sample, you need to correct for the fact that the low fequencies are not present in your transfer function.
+		This can be done simply by making the total integral of your function 0.
+		'''
+
+		cdef int compensation_time = 0
+		cdef int wvf_npt = 0
+		for chan in self.waveform_chache_python:
+			if self[chan].compensation_time > compensation_time:
+				compensation_time = self[chan].compensation_time 
+				wvf_npt = self[chan].npt
+		# make sure we have modulo 10 time
+		cdef int total_pt = compensation_time + wvf_npt
+		cdef int mod = total_pt%10
+		if mod != 0:
+			total_pt += 10-mod
+		compensation_time = total_pt - wvf_npt
+
+		#generate the compensation
+		for chan in self.waveform_chache_python:
+			self[chan].generate_voltage_compensation(compensation_time)
 
 cdef class waveform_upload_chache():
 	"""object that holds some cache for uploads and does some basic calculations"""
+	cdef waveform_raw_upload_data raw_data
 	cdef vector[waveform_info] wvf_info
 	cdef vector[double *] wvf_data
 	cdef vector[int] wvf_npt
@@ -143,65 +221,10 @@ cdef class waveform_upload_chache():
 
 		self.add_data(np.full((int(round(time)),), voltage), (voltage, voltage), -self.integral)
 
-	cdef waveform_raw_upload_data return_raw_data(self):
-		cdef waveform_raw_upload_data raw_data
+	cdef waveform_raw_upload_data* return_raw_data(self):
+		self.raw_data.wvf_data = &self.wvf_data
+		self.raw_data.wvf_npt = &self.wvf_npt
+		self.raw_data.min_max_voltage = &self.min_max_voltage
+		self.raw_data.npt = &self._npt
 
-		raw_data.wvf_data = &self.wvf_data
-		raw_data.wvf_npt = &self.wvf_npt
-		raw_data.min_max_voltage = &self.min_max_voltage
-		raw_data.npt = self._npt
-
-		return raw_data
-
-cdef class waveform_cache_container():
-	cdef mapcpp[string, pair[string, int]] channel_to_AWG_map
-	cdef mapcpp[string, mapcpp[int, waveform_raw_upload_data]] AWG_raw_upload_data
-	cdef dict waveform_chache_python
-
-	def __init__(self, channel_to_AWG_map_py):
-
-		for key, value in channel_to_AWG_map_py.items():
-			new_value = (value[0].encode(), value[1])
-			self.channel_to_AWG_map[key.encode()] = new_value
-
-		self.waveform_chache_python = dict()
-
-	def __setitem__(self, str key, waveform_upload_chache value):
-		'''
-		Assign waveform_upload_chache object to each channel
-		Args:
-			key (str): name of the channel
-			value (waveform_upload_chache) : upload cache object
-		'''
-		cdef string _key = key.encode()
-
-		cdef string awg_name = self.channel_to_AWG_map[_key].first
-		cdef int channel_number = self.channel_to_AWG_map[_key].second
-
-		self.AWG_raw_upload_data[awg_name][channel_number] = value.return_raw_data()
-		self.waveform_chache_python[key] = value
-
-	def __getitem__(self, str key):
-		'''
-		get waveform_upload_chache object
-		Args:
-			key (str) : name of the channel
-		'''
-		# cdef pair[string, int] awg_loc
-		# awg_loc = self.channel_to_AWG_map[key.encode()]
-		return self.waveform_chache_python[key]
-
-	@property
-	def npt(self):
-		'''
-		Return the number of point that is saved in the caches (= total number of points that need to be uploaded).
-
-		Note that it is assumed that you run this function when all the caches have been populated and have similar size.
-		If you want to know npt per chache, you should call self['channel_name'].npt
-		'''
-		if len(self.waveform_chache_python) == 0 :
-			raise ValueError("No waveforms presents in waveform chache container ...")
-		
-		# get first key of chache object (the pyton one)
-		idx = next(iter(self.waveform_chache_python))
-		return self[idx].npt
+		return &self.raw_data
