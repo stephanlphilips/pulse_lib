@@ -38,7 +38,7 @@ segment_occupation::segment_occupation(std::map<int, int>* mem_layout){
 	
 	std::sort(memory_sizes.begin(), memory_sizes.end());
 
-	for (auto i = 0; i < memory_sizes.size(); i++){
+	for (size_t i = 0; i < memory_sizes.size(); i++){
 		seg_data[memory_sizes[i]] = int_linspace(mem_number, mem_number + memory_layout->find(memory_sizes[i])->second);
 		mem_number =  memory_layout->find(memory_sizes[i])->second;
 		index_info.push_back(mem_number);
@@ -63,7 +63,7 @@ std::pair<int, int> segment_occupation::request_new_segment(int size){
 	}
 
 	std::vector<int> *mem_locations;
-	for (int i = 0; i < valid_sizes.size(); ++i)
+	for (size_t i = 0; i < valid_sizes.size(); ++i)
 	{
 		mem_locations = &seg_data.find(valid_sizes[i])->second;
 		if (mem_locations->size() > 0){
@@ -84,7 +84,7 @@ void segment_occupation::free_segment(int seg_number){
 	*/
 	int seg_loc = 0;
 
-	for (int i = 0; i < index_info.size(); ++i)	{
+	for (size_t i = 0; i < index_info.size(); ++i)	{
 		if (seg_number < index_info[i]){
 			seg_loc = i;
 			break;
@@ -129,7 +129,8 @@ void mem_ctrl::release_memory(std::vector<int> segments_numbers){
 	Args:
 		segments_numbers (array<int>) : list with segments number to be released
 	*/
-	for (int i = 0; i < segments_numbers.size(); ++i){
+	for (size_t i = 0; i < segments_numbers.size(); ++i){
 		seg_occ->free_segment(segments_numbers[i]);
 	}
 }
+

@@ -5,10 +5,10 @@ from libcpp.string cimport string
 from libcpp.pair cimport pair
 from libcpp.map cimport map as mapcpp
 from cython.operator import dereference, postincrement
-from libc.stdio cimport printf
 
 import numpy as np
 cimport numpy as np
+
 
 cdef extern from "keysight_awg_post_processing_and_upload.h":
 	struct waveform_raw_upload_data:
@@ -19,6 +19,7 @@ cdef extern from "keysight_awg_post_processing_and_upload.h":
 		vector[double*] *DSP_param
 		short *upload_data
 		int *npt
+		vector[int] data_location_on_AWG
 
 ctypedef waveform_raw_upload_data* waveform_raw_upload_data_ptr
 
@@ -46,7 +47,7 @@ cdef class keysight_upload_module():
 
 	def __cinit__(self):
 		self.keysight_uploader = new cpp_uploader()
-
+		cdef mapcpp[string, pair[string, int]] channel_to_AWG_map
 	def add_awg_module(self, name, module):
 		'''
 		add an AWG module to the keysight object.
@@ -61,6 +62,25 @@ cdef class keysight_upload_module():
 
 		with nogil:
 			self.keysight_uploader.add_upload_job(AWG_raw_upload_data)
+
+		AWG_init_data = dict()
+
+
+		cdef mapcpp[string, pair[string, int]].iterator it = waveform_cache.channel_to_AWG_map.begin()
+		cdef waveform_raw_upload_data_ptr channel_data
+		while(it != waveform_cache.channel_to_AWG_map.end()):
+			# make tuple with gate voltages for the channel and location of the AWG memeory where the waveforms are stored. 
+
+			channel_data = dereference(dereference(AWG_raw_upload_data.find(dereference(it).second.first)).second.find(dereference(it).second.second)).second
+			
+			min_max_voltage = (channel_data.min_max_voltage.first, channel_data.min_max_voltage.second,)
+			upload_locations = list(channel_data.data_location_on_AWG)
+
+			AWG_init_data[dereference(it).first] = (min_max_voltage, upload_locations)
+
+			postincrement(it)
+
+		return AWG_init_data
 
 	cdef release_memory(self, mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data):
 		self.keysight_uploader.release_memory(AWG_raw_upload_data)
@@ -168,7 +188,6 @@ cdef class waveform_upload_chache():
 				self.min_max_voltage.second = v_min_max[1]
 
 		self._npt += wvf.size
-
 		data_info.min_max_voltage = v_min_max
 		data_info.integral = integral
 

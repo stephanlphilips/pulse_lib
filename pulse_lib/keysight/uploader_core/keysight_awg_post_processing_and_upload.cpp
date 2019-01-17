@@ -25,12 +25,15 @@ void cpp_uploader::add_awg_module(std::string name, std::string module_type, int
 
 void cpp_uploader::add_upload_job(std::map<std::string, std::map<int, waveform_raw_upload_data*>> *upload_data){
 	
-	// #pragma omp parallel for
+	// make first time estimation to determine if multithreading useful (overhead ~ 7.5ms) (times in ms)
+	double time_no_multi_upload = *upload_data->begin()->second.begin()->second->npt * 4*upload_data->size()/10e3;
+	double time_multi_upload = *upload_data->begin()->second.begin()->second->npt*4/10e3 + 7.5;
+
+	#pragma omp parallel for if(time_multi_upload < time_no_multi_upload)
 	for (size_t i = 0; i < upload_data->size(); ++i){
 		auto AWG_iterator = upload_data->begin();
 		advance(AWG_iterator, i);
 		for (auto channel_iterator = AWG_iterator->second.begin(); channel_iterator != AWG_iterator->second.end(); ++channel_iterator){
-			std::cout << "number of points recieved : " << *channel_iterator->second->npt << std::endl;
 			rescale_concatenate_and_convert_to_16_bit_number(channel_iterator->second);
 			// TODO : add DSP function here.
 			load_data_on_awg(AWG_iterator->first, channel_iterator->second);

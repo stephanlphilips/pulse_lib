@@ -27,10 +27,10 @@ public:
 
 	void add_awg_module(std::string name, std::string module_type, int chassis, int slot);
 	void add_upload_job(std::map<std::string, std::map<int, waveform_raw_upload_data*>> *upload_data);
+	void release_memory(std::map<std::string, std::map<int, waveform_raw_upload_data*>>* upload_data);
 private:
 	void rescale_concatenate_and_convert_to_16_bit_number(waveform_raw_upload_data* upload_data);
 	void load_data_on_awg(std::string awg_name, waveform_raw_upload_data* upload_data);
 	void free_cache(waveform_raw_upload_data* upload_data);
-	void release_memory(std::map<std::string, std::map<int, waveform_raw_upload_data*>>* upload_data);
 	void check_error(SD_Module *AWG_module, int *error_handle);
 };

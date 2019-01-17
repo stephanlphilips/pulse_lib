@@ -29,8 +29,8 @@
         "name": "uploader",
         "sources": [
             "uploader.pyx",
-            "keysight_awg_post_processing_and_upload.cpp",
-            "mem_ctrl.cpp"
+            "mem_ctrl.cpp",
+            "keysight_awg_post_processing_and_upload.cpp"
         ]
     },
     "module_name": "uploader"
@@ -1211,8 +1211,8 @@ typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
 typedef npy_cdouble __pyx_t_5numpy_complex_t;
 struct __pyx_t_8uploader_s_waveform_info;
 
-/* "uploader.pyx":23
- * 		int *npt
+/* "uploader.pyx":24
+ * 		vector[int] data_location_on_AWG
  * 
  * ctypedef waveform_raw_upload_data* waveform_raw_upload_data_ptr             # <<<<<<<<<<<<<<
  * 
@@ -1220,7 +1220,7 @@ struct __pyx_t_8uploader_s_waveform_info;
  */
 typedef struct waveform_raw_upload_data *__pyx_t_8uploader_waveform_raw_upload_data_ptr;
 
-/* "uploader.pyx":33
+/* "uploader.pyx":34
  * 		void release_memory(mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *upload_data) nogil
  * 
  * cdef struct s_waveform_info:             # <<<<<<<<<<<<<<
@@ -1232,7 +1232,7 @@ struct __pyx_t_8uploader_s_waveform_info {
   double integral;
 };
 
-/* "uploader.pyx":37
+/* "uploader.pyx":38
  * 	double integral
  * 
  * ctypedef s_waveform_info waveform_info             # <<<<<<<<<<<<<<
@@ -1241,7 +1241,7 @@ struct __pyx_t_8uploader_s_waveform_info {
  */
 typedef struct __pyx_t_8uploader_s_waveform_info __pyx_t_8uploader_waveform_info;
 
-/* "uploader.pyx":39
+/* "uploader.pyx":40
  * ctypedef s_waveform_info waveform_info
  * 
  * cdef class keysight_upload_module():             # <<<<<<<<<<<<<<
@@ -1255,7 +1255,7 @@ struct __pyx_obj_8uploader_keysight_upload_module {
 };
 
 
-/* "uploader.pyx":69
+/* "uploader.pyx":89
  * 
  * 
  * cdef class waveform_cache_container():             # <<<<<<<<<<<<<<
@@ -1270,7 +1270,7 @@ struct __pyx_obj_8uploader_waveform_cache_container {
 };
 
 
-/* "uploader.pyx":138
+/* "uploader.pyx":158
  * 			self[chan].generate_voltage_compensation(compensation_time)
  * 
  * cdef class waveform_upload_chache():             # <<<<<<<<<<<<<<
@@ -1292,7 +1292,7 @@ struct __pyx_obj_8uploader_waveform_upload_chache {
 
 
 
-/* "uploader.pyx":39
+/* "uploader.pyx":40
  * ctypedef s_waveform_info waveform_info
  * 
  * cdef class keysight_upload_module():             # <<<<<<<<<<<<<<
@@ -1306,7 +1306,7 @@ struct __pyx_vtabstruct_8uploader_keysight_upload_module {
 static struct __pyx_vtabstruct_8uploader_keysight_upload_module *__pyx_vtabptr_8uploader_keysight_upload_module;
 
 
-/* "uploader.pyx":138
+/* "uploader.pyx":158
  * 			self[chan].generate_voltage_compensation(compensation_time)
  * 
  * cdef class waveform_upload_chache():             # <<<<<<<<<<<<<<
@@ -1700,6 +1700,23 @@ static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject 
 static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb);
 #endif
 
+/* ListCompAppend.proto */
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
+static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
+    PyListObject* L = (PyListObject*) list;
+    Py_ssize_t len = Py_SIZE(list);
+    if (likely(L->allocated > len)) {
+        Py_INCREF(x);
+        PyList_SET_ITEM(list, len, x);
+        Py_SIZE(list) = len+1;
+        return 0;
+    }
+    return PyList_Append(list, x);
+}
+#else
+#define __Pyx_ListComp_Append(L,x) PyList_Append(L,x)
+#endif
+
 /* PyObject_GenericGetAttrNoDict.proto */
 #if CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP && PY_VERSION_HEX < 0x03070000
 static CYTHON_INLINE PyObject* __Pyx_PyObject_GenericGetAttrNoDict(PyObject* obj, PyObject* attr_name);
@@ -1829,10 +1846,10 @@ static void __Pyx_CppExn2PyErr() {
 #endif
 
 /* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
 
 /* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
 
 /* RealImag.proto */
 #if CYTHON_CCOMPLEX
@@ -1939,6 +1956,9 @@ static CYTHON_INLINE PyObject* __Pyx_PyInt_From_enum__NPY_TYPES(enum NPY_TYPES v
 static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
 
 /* CIntFromPy.proto */
+static CYTHON_INLINE size_t __Pyx_PyInt_As_size_t(PyObject *);
+
+/* CIntFromPy.proto */
 static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *);
 
 /* FastTypeChecks.proto */
@@ -1980,9 +2000,9 @@ static struct waveform_raw_upload_data *__pyx_f_8uploader_22waveform_upload_chac
 
 /* Module declarations from 'libcpp.map' */
 
-/* Module declarations from 'libc.stdio' */
-
 /* Module declarations from 'cpython.buffer' */
+
+/* Module declarations from 'libc.stdio' */
 
 /* Module declarations from '__builtin__' */
 
@@ -2012,6 +2032,12 @@ static PyTypeObject *__pyx_ptype_8uploader_keysight_upload_module = 0;
 static PyTypeObject *__pyx_ptype_8uploader_waveform_cache_container = 0;
 static PyTypeObject *__pyx_ptype_8uploader_waveform_upload_chache = 0;
 static std::string __pyx_convert_string_from_py_std__in_string(PyObject *); /*proto*/
+static PyObject *__pyx_convert_vector_to_py_int(const std::vector<int>  &); /*proto*/
+static CYTHON_INLINE PyObject *__pyx_convert_PyObject_string_to_py_std__in_string(std::string const &); /*proto*/
+static CYTHON_INLINE PyObject *__pyx_convert_PyUnicode_string_to_py_std__in_string(std::string const &); /*proto*/
+static CYTHON_INLINE PyObject *__pyx_convert_PyStr_string_to_py_std__in_string(std::string const &); /*proto*/
+static CYTHON_INLINE PyObject *__pyx_convert_PyBytes_string_to_py_std__in_string(std::string const &); /*proto*/
+static CYTHON_INLINE PyObject *__pyx_convert_PyByteArray_string_to_py_std__in_string(std::string const &); /*proto*/
 static std::pair<std::string,int>  __pyx_convert_pair_from_py_std_3a__3a_string__and_int(PyObject *); /*proto*/
 static std::pair<double,double>  __pyx_convert_pair_from_py_double__and_double(PyObject *); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_5numpy_double_t = { "double_t", NULL, sizeof(__pyx_t_5numpy_double_t), { 0 }, 0, 'R', 0, 0 };
@@ -2175,12 +2201,12 @@ static PyObject *__pyx_tuple__13;
 static PyObject *__pyx_tuple__14;
 /* Late includes */
 
-/* "uploader.pyx":47
+/* "uploader.pyx":48
  * 	cdef cpp_uploader *keysight_uploader
  * 
  * 	def __cinit__(self):             # <<<<<<<<<<<<<<
  * 		self.keysight_uploader = new cpp_uploader()
- * 
+ * 		cdef mapcpp[string, pair[string, int]] channel_to_AWG_map
  */
 
 /* Python wrapper */
@@ -2205,27 +2231,27 @@ static int __pyx_pf_8uploader_22keysight_upload_module___cinit__(struct __pyx_ob
   cpp_uploader *__pyx_t_1;
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "uploader.pyx":48
+  /* "uploader.pyx":49
  * 
  * 	def __cinit__(self):
  * 		self.keysight_uploader = new cpp_uploader()             # <<<<<<<<<<<<<<
- * 
+ * 		cdef mapcpp[string, pair[string, int]] channel_to_AWG_map
  * 	def add_awg_module(self, name, module):
  */
   try {
     __pyx_t_1 = new cpp_uploader();
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(1, 48, __pyx_L1_error)
+    __PYX_ERR(1, 49, __pyx_L1_error)
   }
   __pyx_v_self->keysight_uploader = __pyx_t_1;
 
-  /* "uploader.pyx":47
+  /* "uploader.pyx":48
  * 	cdef cpp_uploader *keysight_uploader
  * 
  * 	def __cinit__(self):             # <<<<<<<<<<<<<<
  * 		self.keysight_uploader = new cpp_uploader()
- * 
+ * 		cdef mapcpp[string, pair[string, int]] channel_to_AWG_map
  */
 
   /* function exit code */
@@ -2239,9 +2265,9 @@ static int __pyx_pf_8uploader_22keysight_upload_module___cinit__(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "uploader.pyx":50
+/* "uploader.pyx":51
  * 		self.keysight_uploader = new cpp_uploader()
- * 
+ * 		cdef mapcpp[string, pair[string, int]] channel_to_AWG_map
  * 	def add_awg_module(self, name, module):             # <<<<<<<<<<<<<<
  * 		'''
  * 		add an AWG module to the keysight object.
@@ -2279,11 +2305,11 @@ static PyObject *__pyx_pw_8uploader_22keysight_upload_module_3add_awg_module(PyO
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_module)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_awg_module", 1, 2, 2, 1); __PYX_ERR(1, 50, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_awg_module", 1, 2, 2, 1); __PYX_ERR(1, 51, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_awg_module") < 0)) __PYX_ERR(1, 50, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_awg_module") < 0)) __PYX_ERR(1, 51, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2296,7 +2322,7 @@ static PyObject *__pyx_pw_8uploader_22keysight_upload_module_3add_awg_module(PyO
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_awg_module", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 50, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_awg_module", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 51, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("uploader.keysight_upload_module.add_awg_module", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2321,14 +2347,14 @@ static PyObject *__pyx_pf_8uploader_22keysight_upload_module_2add_awg_module(str
   int __pyx_t_7;
   __Pyx_RefNannySetupContext("add_awg_module", 0);
 
-  /* "uploader.pyx":56
+  /* "uploader.pyx":57
  * 			module (qCodeS driver) : qcodes object of the AWG
  * 		'''
  * 		self.keysight_uploader.add_awg_module(name.encode(), module.type.encode(), module.chassis, module.slot)             # <<<<<<<<<<<<<<
  * 
  * 	def add_upload_data(self, waveform_cache_container waveform_cache):
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_name, __pyx_n_s_encode); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 56, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_name, __pyx_n_s_encode); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -2342,14 +2368,14 @@ static PyObject *__pyx_pf_8uploader_22keysight_upload_module_2add_awg_module(str
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 56, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __pyx_convert_string_from_py_std__in_string(__pyx_t_1); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 56, __pyx_L1_error)
+  __pyx_t_4 = __pyx_convert_string_from_py_std__in_string(__pyx_t_1); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_module, __pyx_n_s_type); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 56, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_module, __pyx_n_s_type); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_encode); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 56, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_encode); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -2364,24 +2390,24 @@ static PyObject *__pyx_pf_8uploader_22keysight_upload_module_2add_awg_module(str
   }
   __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 56, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = __pyx_convert_string_from_py_std__in_string(__pyx_t_1); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 56, __pyx_L1_error)
+  __pyx_t_5 = __pyx_convert_string_from_py_std__in_string(__pyx_t_1); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_module, __pyx_n_s_chassis); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 56, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_module, __pyx_n_s_chassis); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 56, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_module, __pyx_n_s_slot); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 56, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_module, __pyx_n_s_slot); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 56, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_self->keysight_uploader->add_awg_module(__pyx_t_4, __pyx_t_5, __pyx_t_6, __pyx_t_7);
 
-  /* "uploader.pyx":50
+  /* "uploader.pyx":51
  * 		self.keysight_uploader = new cpp_uploader()
- * 
+ * 		cdef mapcpp[string, pair[string, int]] channel_to_AWG_map
  * 	def add_awg_module(self, name, module):             # <<<<<<<<<<<<<<
  * 		'''
  * 		add an AWG module to the keysight object.
@@ -2402,7 +2428,7 @@ static PyObject *__pyx_pf_8uploader_22keysight_upload_module_2add_awg_module(str
   return __pyx_r;
 }
 
-/* "uploader.pyx":58
+/* "uploader.pyx":59
  * 		self.keysight_uploader.add_awg_module(name.encode(), module.type.encode(), module.chassis, module.slot)
  * 
  * 	def add_upload_data(self, waveform_cache_container waveform_cache):             # <<<<<<<<<<<<<<
@@ -2416,7 +2442,7 @@ static PyObject *__pyx_pw_8uploader_22keysight_upload_module_5add_upload_data(Py
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("add_upload_data (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_waveform_cache), __pyx_ptype_8uploader_waveform_cache_container, 1, "waveform_cache", 0))) __PYX_ERR(1, 58, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_waveform_cache), __pyx_ptype_8uploader_waveform_cache_container, 1, "waveform_cache", 0))) __PYX_ERR(1, 59, __pyx_L1_error)
   __pyx_r = __pyx_pf_8uploader_22keysight_upload_module_4add_upload_data(((struct __pyx_obj_8uploader_keysight_upload_module *)__pyx_v_self), ((struct __pyx_obj_8uploader_waveform_cache_container *)__pyx_v_waveform_cache));
 
   /* function exit code */
@@ -2430,11 +2456,21 @@ static PyObject *__pyx_pw_8uploader_22keysight_upload_module_5add_upload_data(Py
 
 static PyObject *__pyx_pf_8uploader_22keysight_upload_module_4add_upload_data(struct __pyx_obj_8uploader_keysight_upload_module *__pyx_v_self, struct __pyx_obj_8uploader_waveform_cache_container *__pyx_v_waveform_cache) {
   std::map<std::string,std::map<int,__pyx_t_8uploader_waveform_raw_upload_data_ptr> >  *__pyx_v_AWG_raw_upload_data;
+  PyObject *__pyx_v_AWG_init_data = NULL;
+  std::map<std::string,std::pair<std::string,int> > ::iterator __pyx_v_it;
+  __pyx_t_8uploader_waveform_raw_upload_data_ptr __pyx_v_channel_data;
+  PyObject *__pyx_v_min_max_voltage = NULL;
+  PyObject *__pyx_v_upload_locations = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  __pyx_t_8uploader_waveform_raw_upload_data_ptr __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
   __Pyx_RefNannySetupContext("add_upload_data", 0);
 
-  /* "uploader.pyx":60
+  /* "uploader.pyx":61
  * 	def add_upload_data(self, waveform_cache_container waveform_cache):
  * 		cdef mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data
  * 		AWG_raw_upload_data = &waveform_cache.AWG_raw_upload_data             # <<<<<<<<<<<<<<
@@ -2443,7 +2479,7 @@ static PyObject *__pyx_pf_8uploader_22keysight_upload_module_4add_upload_data(st
  */
   __pyx_v_AWG_raw_upload_data = (&__pyx_v_waveform_cache->AWG_raw_upload_data);
 
-  /* "uploader.pyx":62
+  /* "uploader.pyx":63
  * 		AWG_raw_upload_data = &waveform_cache.AWG_raw_upload_data
  * 
  * 		with nogil:             # <<<<<<<<<<<<<<
@@ -2458,17 +2494,17 @@ static PyObject *__pyx_pf_8uploader_22keysight_upload_module_4add_upload_data(st
       #endif
       /*try:*/ {
 
-        /* "uploader.pyx":63
+        /* "uploader.pyx":64
  * 
  * 		with nogil:
  * 			self.keysight_uploader.add_upload_job(AWG_raw_upload_data)             # <<<<<<<<<<<<<<
  * 
- * 	cdef release_memory(self, mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data):
+ * 		AWG_init_data = dict()
  */
         __pyx_v_self->keysight_uploader->add_upload_job(__pyx_v_AWG_raw_upload_data);
       }
 
-      /* "uploader.pyx":62
+      /* "uploader.pyx":63
  * 		AWG_raw_upload_data = &waveform_cache.AWG_raw_upload_data
  * 
  * 		with nogil:             # <<<<<<<<<<<<<<
@@ -2487,7 +2523,129 @@ static PyObject *__pyx_pf_8uploader_22keysight_upload_module_4add_upload_data(st
       }
   }
 
-  /* "uploader.pyx":58
+  /* "uploader.pyx":66
+ * 			self.keysight_uploader.add_upload_job(AWG_raw_upload_data)
+ * 
+ * 		AWG_init_data = dict()             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 66, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_AWG_init_data = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "uploader.pyx":69
+ * 
+ * 
+ * 		cdef mapcpp[string, pair[string, int]].iterator it = waveform_cache.channel_to_AWG_map.begin()             # <<<<<<<<<<<<<<
+ * 		cdef waveform_raw_upload_data_ptr channel_data
+ * 		while(it != waveform_cache.channel_to_AWG_map.end()):
+ */
+  __pyx_v_it = __pyx_v_waveform_cache->channel_to_AWG_map.begin();
+
+  /* "uploader.pyx":71
+ * 		cdef mapcpp[string, pair[string, int]].iterator it = waveform_cache.channel_to_AWG_map.begin()
+ * 		cdef waveform_raw_upload_data_ptr channel_data
+ * 		while(it != waveform_cache.channel_to_AWG_map.end()):             # <<<<<<<<<<<<<<
+ * 			# make tuple with gate voltages for the channel and location of the AWG memeory where the waveforms are stored.
+ * 
+ */
+  while (1) {
+    __pyx_t_2 = ((__pyx_v_it != __pyx_v_waveform_cache->channel_to_AWG_map.end()) != 0);
+    if (!__pyx_t_2) break;
+
+    /* "uploader.pyx":74
+ * 			# make tuple with gate voltages for the channel and location of the AWG memeory where the waveforms are stored.
+ * 
+ * 			channel_data = dereference(dereference(AWG_raw_upload_data.find(dereference(it).second.first)).second.find(dereference(it).second.second)).second             # <<<<<<<<<<<<<<
+ * 
+ * 			min_max_voltage = (channel_data.min_max_voltage.first, channel_data.min_max_voltage.second,)
+ */
+    __pyx_t_3 = (*(*__pyx_v_AWG_raw_upload_data->find((*__pyx_v_it).second.first)).second.find((*__pyx_v_it).second.second)).second;
+    __pyx_v_channel_data = __pyx_t_3;
+
+    /* "uploader.pyx":76
+ * 			channel_data = dereference(dereference(AWG_raw_upload_data.find(dereference(it).second.first)).second.find(dereference(it).second.second)).second
+ * 
+ * 			min_max_voltage = (channel_data.min_max_voltage.first, channel_data.min_max_voltage.second,)             # <<<<<<<<<<<<<<
+ * 			upload_locations = list(channel_data.data_location_on_AWG)
+ * 
+ */
+    __pyx_t_1 = PyFloat_FromDouble(__pyx_v_channel_data->min_max_voltage->first); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 76, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_4 = PyFloat_FromDouble(__pyx_v_channel_data->min_max_voltage->second); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 76, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 76, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_GIVEREF(__pyx_t_1);
+    PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
+    __Pyx_GIVEREF(__pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_4);
+    __pyx_t_1 = 0;
+    __pyx_t_4 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_min_max_voltage, __pyx_t_5);
+    __pyx_t_5 = 0;
+
+    /* "uploader.pyx":77
+ * 
+ * 			min_max_voltage = (channel_data.min_max_voltage.first, channel_data.min_max_voltage.second,)
+ * 			upload_locations = list(channel_data.data_location_on_AWG)             # <<<<<<<<<<<<<<
+ * 
+ * 			AWG_init_data[dereference(it).first] = (min_max_voltage, upload_locations)
+ */
+    __pyx_t_5 = __pyx_convert_vector_to_py_int(__pyx_v_channel_data->data_location_on_AWG); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 77, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_4 = PySequence_List(__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 77, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_upload_locations, ((PyObject*)__pyx_t_4));
+    __pyx_t_4 = 0;
+
+    /* "uploader.pyx":79
+ * 			upload_locations = list(channel_data.data_location_on_AWG)
+ * 
+ * 			AWG_init_data[dereference(it).first] = (min_max_voltage, upload_locations)             # <<<<<<<<<<<<<<
+ * 
+ * 			postincrement(it)
+ */
+    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 79, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_INCREF(__pyx_v_min_max_voltage);
+    __Pyx_GIVEREF(__pyx_v_min_max_voltage);
+    PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_v_min_max_voltage);
+    __Pyx_INCREF(__pyx_v_upload_locations);
+    __Pyx_GIVEREF(__pyx_v_upload_locations);
+    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_v_upload_locations);
+    __pyx_t_5 = __pyx_convert_PyBytes_string_to_py_std__in_string((*__pyx_v_it).first); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 79, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (unlikely(PyDict_SetItem(__pyx_v_AWG_init_data, __pyx_t_5, __pyx_t_4) < 0)) __PYX_ERR(1, 79, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+    /* "uploader.pyx":81
+ * 			AWG_init_data[dereference(it).first] = (min_max_voltage, upload_locations)
+ * 
+ * 			postincrement(it)             # <<<<<<<<<<<<<<
+ * 
+ * 		return AWG_init_data
+ */
+    (void)((__pyx_v_it++));
+  }
+
+  /* "uploader.pyx":83
+ * 			postincrement(it)
+ * 
+ * 		return AWG_init_data             # <<<<<<<<<<<<<<
+ * 
+ * 	cdef release_memory(self, mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v_AWG_init_data);
+  __pyx_r = __pyx_v_AWG_init_data;
+  goto __pyx_L0;
+
+  /* "uploader.pyx":59
  * 		self.keysight_uploader.add_awg_module(name.encode(), module.type.encode(), module.chassis, module.slot)
  * 
  * 	def add_upload_data(self, waveform_cache_container waveform_cache):             # <<<<<<<<<<<<<<
@@ -2496,14 +2654,23 @@ static PyObject *__pyx_pf_8uploader_22keysight_upload_module_4add_upload_data(st
  */
 
   /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_AddTraceback("uploader.keysight_upload_module.add_upload_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_AWG_init_data);
+  __Pyx_XDECREF(__pyx_v_min_max_voltage);
+  __Pyx_XDECREF(__pyx_v_upload_locations);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "uploader.pyx":65
- * 			self.keysight_uploader.add_upload_job(AWG_raw_upload_data)
+/* "uploader.pyx":85
+ * 		return AWG_init_data
  * 
  * 	cdef release_memory(self, mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data):             # <<<<<<<<<<<<<<
  * 		self.keysight_uploader.release_memory(AWG_raw_upload_data)
@@ -2515,7 +2682,7 @@ static PyObject *__pyx_f_8uploader_22keysight_upload_module_release_memory(struc
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("release_memory", 0);
 
-  /* "uploader.pyx":66
+  /* "uploader.pyx":86
  * 
  * 	cdef release_memory(self, mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data):
  * 		self.keysight_uploader.release_memory(AWG_raw_upload_data)             # <<<<<<<<<<<<<<
@@ -2524,8 +2691,8 @@ static PyObject *__pyx_f_8uploader_22keysight_upload_module_release_memory(struc
  */
   __pyx_v_self->keysight_uploader->release_memory(__pyx_v_AWG_raw_upload_data);
 
-  /* "uploader.pyx":65
- * 			self.keysight_uploader.add_upload_job(AWG_raw_upload_data)
+  /* "uploader.pyx":85
+ * 		return AWG_init_data
  * 
  * 	cdef release_memory(self, mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data):             # <<<<<<<<<<<<<<
  * 		self.keysight_uploader.release_memory(AWG_raw_upload_data)
@@ -2646,7 +2813,7 @@ static PyObject *__pyx_pf_8uploader_22keysight_upload_module_8__setstate_cython_
   return __pyx_r;
 }
 
-/* "uploader.pyx":74
+/* "uploader.pyx":94
  * 	cdef dict waveform_chache_python
  * 
  * 	def __init__(self, channel_to_AWG_map_py, voltage_limits):             # <<<<<<<<<<<<<<
@@ -2689,11 +2856,11 @@ static int __pyx_pw_8uploader_24waveform_cache_container_1__init__(PyObject *__p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_voltage_limits)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(1, 74, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(1, 94, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(1, 74, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(1, 94, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2706,7 +2873,7 @@ static int __pyx_pw_8uploader_24waveform_cache_container_1__init__(PyObject *__p
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 74, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 94, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("uploader.waveform_cache_container.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2739,14 +2906,14 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
   int __pyx_t_11;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "uploader.pyx":81
+  /* "uploader.pyx":101
  * 			voltage_limits (dict<str channel_name, typle<double min_voltage, double max_voltage>)
  * 		'''
  * 		self.waveform_chache_python = dict()             # <<<<<<<<<<<<<<
  * 
  * 		for key, value in channel_to_AWG_map_py.items():
  */
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 81, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 101, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __Pyx_GOTREF(__pyx_v_self->waveform_chache_python);
@@ -2754,14 +2921,14 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
   __pyx_v_self->waveform_chache_python = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "uploader.pyx":83
+  /* "uploader.pyx":103
  * 		self.waveform_chache_python = dict()
  * 
  * 		for key, value in channel_to_AWG_map_py.items():             # <<<<<<<<<<<<<<
  * 			new_value = (value[0].encode(), value[1])
  * 			self.channel_to_AWG_map[key.encode()] = new_value
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_channel_to_AWG_map_py, __pyx_n_s_items); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 83, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_channel_to_AWG_map_py, __pyx_n_s_items); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 103, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -2775,16 +2942,16 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 83, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 103, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
     __pyx_t_2 = __pyx_t_1; __Pyx_INCREF(__pyx_t_2); __pyx_t_4 = 0;
     __pyx_t_5 = NULL;
   } else {
-    __pyx_t_4 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 83, __pyx_L1_error)
+    __pyx_t_4 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 103, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_5 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 83, __pyx_L1_error)
+    __pyx_t_5 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 103, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   for (;;) {
@@ -2792,17 +2959,17 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
       if (likely(PyList_CheckExact(__pyx_t_2))) {
         if (__pyx_t_4 >= PyList_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_4); __Pyx_INCREF(__pyx_t_1); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(1, 83, __pyx_L1_error)
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_4); __Pyx_INCREF(__pyx_t_1); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(1, 103, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 83, __pyx_L1_error)
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 103, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       } else {
         if (__pyx_t_4 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_4); __Pyx_INCREF(__pyx_t_1); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(1, 83, __pyx_L1_error)
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_4); __Pyx_INCREF(__pyx_t_1); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(1, 103, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 83, __pyx_L1_error)
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 103, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       }
@@ -2812,7 +2979,7 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(1, 83, __pyx_L1_error)
+          else __PYX_ERR(1, 103, __pyx_L1_error)
         }
         break;
       }
@@ -2824,7 +2991,7 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
       if (unlikely(size != 2)) {
         if (size > 2) __Pyx_RaiseTooManyValuesError(2);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(1, 83, __pyx_L1_error)
+        __PYX_ERR(1, 103, __pyx_L1_error)
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
       if (likely(PyTuple_CheckExact(sequence))) {
@@ -2837,15 +3004,15 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
       __Pyx_INCREF(__pyx_t_3);
       __Pyx_INCREF(__pyx_t_6);
       #else
-      __pyx_t_3 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 83, __pyx_L1_error)
+      __pyx_t_3 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 103, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_6 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 83, __pyx_L1_error)
+      __pyx_t_6 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 103, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       #endif
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     } else {
       Py_ssize_t index = -1;
-      __pyx_t_7 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 83, __pyx_L1_error)
+      __pyx_t_7 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 103, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_t_8 = Py_TYPE(__pyx_t_7)->tp_iternext;
@@ -2853,7 +3020,7 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
       __Pyx_GOTREF(__pyx_t_3);
       index = 1; __pyx_t_6 = __pyx_t_8(__pyx_t_7); if (unlikely(!__pyx_t_6)) goto __pyx_L5_unpacking_failed;
       __Pyx_GOTREF(__pyx_t_6);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_7), 2) < 0) __PYX_ERR(1, 83, __pyx_L1_error)
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_7), 2) < 0) __PYX_ERR(1, 103, __pyx_L1_error)
       __pyx_t_8 = NULL;
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       goto __pyx_L6_unpacking_done;
@@ -2861,7 +3028,7 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __pyx_t_8 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(1, 83, __pyx_L1_error)
+      __PYX_ERR(1, 103, __pyx_L1_error)
       __pyx_L6_unpacking_done:;
     }
     __Pyx_XDECREF_SET(__pyx_v_key, __pyx_t_3);
@@ -2869,16 +3036,16 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
     __Pyx_XDECREF_SET(__pyx_v_value, __pyx_t_6);
     __pyx_t_6 = 0;
 
-    /* "uploader.pyx":84
+    /* "uploader.pyx":104
  * 
  * 		for key, value in channel_to_AWG_map_py.items():
  * 			new_value = (value[0].encode(), value[1])             # <<<<<<<<<<<<<<
  * 			self.channel_to_AWG_map[key.encode()] = new_value
  * 
  */
-    __pyx_t_6 = __Pyx_GetItemInt(__pyx_v_value, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 84, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetItemInt(__pyx_v_value, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 104, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_encode); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 84, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_encode); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 104, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __pyx_t_6 = NULL;
@@ -2893,12 +3060,12 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
     }
     __pyx_t_1 = (__pyx_t_6) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_6) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 84, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 104, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_value, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 84, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_value, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 104, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 84, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 104, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_1);
@@ -2909,15 +3076,15 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
     __Pyx_XDECREF_SET(__pyx_v_new_value, ((PyObject*)__pyx_t_6));
     __pyx_t_6 = 0;
 
-    /* "uploader.pyx":85
+    /* "uploader.pyx":105
  * 		for key, value in channel_to_AWG_map_py.items():
  * 			new_value = (value[0].encode(), value[1])
  * 			self.channel_to_AWG_map[key.encode()] = new_value             # <<<<<<<<<<<<<<
  * 
  * 			waveform_cache = waveform_upload_chache(voltage_limits[key])
  */
-    __pyx_t_9 = __pyx_convert_pair_from_py_std_3a__3a_string__and_int(__pyx_v_new_value); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 85, __pyx_L1_error)
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_key, __pyx_n_s_encode); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 85, __pyx_L1_error)
+    __pyx_t_9 = __pyx_convert_pair_from_py_std_3a__3a_string__and_int(__pyx_v_new_value); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 105, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_key, __pyx_n_s_encode); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 105, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_1 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -2931,29 +3098,29 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
     }
     __pyx_t_6 = (__pyx_t_1) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_1) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 85, __pyx_L1_error)
+    if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 105, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_10 = __pyx_convert_string_from_py_std__in_string(__pyx_t_6); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 85, __pyx_L1_error)
+    __pyx_t_10 = __pyx_convert_string_from_py_std__in_string(__pyx_t_6); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 105, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     (__pyx_v_self->channel_to_AWG_map[__pyx_t_10]) = __pyx_t_9;
 
-    /* "uploader.pyx":87
+    /* "uploader.pyx":107
  * 			self.channel_to_AWG_map[key.encode()] = new_value
  * 
  * 			waveform_cache = waveform_upload_chache(voltage_limits[key])             # <<<<<<<<<<<<<<
  * 			self.waveform_chache_python[key] = waveform_cache
  * 			self.AWG_raw_upload_data[new_value[0]][new_value[1]] = waveform_cache.return_raw_data()
  */
-    __pyx_t_6 = __Pyx_PyObject_GetItem(__pyx_v_voltage_limits, __pyx_v_key); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 87, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetItem(__pyx_v_voltage_limits, __pyx_v_key); if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 107, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_8uploader_waveform_upload_chache), __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 87, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(((PyObject *)__pyx_ptype_8uploader_waveform_upload_chache), __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 107, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_XDECREF_SET(__pyx_v_waveform_cache, ((struct __pyx_obj_8uploader_waveform_upload_chache *)__pyx_t_3));
     __pyx_t_3 = 0;
 
-    /* "uploader.pyx":88
+    /* "uploader.pyx":108
  * 
  * 			waveform_cache = waveform_upload_chache(voltage_limits[key])
  * 			self.waveform_chache_python[key] = waveform_cache             # <<<<<<<<<<<<<<
@@ -2962,28 +3129,28 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
  */
     if (unlikely(__pyx_v_self->waveform_chache_python == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      __PYX_ERR(1, 88, __pyx_L1_error)
+      __PYX_ERR(1, 108, __pyx_L1_error)
     }
-    if (unlikely(PyDict_SetItem(__pyx_v_self->waveform_chache_python, __pyx_v_key, ((PyObject *)__pyx_v_waveform_cache)) < 0)) __PYX_ERR(1, 88, __pyx_L1_error)
+    if (unlikely(PyDict_SetItem(__pyx_v_self->waveform_chache_python, __pyx_v_key, ((PyObject *)__pyx_v_waveform_cache)) < 0)) __PYX_ERR(1, 108, __pyx_L1_error)
 
-    /* "uploader.pyx":89
+    /* "uploader.pyx":109
  * 			waveform_cache = waveform_upload_chache(voltage_limits[key])
  * 			self.waveform_chache_python[key] = waveform_cache
  * 			self.AWG_raw_upload_data[new_value[0]][new_value[1]] = waveform_cache.return_raw_data()             # <<<<<<<<<<<<<<
  * 
  * 	def __getitem__(self, str key):
  */
-    __pyx_t_3 = __Pyx_GetItemInt_Tuple(__pyx_v_new_value, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 89, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetItemInt_Tuple(__pyx_v_new_value, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_10 = __pyx_convert_string_from_py_std__in_string(__pyx_t_3); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 89, __pyx_L1_error)
+    __pyx_t_10 = __pyx_convert_string_from_py_std__in_string(__pyx_t_3); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 109, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_GetItemInt_Tuple(__pyx_v_new_value, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 89, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetItemInt_Tuple(__pyx_v_new_value, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_3); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 89, __pyx_L1_error)
+    __pyx_t_11 = __Pyx_PyInt_As_int(__pyx_t_3); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 109, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     ((__pyx_v_self->AWG_raw_upload_data[__pyx_t_10])[__pyx_t_11]) = ((struct __pyx_vtabstruct_8uploader_waveform_upload_chache *)__pyx_v_waveform_cache->__pyx_vtab)->return_raw_data(__pyx_v_waveform_cache);
 
-    /* "uploader.pyx":83
+    /* "uploader.pyx":103
  * 		self.waveform_chache_python = dict()
  * 
  * 		for key, value in channel_to_AWG_map_py.items():             # <<<<<<<<<<<<<<
@@ -2993,7 +3160,7 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "uploader.pyx":74
+  /* "uploader.pyx":94
  * 	cdef dict waveform_chache_python
  * 
  * 	def __init__(self, channel_to_AWG_map_py, voltage_limits):             # <<<<<<<<<<<<<<
@@ -3021,7 +3188,7 @@ static int __pyx_pf_8uploader_24waveform_cache_container___init__(struct __pyx_o
   return __pyx_r;
 }
 
-/* "uploader.pyx":91
+/* "uploader.pyx":111
  * 			self.AWG_raw_upload_data[new_value[0]][new_value[1]] = waveform_cache.return_raw_data()
  * 
  * 	def __getitem__(self, str key):             # <<<<<<<<<<<<<<
@@ -3039,7 +3206,7 @@ static PyObject *__pyx_pw_8uploader_24waveform_cache_container_3__getitem__(PyOb
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__getitem__ (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_key), (&PyString_Type), 1, "key", 1))) __PYX_ERR(1, 91, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_key), (&PyString_Type), 1, "key", 1))) __PYX_ERR(1, 111, __pyx_L1_error)
   __pyx_r = __pyx_pf_8uploader_24waveform_cache_container_2__getitem__(((struct __pyx_obj_8uploader_waveform_cache_container *)__pyx_v_self), ((PyObject*)__pyx_v_key));
 
   /* function exit code */
@@ -3057,7 +3224,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_2__getitem__(stru
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__getitem__", 0);
 
-  /* "uploader.pyx":97
+  /* "uploader.pyx":117
  * 			key (str) : name of the channel
  * 		'''
  * 		return self.waveform_chache_python[key]             # <<<<<<<<<<<<<<
@@ -3067,15 +3234,15 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_2__getitem__(stru
   __Pyx_XDECREF(__pyx_r);
   if (unlikely(__pyx_v_self->waveform_chache_python == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    __PYX_ERR(1, 97, __pyx_L1_error)
+    __PYX_ERR(1, 117, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_PyDict_GetItem(__pyx_v_self->waveform_chache_python, __pyx_v_key); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 97, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_GetItem(__pyx_v_self->waveform_chache_python, __pyx_v_key); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 117, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "uploader.pyx":91
+  /* "uploader.pyx":111
  * 			self.AWG_raw_upload_data[new_value[0]][new_value[1]] = waveform_cache.return_raw_data()
  * 
  * 	def __getitem__(self, str key):             # <<<<<<<<<<<<<<
@@ -3094,7 +3261,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_2__getitem__(stru
   return __pyx_r;
 }
 
-/* "uploader.pyx":100
+/* "uploader.pyx":120
  * 
  * 	@property
  * 	def npt(self):             # <<<<<<<<<<<<<<
@@ -3125,7 +3292,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_3npt___get__(stru
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "uploader.pyx":107
+  /* "uploader.pyx":127
  * 		If you want to know npt per chache, you should call self['channel_name'].npt
  * 		'''
  * 		if len(self.waveform_chache_python) == 0 :             # <<<<<<<<<<<<<<
@@ -3136,27 +3303,27 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_3npt___get__(stru
   __Pyx_INCREF(__pyx_t_1);
   if (unlikely(__pyx_t_1 == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(1, 107, __pyx_L1_error)
+    __PYX_ERR(1, 127, __pyx_L1_error)
   }
-  __pyx_t_2 = PyDict_Size(__pyx_t_1); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(1, 107, __pyx_L1_error)
+  __pyx_t_2 = PyDict_Size(__pyx_t_1); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(1, 127, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_3 = ((__pyx_t_2 == 0) != 0);
   if (unlikely(__pyx_t_3)) {
 
-    /* "uploader.pyx":108
+    /* "uploader.pyx":128
  * 		'''
  * 		if len(self.waveform_chache_python) == 0 :
  * 			raise ValueError("No waveforms presents in waveform chache container ...")             # <<<<<<<<<<<<<<
  * 
  * 		# get first key of chache object (the pyton one)
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 108, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 128, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(1, 108, __pyx_L1_error)
+    __PYX_ERR(1, 128, __pyx_L1_error)
 
-    /* "uploader.pyx":107
+    /* "uploader.pyx":127
  * 		If you want to know npt per chache, you should call self['channel_name'].npt
  * 		'''
  * 		if len(self.waveform_chache_python) == 0 :             # <<<<<<<<<<<<<<
@@ -3165,7 +3332,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_3npt___get__(stru
  */
   }
 
-  /* "uploader.pyx":111
+  /* "uploader.pyx":131
  * 
  * 		# get first key of chache object (the pyton one)
  * 		idx = next(iter(self.waveform_chache_python))             # <<<<<<<<<<<<<<
@@ -3174,16 +3341,16 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_3npt___get__(stru
  */
   __pyx_t_1 = __pyx_v_self->waveform_chache_python;
   __Pyx_INCREF(__pyx_t_1);
-  __pyx_t_4 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 111, __pyx_L1_error)
+  __pyx_t_4 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyIter_Next(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 111, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyIter_Next(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_idx = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "uploader.pyx":112
+  /* "uploader.pyx":132
  * 		# get first key of chache object (the pyton one)
  * 		idx = next(iter(self.waveform_chache_python))
  * 		return self[idx].npt             # <<<<<<<<<<<<<<
@@ -3191,16 +3358,16 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_3npt___get__(stru
  * 	def generate_DC_compenstation(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_idx); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 112, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_idx); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_npt); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 112, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_npt); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_4;
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "uploader.pyx":100
+  /* "uploader.pyx":120
  * 
  * 	@property
  * 	def npt(self):             # <<<<<<<<<<<<<<
@@ -3221,7 +3388,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_3npt___get__(stru
   return __pyx_r;
 }
 
-/* "uploader.pyx":114
+/* "uploader.pyx":134
  * 		return self[idx].npt
  * 
  * 	def generate_DC_compenstation(self):             # <<<<<<<<<<<<<<
@@ -3263,7 +3430,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
   PyObject *__pyx_t_10 = NULL;
   __Pyx_RefNannySetupContext("generate_DC_compenstation", 0);
 
-  /* "uploader.pyx":121
+  /* "uploader.pyx":141
  * 		'''
  * 
  * 		cdef int compensation_time = 0             # <<<<<<<<<<<<<<
@@ -3272,7 +3439,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
  */
   __pyx_v_compensation_time = 0;
 
-  /* "uploader.pyx":122
+  /* "uploader.pyx":142
  * 
  * 		cdef int compensation_time = 0
  * 		cdef int wvf_npt = 0             # <<<<<<<<<<<<<<
@@ -3281,7 +3448,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
  */
   __pyx_v_wvf_npt = 0;
 
-  /* "uploader.pyx":123
+  /* "uploader.pyx":143
  * 		cdef int compensation_time = 0
  * 		cdef int wvf_npt = 0
  * 		for chan in self.waveform_chache_python:             # <<<<<<<<<<<<<<
@@ -3291,9 +3458,9 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
   __pyx_t_2 = 0;
   if (unlikely(__pyx_v_self->waveform_chache_python == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    __PYX_ERR(1, 123, __pyx_L1_error)
+    __PYX_ERR(1, 143, __pyx_L1_error)
   }
-  __pyx_t_5 = __Pyx_dict_iterator(__pyx_v_self->waveform_chache_python, 1, ((PyObject *)NULL), (&__pyx_t_3), (&__pyx_t_4)); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 123, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_dict_iterator(__pyx_v_self->waveform_chache_python, 1, ((PyObject *)NULL), (&__pyx_t_3), (&__pyx_t_4)); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 143, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_1);
   __pyx_t_1 = __pyx_t_5;
@@ -3301,65 +3468,65 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
   while (1) {
     __pyx_t_6 = __Pyx_dict_iter_next(__pyx_t_1, __pyx_t_3, &__pyx_t_2, &__pyx_t_5, NULL, NULL, __pyx_t_4);
     if (unlikely(__pyx_t_6 == 0)) break;
-    if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(1, 123, __pyx_L1_error)
+    if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(1, 143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_XDECREF_SET(__pyx_v_chan, __pyx_t_5);
     __pyx_t_5 = 0;
 
-    /* "uploader.pyx":124
+    /* "uploader.pyx":144
  * 		cdef int wvf_npt = 0
  * 		for chan in self.waveform_chache_python:
  * 			if self[chan].compensation_time > compensation_time:             # <<<<<<<<<<<<<<
  * 				compensation_time = self[chan].compensation_time
  * 				wvf_npt = self[chan].npt
  */
-    __pyx_t_5 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 124, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 144, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_compensation_time); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 124, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_compensation_time); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 144, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_compensation_time); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 124, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_compensation_time); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 144, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_8 = PyObject_RichCompare(__pyx_t_7, __pyx_t_5, Py_GT); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 124, __pyx_L1_error)
+    __pyx_t_8 = PyObject_RichCompare(__pyx_t_7, __pyx_t_5, Py_GT); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 144, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_9 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_9 < 0)) __PYX_ERR(1, 124, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_9 < 0)) __PYX_ERR(1, 144, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     if (__pyx_t_9) {
 
-      /* "uploader.pyx":125
+      /* "uploader.pyx":145
  * 		for chan in self.waveform_chache_python:
  * 			if self[chan].compensation_time > compensation_time:
  * 				compensation_time = self[chan].compensation_time             # <<<<<<<<<<<<<<
  * 				wvf_npt = self[chan].npt
  * 		# make sure we have modulo 10 time
  */
-      __pyx_t_8 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 125, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 145, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_compensation_time); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 125, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_compensation_time); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 145, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 125, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 145, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_v_compensation_time = __pyx_t_6;
 
-      /* "uploader.pyx":126
+      /* "uploader.pyx":146
  * 			if self[chan].compensation_time > compensation_time:
  * 				compensation_time = self[chan].compensation_time
  * 				wvf_npt = self[chan].npt             # <<<<<<<<<<<<<<
  * 		# make sure we have modulo 10 time
  * 		cdef int total_pt = compensation_time + wvf_npt
  */
-      __pyx_t_5 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 126, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 146, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_npt); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 126, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_npt); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 146, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_8); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 126, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_8); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 146, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       __pyx_v_wvf_npt = __pyx_t_6;
 
-      /* "uploader.pyx":124
+      /* "uploader.pyx":144
  * 		cdef int wvf_npt = 0
  * 		for chan in self.waveform_chache_python:
  * 			if self[chan].compensation_time > compensation_time:             # <<<<<<<<<<<<<<
@@ -3370,7 +3537,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "uploader.pyx":128
+  /* "uploader.pyx":148
  * 				wvf_npt = self[chan].npt
  * 		# make sure we have modulo 10 time
  * 		cdef int total_pt = compensation_time + wvf_npt             # <<<<<<<<<<<<<<
@@ -3379,7 +3546,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
  */
   __pyx_v_total_pt = (__pyx_v_compensation_time + __pyx_v_wvf_npt);
 
-  /* "uploader.pyx":129
+  /* "uploader.pyx":149
  * 		# make sure we have modulo 10 time
  * 		cdef int total_pt = compensation_time + wvf_npt
  * 		cdef int mod = total_pt%10             # <<<<<<<<<<<<<<
@@ -3388,7 +3555,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
  */
   __pyx_v_mod = __Pyx_mod_long(__pyx_v_total_pt, 10);
 
-  /* "uploader.pyx":130
+  /* "uploader.pyx":150
  * 		cdef int total_pt = compensation_time + wvf_npt
  * 		cdef int mod = total_pt%10
  * 		if mod != 0:             # <<<<<<<<<<<<<<
@@ -3398,7 +3565,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
   __pyx_t_9 = ((__pyx_v_mod != 0) != 0);
   if (__pyx_t_9) {
 
-    /* "uploader.pyx":131
+    /* "uploader.pyx":151
  * 		cdef int mod = total_pt%10
  * 		if mod != 0:
  * 			total_pt += 10-mod             # <<<<<<<<<<<<<<
@@ -3407,7 +3574,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
  */
     __pyx_v_total_pt = (__pyx_v_total_pt + (10 - __pyx_v_mod));
 
-    /* "uploader.pyx":130
+    /* "uploader.pyx":150
  * 		cdef int total_pt = compensation_time + wvf_npt
  * 		cdef int mod = total_pt%10
  * 		if mod != 0:             # <<<<<<<<<<<<<<
@@ -3416,7 +3583,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
  */
   }
 
-  /* "uploader.pyx":132
+  /* "uploader.pyx":152
  * 		if mod != 0:
  * 			total_pt += 10-mod
  * 		compensation_time = total_pt - wvf_npt             # <<<<<<<<<<<<<<
@@ -3425,7 +3592,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
  */
   __pyx_v_compensation_time = (__pyx_v_total_pt - __pyx_v_wvf_npt);
 
-  /* "uploader.pyx":135
+  /* "uploader.pyx":155
  * 
  * 		#generate the compensation
  * 		for chan in self.waveform_chache_python:             # <<<<<<<<<<<<<<
@@ -3435,9 +3602,9 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
   __pyx_t_3 = 0;
   if (unlikely(__pyx_v_self->waveform_chache_python == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    __PYX_ERR(1, 135, __pyx_L1_error)
+    __PYX_ERR(1, 155, __pyx_L1_error)
   }
-  __pyx_t_8 = __Pyx_dict_iterator(__pyx_v_self->waveform_chache_python, 1, ((PyObject *)NULL), (&__pyx_t_2), (&__pyx_t_4)); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 135, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_dict_iterator(__pyx_v_self->waveform_chache_python, 1, ((PyObject *)NULL), (&__pyx_t_2), (&__pyx_t_4)); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_XDECREF(__pyx_t_1);
   __pyx_t_1 = __pyx_t_8;
@@ -3445,24 +3612,24 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
   while (1) {
     __pyx_t_6 = __Pyx_dict_iter_next(__pyx_t_1, __pyx_t_2, &__pyx_t_3, &__pyx_t_8, NULL, NULL, __pyx_t_4);
     if (unlikely(__pyx_t_6 == 0)) break;
-    if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(1, 135, __pyx_L1_error)
+    if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(1, 155, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_XDECREF_SET(__pyx_v_chan, __pyx_t_8);
     __pyx_t_8 = 0;
 
-    /* "uploader.pyx":136
+    /* "uploader.pyx":156
  * 		#generate the compensation
  * 		for chan in self.waveform_chache_python:
  * 			self[chan].generate_voltage_compensation(compensation_time)             # <<<<<<<<<<<<<<
  * 
  * cdef class waveform_upload_chache():
  */
-    __pyx_t_5 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 136, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 156, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_generate_voltage_compensation); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 136, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_generate_voltage_compensation); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 156, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_compensation_time); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 136, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_compensation_time); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 156, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_10 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_7))) {
@@ -3477,14 +3644,14 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_4generate_DC_comp
     __pyx_t_8 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_10, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_5);
     __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 136, __pyx_L1_error)
+    if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 156, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "uploader.pyx":114
+  /* "uploader.pyx":134
  * 		return self[idx].npt
  * 
  * 	def generate_DC_compenstation(self):             # <<<<<<<<<<<<<<
@@ -3617,7 +3784,7 @@ static PyObject *__pyx_pf_8uploader_24waveform_cache_container_8__setstate_cytho
   return __pyx_r;
 }
 
-/* "uploader.pyx":149
+/* "uploader.pyx":169
  * 	cdef list data
  * 
  * 	def __init__(self, compenstation_limit):             # <<<<<<<<<<<<<<
@@ -3651,7 +3818,7 @@ static int __pyx_pw_8uploader_22waveform_upload_chache_1__init__(PyObject *__pyx
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(1, 149, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(1, 169, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
       goto __pyx_L5_argtuple_error;
@@ -3662,7 +3829,7 @@ static int __pyx_pw_8uploader_22waveform_upload_chache_1__init__(PyObject *__pyx
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 149, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 169, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("uploader.waveform_upload_chache.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3682,17 +3849,17 @@ static int __pyx_pf_8uploader_22waveform_upload_chache___init__(struct __pyx_obj
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "uploader.pyx":150
+  /* "uploader.pyx":170
  * 
  * 	def __init__(self, compenstation_limit):
  * 		self.compenstation_limit = compenstation_limit             # <<<<<<<<<<<<<<
  * 		self._npt = 0
  * 		self.data = []
  */
-  __pyx_t_1 = __pyx_convert_pair_from_py_double__and_double(__pyx_v_compenstation_limit); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 150, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_pair_from_py_double__and_double(__pyx_v_compenstation_limit); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 170, __pyx_L1_error)
   __pyx_v_self->compenstation_limit = __pyx_t_1;
 
-  /* "uploader.pyx":151
+  /* "uploader.pyx":171
  * 	def __init__(self, compenstation_limit):
  * 		self.compenstation_limit = compenstation_limit
  * 		self._npt = 0             # <<<<<<<<<<<<<<
@@ -3701,14 +3868,14 @@ static int __pyx_pf_8uploader_22waveform_upload_chache___init__(struct __pyx_obj
  */
   __pyx_v_self->_npt = 0;
 
-  /* "uploader.pyx":152
+  /* "uploader.pyx":172
  * 		self.compenstation_limit = compenstation_limit
  * 		self._npt = 0
  * 		self.data = []             # <<<<<<<<<<<<<<
  * 
  * 	def add_data(self, np.ndarray[np.double_t,ndim=1] wvf, v_min_max, integral):
  */
-  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 152, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 172, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
   __Pyx_GOTREF(__pyx_v_self->data);
@@ -3716,7 +3883,7 @@ static int __pyx_pf_8uploader_22waveform_upload_chache___init__(struct __pyx_obj
   __pyx_v_self->data = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "uploader.pyx":149
+  /* "uploader.pyx":169
  * 	cdef list data
  * 
  * 	def __init__(self, compenstation_limit):             # <<<<<<<<<<<<<<
@@ -3736,7 +3903,7 @@ static int __pyx_pf_8uploader_22waveform_upload_chache___init__(struct __pyx_obj
   return __pyx_r;
 }
 
-/* "uploader.pyx":154
+/* "uploader.pyx":174
  * 		self.data = []
  * 
  * 	def add_data(self, np.ndarray[np.double_t,ndim=1] wvf, v_min_max, integral):             # <<<<<<<<<<<<<<
@@ -3779,17 +3946,17 @@ static PyObject *__pyx_pw_8uploader_22waveform_upload_chache_3add_data(PyObject 
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_v_min_max)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_data", 1, 3, 3, 1); __PYX_ERR(1, 154, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_data", 1, 3, 3, 1); __PYX_ERR(1, 174, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_integral)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_data", 1, 3, 3, 2); __PYX_ERR(1, 154, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_data", 1, 3, 3, 2); __PYX_ERR(1, 174, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_data") < 0)) __PYX_ERR(1, 154, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_data") < 0)) __PYX_ERR(1, 174, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -3804,13 +3971,13 @@ static PyObject *__pyx_pw_8uploader_22waveform_upload_chache_3add_data(PyObject 
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_data", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 154, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_data", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 174, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("uploader.waveform_upload_chache.add_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_wvf), __pyx_ptype_5numpy_ndarray, 1, "wvf", 0))) __PYX_ERR(1, 154, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_wvf), __pyx_ptype_5numpy_ndarray, 1, "wvf", 0))) __PYX_ERR(1, 174, __pyx_L1_error)
   __pyx_r = __pyx_pf_8uploader_22waveform_upload_chache_2add_data(((struct __pyx_obj_8uploader_waveform_upload_chache *)__pyx_v_self), __pyx_v_wvf, __pyx_v_v_min_max, __pyx_v_integral);
 
   /* function exit code */
@@ -3844,11 +4011,11 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_2add_data(struct __
   __pyx_pybuffernd_wvf.rcbuffer = &__pyx_pybuffer_wvf;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_wvf.rcbuffer->pybuffer, (PyObject*)__pyx_v_wvf, &__Pyx_TypeInfo_nn___pyx_t_5numpy_double_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(1, 154, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_wvf.rcbuffer->pybuffer, (PyObject*)__pyx_v_wvf, &__Pyx_TypeInfo_nn___pyx_t_5numpy_double_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(1, 174, __pyx_L1_error)
   }
   __pyx_pybuffernd_wvf.diminfo[0].strides = __pyx_pybuffernd_wvf.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_wvf.diminfo[0].shape = __pyx_pybuffernd_wvf.rcbuffer->pybuffer.shape[0];
 
-  /* "uploader.pyx":162
+  /* "uploader.pyx":182
  * 		cdef waveform_info data_info
  * 
  * 		if self._npt == 0:             # <<<<<<<<<<<<<<
@@ -3858,17 +4025,17 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_2add_data(struct __
   __pyx_t_1 = ((__pyx_v_self->_npt == 0) != 0);
   if (__pyx_t_1) {
 
-    /* "uploader.pyx":163
+    /* "uploader.pyx":183
  * 
  * 		if self._npt == 0:
  * 			self.min_max_voltage = v_min_max             # <<<<<<<<<<<<<<
  * 		else:
  * 			if self.min_max_voltage.first > v_min_max[0]:
  */
-    __pyx_t_2 = __pyx_convert_pair_from_py_double__and_double(__pyx_v_v_min_max); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 163, __pyx_L1_error)
+    __pyx_t_2 = __pyx_convert_pair_from_py_double__and_double(__pyx_v_v_min_max); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 183, __pyx_L1_error)
     __pyx_v_self->min_max_voltage = __pyx_t_2;
 
-    /* "uploader.pyx":162
+    /* "uploader.pyx":182
  * 		cdef waveform_info data_info
  * 
  * 		if self._npt == 0:             # <<<<<<<<<<<<<<
@@ -3878,7 +4045,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_2add_data(struct __
     goto __pyx_L3;
   }
 
-  /* "uploader.pyx":165
+  /* "uploader.pyx":185
  * 			self.min_max_voltage = v_min_max
  * 		else:
  * 			if self.min_max_voltage.first > v_min_max[0]:             # <<<<<<<<<<<<<<
@@ -3886,31 +4053,31 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_2add_data(struct __
  * 			if self.min_max_voltage.second < v_min_max[1]:
  */
   /*else*/ {
-    __pyx_t_3 = PyFloat_FromDouble(__pyx_v_self->min_max_voltage.first); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 165, __pyx_L1_error)
+    __pyx_t_3 = PyFloat_FromDouble(__pyx_v_self->min_max_voltage.first); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 185, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_v_min_max, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 165, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_v_min_max, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 185, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = PyObject_RichCompare(__pyx_t_3, __pyx_t_4, Py_GT); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 165, __pyx_L1_error)
+    __pyx_t_5 = PyObject_RichCompare(__pyx_t_3, __pyx_t_4, Py_GT); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 185, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 165, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 185, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     if (__pyx_t_1) {
 
-      /* "uploader.pyx":166
+      /* "uploader.pyx":186
  * 		else:
  * 			if self.min_max_voltage.first > v_min_max[0]:
  * 				self.min_max_voltage.first = v_min_max[0]             # <<<<<<<<<<<<<<
  * 			if self.min_max_voltage.second < v_min_max[1]:
  * 				self.min_max_voltage.second = v_min_max[1]
  */
-      __pyx_t_5 = __Pyx_GetItemInt(__pyx_v_v_min_max, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 166, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_GetItemInt(__pyx_v_v_min_max, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 186, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_5); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 166, __pyx_L1_error)
+      __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_5); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 186, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_v_self->min_max_voltage.first = __pyx_t_6;
 
-      /* "uploader.pyx":165
+      /* "uploader.pyx":185
  * 			self.min_max_voltage = v_min_max
  * 		else:
  * 			if self.min_max_voltage.first > v_min_max[0]:             # <<<<<<<<<<<<<<
@@ -3919,38 +4086,38 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_2add_data(struct __
  */
     }
 
-    /* "uploader.pyx":167
+    /* "uploader.pyx":187
  * 			if self.min_max_voltage.first > v_min_max[0]:
  * 				self.min_max_voltage.first = v_min_max[0]
  * 			if self.min_max_voltage.second < v_min_max[1]:             # <<<<<<<<<<<<<<
  * 				self.min_max_voltage.second = v_min_max[1]
  * 
  */
-    __pyx_t_5 = PyFloat_FromDouble(__pyx_v_self->min_max_voltage.second); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 167, __pyx_L1_error)
+    __pyx_t_5 = PyFloat_FromDouble(__pyx_v_self->min_max_voltage.second); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 187, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_v_min_max, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 167, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_v_min_max, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 187, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_3 = PyObject_RichCompare(__pyx_t_5, __pyx_t_4, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 167, __pyx_L1_error)
+    __pyx_t_3 = PyObject_RichCompare(__pyx_t_5, __pyx_t_4, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 187, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 167, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 187, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     if (__pyx_t_1) {
 
-      /* "uploader.pyx":168
+      /* "uploader.pyx":188
  * 				self.min_max_voltage.first = v_min_max[0]
  * 			if self.min_max_voltage.second < v_min_max[1]:
  * 				self.min_max_voltage.second = v_min_max[1]             # <<<<<<<<<<<<<<
  * 
  * 		self._npt += wvf.size
  */
-      __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_v_min_max, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 168, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_v_min_max, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 188, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_3); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 168, __pyx_L1_error)
+      __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_3); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 188, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __pyx_v_self->min_max_voltage.second = __pyx_t_6;
 
-      /* "uploader.pyx":167
+      /* "uploader.pyx":187
  * 			if self.min_max_voltage.first > v_min_max[0]:
  * 				self.min_max_voltage.first = v_min_max[0]
  * 			if self.min_max_voltage.second < v_min_max[1]:             # <<<<<<<<<<<<<<
@@ -3961,46 +4128,46 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_2add_data(struct __
   }
   __pyx_L3:;
 
-  /* "uploader.pyx":170
+  /* "uploader.pyx":190
  * 				self.min_max_voltage.second = v_min_max[1]
  * 
  * 		self._npt += wvf.size             # <<<<<<<<<<<<<<
- * 
  * 		data_info.min_max_voltage = v_min_max
+ * 		data_info.integral = integral
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_self->_npt); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 170, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_self->_npt); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 190, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_wvf), __pyx_n_s_size); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 170, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_wvf), __pyx_n_s_size); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 190, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyNumber_InPlaceAdd(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 170, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_InPlaceAdd(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 190, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 170, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 190, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_v_self->_npt = __pyx_t_7;
 
-  /* "uploader.pyx":172
- * 		self._npt += wvf.size
+  /* "uploader.pyx":191
  * 
+ * 		self._npt += wvf.size
  * 		data_info.min_max_voltage = v_min_max             # <<<<<<<<<<<<<<
  * 		data_info.integral = integral
  * 
  */
-  __pyx_t_2 = __pyx_convert_pair_from_py_double__and_double(__pyx_v_v_min_max); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 172, __pyx_L1_error)
+  __pyx_t_2 = __pyx_convert_pair_from_py_double__and_double(__pyx_v_v_min_max); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 191, __pyx_L1_error)
   __pyx_v_data_info.min_max_voltage = __pyx_t_2;
 
-  /* "uploader.pyx":173
- * 
+  /* "uploader.pyx":192
+ * 		self._npt += wvf.size
  * 		data_info.min_max_voltage = v_min_max
  * 		data_info.integral = integral             # <<<<<<<<<<<<<<
  * 
  * 		self.wvf_info.push_back(data_info)
  */
-  __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_v_integral); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 173, __pyx_L1_error)
+  __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_v_integral); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 192, __pyx_L1_error)
   __pyx_v_data_info.integral = __pyx_t_6;
 
-  /* "uploader.pyx":175
+  /* "uploader.pyx":194
  * 		data_info.integral = integral
  * 
  * 		self.wvf_info.push_back(data_info)             # <<<<<<<<<<<<<<
@@ -4011,10 +4178,10 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_2add_data(struct __
     __pyx_v_self->wvf_info.push_back(__pyx_v_data_info);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(1, 175, __pyx_L1_error)
+    __PYX_ERR(1, 194, __pyx_L1_error)
   }
 
-  /* "uploader.pyx":176
+  /* "uploader.pyx":195
  * 
  * 		self.wvf_info.push_back(data_info)
  * 		cdef double* my_data =  <double*> wvf.data             # <<<<<<<<<<<<<<
@@ -4023,7 +4190,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_2add_data(struct __
  */
   __pyx_v_my_data = ((double *)__pyx_v_wvf->data);
 
-  /* "uploader.pyx":177
+  /* "uploader.pyx":196
  * 		self.wvf_info.push_back(data_info)
  * 		cdef double* my_data =  <double*> wvf.data
  * 		self.wvf_data.push_back(my_data)             # <<<<<<<<<<<<<<
@@ -4034,10 +4201,10 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_2add_data(struct __
     __pyx_v_self->wvf_data.push_back(__pyx_v_my_data);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(1, 177, __pyx_L1_error)
+    __PYX_ERR(1, 196, __pyx_L1_error)
   }
 
-  /* "uploader.pyx":179
+  /* "uploader.pyx":198
  * 		self.wvf_data.push_back(my_data)
  * 		# use dummy python list for reference counting ..
  * 		self.data.append(wvf)             # <<<<<<<<<<<<<<
@@ -4046,29 +4213,29 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_2add_data(struct __
  */
   if (unlikely(__pyx_v_self->data == Py_None)) {
     PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%.30s'", "append");
-    __PYX_ERR(1, 179, __pyx_L1_error)
+    __PYX_ERR(1, 198, __pyx_L1_error)
   }
-  __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_self->data, ((PyObject *)__pyx_v_wvf)); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(1, 179, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_self->data, ((PyObject *)__pyx_v_wvf)); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(1, 198, __pyx_L1_error)
 
-  /* "uploader.pyx":181
+  /* "uploader.pyx":200
  * 		self.data.append(wvf)
  * 
  * 		self.wvf_npt.push_back(wvf.size)             # <<<<<<<<<<<<<<
  * 
  * 	@property
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_wvf), __pyx_n_s_size); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 181, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_wvf), __pyx_n_s_size); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 181, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 200, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   try {
     __pyx_v_self->wvf_npt.push_back(__pyx_t_7);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(1, 181, __pyx_L1_error)
+    __PYX_ERR(1, 200, __pyx_L1_error)
   }
 
-  /* "uploader.pyx":154
+  /* "uploader.pyx":174
  * 		self.data = []
  * 
  * 	def add_data(self, np.ndarray[np.double_t,ndim=1] wvf, v_min_max, integral):             # <<<<<<<<<<<<<<
@@ -4100,7 +4267,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_2add_data(struct __
   return __pyx_r;
 }
 
-/* "uploader.pyx":184
+/* "uploader.pyx":203
  * 
  * 	@property
  * 	def integral(self):             # <<<<<<<<<<<<<<
@@ -4132,7 +4299,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_8integral___get__(s
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "uploader.pyx":185
+  /* "uploader.pyx":204
  * 	@property
  * 	def integral(self):
  * 		cdef double integral = 0             # <<<<<<<<<<<<<<
@@ -4141,7 +4308,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_8integral___get__(s
  */
   __pyx_v_integral = 0.0;
 
-  /* "uploader.pyx":186
+  /* "uploader.pyx":205
  * 	def integral(self):
  * 		cdef double integral = 0
  * 		for i in self.wvf_info:             # <<<<<<<<<<<<<<
@@ -4156,7 +4323,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_8integral___get__(s
     ++__pyx_t_1;
     __pyx_v_i = __pyx_t_3;
 
-    /* "uploader.pyx":187
+    /* "uploader.pyx":206
  * 		cdef double integral = 0
  * 		for i in self.wvf_info:
  * 			integral += i.integral             # <<<<<<<<<<<<<<
@@ -4165,7 +4332,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_8integral___get__(s
  */
     __pyx_v_integral = (__pyx_v_integral + __pyx_v_i.integral);
 
-    /* "uploader.pyx":186
+    /* "uploader.pyx":205
  * 	def integral(self):
  * 		cdef double integral = 0
  * 		for i in self.wvf_info:             # <<<<<<<<<<<<<<
@@ -4174,7 +4341,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_8integral___get__(s
  */
   }
 
-  /* "uploader.pyx":188
+  /* "uploader.pyx":207
  * 		for i in self.wvf_info:
  * 			integral += i.integral
  * 		return integral             # <<<<<<<<<<<<<<
@@ -4182,13 +4349,13 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_8integral___get__(s
  * 	@property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_integral); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 188, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_integral); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 207, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_r = __pyx_t_4;
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "uploader.pyx":184
+  /* "uploader.pyx":203
  * 
  * 	@property
  * 	def integral(self):             # <<<<<<<<<<<<<<
@@ -4207,7 +4374,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_8integral___get__(s
   return __pyx_r;
 }
 
-/* "uploader.pyx":191
+/* "uploader.pyx":210
  * 
  * 	@property
  * 	def compensation_time(self):             # <<<<<<<<<<<<<<
@@ -4238,7 +4405,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_17compensation_time
   double __pyx_t_4;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "uploader.pyx":197
+  /* "uploader.pyx":216
  * 			compensation_time : minimal duration that is needed for the voltage compensation
  * 		'''
  * 		if self.compenstation_limit.first == 0 or self.compenstation_limit.second == 0:             # <<<<<<<<<<<<<<
@@ -4256,7 +4423,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_17compensation_time
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "uploader.pyx":198
+    /* "uploader.pyx":217
  * 		'''
  * 		if self.compenstation_limit.first == 0 or self.compenstation_limit.second == 0:
  * 			return 0             # <<<<<<<<<<<<<<
@@ -4268,7 +4435,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_17compensation_time
     __pyx_r = __pyx_int_0;
     goto __pyx_L0;
 
-    /* "uploader.pyx":197
+    /* "uploader.pyx":216
  * 			compensation_time : minimal duration that is needed for the voltage compensation
  * 		'''
  * 		if self.compenstation_limit.first == 0 or self.compenstation_limit.second == 0:             # <<<<<<<<<<<<<<
@@ -4277,20 +4444,20 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_17compensation_time
  */
   }
 
-  /* "uploader.pyx":200
+  /* "uploader.pyx":219
  * 			return 0
  * 
  * 		cdef double comp_time = self.integral             # <<<<<<<<<<<<<<
  * 		if comp_time <= 0:
  * 			return -comp_time / self.compenstation_limit.second
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 200, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 219, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __pyx_PyFloat_AsDouble(__pyx_t_3); if (unlikely((__pyx_t_4 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 200, __pyx_L1_error)
+  __pyx_t_4 = __pyx_PyFloat_AsDouble(__pyx_t_3); if (unlikely((__pyx_t_4 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 219, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_comp_time = __pyx_t_4;
 
-  /* "uploader.pyx":201
+  /* "uploader.pyx":220
  * 
  * 		cdef double comp_time = self.integral
  * 		if comp_time <= 0:             # <<<<<<<<<<<<<<
@@ -4300,7 +4467,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_17compensation_time
   __pyx_t_1 = ((__pyx_v_comp_time <= 0.0) != 0);
   if (__pyx_t_1) {
 
-    /* "uploader.pyx":202
+    /* "uploader.pyx":221
  * 		cdef double comp_time = self.integral
  * 		if comp_time <= 0:
  * 			return -comp_time / self.compenstation_limit.second             # <<<<<<<<<<<<<<
@@ -4311,15 +4478,15 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_17compensation_time
     __pyx_t_4 = (-__pyx_v_comp_time);
     if (unlikely(__pyx_v_self->compenstation_limit.second == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-      __PYX_ERR(1, 202, __pyx_L1_error)
+      __PYX_ERR(1, 221, __pyx_L1_error)
     }
-    __pyx_t_3 = PyFloat_FromDouble((__pyx_t_4 / __pyx_v_self->compenstation_limit.second)); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 202, __pyx_L1_error)
+    __pyx_t_3 = PyFloat_FromDouble((__pyx_t_4 / __pyx_v_self->compenstation_limit.second)); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 221, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_r = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L0;
 
-    /* "uploader.pyx":201
+    /* "uploader.pyx":220
  * 
  * 		cdef double comp_time = self.integral
  * 		if comp_time <= 0:             # <<<<<<<<<<<<<<
@@ -4328,7 +4495,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_17compensation_time
  */
   }
 
-  /* "uploader.pyx":204
+  /* "uploader.pyx":223
  * 			return -comp_time / self.compenstation_limit.second
  * 		else:
  * 			return -comp_time / self.compenstation_limit.first             # <<<<<<<<<<<<<<
@@ -4340,16 +4507,16 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_17compensation_time
     __pyx_t_4 = (-__pyx_v_comp_time);
     if (unlikely(__pyx_v_self->compenstation_limit.first == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-      __PYX_ERR(1, 204, __pyx_L1_error)
+      __PYX_ERR(1, 223, __pyx_L1_error)
     }
-    __pyx_t_3 = PyFloat_FromDouble((__pyx_t_4 / __pyx_v_self->compenstation_limit.first)); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 204, __pyx_L1_error)
+    __pyx_t_3 = PyFloat_FromDouble((__pyx_t_4 / __pyx_v_self->compenstation_limit.first)); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 223, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_r = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L0;
   }
 
-  /* "uploader.pyx":191
+  /* "uploader.pyx":210
  * 
  * 	@property
  * 	def compensation_time(self):             # <<<<<<<<<<<<<<
@@ -4368,7 +4535,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_17compensation_time
   return __pyx_r;
 }
 
-/* "uploader.pyx":207
+/* "uploader.pyx":226
  * 
  * 	@property
  * 	def npt(self):             # <<<<<<<<<<<<<<
@@ -4395,7 +4562,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_3npt___get__(struct
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "uploader.pyx":208
+  /* "uploader.pyx":227
  * 	@property
  * 	def npt(self):
  * 		return self._npt             # <<<<<<<<<<<<<<
@@ -4403,13 +4570,13 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_3npt___get__(struct
  * 	cpdef void generate_voltage_compensation(self, double time):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->_npt); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 208, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->_npt); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "uploader.pyx":207
+  /* "uploader.pyx":226
  * 
  * 	@property
  * 	def npt(self):             # <<<<<<<<<<<<<<
@@ -4428,7 +4595,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_3npt___get__(struct
   return __pyx_r;
 }
 
-/* "uploader.pyx":210
+/* "uploader.pyx":229
  * 		return self._npt
  * 
  * 	cpdef void generate_voltage_compensation(self, double time):             # <<<<<<<<<<<<<<
@@ -4462,10 +4629,10 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
     else {
       PY_UINT64_T type_dict_guard = (likely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dict)) ? __PYX_GET_DICT_VERSION(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dict) : 0;
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_generate_voltage_compensation); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 210, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_generate_voltage_compensation); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 229, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)(void*)__pyx_pw_8uploader_22waveform_upload_chache_5generate_voltage_compensation)) {
-        __pyx_t_3 = PyFloat_FromDouble(__pyx_v_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 210, __pyx_L1_error)
+        __pyx_t_3 = PyFloat_FromDouble(__pyx_v_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 229, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_INCREF(__pyx_t_1);
         __pyx_t_4 = __pyx_t_1; __pyx_t_5 = NULL;
@@ -4481,7 +4648,7 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
         __pyx_t_2 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_5, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3);
         __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 210, __pyx_L1_error)
+        if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 229, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -4501,7 +4668,7 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
     #endif
   }
 
-  /* "uploader.pyx":216
+  /* "uploader.pyx":235
  * 			time (double) : time of the compenstation in ns
  * 		'''
  * 		cdef double voltage = 0             # <<<<<<<<<<<<<<
@@ -4510,26 +4677,26 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
  */
   __pyx_v_voltage = 0.0;
 
-  /* "uploader.pyx":217
+  /* "uploader.pyx":236
  * 		'''
  * 		cdef double voltage = 0
  * 		if round(time) == 0:             # <<<<<<<<<<<<<<
  * 			voltage = 0
  * 		else:
  */
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 217, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 236, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_round, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 217, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_round, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 236, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_EqObjC(__pyx_t_2, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 217, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_EqObjC(__pyx_t_2, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 236, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(1, 217, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(1, 236, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_6) {
 
-    /* "uploader.pyx":218
+    /* "uploader.pyx":237
  * 		cdef double voltage = 0
  * 		if round(time) == 0:
  * 			voltage = 0             # <<<<<<<<<<<<<<
@@ -4538,7 +4705,7 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
  */
     __pyx_v_voltage = 0.0;
 
-    /* "uploader.pyx":217
+    /* "uploader.pyx":236
  * 		'''
  * 		cdef double voltage = 0
  * 		if round(time) == 0:             # <<<<<<<<<<<<<<
@@ -4548,7 +4715,7 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
     goto __pyx_L3;
   }
 
-  /* "uploader.pyx":220
+  /* "uploader.pyx":239
  * 			voltage = 0
  * 		else:
  * 			voltage = self.integral/round(time)             # <<<<<<<<<<<<<<
@@ -4556,51 +4723,51 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
  * 		self.add_data(np.full((int(round(time)),), voltage), (voltage, voltage), -self.integral)
  */
   /*else*/ {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 220, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 239, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = PyFloat_FromDouble(__pyx_v_time); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 220, __pyx_L1_error)
+    __pyx_t_2 = PyFloat_FromDouble(__pyx_v_time); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 239, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_round, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 220, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_round, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 239, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyNumber_Divide(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 220, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyNumber_Divide(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 239, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_7 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_7 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 220, __pyx_L1_error)
+    __pyx_t_7 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_7 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 239, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_voltage = __pyx_t_7;
   }
   __pyx_L3:;
 
-  /* "uploader.pyx":222
+  /* "uploader.pyx":241
  * 			voltage = self.integral/round(time)
  * 
  * 		self.add_data(np.full((int(round(time)),), voltage), (voltage, voltage), -self.integral)             # <<<<<<<<<<<<<<
  * 
  * 	cdef waveform_raw_upload_data* return_raw_data(self):
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_add_data); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_add_data); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_full); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_full); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_8 = __Pyx_PyObject_CallOneArg(__pyx_builtin_round, __pyx_t_3); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_CallOneArg(__pyx_builtin_round, __pyx_t_3); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyNumber_Int(__pyx_t_8); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyNumber_Int(__pyx_t_8); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = PyTuple_New(1); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_8 = PyTuple_New(1); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_voltage); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_voltage); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_9 = NULL;
   __pyx_t_10 = 0;
@@ -4617,7 +4784,7 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_5)) {
     PyObject *__pyx_temp[3] = {__pyx_t_9, __pyx_t_8, __pyx_t_3};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_10, 2+__pyx_t_10); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 222, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_10, 2+__pyx_t_10); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 241, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -4627,7 +4794,7 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
     PyObject *__pyx_temp[3] = {__pyx_t_9, __pyx_t_8, __pyx_t_3};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_10, 2+__pyx_t_10); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 222, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_10, 2+__pyx_t_10); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 241, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -4635,7 +4802,7 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
   } else
   #endif
   {
-    __pyx_t_11 = PyTuple_New(2+__pyx_t_10); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 222, __pyx_L1_error)
+    __pyx_t_11 = PyTuple_New(2+__pyx_t_10); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 241, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_11);
     if (__pyx_t_9) {
       __Pyx_GIVEREF(__pyx_t_9); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_9); __pyx_t_9 = NULL;
@@ -4646,16 +4813,16 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
     PyTuple_SET_ITEM(__pyx_t_11, 1+__pyx_t_10, __pyx_t_3);
     __pyx_t_8 = 0;
     __pyx_t_3 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 222, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 241, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_voltage); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_voltage); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_11 = PyFloat_FromDouble(__pyx_v_voltage); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_11 = PyFloat_FromDouble(__pyx_v_voltage); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5);
@@ -4663,9 +4830,9 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
   PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_11);
   __pyx_t_5 = 0;
   __pyx_t_11 = 0;
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_5 = PyNumber_Negative(__pyx_t_11); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Negative(__pyx_t_11); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
   __pyx_t_11 = NULL;
@@ -4683,7 +4850,7 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[4] = {__pyx_t_11, __pyx_t_1, __pyx_t_3, __pyx_t_5};
-    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_10, 3+__pyx_t_10); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 222, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_10, 3+__pyx_t_10); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 241, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -4694,7 +4861,7 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[4] = {__pyx_t_11, __pyx_t_1, __pyx_t_3, __pyx_t_5};
-    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_10, 3+__pyx_t_10); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 222, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_10, 3+__pyx_t_10); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 241, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -4703,7 +4870,7 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
   } else
   #endif
   {
-    __pyx_t_8 = PyTuple_New(3+__pyx_t_10); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 222, __pyx_L1_error)
+    __pyx_t_8 = PyTuple_New(3+__pyx_t_10); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 241, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     if (__pyx_t_11) {
       __Pyx_GIVEREF(__pyx_t_11); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_11); __pyx_t_11 = NULL;
@@ -4717,14 +4884,14 @@ static void __pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensa
     __pyx_t_1 = 0;
     __pyx_t_3 = 0;
     __pyx_t_5 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 222, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 241, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "uploader.pyx":210
+  /* "uploader.pyx":229
  * 		return self._npt
  * 
  * 	cpdef void generate_voltage_compensation(self, double time):             # <<<<<<<<<<<<<<
@@ -4757,7 +4924,7 @@ static PyObject *__pyx_pw_8uploader_22waveform_upload_chache_5generate_voltage_c
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("generate_voltage_compensation (wrapper)", 0);
   assert(__pyx_arg_time); {
-    __pyx_v_time = __pyx_PyFloat_AsDouble(__pyx_arg_time); if (unlikely((__pyx_v_time == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 210, __pyx_L3_error)
+    __pyx_v_time = __pyx_PyFloat_AsDouble(__pyx_arg_time); if (unlikely((__pyx_v_time == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 229, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -4778,7 +4945,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_4generate_voltage_c
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("generate_voltage_compensation", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_void_to_None(__pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensation(__pyx_v_self, __pyx_v_time, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 210, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_void_to_None(__pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensation(__pyx_v_self, __pyx_v_time, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 229, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4795,7 +4962,7 @@ static PyObject *__pyx_pf_8uploader_22waveform_upload_chache_4generate_voltage_c
   return __pyx_r;
 }
 
-/* "uploader.pyx":224
+/* "uploader.pyx":243
  * 		self.add_data(np.full((int(round(time)),), voltage), (voltage, voltage), -self.integral)
  * 
  * 	cdef waveform_raw_upload_data* return_raw_data(self):             # <<<<<<<<<<<<<<
@@ -4808,7 +4975,7 @@ static struct waveform_raw_upload_data *__pyx_f_8uploader_22waveform_upload_chac
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("return_raw_data", 0);
 
-  /* "uploader.pyx":225
+  /* "uploader.pyx":244
  * 
  * 	cdef waveform_raw_upload_data* return_raw_data(self):
  * 		self.raw_data.wvf_data = &self.wvf_data             # <<<<<<<<<<<<<<
@@ -4817,7 +4984,7 @@ static struct waveform_raw_upload_data *__pyx_f_8uploader_22waveform_upload_chac
  */
   __pyx_v_self->raw_data.wvf_data = (&__pyx_v_self->wvf_data);
 
-  /* "uploader.pyx":226
+  /* "uploader.pyx":245
  * 	cdef waveform_raw_upload_data* return_raw_data(self):
  * 		self.raw_data.wvf_data = &self.wvf_data
  * 		self.raw_data.wvf_npt = &self.wvf_npt             # <<<<<<<<<<<<<<
@@ -4826,7 +4993,7 @@ static struct waveform_raw_upload_data *__pyx_f_8uploader_22waveform_upload_chac
  */
   __pyx_v_self->raw_data.wvf_npt = (&__pyx_v_self->wvf_npt);
 
-  /* "uploader.pyx":227
+  /* "uploader.pyx":246
  * 		self.raw_data.wvf_data = &self.wvf_data
  * 		self.raw_data.wvf_npt = &self.wvf_npt
  * 		self.raw_data.min_max_voltage = &self.min_max_voltage             # <<<<<<<<<<<<<<
@@ -4835,7 +5002,7 @@ static struct waveform_raw_upload_data *__pyx_f_8uploader_22waveform_upload_chac
  */
   __pyx_v_self->raw_data.min_max_voltage = (&__pyx_v_self->min_max_voltage);
 
-  /* "uploader.pyx":228
+  /* "uploader.pyx":247
  * 		self.raw_data.wvf_npt = &self.wvf_npt
  * 		self.raw_data.min_max_voltage = &self.min_max_voltage
  * 		self.raw_data.npt = &self._npt             # <<<<<<<<<<<<<<
@@ -4844,7 +5011,7 @@ static struct waveform_raw_upload_data *__pyx_f_8uploader_22waveform_upload_chac
  */
   __pyx_v_self->raw_data.npt = (&__pyx_v_self->_npt);
 
-  /* "uploader.pyx":230
+  /* "uploader.pyx":249
  * 		self.raw_data.npt = &self._npt
  * 
  * 		return &self.raw_data             # <<<<<<<<<<<<<<
@@ -4852,7 +5019,7 @@ static struct waveform_raw_upload_data *__pyx_f_8uploader_22waveform_upload_chac
   __pyx_r = (&__pyx_v_self->raw_data);
   goto __pyx_L0;
 
-  /* "uploader.pyx":224
+  /* "uploader.pyx":243
  * 		self.add_data(np.full((int(round(time)),), voltage), (voltage, voltage), -self.integral)
  * 
  * 	cdef waveform_raw_upload_data* return_raw_data(self):             # <<<<<<<<<<<<<<
@@ -7444,6 +7611,302 @@ static std::string __pyx_convert_string_from_py_std__in_string(PyObject *__pyx_v
   return __pyx_r;
 }
 
+/* "vector.to_py":60
+ * 
+ * @cname("__pyx_convert_vector_to_py_int")
+ * cdef object __pyx_convert_vector_to_py_int(vector[X]& v):             # <<<<<<<<<<<<<<
+ *     return [v[i] for i in range(v.size())]
+ * 
+ */
+
+static PyObject *__pyx_convert_vector_to_py_int(const std::vector<int>  &__pyx_v_v) {
+  size_t __pyx_v_i;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  size_t __pyx_t_2;
+  size_t __pyx_t_3;
+  size_t __pyx_t_4;
+  PyObject *__pyx_t_5 = NULL;
+  __Pyx_RefNannySetupContext("__pyx_convert_vector_to_py_int", 0);
+
+  /* "vector.to_py":61
+ * @cname("__pyx_convert_vector_to_py_int")
+ * cdef object __pyx_convert_vector_to_py_int(vector[X]& v):
+ *     return [v[i] for i in range(v.size())]             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __pyx_v_v.size();
+  __pyx_t_3 = __pyx_t_2;
+  for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
+    __pyx_v_i = __pyx_t_4;
+    __pyx_t_5 = __Pyx_PyInt_From_int((__pyx_v_v[__pyx_v_i])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 61, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_5))) __PYX_ERR(0, 61, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  }
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "vector.to_py":60
+ * 
+ * @cname("__pyx_convert_vector_to_py_int")
+ * cdef object __pyx_convert_vector_to_py_int(vector[X]& v):             # <<<<<<<<<<<<<<
+ *     return [v[i] for i in range(v.size())]
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_AddTraceback("vector.to_py.__pyx_convert_vector_to_py_int", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "string.to_py":31
+ * 
+ * @cname("__pyx_convert_PyObject_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyObject_string_to_py_std__in_string(const string& s):             # <<<<<<<<<<<<<<
+ *     return __Pyx_PyObject_FromStringAndSize(s.data(), s.size())
+ * cdef extern from *:
+ */
+
+static CYTHON_INLINE PyObject *__pyx_convert_PyObject_string_to_py_std__in_string(std::string const &__pyx_v_s) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__pyx_convert_PyObject_string_to_py_std__in_string", 0);
+
+  /* "string.to_py":32
+ * @cname("__pyx_convert_PyObject_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyObject_string_to_py_std__in_string(const string& s):
+ *     return __Pyx_PyObject_FromStringAndSize(s.data(), s.size())             # <<<<<<<<<<<<<<
+ * cdef extern from *:
+ *     cdef object __Pyx_PyUnicode_FromStringAndSize(const char*, size_t)
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __Pyx_PyObject_FromStringAndSize(__pyx_v_s.data(), __pyx_v_s.size()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "string.to_py":31
+ * 
+ * @cname("__pyx_convert_PyObject_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyObject_string_to_py_std__in_string(const string& s):             # <<<<<<<<<<<<<<
+ *     return __Pyx_PyObject_FromStringAndSize(s.data(), s.size())
+ * cdef extern from *:
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("string.to_py.__pyx_convert_PyObject_string_to_py_std__in_string", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "string.to_py":37
+ * 
+ * @cname("__pyx_convert_PyUnicode_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyUnicode_string_to_py_std__in_string(const string& s):             # <<<<<<<<<<<<<<
+ *     return __Pyx_PyUnicode_FromStringAndSize(s.data(), s.size())
+ * cdef extern from *:
+ */
+
+static CYTHON_INLINE PyObject *__pyx_convert_PyUnicode_string_to_py_std__in_string(std::string const &__pyx_v_s) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__pyx_convert_PyUnicode_string_to_py_std__in_string", 0);
+
+  /* "string.to_py":38
+ * @cname("__pyx_convert_PyUnicode_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyUnicode_string_to_py_std__in_string(const string& s):
+ *     return __Pyx_PyUnicode_FromStringAndSize(s.data(), s.size())             # <<<<<<<<<<<<<<
+ * cdef extern from *:
+ *     cdef object __Pyx_PyStr_FromStringAndSize(const char*, size_t)
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __Pyx_PyUnicode_FromStringAndSize(__pyx_v_s.data(), __pyx_v_s.size()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "string.to_py":37
+ * 
+ * @cname("__pyx_convert_PyUnicode_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyUnicode_string_to_py_std__in_string(const string& s):             # <<<<<<<<<<<<<<
+ *     return __Pyx_PyUnicode_FromStringAndSize(s.data(), s.size())
+ * cdef extern from *:
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("string.to_py.__pyx_convert_PyUnicode_string_to_py_std__in_string", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "string.to_py":43
+ * 
+ * @cname("__pyx_convert_PyStr_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyStr_string_to_py_std__in_string(const string& s):             # <<<<<<<<<<<<<<
+ *     return __Pyx_PyStr_FromStringAndSize(s.data(), s.size())
+ * cdef extern from *:
+ */
+
+static CYTHON_INLINE PyObject *__pyx_convert_PyStr_string_to_py_std__in_string(std::string const &__pyx_v_s) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__pyx_convert_PyStr_string_to_py_std__in_string", 0);
+
+  /* "string.to_py":44
+ * @cname("__pyx_convert_PyStr_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyStr_string_to_py_std__in_string(const string& s):
+ *     return __Pyx_PyStr_FromStringAndSize(s.data(), s.size())             # <<<<<<<<<<<<<<
+ * cdef extern from *:
+ *     cdef object __Pyx_PyBytes_FromStringAndSize(const char*, size_t)
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __Pyx_PyStr_FromStringAndSize(__pyx_v_s.data(), __pyx_v_s.size()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "string.to_py":43
+ * 
+ * @cname("__pyx_convert_PyStr_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyStr_string_to_py_std__in_string(const string& s):             # <<<<<<<<<<<<<<
+ *     return __Pyx_PyStr_FromStringAndSize(s.data(), s.size())
+ * cdef extern from *:
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("string.to_py.__pyx_convert_PyStr_string_to_py_std__in_string", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "string.to_py":49
+ * 
+ * @cname("__pyx_convert_PyBytes_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyBytes_string_to_py_std__in_string(const string& s):             # <<<<<<<<<<<<<<
+ *     return __Pyx_PyBytes_FromStringAndSize(s.data(), s.size())
+ * cdef extern from *:
+ */
+
+static CYTHON_INLINE PyObject *__pyx_convert_PyBytes_string_to_py_std__in_string(std::string const &__pyx_v_s) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__pyx_convert_PyBytes_string_to_py_std__in_string", 0);
+
+  /* "string.to_py":50
+ * @cname("__pyx_convert_PyBytes_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyBytes_string_to_py_std__in_string(const string& s):
+ *     return __Pyx_PyBytes_FromStringAndSize(s.data(), s.size())             # <<<<<<<<<<<<<<
+ * cdef extern from *:
+ *     cdef object __Pyx_PyByteArray_FromStringAndSize(const char*, size_t)
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __Pyx_PyBytes_FromStringAndSize(__pyx_v_s.data(), __pyx_v_s.size()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "string.to_py":49
+ * 
+ * @cname("__pyx_convert_PyBytes_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyBytes_string_to_py_std__in_string(const string& s):             # <<<<<<<<<<<<<<
+ *     return __Pyx_PyBytes_FromStringAndSize(s.data(), s.size())
+ * cdef extern from *:
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("string.to_py.__pyx_convert_PyBytes_string_to_py_std__in_string", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "string.to_py":55
+ * 
+ * @cname("__pyx_convert_PyByteArray_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyByteArray_string_to_py_std__in_string(const string& s):             # <<<<<<<<<<<<<<
+ *     return __Pyx_PyByteArray_FromStringAndSize(s.data(), s.size())
+ * 
+ */
+
+static CYTHON_INLINE PyObject *__pyx_convert_PyByteArray_string_to_py_std__in_string(std::string const &__pyx_v_s) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  __Pyx_RefNannySetupContext("__pyx_convert_PyByteArray_string_to_py_std__in_string", 0);
+
+  /* "string.to_py":56
+ * @cname("__pyx_convert_PyByteArray_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyByteArray_string_to_py_std__in_string(const string& s):
+ *     return __Pyx_PyByteArray_FromStringAndSize(s.data(), s.size())             # <<<<<<<<<<<<<<
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __Pyx_PyByteArray_FromStringAndSize(__pyx_v_s.data(), __pyx_v_s.size()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 56, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "string.to_py":55
+ * 
+ * @cname("__pyx_convert_PyByteArray_string_to_py_std__in_string")
+ * cdef inline object __pyx_convert_PyByteArray_string_to_py_std__in_string(const string& s):             # <<<<<<<<<<<<<<
+ *     return __Pyx_PyByteArray_FromStringAndSize(s.data(), s.size())
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("string.to_py.__pyx_convert_PyByteArray_string_to_py_std__in_string", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
 /* "pair.from_py":145
  * 
  * @cname("__pyx_convert_pair_from_py_std_3a__3a_string__and_int")
@@ -8145,8 +8608,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(0, 2, __pyx_L1_error)
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 108, __pyx_L1_error)
-  __pyx_builtin_round = __Pyx_GetBuiltinName(__pyx_n_s_round); if (!__pyx_builtin_round) __PYX_ERR(1, 217, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 128, __pyx_L1_error)
+  __pyx_builtin_round = __Pyx_GetBuiltinName(__pyx_n_s_round); if (!__pyx_builtin_round) __PYX_ERR(1, 236, __pyx_L1_error)
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(2, 285, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(2, 856, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(2, 1038, __pyx_L1_error)
@@ -8178,14 +8641,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "uploader.pyx":108
+  /* "uploader.pyx":128
  * 		'''
  * 		if len(self.waveform_chache_python) == 0 :
  * 			raise ValueError("No waveforms presents in waveform chache container ...")             # <<<<<<<<<<<<<<
  * 
  * 		# get first key of chache object (the pyton one)
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_No_waveforms_presents_in_wavefor); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(1, 108, __pyx_L1_error)
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_No_waveforms_presents_in_wavefor); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(1, 128, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
@@ -8356,23 +8819,23 @@ static int __Pyx_modinit_type_init_code(void) {
   /*--- Type init code ---*/
   __pyx_vtabptr_8uploader_keysight_upload_module = &__pyx_vtable_8uploader_keysight_upload_module;
   __pyx_vtable_8uploader_keysight_upload_module.release_memory = (PyObject *(*)(struct __pyx_obj_8uploader_keysight_upload_module *, std::map<std::string,std::map<int,__pyx_t_8uploader_waveform_raw_upload_data_ptr> >  *))__pyx_f_8uploader_22keysight_upload_module_release_memory;
-  if (PyType_Ready(&__pyx_type_8uploader_keysight_upload_module) < 0) __PYX_ERR(1, 39, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_8uploader_keysight_upload_module) < 0) __PYX_ERR(1, 40, __pyx_L1_error)
   __pyx_type_8uploader_keysight_upload_module.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_8uploader_keysight_upload_module.tp_dictoffset && __pyx_type_8uploader_keysight_upload_module.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_8uploader_keysight_upload_module.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_8uploader_keysight_upload_module.tp_dict, __pyx_vtabptr_8uploader_keysight_upload_module) < 0) __PYX_ERR(1, 39, __pyx_L1_error)
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_keysight_upload_module, (PyObject *)&__pyx_type_8uploader_keysight_upload_module) < 0) __PYX_ERR(1, 39, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_8uploader_keysight_upload_module) < 0) __PYX_ERR(1, 39, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_8uploader_keysight_upload_module.tp_dict, __pyx_vtabptr_8uploader_keysight_upload_module) < 0) __PYX_ERR(1, 40, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_keysight_upload_module, (PyObject *)&__pyx_type_8uploader_keysight_upload_module) < 0) __PYX_ERR(1, 40, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_8uploader_keysight_upload_module) < 0) __PYX_ERR(1, 40, __pyx_L1_error)
   __pyx_ptype_8uploader_keysight_upload_module = &__pyx_type_8uploader_keysight_upload_module;
-  if (PyType_Ready(&__pyx_type_8uploader_waveform_cache_container) < 0) __PYX_ERR(1, 69, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_8uploader_waveform_cache_container) < 0) __PYX_ERR(1, 89, __pyx_L1_error)
   __pyx_type_8uploader_waveform_cache_container.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_8uploader_waveform_cache_container.tp_dictoffset && __pyx_type_8uploader_waveform_cache_container.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_8uploader_waveform_cache_container.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_8uploader_waveform_cache_container, "__init__"); if (unlikely(!wrapper)) __PYX_ERR(1, 69, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_8uploader_waveform_cache_container, "__init__"); if (unlikely(!wrapper)) __PYX_ERR(1, 89, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_8uploader_24waveform_cache_container___init__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_8uploader_24waveform_cache_container___init__.doc = __pyx_doc_8uploader_24waveform_cache_container___init__;
@@ -8382,7 +8845,7 @@ static int __Pyx_modinit_type_init_code(void) {
   #endif
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_8uploader_waveform_cache_container, "__getitem__"); if (unlikely(!wrapper)) __PYX_ERR(1, 69, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_8uploader_waveform_cache_container, "__getitem__"); if (unlikely(!wrapper)) __PYX_ERR(1, 89, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_8uploader_24waveform_cache_container_2__getitem__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_8uploader_24waveform_cache_container_2__getitem__.doc = __pyx_doc_8uploader_24waveform_cache_container_2__getitem__;
@@ -8390,20 +8853,20 @@ static int __Pyx_modinit_type_init_code(void) {
     }
   }
   #endif
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_waveform_cache_container, (PyObject *)&__pyx_type_8uploader_waveform_cache_container) < 0) __PYX_ERR(1, 69, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_8uploader_waveform_cache_container) < 0) __PYX_ERR(1, 69, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_waveform_cache_container, (PyObject *)&__pyx_type_8uploader_waveform_cache_container) < 0) __PYX_ERR(1, 89, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_8uploader_waveform_cache_container) < 0) __PYX_ERR(1, 89, __pyx_L1_error)
   __pyx_ptype_8uploader_waveform_cache_container = &__pyx_type_8uploader_waveform_cache_container;
   __pyx_vtabptr_8uploader_waveform_upload_chache = &__pyx_vtable_8uploader_waveform_upload_chache;
   __pyx_vtable_8uploader_waveform_upload_chache.generate_voltage_compensation = (void (*)(struct __pyx_obj_8uploader_waveform_upload_chache *, double, int __pyx_skip_dispatch))__pyx_f_8uploader_22waveform_upload_chache_generate_voltage_compensation;
   __pyx_vtable_8uploader_waveform_upload_chache.return_raw_data = (struct waveform_raw_upload_data *(*)(struct __pyx_obj_8uploader_waveform_upload_chache *))__pyx_f_8uploader_22waveform_upload_chache_return_raw_data;
-  if (PyType_Ready(&__pyx_type_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 138, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 158, __pyx_L1_error)
   __pyx_type_8uploader_waveform_upload_chache.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_8uploader_waveform_upload_chache.tp_dictoffset && __pyx_type_8uploader_waveform_upload_chache.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_8uploader_waveform_upload_chache.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_8uploader_waveform_upload_chache.tp_dict, __pyx_vtabptr_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 138, __pyx_L1_error)
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_waveform_upload_chache, (PyObject *)&__pyx_type_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 138, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 138, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_8uploader_waveform_upload_chache.tp_dict, __pyx_vtabptr_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 158, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_waveform_upload_chache, (PyObject *)&__pyx_type_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 158, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 158, __pyx_L1_error)
   __pyx_ptype_8uploader_waveform_upload_chache = &__pyx_type_8uploader_waveform_upload_chache;
   __Pyx_RefNannyFinishContext();
   return 0;
@@ -8663,16 +9126,16 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   #endif
 
-  /* "uploader.pyx":10
- * from libc.stdio cimport printf
+  /* "uploader.pyx":9
+ * from cython.operator import dereference, postincrement
  * 
  * import numpy as np             # <<<<<<<<<<<<<<
  * cimport numpy as np
  * 
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 10, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(1, 10, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(1, 9, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "uploader.pyx":1
@@ -11371,37 +11834,6 @@ static void __Pyx_ReleaseBuffer(Py_buffer *view) {
     }
 
 /* CIntToPy */
-  static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
-    const long neg_one = (long) ((long) 0 - (long) 1), const_zero = (long) 0;
-    const int is_unsigned = neg_one > const_zero;
-    if (is_unsigned) {
-        if (sizeof(long) < sizeof(long)) {
-            return PyInt_FromLong((long) value);
-        } else if (sizeof(long) <= sizeof(unsigned long)) {
-            return PyLong_FromUnsignedLong((unsigned long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(long) <= sizeof(unsigned PY_LONG_LONG)) {
-            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
-#endif
-        }
-    } else {
-        if (sizeof(long) <= sizeof(long)) {
-            return PyInt_FromLong((long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(long) <= sizeof(PY_LONG_LONG)) {
-            return PyLong_FromLongLong((PY_LONG_LONG) value);
-#endif
-        }
-    }
-    {
-        int one = 1; int little = (int)*(unsigned char *)&one;
-        unsigned char *bytes = (unsigned char *)&value;
-        return _PyLong_FromByteArray(bytes, sizeof(long),
-                                     little, !is_unsigned);
-    }
-}
-
-/* CIntToPy */
   static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
     const int neg_one = (int) ((int) 0 - (int) 1), const_zero = (int) 0;
     const int is_unsigned = neg_one > const_zero;
@@ -11428,6 +11860,37 @@ static void __Pyx_ReleaseBuffer(Py_buffer *view) {
         int one = 1; int little = (int)*(unsigned char *)&one;
         unsigned char *bytes = (unsigned char *)&value;
         return _PyLong_FromByteArray(bytes, sizeof(int),
+                                     little, !is_unsigned);
+    }
+}
+
+/* CIntToPy */
+  static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
+    const long neg_one = (long) ((long) 0 - (long) 1), const_zero = (long) 0;
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(long) < sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(long) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(long) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(long) <= sizeof(long)) {
+            return PyInt_FromLong((long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(long) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+#endif
+        }
+    }
+    {
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        unsigned char *bytes = (unsigned char *)&value;
+        return _PyLong_FromByteArray(bytes, sizeof(long),
                                      little, !is_unsigned);
     }
 }
@@ -11960,6 +12423,195 @@ raise_neg_overflow:
     PyErr_SetString(PyExc_OverflowError,
         "can't convert negative value to int");
     return (int) -1;
+}
+
+/* CIntFromPy */
+  static CYTHON_INLINE size_t __Pyx_PyInt_As_size_t(PyObject *x) {
+    const size_t neg_one = (size_t) ((size_t) 0 - (size_t) 1), const_zero = (size_t) 0;
+    const int is_unsigned = neg_one > const_zero;
+#if PY_MAJOR_VERSION < 3
+    if (likely(PyInt_Check(x))) {
+        if (sizeof(size_t) < sizeof(long)) {
+            __PYX_VERIFY_RETURN_INT(size_t, long, PyInt_AS_LONG(x))
+        } else {
+            long val = PyInt_AS_LONG(x);
+            if (is_unsigned && unlikely(val < 0)) {
+                goto raise_neg_overflow;
+            }
+            return (size_t) val;
+        }
+    } else
+#endif
+    if (likely(PyLong_Check(x))) {
+        if (is_unsigned) {
+#if CYTHON_USE_PYLONG_INTERNALS
+            const digit* digits = ((PyLongObject*)x)->ob_digit;
+            switch (Py_SIZE(x)) {
+                case  0: return (size_t) 0;
+                case  1: __PYX_VERIFY_RETURN_INT(size_t, digit, digits[0])
+                case 2:
+                    if (8 * sizeof(size_t) > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) >= 2 * PyLong_SHIFT) {
+                            return (size_t) (((((size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0]));
+                        }
+                    }
+                    break;
+                case 3:
+                    if (8 * sizeof(size_t) > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) >= 3 * PyLong_SHIFT) {
+                            return (size_t) (((((((size_t)digits[2]) << PyLong_SHIFT) | (size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0]));
+                        }
+                    }
+                    break;
+                case 4:
+                    if (8 * sizeof(size_t) > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) >= 4 * PyLong_SHIFT) {
+                            return (size_t) (((((((((size_t)digits[3]) << PyLong_SHIFT) | (size_t)digits[2]) << PyLong_SHIFT) | (size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0]));
+                        }
+                    }
+                    break;
+            }
+#endif
+#if CYTHON_COMPILING_IN_CPYTHON
+            if (unlikely(Py_SIZE(x) < 0)) {
+                goto raise_neg_overflow;
+            }
+#else
+            {
+                int result = PyObject_RichCompareBool(x, Py_False, Py_LT);
+                if (unlikely(result < 0))
+                    return (size_t) -1;
+                if (unlikely(result == 1))
+                    goto raise_neg_overflow;
+            }
+#endif
+            if (sizeof(size_t) <= sizeof(unsigned long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(size_t, unsigned long, PyLong_AsUnsignedLong(x))
+#ifdef HAVE_LONG_LONG
+            } else if (sizeof(size_t) <= sizeof(unsigned PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(size_t, unsigned PY_LONG_LONG, PyLong_AsUnsignedLongLong(x))
+#endif
+            }
+        } else {
+#if CYTHON_USE_PYLONG_INTERNALS
+            const digit* digits = ((PyLongObject*)x)->ob_digit;
+            switch (Py_SIZE(x)) {
+                case  0: return (size_t) 0;
+                case -1: __PYX_VERIFY_RETURN_INT(size_t, sdigit, (sdigit) (-(sdigit)digits[0]))
+                case  1: __PYX_VERIFY_RETURN_INT(size_t,  digit, +digits[0])
+                case -2:
+                    if (8 * sizeof(size_t) - 1 > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, long, -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) - 1 > 2 * PyLong_SHIFT) {
+                            return (size_t) (((size_t)-1)*(((((size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0])));
+                        }
+                    }
+                    break;
+                case 2:
+                    if (8 * sizeof(size_t) > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) - 1 > 2 * PyLong_SHIFT) {
+                            return (size_t) ((((((size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0])));
+                        }
+                    }
+                    break;
+                case -3:
+                    if (8 * sizeof(size_t) - 1 > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, long, -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) - 1 > 3 * PyLong_SHIFT) {
+                            return (size_t) (((size_t)-1)*(((((((size_t)digits[2]) << PyLong_SHIFT) | (size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0])));
+                        }
+                    }
+                    break;
+                case 3:
+                    if (8 * sizeof(size_t) > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) - 1 > 3 * PyLong_SHIFT) {
+                            return (size_t) ((((((((size_t)digits[2]) << PyLong_SHIFT) | (size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0])));
+                        }
+                    }
+                    break;
+                case -4:
+                    if (8 * sizeof(size_t) - 1 > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, long, -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) - 1 > 4 * PyLong_SHIFT) {
+                            return (size_t) (((size_t)-1)*(((((((((size_t)digits[3]) << PyLong_SHIFT) | (size_t)digits[2]) << PyLong_SHIFT) | (size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0])));
+                        }
+                    }
+                    break;
+                case 4:
+                    if (8 * sizeof(size_t) > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) - 1 > 4 * PyLong_SHIFT) {
+                            return (size_t) ((((((((((size_t)digits[3]) << PyLong_SHIFT) | (size_t)digits[2]) << PyLong_SHIFT) | (size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0])));
+                        }
+                    }
+                    break;
+            }
+#endif
+            if (sizeof(size_t) <= sizeof(long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(size_t, long, PyLong_AsLong(x))
+#ifdef HAVE_LONG_LONG
+            } else if (sizeof(size_t) <= sizeof(PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(size_t, PY_LONG_LONG, PyLong_AsLongLong(x))
+#endif
+            }
+        }
+        {
+#if CYTHON_COMPILING_IN_PYPY && !defined(_PyLong_AsByteArray)
+            PyErr_SetString(PyExc_RuntimeError,
+                            "_PyLong_AsByteArray() not available in PyPy, cannot convert large numbers");
+#else
+            size_t val;
+            PyObject *v = __Pyx_PyNumber_IntOrLong(x);
+ #if PY_MAJOR_VERSION < 3
+            if (likely(v) && !PyLong_Check(v)) {
+                PyObject *tmp = v;
+                v = PyNumber_Long(tmp);
+                Py_DECREF(tmp);
+            }
+ #endif
+            if (likely(v)) {
+                int one = 1; int is_little = (int)*(unsigned char *)&one;
+                unsigned char *bytes = (unsigned char *)&val;
+                int ret = _PyLong_AsByteArray((PyLongObject *)v,
+                                              bytes, sizeof(val),
+                                              is_little, !is_unsigned);
+                Py_DECREF(v);
+                if (likely(!ret))
+                    return val;
+            }
+#endif
+            return (size_t) -1;
+        }
+    } else {
+        size_t val;
+        PyObject *tmp = __Pyx_PyNumber_IntOrLong(x);
+        if (!tmp) return (size_t) -1;
+        val = __Pyx_PyInt_As_size_t(tmp);
+        Py_DECREF(tmp);
+        return val;
+    }
+raise_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "value too large to convert to size_t");
+    return (size_t) -1;
+raise_neg_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "can't convert negative value to size_t");
+    return (size_t) -1;
 }
 
 /* CIntFromPy */

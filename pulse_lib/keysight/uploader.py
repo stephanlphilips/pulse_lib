@@ -1,7 +1,6 @@
 import threading as th
 import numpy as np
 import time
-from pulse_lib.keysight.AWG_memory_manager import Memory_manager
 from pulse_lib.keysight.uploader_core.uploader import waveform_cache_container,waveform_upload_chache
 def mk_thread(function):
     def wrapper(*args, **kwargs):
@@ -161,13 +160,15 @@ class keysight_uploader():
 			# TODO later
 
 			# 4a+b)
-			self.cpp_uploader.add_upload_data(waveform_cache)
+			upload_data = self.cpp_uploader.add_upload_data(waveform_cache)
+			self.upload_done
+			
 			end3 = time.time()
 			print("time needed to render and compenstate",end3 - start)
 			print("rendering = ", end1 - start)
 			print("compensation = ", end2 - end1)
 			print("cpp conversion to short = ", end3 - end2)
-			
+			print(upload_data)
 
 
 class upload_job(object):
