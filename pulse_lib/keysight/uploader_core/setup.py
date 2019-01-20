@@ -9,9 +9,10 @@ if os.name == 'nt':
 	extensions = [
 		Extension("uploader", 
 			sources = ["uploader.pyx","mem_ctrl.cpp", "keysight_awg_post_processing_and_upload.cpp"],
-			include_dirs=[numpy.get_include(),"", ""],
+			include_dirs=[numpy.get_include(),"C://Program Files (x86)//Keysight//SD1//Libraries//include//cpp//",
+					"C://Program Files (x86)//Keysight//SD1//Libraries//include//common//"],
 			libraries=["SD1core", "SD1pxi"],
-			library_dirs=[""],
+			library_dirs=["C://Program Files (x86)//Keysight//SD1//shared//"],
 			language='c++',
 			extra_compile_args=['/openmp'],
 			)
