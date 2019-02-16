@@ -5,12 +5,11 @@ This is a simple pulse library that is made to work together with the Keysight A
 Features now include:
 * support for any pulse and sine waves (phase coherent atm)
 * Sequencing
-* delay in awg lines.
 * Fully multidimensional. Execute any command as a loop in any dimension.
 * Short and clean syntax. No sympy.
 * Native support for virtual gates
 * IQ toolkit and IQ virtual channels -- Full suppport for single sideband modulation (Along with PM/AM/FM)
-* High speed uploader that supports upload during playback.
+* High speed uploader for Keysight PXI systems which supports upload during playback.
 
 TODO list:
 * Update virtual gate matrix function
