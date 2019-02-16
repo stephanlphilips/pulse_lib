@@ -1,6 +1,6 @@
 # Introduction
 
-This is a simple pulse library that is made to work together with the Keysight AWG. The main motivation for this library was to have a very easy and structured way to make waveforms that is focussed towards choherent control on spin qubits. Attention is given to performance for the construction of the waveform. The construction should always be faster than upload time (this was challaging since the upload goes via pcie + python ..), as you would not want your expirment to be delayed by a slow pulse library. Performance critical parts are written in cython. Note that it is not the intention to support other AWG systems with this project (though the pulse builder should be genereric).
+This is a pulse library that is build to make pulses that are commonly used to control spin qubits coherenly. A lot of attention is given to performance, structure and ease of use. At the moment the library only has a back-end that is suited for Keysight PXI AWG systems
 
 Features now include:
 * support for any pulse and sine waves (phase coherent atm)
@@ -37,6 +37,7 @@ To install the uploading backend, you need to call:
 
 # Documentation
 Documentation for the library can be found at:
+
 https://qtwiki.tudelft.nl/pulse_lib
 
 # Initializing the library
