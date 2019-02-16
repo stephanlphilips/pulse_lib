@@ -3,8 +3,7 @@
 This is a pulse library that is build to make pulses that are commonly used to control spin qubits coherenly. A lot of attention is given to performance, structure and ease of use. At the moment the library only has a back-end that is suited for Keysight PXI AWG systems
 
 Features now include:
-* support for any pulse and sine waves (phase coherent atm)
-* Sequencing
+* support for arbitrary pulse/sine wave based sequences (phase coherent atm)
 * Fully multidimensional. Execute any command as a loop in any dimension.
 * Short and clean syntax. No sympy.
 * Native support for virtual gates
