@@ -249,10 +249,6 @@ class segment_single():
 	def add_np(self,start, array):
 		raise NotImplemented
 
-	@property
-	def shape(self):
-		return self.data.shape
-	
 	def __add__(self, other):
 		'''
 		define addition operator for segment_single
@@ -336,6 +332,9 @@ class segment_single():
 		other_loopobj = loop_obj()
 		other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)))
 
+		print(other_loopobj.shape)
+		print(other_loopobj.axis)
+
 		self.__append(other_loopobj, time)
 
 		return self
@@ -355,14 +354,14 @@ class segment_single():
 
 	@last_edited
 	@loop_controller
-	def slice_time(self, start_time, stop_time):
+	def cut_segment(self, start_time, stop_time):
 		"""
-		Cuts parts out of a segment.
+		Cut parts out of a segment.
 		Args:
 			start_time (double) : effective new start time
 			stop_time (double) : new ending time of the segment
 
-		The slice_time function allows you to cut a waveform in different sizes.
+		The cut function allows you to cut a waveform in different sizes.
 		This function should be handy for debugging, example usage would be, 
 		You are runnning an algorithm and want to check what the measurement outcomes are though the whole algorithm.
 		Pratically, you want to know

@@ -17,13 +17,13 @@ force right dimensions.
 
 class segment_container():
 	'''
-	Class containing all the single segments for for a series of channels.
+    Class containing all the single segments for for a series of channels.
 	This is a organisational class.
 	Class is capable of checking wheather upload is needed.
 	Class is capable of termining what volatages are required for each channel.
 	Class returns vmin/vmax data to awg object
 	Class returns upload data as a numpy<double> array to awg object.
-	'''
+    '''
 	def __init__(self, real_channels, virtual_gates = None, IQ_channels=None):
 		# physical channels
 		self.r_channels = []
@@ -40,7 +40,7 @@ class segment_container():
 		self.prev_upload = datetime.datetime.utcfromtimestamp(0)
 
 		
-		# Not superclean -- should it be in a different namespace? -- what is the chance of a overlap?
+		# Not superclean should be in a different namespace.
 		for i in real_channels:
 			setattr(self, i, seg_base.segment_single(i))
 			self.channels.append(i)
@@ -77,26 +77,6 @@ class segment_container():
 					getattr(self, IQ_channels['vIQ_channels'][i]), 'Q')
 
 	@property
-	def shape(self):
-		'''
-		get combined shape of all the waveforms
-		'''
-		my_shape = (1,)
-		for i in self.channels:
-			dim = getattr(self, i).shape
-			my_shape = find_common_dimension(my_shape, dim)
-
-		return my_shape
-		
-	@property
-	def last_mod(self):
-		time = datetime.datetime.utcfromtimestamp(0)
-		for i in self.channels:
-			if getattr(self, i, segment_single()).last_edit > time:
-				time = getattr(self, i, segment_single()).last_edit
-		return time
-
-	@property
 	def total_time(self,):
 		'''
 		get the total time that will be uploaded for this segment to the AWG
@@ -118,6 +98,14 @@ class segment_container():
 		return times
 
 	@property
+	def last_mod(self):
+		time = datetime.datetime.utcfromtimestamp(0)
+		for i in self.channels:
+			if getattr(self, i, segment_single()).last_edit > time:
+				time = getattr(self, i, segment_single()).last_edit
+		return time
+
+	@property
 	def Vmin_max_data(self):
 		if self.prev_upload < self.last_mod:
 
@@ -126,44 +114,6 @@ class segment_container():
 				self._Vmin_max_data[self.channels[i]]['v_max'] = getattr(self,self.channels[i]).v_max
 
 		return self._Vmin_max_data
-
-	def append(self, other, time=None):
-		'''
-		append other segments the the current ones in the container.
-		Args:
-			other (segment_container) : other segment to append
-		'''
-		if not isinstance(other, segment_container):
-			raise TypeError("segment_container object expected. Did you supply a single segment?")
-		if time == None:
-			times = self.total_time
-
-			time = lp.loop_obj()
-			time.add_data(times, list(range(len(times.shape)-1, -1,-1)))
-
-		for i in self.channels:
-			segment = getattr(self, i)
-			segment.append(getattr(other, i), time)
-
-	def slice_time(self, start, stop):
-		"""
-		slice time in a segment container
-		Args:
-			start (double) : start time of the slice
-			stop (double) : stop time of the slice
-
-		The slice_time function allows you to cut all the waveforms in the segment container in different sizes.
-		This function should be handy for debugging, example usage would be, 
-		You are runnning an algorithm and want to check what the measurement outcomes are though the whole algorithm.
-		Pratically, you want to know
-			0 -> 10ns (@10 ns still everything as expected?)
-			0 -> 20ns
-			0 -> ...
-		This function would allow you to do that, e.g. by calling segment_container.cut_segment(0, lp.linspace(10,100,9))
-		"""
-		for i in self.channels:
-			segment = getattr(self, i)
-			segment.slice_time(start, stop)
 
 	def reset_time(self, extend_only = False):
 		'''
@@ -199,6 +149,21 @@ class segment_container():
 			np.ndarray[ndim=1, dtype=double] : waveform as a numpy array
 		'''
 		return getattr(self, channel).get_segment(index, pre_delay, post_delay, sample_rate)
+		
+	def clear_chache(self):
+		raise NotImplemented
+
+	@property
+	def shape(self):
+		'''
+		get combined shape of all the waveforms
+		'''
+		my_shape = (1,)
+		for i in self.channels:
+			dim = getattr(self, i).data.shape
+			my_shape = find_common_dimension(my_shape, dim)
+
+		return my_shape
 
 	def extend_dim(self, shape=None, ref = False):
 		'''
@@ -239,18 +204,29 @@ class segment_container():
 			getattr(self, i).render_mode =  False
 			getattr(self, i)._pulse_data_all = None
 
-if __name__ == '__main__':
-	import pulse_lib.segments.looping as lp
-	a = segment_container(["a", "b"])
-	b = segment_container(["a", "b"])
+	def append(self, other, time=None):
+		'''
+		append other segments the the current one.
+		Args:
+			other (segment_container) : other segment to append
+		'''
+		if not isinstance(other, segment_container):
+			raise TypeError("segment_container object expected. Did you supply a single segment?")
+		if time == None:
+			times = self.total_time
 
-	b.a.add_block(0,lp.linspace(50,100,10),100)
-	b.a.reset_time()
+			time = lp.loop_obj()
+			time.add_data(times, list(range(len(times.shape)-1, -1,-1)))
 
-	b.a.add_block(20,lp.linspace(50,100,10),100)
+		for i in self.channels:
+			segment = getattr(self, i)
+			segment.append(getattr(other, i), time)
 
-	a.append(b,10)
+import pulse_lib.segments.looping as lp
+a = segment_container(["a", "b"])
+b = segment_container(["a", "b"])
+test = lp.linspace(50,100,10)
 
-	a.slice_time(0,lp.linspace(80,100,10))
-	print(a.shape)
-	print(a.a.data[2,2,2].my_pulse_data)
+b.a.add_block(0,test,100)
+a.append(b,10)
+print(a.a.data[0].my_pulse_data)

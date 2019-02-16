@@ -11,7 +11,7 @@ def find_common_dimension(dim_1, dim_2):
 		dim_1 (list/tuple) : list with dimensions of a first data object
 		dim_2 (list/tuple) : list with dimensions of a second data object
 	Returns:
-		dim_comb (tuple) : the common dimensions of the of both dimensions provided
+		dim_comb (list) : the common dimensions of the of both dimensions provided
 
 	Will raise error is dimensions are not compatible
 	'''
@@ -40,7 +40,7 @@ def find_common_dimension(dim_1, dim_2):
 			else:
 				raise ValueError("Error in combining dimensions of two data objects. This error is most likely caused by looping over two variables with different dimensions along the same axis.")
 
-	return tuple(dim_comb[::-1])
+	return dim_comb[::-1]
 
 def update_dimension(data, new_dimension_info, use_ref = False):
 	'''
@@ -260,15 +260,9 @@ def get_new_dim_loop(current_dim, axis, shape):
 	current_dim = list(current_dim)
 	new_dim = []
 	if axis == -1:
-		# assume if last dimension has size 1, that you want to extend this direction.
-		if current_dim[-1] == 1:
-			new_dim = current_dim
-			new_dim[-1] = shape
-			axis = len(new_dim) - 1
-		else:
-			new_dim = [shape] + current_dim
-			# assign new axis.
-			axis = len(new_dim) - 1
+		new_dim = [shape] + current_dim
+		# assign new axis.
+		axis = len(new_dim) - 1
 	else:
 		if axis >= len(current_dim):
 			new_dim = [1]*(axis+1)

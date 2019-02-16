@@ -98,5 +98,5 @@ class linspace(loop_obj):
 	"""docstring for linspace"""
 	def __init__(self, start, stop, n_steps = 50, name = "undefined", unit = 'a.u.', axis = -1):
 		super().__init__()
-		super().add_data(np.linspace(start, stop, n_steps), axis = axis, names = name, units = unit)
+		super().add_data(np.linspace(start, stop, n_steps), axis = [axis], names = [name], units = [unit])
 

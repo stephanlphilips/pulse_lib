@@ -15,3 +15,4 @@ pulse_lib/segments/segments.py
 pulse_lib/segments/segments_IQ.py
 pulse_lib/segments/segments_base.py
 pulse_lib/segments/segments_c_func.c
+pulse_lib/segments/test.py
