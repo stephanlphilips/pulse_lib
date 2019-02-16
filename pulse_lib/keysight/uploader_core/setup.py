@@ -6,7 +6,7 @@ import numpy
 extensions = [
     Extension("uploader", 
     	sources = ["uploader.pyx","mem_ctrl.cpp", "keysight_awg_post_processing_and_upload.cpp"],
-        include_dirs=[numpy.get_include(),"/usr/local/include/Keysight/SD1/cpp", "/usr/local/include/Keysight/SD1/common"],
+        include_dirs=[numpy.get_include(),"/usr/local/include/Keysight/SD1", ],
         libraries=["SD1core", "SD1pxi", "gomp", "boost_python37"],
         library_dirs=["/usr/local/lib/Keysight/SD1/"],
         language='c++',

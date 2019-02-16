@@ -206,3 +206,11 @@ class segment_container():
 		for i in self.channels:
 			getattr(self, i).render_mode =  False
 			getattr(self, i)._pulse_data_all = None
+
+	def append(self, other):
+		'''
+		append other segments the the current one.
+		Args:
+			other (segment_container) : other segment to append
+		'''
+		pass

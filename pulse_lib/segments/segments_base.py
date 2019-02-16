@@ -3,7 +3,7 @@ import datetime
 
 from pulse_lib.segments.data_handling_functions import loop_controller, get_union_of_shapes, update_dimension
 from pulse_lib.segments.data_classes import pulse_data, data_container, get_effective_point_number
-
+from pulse_lib.segments.looping import loop_obj
 import copy
 
 import matplotlib.pyplot as plt
@@ -48,6 +48,8 @@ class segment_single():
 		self.IQ_ref_channels = []
 		# local copy of self that will be used to count up the virtual gates.
 		self._pulse_data_all = None
+		# data caching variable. Used for looping and so on (with a decorator approach)
+		self.data_tmp = None
 		# variable specifing the lastest time the pulse_data_all is updated
 		self.last_render = datetime.datetime.now() 
 
@@ -129,7 +131,6 @@ class segment_single():
 			amplitude : total hight of the ramp, starting from the base point
 			keep_amplitude : when pulse is done, keep reached amplitude for time infinity
 		'''
-
 		if keep_amplitude == False:
 			if start != 0:
 				pulse = np.array([[0,0], [start + self.data_tmp.start_time, 0], [stop + self.data_tmp.start_time, amplitude], [stop + self.data_tmp.start_time, 0]], dtype=np.double)
@@ -172,7 +173,9 @@ class segment_single():
 			phase_offset (double) : offset in phase is needed
 		'''
 		self.data_tmp.add_sin_data(
-			{'start_time' : start + self.data_tmp.start_time,
+			{
+			'type' : 'std', 
+			'start_time' : start + self.data_tmp.start_time,
 			'stop_time' : stop + self.data_tmp.start_time,
 			'amplitude' : amp,
 			'frequency' : freq,
@@ -276,7 +279,7 @@ class segment_single():
 		'''
 		muliplication operator for segment_single
 		'''
-		new_segment = segment_single()
+		new_segment = segment_single(self.name)
 		
 		if type(other) is segment_single:
 			shape1 = self.data.shape
@@ -298,27 +301,66 @@ class segment_single():
 	def __truediv__(self, other):
 		raise NotImplemented
 
+	def __getitem__(self, key):
+		'''
+		get sub_item of this sequence (note no copying, just referencing)
+		Args:
+			key (int) : get i'th element
+		Note you cannot access this as a numpy operator, so [0,0] would be [0][0] .. (this is a python limitation)
+		'''
+		item = segment_single(self.name)
+		item.type = self.type
+
+		item.render_mode = self.render_mode 
+		item._last_edit = self._last_edit
+		item.data = self.data[key]
+
+		item.reference_channels = self.reference_channels 
+		item.IQ_ref_channels = self.IQ_ref_channels
+
+		return item
+
 	@last_edited
-	@loop_controller
 	def append(self, other, time = None):
 		'''
 		Put the other segment behind this one.
 		Args:
 			other (segment_single) : the segment to be appended
-			time (double) : attach at the given time (if None, append at total_time of the segment)
-		'''
-		if time is None:
-			self.append(other, self.total_time)
-		else:
-			# append pulse_data
-			self.data_tmp
+			time (double/loop_obj) : attach at the given time (if None, append at total_time of the segment)
 
-			# append sine data
+		A time reset will be done after the other segment is added.
+		TODO: transfer of units
+		'''
+		other_loopobj = loop_obj()
+		other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)))
+
+		print(other_loopobj.shape)
+		print(other_loopobj.axis)
+
+		self.__append(other_loopobj, time)
+
+		return self
+
+	@loop_controller
+	def __append(self, other, time):
+		"""
+		Put the other segment behind this one (for single segment data object)
+		Args:
+			other (segment_single) : the segment to be appended
+			time (double/loop_obj) : attach at the given time (if None, append at total_time of the segment)
+		"""
+		if time is None:
+			time = self.data_tmp.total_time
+
+		self.data_tmp.append(other, time)
+		
 
 	def prepend(self, other):
 		'''
 		Insert other before the current waveform
 		'''
+		raise NotImplemented
+
 	@property
 	def total_time(self,):
 		return self.data.total_time
@@ -427,8 +469,8 @@ class segment_single():
 			flat_index = np.ravel_multi_index(tuple(index), self.data.shape)
 			pulse_data_curr_seg = self.data.flat[flat_index]
 
-		y = pulse_data_curr_seg.render(0, pulse_data_curr_seg.total_time, sample_rate)
-		x = np.linspace(0, pulse_data_curr_seg.total_time*sample_time_step-sample_time_step, len(y))
+		y = pulse_data_curr_seg.render(0, 0, sample_rate)
+		x = np.linspace(0, pulse_data_curr_seg.total_time*sample_time_step-sample_time_step, len(y))*1e9
 
 		plt.plot(x,y, label=self.name)
 		# plt.show()

@@ -57,7 +57,7 @@ def update_dimension(data, new_dimension_info, use_ref = False):
 
 	for i in range(len(new_dimension_info)):
 		if data.ndim < i+1:
-			data = _add_dimensions(data, new_dimension_info[-i-1:])
+			data = _add_dimensions(data, new_dimension_info[-i-1:], use_ref)
 
 		elif list(data.shape)[-i -1] != new_dimension_info[-i -1]:
 			shape = list(data.shape)
@@ -190,7 +190,7 @@ def loop_controller(func):
 				'axis': kwargs[key].axis,
 				'data' : kwargs[key].data}
 				loop_info_kwargs.append(info)
-		
+
 		for lp in loop_info_args:
 			for i in range(len(lp['axis'])-1,-1,-1):
 				new_dim, axis = get_new_dim_loop(obj.data.shape, lp['axis'][i], lp['shape'][i])
@@ -232,10 +232,10 @@ def loop_over_data(func, data, args, args_info, kwargs, kwargs_info):
 	for i in range(shape[0]):
 		for arg in args_info:
 			if n_dim-1 in arg['axis']:
-				args_cpy[arg['nth_arg']] = args[arg['nth_arg']].data[i]
+				args_cpy[arg['nth_arg']] = args[arg['nth_arg']][i]
 		for kwarg in kwargs_info:
 			if n_dim-1 in kwarg['axis']:
-				kwargs_cpy[kwargs_info['nth_arg']] = kwargs[kwargs_info['nth_arg']].data[i]
+				kwargs_cpy[kwargs_info['nth_arg']] = kwargs[kwargs_info['nth_arg']][i]
 
 		if n_dim == 1:
 			# we are at the lowest level of the loop.
@@ -252,7 +252,7 @@ def get_new_dim_loop(current_dim, axis, shape):
 	Args:
 		current_dim [tuple/array] : current dimensions of the data object. 
 		axis [int] : on which axis to put the new loop dimension.
-		len [int] : the number of elements that a are along that loop axis.
+		shape [int] : the number of elements that a are along that loop axis.
 	
 	Returns:
 		new_dim [array] : new dimensions of the data obeject when one would include the loop spec
@@ -280,7 +280,7 @@ def get_new_dim_loop(current_dim, axis, shape):
 				raise ValueError("Dimensions on loop axis {} not compatible with previous loops\n\
 					(current dimensions is {}, wanted is {}).\n\
 					Please change loop axis or update the length.".format(axis,
-					current_dim[axis], shape))
+					current_dim[-axis-1], shape))
 
 	return new_dim, axis
 

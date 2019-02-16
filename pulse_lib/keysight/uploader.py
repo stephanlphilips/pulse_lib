@@ -160,15 +160,16 @@ class keysight_uploader():
 			# TODO later
 
 			# 4a+b)
-			upload_data = self.cpp_uploader.add_upload_data(waveform_cache)
-			self.upload_done
-			
+			job.upload_data = self.cpp_uploader.add_upload_data(waveform_cache)
+
+			# submit the current job as completed.
+			self.upload_done.append(job)
+
 			end3 = time.time()
 			print("time needed to render and compenstate",end3 - start)
 			print("rendering = ", end1 - start)
 			print("compensation = ", end2 - end1)
 			print("cpp conversion to short = ", end3 - end2)
-			print(upload_data)
 
 
 class upload_job(object):
@@ -189,6 +190,7 @@ class upload_job(object):
 		self.neutralize = True
 		self.priority = priority
 		self.DSP = False
+		self.upload_data = None
 	
 	def add_dsp_function(self, DSP):
 		self.DSP =True

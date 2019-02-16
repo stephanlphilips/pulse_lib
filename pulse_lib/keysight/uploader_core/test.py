@@ -59,17 +59,5 @@ t.add_upload_data(c)
 stop = time.time()
 print("time eplaced = {}".format(stop-s))
 
-# def rescale(wfv, Vmin, Vmax):
-# 	voff = (Vmax  + Vmin)/2
-# 	vpp  = (Vmax - Vmin)
-# 	bitscale = 65535
-# 	single_bit_step = 0.5/65535
-# 	offset_factor = voff + single_bit_step*vpp
-# 	rescaling_factor = bitscale/vpp
-
-# 	return (wfv - offset_factor)*rescaling_factor
-
-# print(rescale(np.linspace(0,1,50), 0,1))
-
 
 

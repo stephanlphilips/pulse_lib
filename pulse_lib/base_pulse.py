@@ -105,7 +105,7 @@ class pulselib:
 			awg (object) : qcodes object of the concerning AWG
 		'''
 		self.awg_devices[name] =awg
-		self.cpp_uploader.add_awg_module(name, awg)
+		# self.cpp_uploader.add_awg_module(name, awg)
 
 	def add_virtual_gates(self, virtual_gates):
 		'''

@@ -13,8 +13,7 @@
         ],
         "include_dirs": [
             "/usr/lib/python3.7/site-packages/numpy/core/include",
-            "/usr/local/include/Keysight/SD1/cpp",
-            "/usr/local/include/Keysight/SD1/common"
+            "/usr/local/include/Keysight/SD1"
         ],
         "language": "c++",
         "libraries": [

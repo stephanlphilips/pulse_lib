@@ -29,6 +29,77 @@ class pulse_data():
     def add_numpy_data(self, input):
         raise NotImplemented
 
+    def slice_time(self, start, end):
+        '''
+        slice the time in the pulse data object.
+        Args:
+            start (double) : new starting time of the pulse (>= 0)
+            end (double) : new end time of the pulse.
+        Note that the start and end point of the slice will correspond to the zero base level of the pulse.
+        (you can set the base level by doing my_segment += <double> base_level)
+        '''
+        if start < 0 :
+            raise ValueError("Error slicing pulse, start time of a pulse cannot be smaller than 0!")
+
+        # make sure we have data points of start and end in my_pulse_data:
+        fake_pulse = np.zeros([2,2], np.double)
+        fake_pulse[0,0] = start
+        fake_pulse[1,0] = end
+
+        self.my_pulse_data = self._add_up_pulse_data(fake_pulse)
+
+        start_idx = np.where(self.my_pulse_data[:,0] == start)[0][0]
+        end_idx = np.where(self.my_pulse_data[:,0] == end)[0][0] +1
+
+        self.my_pulse_data = self.my_pulse_data[start_idx:end_idx]
+        self.my_pulse_data[:,0] -= start
+
+        self.__slice_sin_data(self.sin_data, start, end)
+
+    @staticmethod
+    def __slice_sin_data(sin_data, start, end):
+        '''
+        slice sin_data
+        Args:
+            sin_data (list<dict>) : object that contains a dict describing a sinus-based pulse
+            start (double) : enforced minimal starting time
+            end (double) : enforced max time
+        '''
+
+        new_sin_data = []
+
+        for i in sin_data:
+            if i['start_time'] < start:
+                i['start_time'] = start
+            if i['stop_time'] > end:
+                i['stop_time'] = end
+
+            if i['start_time'] < i['stop_time']:
+                i['start_time'] -= start
+                i['stop_time'] -= start
+                new_sin_data.append(i)
+
+        sin_data = new_sin_data
+
+    def _shift_all_time(self, time_shift):
+        '''
+        Make a copy of all the data and shift all the time
+
+        Args:
+            time_shift (double) : shift the time
+        Returns:
+            data_copy_shifted (pulse_data) : copy of own data
+        '''
+        if time_shift <0 :
+            raise ValueError("when shifting time, you cannot make negative times. Apply a positive shift.")
+        data_copy_shifted = copy.copy(self)
+        data_copy_shifted.my_pulse_data[:,0] += time_shift
+
+        for i in self.sin_data:
+            i['start_time'] += time_shift
+            i['stop_time'] += time_shift
+
+        return data_copy_shifted
     @property
     def total_time(self,):
         total_time = 0
@@ -164,7 +235,7 @@ class pulse_data():
             if t0 > t_tot:
                 continue
             elif t1 > t_tot + sample_time_step:
-                if self.my_pulse_data[i,:] == self.my_pulse_data[i+1,:]:
+                if self.my_pulse_data[i,1] == self.my_pulse_data[i+1,1]:
                     my_sequence[t0_pt + pre_delay_pt: t_tot_pt + pre_delay_pt] = self.my_pulse_data[i,1]
                 else:
                     val = py_calc_value_point_in_between(self.my_pulse_data[i,:], self.my_pulse_data[i+1,:], t_tot)
@@ -193,11 +264,14 @@ class pulse_data():
             start_t  = (start - pre_delay_pt)*sample_time_step
             stop_t  = (stop - pre_delay_pt)*sample_time_step
 
-            amp  =  sin_data_item['amplitude']
-            freq =  sin_data_item['frequency']
-            phase = sin_data_item['phase']
-            
-            my_sequence[start:stop] += amp*np.sin(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase)
+            if sin_data_item['type'] == 'std':
+                amp  =  sin_data_item['amplitude']
+                freq =  sin_data_item['frequency']
+                phase = sin_data_item['phase']
+                
+                my_sequence[start:stop] += amp*np.sin(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase)
+            else: 
+                raise ValueError("type of sin pulse not implemented. currently only standard pulses supported")
 
         stop = time.time()
 
@@ -301,6 +375,7 @@ class pulse_data():
         my_copy.my_pulse_data = copy.copy(self.my_pulse_data)
         my_copy.sin_data = copy.copy(self.sin_data)
         my_copy.numpy_data = copy.copy(self.numpy_data)
+        my_copy.start_time = copy.copy(self.start_time)
         return my_copy
 
     def __add__(self, other):
@@ -354,6 +429,35 @@ class pulse_data():
         
         return new_data
 
+    def append(self, other, time):
+        '''
+        Append two segments to each other, where the other segment is places after the first segment. Time is the total time of the first segment.
+        Args:
+            other (pulse_data) : other pulse data object to be appended
+            time (double/None) : length that the first segment should be.
+
+        ** what to do with start time argument?
+        '''
+
+        self.slice_time(0, time)
+
+        other_time_shifted = other._shift_all_time(time)
+        new_sin_data =  self.sin_data +  other_time_shifted.sin_data
+
+        len_pulse_a = len(self.my_pulse_data)
+        if len_pulse_a > 2 and self.my_pulse_data[-1,0] == self.my_pulse_data[-2,0]:
+                len_pulse_a -= 1
+        len_pulse_b = len(other_time_shifted.my_pulse_data)
+        if len_pulse_b > 2 and other_time_shifted.my_pulse_data[0,0] == other_time_shifted.my_pulse_data[1,0]:
+                len_pulse_b -= 1
+
+        new_pulse_data = np.zeros([len_pulse_a + len_pulse_b,2], dtype=np.double)
+        new_pulse_data[:len_pulse_a] = self.my_pulse_data[:len_pulse_a]
+        new_pulse_data[len_pulse_a:] = other_time_shifted.my_pulse_data[-len_pulse_b:]
+
+        self.my_pulse_data = new_pulse_data
+        self.sin_data = new_sin_data
+
 class IQ_data(pulse_data):
     """
     class that manages the data used for generating IQ data
@@ -376,6 +480,87 @@ class IQ_data(pulse_data):
 
     def add_numpy_IQ(self, input_dict):
         self.numpy_IQ_data.append(input_dict)
+
+    def slice_time(self, start, end):
+        '''
+        slice time in IQ_data class
+        Args:
+            start (double) : new start time of the pulse
+            end (duoble) : new end time of the pulse
+        '''
+        super().slice_time(start, end)
+
+        super().__slice_sin_data(self.simple_IQ_data, start, end)
+        super().__slice_sin_data(self.MOD_IQ_data, start, end)
+        super().__slice_sin_data(self.numpy_IQ_data, start, end)
+
+    def _shift_all_time(self, time_shift):
+        '''
+        Make a copy of all the data and shift all the time
+
+        Args:
+            time_shift (double) : shift the time
+        Returns:
+            data_copy_shifted (pulse_data) : copy of own data
+        '''
+        data_copy_shifted = super()._shift_all_time(time_shift)
+
+        data_copy_shifted._shift_time_IQ_data_obj(data_copy_shifted.simple_IQ_data)
+        data_copy_shifted._shift_time_IQ_data_obj(data_copy_shifted.MOD_IQ_data)
+        data_copy_shifted._shift_time_IQ_data_obj(data_copy_shifted.numpy_IQ_data)
+
+        return data_copy_shifted
+
+    def _shift_all_phases(self, phase):
+        """
+        shift all phases present in this object.
+        Args:
+            phase (double) : the amound of microwave phase you want to move around.
+        """
+        self.global_phase += phase
+        self._shift_phase_IQ_data_obj(self.simple_IQ_data, phase)
+        self._shift_phase_IQ_data_obj(self.MOD_IQ_data, phase)
+        self._shift_phase_IQ_data_obj(self.numpy_IQ_data, phase)
+
+    @staticmethod
+    def _shift_phase_IQ_data_obj(data, phase):
+        """
+        shift phase in a data list of microwave IQ signals
+        Args:
+            phase (double) : the amound of microwave phase you want to move around.
+        """
+        for i in data_cpy:
+            i['phase'] += phase
+
+
+    @staticmethod
+    def _shift_time_IQ_data_obj(data, time_shift):
+        """
+        shift time in a data list of microwave IQ signals
+        Args:
+            data (list<dict>) : data object, e.g. self.simple_IQ_data
+            time_shift (double) : time to be shifted
+        """
+        for i in data_cpy:
+            i['start_time'] += time_shift
+            i['stop_time'] += time_shift
+
+    def append(self, other, time):
+        '''
+        Append two segments to each other, where the other segment is places after the first segment. Time is the total time of the first segment.
+        Args:
+            other (pulse_data) : other pulse data object to be appended
+            time (double/None) : length that the first segment should be.
+        '''
+        super().append(other, time)
+
+        other_time_shifted = other._shift_all_time(time)
+        other_time_shifted._shift_all_phases(self.global_phase)
+
+        self.simple_IQ_data += other_time_shifted.simple_IQ_data   
+        self.MOD_IQ_data += other_time_shifted.MOD_IQ_data   
+        self.numpy_IQ_data += other_time_shifted.numpy_IQ_data   
+
 
     @property
     def total_time(self,):
@@ -408,6 +593,9 @@ class IQ_data(pulse_data):
         self.add_pulse_data(pulse)
 
     def __copy__(self,):
+        '''
+        make a copy of self.
+        '''
         my_copy = IQ_data(self.LO)
         my_copy.simple_IQ_data = copy.copy(self.simple_IQ_data)
         my_copy.MOD_IQ_data = copy.copy(self.MOD_IQ_data)
@@ -484,6 +672,3 @@ def get_effective_point_number(time, time_step):
         n_pt += 1
 
     return int(n_pt)
-
-
-

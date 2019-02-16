@@ -1,5 +1,5 @@
 import numpy as np 
-
+import copy
 
 class loop_obj():
 	"""object that initializes some standard fields that need to be there in a loop object"""
@@ -15,7 +15,7 @@ class loop_obj():
 		self.dtype = self.data.dtype
 
 		if axis is None:
-			self.axis = [-1]*len(self.data)
+			self.axis = [-1]*len(self.data.shape)
 		elif type(axis) == int:
 			self.axis = [axis]
 		else:
@@ -48,8 +48,12 @@ class loop_obj():
 	def shape(self):
 		return self.data.shape
 
+	@property
+	def ndim(self):
+		return self.data.ndim
+
 	def __getitem__(self, key):
-		if len(self.axis) == 1:
+		if self.ndim == 1:
 			return self.data[key]
 		else:
 			partial = loop_obj()
@@ -61,17 +65,35 @@ class loop_obj():
 			return partial
 
 	def __add__(self, other):
-		self.data += other
+		cpy = copy.copy(self)
+		cpy.data += other
+		return cpy
 	def __mul__(self, other):
-		self.data *= other
+		cpy = copy.copy(self)
+		cpy.data *= other
+		return cpy
 
 	def __sub__(self, other):
-		self.data -= other
+		cpy = copy.copy(self)
+		cpy.data -= other
+		return cpy
 	def __truediv__(self, other):
-		self.data += self.data/other
+		cpy = copy.copy(self)
+		cpy.data += self.data/other
+		return cpy
+
+	def __copy__(self):
+		cpy = loop_obj()
+		cpy.names = copy.copy(self.names)
+		cpy.units = copy.copy(self.units)
+		cpy.axis = copy.copy(self.axis)
+		cpy.dtype = copy.copy(self.dtype)
+
+		if hasattr(self, 'data'):
+			cpy.data= copy.copy(self.data)
+		return cpy
 
 
-	
 class linspace(loop_obj):
 	"""docstring for linspace"""
 	def __init__(self, start, stop, n_steps = 50, name = "undefined", unit = 'a.u.', axis = -1):
@@ -81,7 +103,5 @@ class linspace(loop_obj):
 		self.names = [name]
 		self.units = [unit]
 		self.axis = [axis]
-
-
 
 

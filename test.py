@@ -2,6 +2,16 @@ from pulse_lib.base_pulse import pulselib
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+
+
+
+
+
+
+
+
+
 # w1 = 10e6*np.pi*2
 # w2 = 10.1e6*np.pi*2
 # phase = np.pi
@@ -19,11 +29,24 @@ import matplotlib.pyplot as plt
 # plt.show()
 p = pulselib()
 
+class AWG(object):
+	"""docstring for AWG"""
+	def __init__(self, name):
+		self.name = name
+		self.chassis = 0
+		self.slot = 0
+		self.type = "DEMO"
+
+AWG1 = AWG("AWG1")
+AWG2 = AWG("AWG2")
+AWG3 = AWG("AWG3")
+AWG4 = AWG("AWG4")
+
 # add to pulse_lib
-p.add_awgs('AWG1',None)
-p.add_awgs('AWG2',None)
-p.add_awgs('AWG3',None)
-p.add_awgs('AWG4',None)
+p.add_awgs('AWG1',AWG1)
+p.add_awgs('AWG2',AWG2)
+p.add_awgs('AWG3',AWG3)
+p.add_awgs('AWG4',AWG4)
 
 # define channels
 awg_channels_to_physical_locations = dict({'B0':('AWG1', 1), 'P1':('AWG1', 2),
@@ -55,7 +78,7 @@ awg_virtual_gates = {
 }
 p.add_virtual_gates(awg_virtual_gates)
 
-p.add_chanel_compenstation_limits({'P1': (-100,100),'P2': (-100,100),'B0': (-50,50),'B1': (-50,50)})
+p.add_channel_compenstation_limits({'P1': (-100,100),'P2': (-100,100),'B0': (-50,50),'B1': (-50,50)})
 awg_IQ_channels = {
 	'vIQ_channels' : ['qubit_1','qubit_2'],
 	'rIQ_channels' : [['I_MW1','Q_MW1'],['I_MW2','Q_MW2']],
@@ -89,8 +112,8 @@ seg1  = p.mk_segment()
 seg1.P1.add_block(0,1e4, P1_unload_Q2)
 seg1.P2.add_block(0,1e4, P2_unload_Q2)
 seg1.reset_time()
-seg1.P1.add_block(0,100e3, P1_hotspot)
-seg1.P2.add_block(0,100e3, P2_hotspot)
+seg1.P1.add_block(0,1e4, P1_hotspot)
+seg1.P2.add_block(0,1e4, P2_hotspot)
 seg1.reset_time()
 seg1.P2.add_block(0,3e4, P1_load_init_Q2)
 seg1.P2.add_block(0,3e4, P2_load_init_Q2)
@@ -148,14 +171,14 @@ seg2.qubit_2.wait(5)
 seg2.reset_time()
 
 
-# plt.figure()
-# seg2.I_MW1.plot_segment([0])
-# seg2.Q_MW1.plot_segment([0])
+plt.figure()
+seg2.I_MW1.plot_segment([0])
+seg2.Q_MW1.plot_segment([0])
 
 # seg2.I_MW2.plot_segment([0])
 # seg2.Q_MW2.plot_segment([0])
 
-# plt.legend()
+plt.legend()
 
 # plt.figure()
 # seg2.I_MW1.plot_segment([1])
@@ -228,17 +251,6 @@ seg3.P1.add_block(0,1e4, 0.4)
 # print(intgral)
 
 
-# t = np.linspace(0,400,50000)
-# k = np.empty(501000)
-# import time
-# start = time.time()
-# t = np.zeros([500000])
-# stop = time.time()
-# print(stop-start, len(t))
-
-
-
-
 # sequence using default settings
 sequence = [seg1,seg2,seg3]
 # same sequence using extended settings (n_rep = 1, prescalor = 1)
@@ -251,4 +263,5 @@ my_seq.upload([2])
 my_seq.upload([3])
 
 p.uploader.uploader()
+my_seq.play([0])
 

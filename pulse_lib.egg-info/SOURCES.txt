@@ -2,6 +2,7 @@ setup.py
 pulse_lib/__init__.py
 pulse_lib/base_pulse.py
 pulse_lib/keysight_fx.py
+pulse_lib/sequencer.py
 pulse_lib.egg-info/PKG-INFO
 pulse_lib.egg-info/SOURCES.txt
 pulse_lib.egg-info/dependency_links.txt
