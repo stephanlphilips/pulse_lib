@@ -16,7 +16,6 @@ TODO list:
 * Update virtual gate matrix function
 * Support for calibarion arguments? -- this should be engineered well.
 * HVI2 integration
-* cython/c++ object of keysight objects to fully release the GIL
 * add DSP module (must also be C++)
 
 TODO bugs and small things to fix,
