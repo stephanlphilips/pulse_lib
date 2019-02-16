@@ -19,9 +19,7 @@ TODO list:
 * add DSP module (must also be C++)
 
 TODO bugs and small things to fix,
-* make segments appendable - preendatable | make them splittable
 * deal with names and units of the loops + setpoints variable
-* make cut function
 
 !! keysight AWG's their waveforms need to have a length of modulo 10 !! (related to the clock of the AWG)
 --> segments are concatenated for this purose when uploading (e.g. upload happens in one big chunk)
