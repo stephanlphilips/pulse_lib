@@ -16,13 +16,35 @@ Features now include:
 	- IQ toolkit and IQ virtual channels -- Full suppport for single sideband modulation (Along with PM/AM/FM)
 	- High speed uploader for Keysight PXI systems which supports upload during playback.
 
-To get started, it is recomended to read through the following documents:
-
 .. toctree::
-   :maxdepth: 2
+   :caption: Getting started
+   :titlesonly:
 
-   intro
- 
+   struct
+   tutorials/init_lib
+   tutorials/simple_pulse
+   tutorials/MW_pulse
+   tutorials/sequence
+   tutorials/looping
+   tutorials/reset_time_and_slicing
+   tutorials/example_PT
+   tutorials/example_RB
+
+When using the library in combination with the keysight PXI AWG's, playback of the waveforms is also supported:
+	- How does a upload work? What are the different steps?
+	- Your first simple upload.
+	- Integrating HVI.
+	- More advanced upload options, running uploads at high speeds.
+
+An overview of all the functions in the classes can be found at
+	- sequence
+	- segment containers
+	- segment base
+	- segment IQ
+
+API documentation for developers
+	- Requesting data from the sequence object.
+
 
 
 

@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Introduction" href="intro.html" /> 
+    <link rel="next" title="Structure of the library" href="struct.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -77,8 +77,17 @@
               
             
             
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="struct.html">Structure of the library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/init_lib.html">Tutorial : Initializing the library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/simple_pulse.html">Tutorial : Making simple pulses for DC control of qubits.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/MW_pulse.html">Tutorial : Making pulses for Microwave control.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/sequence.html">Tutotial : Making from pulses a sequence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/looping.html">Tutorial : Looping variables.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/reset_time_and_slicing.html">Concepts : Reset time and slicing of waveforms.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/example_PT.html">Advanced Tutorial : Programming a process tomography experiment to characterize a two qubit gate.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/example_RB.html">Advanced Tutorial : Designing pulses for a Randomised Benchmarking experiment.</a></li>
 </ul>
 
             
@@ -159,12 +168,43 @@ A lot of attention is given to performance, structure and ease of use.</p>
 </ul>
 </dd>
 </dl>
-<p>To get started, it is recomended to read through the following documents:</p>
 <div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="struct.html">Structure of the library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/init_lib.html">Tutorial : Initializing the library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/simple_pulse.html">Tutorial : Making simple pulses for DC control of qubits.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/MW_pulse.html">Tutorial : Making pulses for Microwave control.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/sequence.html">Tutotial : Making from pulses a sequence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/looping.html">Tutorial : Looping variables.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/reset_time_and_slicing.html">Concepts : Reset time and slicing of waveforms.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/example_PT.html">Advanced Tutorial : Programming a process tomography experiment to characterize a two qubit gate.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/example_RB.html">Advanced Tutorial : Designing pulses for a Randomised Benchmarking experiment.</a></li>
 </ul>
 </div>
+<dl class="docutils">
+<dt>When using the library in combination with the keysight PXI AWG’s, playback of the waveforms is also supported:</dt>
+<dd><ul class="first last simple">
+<li>How does a upload work? What are the different steps?</li>
+<li>Your first simple upload.</li>
+<li>Integrating HVI.</li>
+<li>More advanced upload options, running uploads at high speeds.</li>
+</ul>
+</dd>
+<dt>An overview of all the functions in the classes can be found at</dt>
+<dd><ul class="first last simple">
+<li>sequence</li>
+<li>segment containers</li>
+<li>segment base</li>
+<li>segment IQ</li>
+</ul>
+</dd>
+<dt>API documentation for developers</dt>
+<dd><ul class="first last simple">
+<li>Requesting data from the sequence object.</li>
+</ul>
+</dd>
+</dl>
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
@@ -183,7 +223,7 @@ A lot of attention is given to performance, structure and ease of use.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="intro.html" class="btn btn-neutral float-right" title="Introduction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="struct.html" class="btn btn-neutral float-right" title="Structure of the library" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>

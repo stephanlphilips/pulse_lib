@@ -18,6 +18,16 @@ extensions = [
         include_dirs=[numpy.get_include()], 
         library_dirs=['/some/path/to/include/'],
     ),
+    Extension("pulse_lib.keysight.uploader_core.uploader", 
+            sources = ["pulse_lib/keysight/uploader_core/uploader.pyx",
+                    "pulse_lib/keysight/uploader_core/mem_ctrl.cpp", 
+                    "pulse_lib/keysight/uploader_core/keysight_awg_post_processing_and_upload.cpp"],
+            include_dirs=[numpy.get_include(),"/usr/local/include/Keysight/SD1/cpp", "/usr/local/include/Keysight/SD1/common"],
+            libraries=["SD1core", "SD1pxi", "gomp"],
+            library_dirs=["/usr/local/lib/Keysight/SD1/"],
+            language='c++',
+            extra_compile_args=['-fopenmp'],
+            )
 ]
 
 
