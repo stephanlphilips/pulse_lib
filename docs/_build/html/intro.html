@@ -1,0 +1,599 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Introduction &mdash; pulse lib 0.2 alpha documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to pulse lib’s documentation" href="index.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pulse lib
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pulse lib</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Introduction</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/intro.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-base_pulse">
+<span id="introduction"></span><h1>Introduction<a class="headerlink" href="#module-base_pulse" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="base_pulse.pulselib">
+<em class="property">class </em><code class="descclassname">base_pulse.</code><code class="descname">pulselib</code><a class="reference internal" href="_modules/base_pulse.html#pulselib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global class that is an organisational element in making the pulses.
+The idea is that you first make individula segments,
+you can than later combine them into a sequence, this sequence will be uploaded</p>
+<dl class="method">
+<dt id="base_pulse.pulselib.add_IQ_virt_channels">
+<code class="descname">add_IQ_virt_channels</code><span class="sig-paren">(</span><em>IQ_virt_channels</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_pulse.html#pulselib.add_IQ_virt_channels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.add_IQ_virt_channels" title="Permalink to this definition">¶</a></dt>
+<dd><p>function to define virtual IQ channels (a channel that combined the I and Q channel for MW applications):
+Args:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>IQ_virt_channels (dict): a dictionary that needs to contain the following keys:</dt>
+<dd>‘vIQ_channels’ : list of names of virtual IQ channels
+‘r_IQ_channels’: list of list, where in each list the two reference channels (I and Q) are denoted (see docs for example).
+‘LO_freq’(function/double) : local oscillating frequency of the source. Will be used to do automaticcally convert the freq a SSB signal.</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.add_awgs">
+<code class="descname">add_awgs</code><span class="sig-paren">(</span><em>name</em>, <em>awg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_pulse.html#pulselib.add_awgs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.add_awgs" title="Permalink to this definition">¶</a></dt>
+<dd><p>add a awg to the library
+Args:</p>
+<blockquote>
+<div>name (str) : name you want to give to a peculiar AWG
+awg (object) : qcodes object of the concerning AWG</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.add_channel_compenstation_limits">
+<code class="descname">add_channel_compenstation_limits</code><span class="sig-paren">(</span><em>limits</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_pulse.html#pulselib.add_channel_compenstation_limits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.add_channel_compenstation_limits" title="Permalink to this definition">¶</a></dt>
+<dd><p>add voltage limitations per channnel that can be used to make sure that the intragral of the total voltages is 0.
+Args:</p>
+<blockquote>
+<div>limits (dict) : dict with limits e.g. {‘B0’:(-100,500), … }</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>None</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.add_channel_delay">
+<code class="descname">add_channel_delay</code><span class="sig-paren">(</span><em>delays</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_pulse.html#pulselib.add_channel_delay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.add_channel_delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds to a channel a delay. 
+The delay is added by adding points in front of the first sequence/or 
+just after the last sequence. The first value of the sequence will be 
+taken as an extentsion point.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>delays: dict, e.g. {‘P1’:20, ‘P2’:16} delay P1 with 20 ns and P2 with 16 ns</dd>
+<dt>Returns:</dt>
+<dd>0/Error</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.add_virtual_gates">
+<code class="descname">add_virtual_gates</code><span class="sig-paren">(</span><em>virtual_gates</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_pulse.html#pulselib.add_virtual_gates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.add_virtual_gates" title="Permalink to this definition">¶</a></dt>
+<dd><p>define virtual gates for the gate set.
+Args:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>virtual_gates (dict): needs to have the following keys:</dt>
+<dd>‘virtual_gates_names_virt’ : should constain a list with the channel names of the virtual gates
+‘virtual_gates_names_real’ : should constain a list with the channel names of the read gates (should be as long as the virtual ones)
+‘virtual_gate_matrix’ : numpy array representing the virtual gate matrix</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.define_channels">
+<code class="descname">define_channels</code><span class="sig-paren">(</span><em>my_input</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_pulse.html#pulselib.define_channels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.define_channels" title="Permalink to this definition">¶</a></dt>
+<dd><p>define the channels and their location 
+Args:</p>
+<blockquote>
+<div>my_input (dict): dict of the channel name (str) as key and name of the instrument (as given in add_awgs()) (str) and channel (int) as tuple (e.g. {‘chan1’ : (‘AWG1’, 1), … })</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.mk_segment">
+<code class="descname">mk_segment</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_pulse.html#pulselib.mk_segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.mk_segment" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate a new segment.
+Returns:</p>
+<blockquote>
+<div>segment (segment_container) : returns a container that contains all the previously defined gates.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.mk_sequence">
+<code class="descname">mk_sequence</code><span class="sig-paren">(</span><em>seq</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_pulse.html#pulselib.mk_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.mk_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>seq: list of list, </dt>
+<dd>e.g. [ [‘name segment 1’ (str), number of times to play (int), prescale (int)] ]
+prescale (default 0, see keysight manual) (not all awg’s will support this).</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-segments.data_classes"></span><dl class="class">
+<dt id="segments.data_classes.IQ_data">
+<em class="property">class </em><code class="descclassname">segments.data_classes.</code><code class="descname">IQ_data</code><span class="sig-paren">(</span><em>LO</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/data_classes.html#IQ_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.IQ_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>class that manages the data used for generating IQ data</p>
+<dl class="method">
+<dt id="segments.data_classes.IQ_data.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>other</em>, <em>time</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/data_classes.html#IQ_data.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.IQ_data.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append two segments to each other, where the other segment is places after the first segment. Time is the total time of the first segment.
+Args:</p>
+<blockquote>
+<div>other (pulse_data) : other pulse data object to be appended
+time (double/None) : length that the first segment should be.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.data_classes.IQ_data.get_IQ_data">
+<code class="descname">get_IQ_data</code><span class="sig-paren">(</span><em>I_or_Q</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/data_classes.html#IQ_data.get_IQ_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.IQ_data.get_IQ_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>get data object containing the I or Q part of the IQ signal
+Args:</p>
+<blockquote>
+<div>I_or_Q (str) : string ‘I’ or ‘Q’ to indicate which part of the signal to return</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>new_data (pulse_data) : normal pulse_data object.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.data_classes.IQ_data.slice_time">
+<code class="descname">slice_time</code><span class="sig-paren">(</span><em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/data_classes.html#IQ_data.slice_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.IQ_data.slice_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>slice time in IQ_data class
+Args:</p>
+<blockquote>
+<div>start (double) : new start time of the pulse
+end (duoble) : new end time of the pulse</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="segments.data_classes.data_container">
+<em class="property">class </em><code class="descclassname">segments.data_classes.</code><code class="descname">data_container</code><a class="reference internal" href="_modules/segments/data_classes.html#data_container"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.data_container" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="segments.data_classes.get_effective_point_number">
+<code class="descclassname">segments.data_classes.</code><code class="descname">get_effective_point_number</code><span class="sig-paren">(</span><em>time</em>, <em>time_step</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/data_classes.html#get_effective_point_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.get_effective_point_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>function that discretizes time depending on the sample rate of the AWG.
+Args:</p>
+<blockquote>
+<div>time (double): time in ns of which you want to know how many points the AWG needs to get there
+time_step (double) : time step of the AWG (ns)</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>how many points you need to get to the desired time step.</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="segments.data_classes.pulse_data">
+<em class="property">class </em><code class="descclassname">segments.data_classes.</code><code class="descname">pulse_data</code><a class="reference internal" href="_modules/segments/data_classes.html#pulse_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.pulse_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>object that saves all the pulse data that is present in an segment object.
+This object support all the fundametal operations needed to define the segments.</p>
+<dl class="method">
+<dt id="segments.data_classes.pulse_data.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>other</em>, <em>time</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/data_classes.html#pulse_data.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.pulse_data.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append two segments to each other, where the other segment is places after the first segment. Time is the total time of the first segment.
+Args:</p>
+<blockquote>
+<div>other (pulse_data) : other pulse data object to be appended
+time (double/None) : length that the first segment should be.</div></blockquote>
+<p>** what to do with start time argument?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.data_classes.pulse_data.get_resized_waveform">
+<code class="descname">get_resized_waveform</code><span class="sig-paren">(</span><em>pre_delay</em>, <em>post_delay</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/data_classes.html#pulse_data.get_resized_waveform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.pulse_data.get_resized_waveform" title="Permalink to this definition">¶</a></dt>
+<dd><p>extend/shrink an existing waveform
+Args:</p>
+<blockquote>
+<div>pre_delay (double) : ns to add before
+post_delay (double) : ns to add after the waveform</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>waveform (np.ndarray[ndim=1, dtype=double])</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.data_classes.pulse_data.get_vmax">
+<code class="descname">get_vmax</code><span class="sig-paren">(</span><em>sample_rate=1000000000.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/data_classes.html#pulse_data.get_vmax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.pulse_data.get_vmax" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the maximum voltage in the current segment_single.</p>
+<p>If sine waves included, will take the maximum of the total render. Tf not, it just takes the max of the pulse data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.data_classes.pulse_data.get_vmin">
+<code class="descname">get_vmin</code><span class="sig-paren">(</span><em>sample_rate=1000000000.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/data_classes.html#pulse_data.get_vmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.pulse_data.get_vmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the maximum voltage in the current segment_single.</p>
+<p>If sine waves included, will take the minimum of the total render. Tf not, it just takes the min of the pulse data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.data_classes.pulse_data.integrate_waveform">
+<code class="descname">integrate_waveform</code><span class="sig-paren">(</span><em>pre_delay</em>, <em>post_delay</em>, <em>sample_rate</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/data_classes.html#pulse_data.integrate_waveform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.pulse_data.integrate_waveform" title="Permalink to this definition">¶</a></dt>
+<dd><p>takes a full integral of the currently scheduled waveform.
+Args:</p>
+<blockquote>
+<div>start_time (double) : from which points the rendering needs to start
+stop_time (double) : to which point the rendering needs to go (default (-1), to entire segement)
+sample_rate (double) : rate at which the AWG will be run</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>integrate (double) : the integrated value of the waveform (unit is mV/sec).</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.data_classes.pulse_data.render">
+<code class="descname">render</code><span class="sig-paren">(</span><em>pre_delay=0</em>, <em>post_delay=0</em>, <em>sample_rate=1000000000.0</em>, <em>clear_cache_on_exit=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/data_classes.html#pulse_data.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.pulse_data.render" title="Permalink to this definition">¶</a></dt>
+<dd><p>renders pulse
+Args:</p>
+<blockquote>
+<div>pre_delay (double) : amount of time to put before the sequence the rendering needs to start
+post_delay (double) : to which point in time the rendering needs to go
+sample_rate (double) : rate at which the AWG will be run
+clear_cache_on_exit (bool) : clear the cache on exit (e.g. when you uploaded this waveform to the AWG, remove reference so the garbarge collector can remove it). The ensured low memory occupation.</div></blockquote>
+<dl class="docutils">
+<dt>returns</dt>
+<dd>pulse (np.ndarray) : numpy array of the pulse</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.data_classes.pulse_data.slice_time">
+<code class="descname">slice_time</code><span class="sig-paren">(</span><em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/data_classes.html#pulse_data.slice_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.data_classes.pulse_data.slice_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>slice the time in the pulse data object.
+Args:</p>
+<blockquote>
+<div>start (double) : new starting time of the pulse (&gt;= 0)
+end (double) : new end time of the pulse.</div></blockquote>
+<p>Note that the start and end point of the slice will correspond to the zero base level of the pulse.
+(you can set the base level by doing my_segment += &lt;double&gt; base_level)</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-segments.segments"></span><dl class="class">
+<dt id="segments.segments.segment_container">
+<em class="property">class </em><code class="descclassname">segments.segments.</code><code class="descname">segment_container</code><span class="sig-paren">(</span><em>real_channels</em>, <em>virtual_gates=None</em>, <em>IQ_channels=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/segments.html#segment_container"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments.segment_container" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class containing all the single segments for for a series of channels.
+This is a organisational class.
+Class is capable of checking wheather upload is needed.
+Class is capable of termining what volatages are required for each channel.
+Class returns vmin/vmax data to awg object
+Class returns upload data as a numpy&lt;double&gt; array to awg object.</p>
+<dl class="method">
+<dt id="segments.segments.segment_container.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>other</em>, <em>time=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/segments.html#segment_container.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments.segment_container.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>append other segments the the current ones in the container.
+Args:</p>
+<blockquote>
+<div>other (segment_container) : other segment to append</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.segments.segment_container.enter_rendering_mode">
+<code class="descname">enter_rendering_mode</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/segments.html#segment_container.enter_rendering_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments.segment_container.enter_rendering_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>put the segments into rendering mode, which means that they cannot be changed. All segments will get their final length at this moment.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.segments.segment_container.exit_rendering_mode">
+<code class="descname">exit_rendering_mode</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/segments.html#segment_container.exit_rendering_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments.segment_container.exit_rendering_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>exit rendering mode and clear all the ram that was used for the rendering.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.segments.segment_container.extend_dim">
+<code class="descname">extend_dim</code><span class="sig-paren">(</span><em>shape=None</em>, <em>ref=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/segments.html#segment_container.extend_dim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments.segment_container.extend_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>extend the dimensions of the waveform to a given shape.
+Args:</p>
+<blockquote>
+<div>shape (tuple) : shape of the new waveform
+ref (bool) : put to True if you want to extend the dimension by using pointers instead of making full copies.</div></blockquote>
+<p>If referencing is True, a pre-render will already be performed to make sure nothing is rendered double.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.segments.segment_container.get_waveform">
+<code class="descname">get_waveform</code><span class="sig-paren">(</span><em>channel, index=[0], pre_delay=0, post_delay=0, sample_rate=1000000000.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/segments.html#segment_container.get_waveform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments.segment_container.get_waveform" title="Permalink to this definition">¶</a></dt>
+<dd><p>function to get the raw data of a waveform,
+inputs:</p>
+<blockquote>
+<div>channel (str) : channel name of the waveform you want
+index (tuple) :
+pre_delay (int) : extra offset in from of the waveform (start at negative time) (for a certain channel, as defined in channel delays)
+post_delay (int) : time gets appended to the waveform (for a certain channel)</div></blockquote>
+<dl class="docutils">
+<dt>returns:</dt>
+<dd>np.ndarray[ndim=1, dtype=double] : waveform as a numpy array</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.segments.segment_container.reset_time">
+<code class="descname">reset_time</code><span class="sig-paren">(</span><em>extend_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/segments.html#segment_container.reset_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments.segment_container.reset_time" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Args:</dt>
+<dd>extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms…].</dd>
+</dl>
+<p>Allings all segments togeter and sets the input time to 0,
+e.g. , 
+chan1 : waveform until 70 ns
+chan2 : waveform until 140ns
+-&gt; totaltime will be 140 ns,
+when you now as a new pulse (e.g. at time 0, it will actually occur at 140 ns in both blocks)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="segments.segments.segment_container.shape">
+<code class="descname">shape</code><a class="headerlink" href="#segments.segments.segment_container.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>get combined shape of all the waveforms</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.segments.segment_container.slice_time">
+<code class="descname">slice_time</code><span class="sig-paren">(</span><em>start</em>, <em>stop</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/segments.html#segment_container.slice_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments.segment_container.slice_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>slice time in a segment container
+Args:</p>
+<blockquote>
+<div>start (double) : start time of the slice
+stop (double) : stop time of the slice</div></blockquote>
+<p>The slice_time function allows you to cut all the waveforms in the segment container in different sizes.
+This function should be handy for debugging, example usage would be, 
+You are runnning an algorithm and want to check what the measurement outcomes are though the whole algorithm.
+Pratically, you want to know</p>
+<blockquote>
+<div>0 -&gt; 10ns (&#64;10 ns still everything as expected?)
+0 -&gt; 20ns
+0 -&gt; …</div></blockquote>
+<p>This function would allow you to do that, e.g. by calling segment_container.cut_segment(0, lp.linspace(10,100,9))</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="segments.segments.segment_container.total_time">
+<code class="descname">total_time</code><a class="headerlink" href="#segments.segments.segment_container.total_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the total time that will be uploaded for this segment to the AWG
+Returns:</p>
+<blockquote>
+<div>times (np.ndarray) : numpy array with the total time (maximum of all the channels), for all the different loops executed.</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-segments.segments_IQ"></span><p>Class that can be used to construct IQ pulses for qubit control applications.</p>
+<p>Possible pulses include:
+* standard block pulse
+* chirped pulse for adiabatic spin operation
+* modulated pulsed.</p>
+<p>As data format we will use a class to store
+* type (std, chrip, mod)
+* t0
+* te
+* freq1
+* freq2 (opt)
+* amp
+* phase</p>
+<dl class="class">
+<dt id="segments.segments_IQ.segment_single_IQ">
+<em class="property">class </em><code class="descclassname">segments.segments_IQ.</code><code class="descname">segment_single_IQ</code><span class="sig-paren">(</span><em>name</em>, <em>LO</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/segments_IQ.html#segment_single_IQ"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_IQ.segment_single_IQ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard single segment for IQ purposes
+todo –&gt; add global phase and time shift in the data class instead of this one (cleaner and more generic).</p>
+<dl class="method">
+<dt id="segments.segments_IQ.segment_single_IQ.get_IQ_data">
+<code class="descname">get_IQ_data</code><span class="sig-paren">(</span><em>I_or_Q</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/segments/segments_IQ.html#segment_single_IQ.get_IQ_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_IQ.segment_single_IQ.get_IQ_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>get I and Q data from the main element.
+Args:</p>
+<blockquote>
+<div>I_or_Q (str) : ‘I’/’Q’, denoting if you want the I or the Q channel</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>data (np.ndarray) : array with the objects inside</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to pulse lib’s documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Stephan Philips
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

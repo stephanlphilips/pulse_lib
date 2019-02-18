@@ -1,0 +1,869 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>segments.data_classes &mdash; pulse lib 0.2 alpha documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> pulse lib
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pulse lib</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>segments.data_classes</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for segments.data_classes</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+
+<span class="kn">import</span> <span class="nn">pulse_lib.segments.segments_c_func</span> <span class="k">as</span> <span class="nn">seg_func</span>
+<span class="kn">from</span> <span class="nn">pulse_lib.segments.segments_c_func</span> <span class="k">import</span> <span class="n">py_calc_value_point_in_between</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+
+<div class="viewcode-block" id="pulse_data"><a class="viewcode-back" href="../../intro.html#segments.data_classes.pulse_data">[docs]</a><span class="k">class</span> <span class="nc">pulse_data</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;object that saves all the pulse data that is present in an segment object.</span>
+<span class="sd">    This object support all the fundametal operations needed to define the segments.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sim_mod_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">numpy_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span> 
+
+    <span class="k">def</span> <span class="nf">add_pulse_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_up_pulse_data</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_sin_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_numpy_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="bp">NotImplemented</span>
+
+<div class="viewcode-block" id="pulse_data.slice_time"><a class="viewcode-back" href="../../intro.html#segments.data_classes.pulse_data.slice_time">[docs]</a>    <span class="k">def</span> <span class="nf">slice_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        slice the time in the pulse data object.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            start (double) : new starting time of the pulse (&gt;= 0)</span>
+<span class="sd">            end (double) : new end time of the pulse.</span>
+<span class="sd">        Note that the start and end point of the slice will correspond to the zero base level of the pulse.</span>
+<span class="sd">        (you can set the base level by doing my_segment += &lt;double&gt; base_level)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Error slicing pulse, start time of a pulse cannot be smaller than 0!&quot;</span><span class="p">)</span>
+
+        <span class="c1"># make sure we have data points of start and end in my_pulse_data:</span>
+        <span class="n">fake_pulse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+        <span class="n">fake_pulse</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
+        <span class="n">fake_pulse</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">end</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_up_pulse_data</span><span class="p">(</span><span class="n">fake_pulse</span><span class="p">)</span>
+
+        <span class="n">start_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">start</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">end_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">end</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span><span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="n">start</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__slice_sin_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__slice_sin_data</span><span class="p">(</span><span class="n">sin_data</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        slice sin_data</span>
+<span class="sd">        Args:</span>
+<span class="sd">            sin_data (list&lt;dict&gt;) : object that contains a dict describing a sinus-based pulse</span>
+<span class="sd">            start (double) : enforced minimal starting time</span>
+<span class="sd">            end (double) : enforced max time</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">new_sin_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sin_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">start</span><span class="p">:</span>
+                <span class="n">i</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
+            <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">:</span>
+                <span class="n">i</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">end</span>
+
+            <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]:</span>
+                <span class="n">i</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">-=</span> <span class="n">start</span>
+                <span class="n">i</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span> <span class="o">-=</span> <span class="n">start</span>
+                <span class="n">new_sin_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">sin_data</span> <span class="o">=</span> <span class="n">new_sin_data</span>
+
+    <span class="k">def</span> <span class="nf">_shift_all_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_shift</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Make a copy of all the data and shift all the time</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            time_shift (double) : shift the time</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            data_copy_shifted (pulse_data) : copy of own data</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">time_shift</span> <span class="o">&lt;</span><span class="mi">0</span> <span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;when shifting time, you cannot make negative times. Apply a positive shift.&quot;</span><span class="p">)</span>
+        <span class="n">data_copy_shifted</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">data_copy_shifted</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">time_shift</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">time_shift</span>
+            <span class="n">i</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">time_shift</span>
+
+        <span class="k">return</span> <span class="n">data_copy_shifted</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">total_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+        <span class="n">total_time</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">sin_data_item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sin_data_item</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">total_time</span><span class="p">:</span>
+                <span class="n">total_time</span> <span class="o">=</span> <span class="n">sin_data_item</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">total_time</span><span class="p">:</span>
+            <span class="n">total_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">total_time</span>
+
+    <span class="k">def</span> <span class="nf">reset_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">extend_only</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pulse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],[</span><span class="n">time</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_pulse_data</span><span class="p">(</span><span class="n">pulse</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">extend_only</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_time</span>
+        
+<div class="viewcode-block" id="pulse_data.get_vmax"><a class="viewcode-back" href="../../intro.html#segments.data_classes.pulse_data.get_vmax">[docs]</a>    <span class="k">def</span> <span class="nf">get_vmax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sample_rate</span> <span class="o">=</span> <span class="mf">1e9</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        calculate the maximum voltage in the current segment_single.</span>
+
+<span class="sd">        If sine waves included, will take the maximum of the total render. Tf not, it just takes the max of the pulse data.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">sample_rate</span><span class="o">=</span><span class="mf">1e9</span><span class="p">,</span> <span class="n">clear_cache_on_exit</span> <span class="o">=</span> <span class="kc">False</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="pulse_data.get_vmin"><a class="viewcode-back" href="../../intro.html#segments.data_classes.pulse_data.get_vmin">[docs]</a>    <span class="k">def</span> <span class="nf">get_vmin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sample_rate</span> <span class="o">=</span> <span class="mf">1e9</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        calculate the maximum voltage in the current segment_single.</span>
+
+<span class="sd">        If sine waves included, will take the minimum of the total render. Tf not, it just takes the min of the pulse data.</span>
+<span class="sd">        &#39;&#39;&#39;</span> 
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>   
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">sample_rate</span><span class="o">=</span><span class="mf">1e9</span><span class="p">,</span> <span class="n">clear_cache_on_exit</span> <span class="o">=</span> <span class="kc">False</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="pulse_data.integrate_waveform"><a class="viewcode-back" href="../../intro.html#segments.data_classes.pulse_data.integrate_waveform">[docs]</a>    <span class="k">def</span> <span class="nf">integrate_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pre_delay</span><span class="p">,</span> <span class="n">post_delay</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        takes a full integral of the currently scheduled waveform.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            start_time (double) : from which points the rendering needs to start</span>
+<span class="sd">            stop_time (double) : to which point the rendering needs to go (default (-1), to entire segement)</span>
+<span class="sd">            sample_rate (double) : rate at which the AWG will be run</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            integrate (double) : the integrated value of the waveform (unit is mV/sec).</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">integrated_value</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># if len(self.sin_data) == 0 and pre_delay &lt;= 0 and post_delay&gt;= 0:</span>
+
+        <span class="n">sample_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">[</span><span class="s1">&#39;sample_rate&#39;</span><span class="p">]</span><span class="o">*</span><span class="mf">1e-9</span>
+        <span class="n">sample_time_step</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">sample_rate</span>
+        <span class="n">pre_delay_eff</span> <span class="o">=</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="n">pre_delay</span><span class="p">,</span> <span class="n">sample_time_step</span><span class="p">)</span><span class="o">*</span><span class="n">sample_time_step</span>
+        <span class="n">post_delay_eff</span> <span class="o">=</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="n">post_delay</span><span class="p">,</span> <span class="n">sample_time_step</span><span class="p">)</span><span class="o">*</span><span class="n">sample_time_step</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">integrated_value</span> <span class="o">+=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">integrated_value</span> <span class="o">+=</span> <span class="n">pre_delay_eff</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span><span class="n">post_delay_eff</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">integrated_value</span> <span class="o">*=</span> <span class="mf">1e-9</span>
+        <span class="c1"># else: # slow way ...</span>
+        <span class="c1">#     wvf = self.render(pre_delay, post_delay, sample_rate, clear_cache_on_exit = False)</span>
+        <span class="c1">#     integrated_value = np.trapz(wvf, dx=1/sample_rate)</span>
+
+        <span class="k">return</span> <span class="n">integrated_value</span></div>
+
+<div class="viewcode-block" id="pulse_data.render"><a class="viewcode-back" href="../../intro.html#segments.data_classes.pulse_data.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pre_delay</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">post_delay</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sample_rate</span><span class="o">=</span><span class="mf">1e9</span><span class="p">,</span> <span class="n">clear_cache_on_exit</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        renders pulse</span>
+<span class="sd">        Args:</span>
+<span class="sd">            pre_delay (double) : amount of time to put before the sequence the rendering needs to start</span>
+<span class="sd">            post_delay (double) : to which point in time the rendering needs to go</span>
+<span class="sd">            sample_rate (double) : rate at which the AWG will be run</span>
+<span class="sd">            clear_cache_on_exit (bool) : clear the cache on exit (e.g. when you uploaded this waveform to the AWG, remove reference so the garbarge collector can remove it). The ensured low memory occupation.</span>
+<span class="sd">        returns</span>
+<span class="sd">            pulse (np.ndarray) : numpy array of the pulse</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># If no render performed, generate full waveform, we will cut out the right size if needed</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">[</span><span class="s1">&#39;sample_rate&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">sample_rate</span><span class="p">:</span>
+            <span class="n">pre_delay_wvf</span> <span class="o">=</span> <span class="n">pre_delay</span>
+            <span class="k">if</span> <span class="n">pre_delay</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">pre_delay_wvf</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">post_delay_wvf</span> <span class="o">=</span> <span class="n">post_delay</span>
+            <span class="k">if</span> <span class="n">post_delay</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">pre_delay_wvf</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;sample_rate&#39;</span> <span class="p">:</span> <span class="n">sample_rate</span><span class="p">,</span>
+                <span class="s1">&#39;waveform&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__render</span><span class="p">(</span><span class="n">sample_rate</span><span class="p">,</span> <span class="n">pre_delay_wvf</span><span class="p">,</span> <span class="n">post_delay_wvf</span><span class="p">),</span>
+                <span class="s1">&#39;pre_delay&#39;</span><span class="p">:</span> <span class="n">pre_delay</span><span class="p">,</span>
+                <span class="s1">&#39;post_delay&#39;</span> <span class="p">:</span> <span class="n">post_delay</span>
+            <span class="p">}</span>
+
+        <span class="c1"># get the waveform</span>
+        <span class="n">my_waveform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_resized_waveform</span><span class="p">(</span><span class="n">pre_delay</span><span class="p">,</span> <span class="n">post_delay</span><span class="p">)</span>
+        
+        <span class="c1"># clear cache if needed</span>
+        <span class="k">if</span> <span class="n">clear_cache_on_exit</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">my_waveform</span></div>
+
+    <span class="k">def</span> <span class="nf">__render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">,</span> <span class="n">pre_delay</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">post_delay</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        make a full rendering of the waveform at a predermined sample rate.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># express in Gs/s</span>
+        <span class="n">sample_rate</span> <span class="o">=</span> <span class="n">sample_rate</span><span class="o">*</span><span class="mf">1e-9</span>
+        <span class="n">sample_time_step</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">sample_rate</span>
+
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="n">t_tot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_time</span>
+
+        <span class="c1"># get number of points that need to be rendered</span>
+        <span class="n">t_tot_pt</span> <span class="o">=</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="n">t_tot</span><span class="p">,</span> <span class="n">sample_time_step</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">pre_delay_pt</span> <span class="o">=</span> <span class="o">-</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="n">pre_delay</span><span class="p">,</span> <span class="n">sample_time_step</span><span class="p">)</span>
+        <span class="n">post_delay_pt</span> <span class="o">=</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="n">post_delay</span><span class="p">,</span> <span class="n">sample_time_step</span><span class="p">)</span>
+
+        <span class="n">my_sequence</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">t_tot_pt</span> <span class="o">+</span> <span class="n">pre_delay_pt</span> <span class="o">+</span> <span class="n">post_delay_pt</span><span class="p">)])</span>
+        <span class="c1"># start rendering pulse data</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">t0_pt</span> <span class="o">=</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">sample_time_step</span><span class="p">)</span>
+            <span class="n">t1_pt</span> <span class="o">=</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">sample_time_step</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="n">t0_pt</span><span class="o">*</span><span class="n">sample_time_step</span>
+            <span class="n">t1</span> <span class="o">=</span> <span class="n">t1_pt</span><span class="o">*</span><span class="n">sample_time_step</span>
+            <span class="k">if</span> <span class="n">t0</span> <span class="o">&gt;</span> <span class="n">t_tot</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">t1</span> <span class="o">&gt;</span> <span class="n">t_tot</span> <span class="o">+</span> <span class="n">sample_time_step</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">my_sequence</span><span class="p">[</span><span class="n">t0_pt</span> <span class="o">+</span> <span class="n">pre_delay_pt</span><span class="p">:</span> <span class="n">t_tot_pt</span> <span class="o">+</span> <span class="n">pre_delay_pt</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="n">py_calc_value_point_in_between</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="p">,:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,:],</span> <span class="n">t_tot</span><span class="p">)</span>
+                    <span class="n">my_sequence</span><span class="p">[</span><span class="n">t0_pt</span> <span class="o">+</span> <span class="n">pre_delay_pt</span><span class="p">:</span> <span class="n">t_tot_pt</span> <span class="o">+</span> <span class="n">pre_delay_pt</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> 
+                        <span class="n">val</span><span class="p">,</span> <span class="n">t_tot_pt</span><span class="o">-</span><span class="n">t0_pt</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">my_sequence</span><span class="p">[</span><span class="n">t0_pt</span> <span class="o">+</span> <span class="n">pre_delay_pt</span><span class="p">:</span> <span class="n">t1_pt</span> <span class="o">+</span> <span class="n">pre_delay_pt</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">my_sequence</span><span class="p">[</span><span class="n">t0_pt</span> <span class="o">+</span> <span class="n">pre_delay_pt</span><span class="p">:</span> <span class="n">t1_pt</span> <span class="o">+</span> <span class="n">pre_delay_pt</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">t1_pt</span><span class="o">-</span><span class="n">t0_pt</span><span class="p">)</span>
+        <span class="c1"># top off the sequence -- default behavior, extend the last value</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pt</span> <span class="o">=</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">sample_time_step</span><span class="p">)</span>
+            <span class="n">my_sequence</span><span class="p">[</span><span class="n">pt</span> <span class="o">+</span> <span class="n">pre_delay_pt</span><span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">sin_data_item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sin_data_item</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">t_tot</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">sin_data_item</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">t_tot</span><span class="p">:</span>
+                <span class="n">stop</span> <span class="o">=</span> <span class="n">t_tot_pt</span> <span class="o">+</span> <span class="n">pre_delay_pt</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stop</span> <span class="o">=</span>  <span class="n">get_effective_point_number</span><span class="p">(</span><span class="n">sin_data_item</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">],</span> <span class="n">sample_time_step</span><span class="p">)</span> <span class="o">+</span> <span class="n">pre_delay_pt</span>
+            
+            <span class="n">start</span> <span class="o">=</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="n">sin_data_item</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">],</span> <span class="n">sample_time_step</span><span class="p">)</span> <span class="o">+</span> <span class="n">pre_delay_pt</span>
+            <span class="n">start_t</span>  <span class="o">=</span> <span class="p">(</span><span class="n">start</span> <span class="o">-</span> <span class="n">pre_delay_pt</span><span class="p">)</span><span class="o">*</span><span class="n">sample_time_step</span>
+            <span class="n">stop_t</span>  <span class="o">=</span> <span class="p">(</span><span class="n">stop</span> <span class="o">-</span> <span class="n">pre_delay_pt</span><span class="p">)</span><span class="o">*</span><span class="n">sample_time_step</span>
+
+            <span class="k">if</span> <span class="n">sin_data_item</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;std&#39;</span><span class="p">:</span>
+                <span class="n">amp</span>  <span class="o">=</span>  <span class="n">sin_data_item</span><span class="p">[</span><span class="s1">&#39;amplitude&#39;</span><span class="p">]</span>
+                <span class="n">freq</span> <span class="o">=</span>  <span class="n">sin_data_item</span><span class="p">[</span><span class="s1">&#39;frequency&#39;</span><span class="p">]</span>
+                <span class="n">phase</span> <span class="o">=</span> <span class="n">sin_data_item</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span>
+                
+                <span class="n">my_sequence</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span> <span class="o">+=</span> <span class="n">amp</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">start_t</span><span class="p">,</span> <span class="n">stop_t</span><span class="o">-</span><span class="n">sample_time_step</span><span class="p">,</span> <span class="n">stop</span><span class="o">-</span><span class="n">start</span><span class="p">)</span><span class="o">*</span><span class="n">freq</span><span class="o">*</span><span class="mf">1e-9</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="n">phase</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;type of sin pulse not implemented. currently only standard pulses supported&quot;</span><span class="p">)</span>
+
+        <span class="n">stop</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">my_sequence</span>      
+
+<div class="viewcode-block" id="pulse_data.get_resized_waveform"><a class="viewcode-back" href="../../intro.html#segments.data_classes.pulse_data.get_resized_waveform">[docs]</a>    <span class="k">def</span> <span class="nf">get_resized_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pre_delay</span><span class="p">,</span> <span class="n">post_delay</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        extend/shrink an existing waveform</span>
+<span class="sd">        Args:</span>
+<span class="sd">            pre_delay (double) : ns to add before</span>
+<span class="sd">            post_delay (double) : ns to add after the waveform</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            waveform (np.ndarray[ndim=1, dtype=double])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">sample_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">[</span><span class="s1">&#39;sample_rate&#39;</span><span class="p">]</span><span class="o">*</span><span class="mf">1e-9</span>
+        <span class="n">sample_time_step</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">sample_rate</span>
+
+        <span class="n">pre_delay_pt</span> <span class="o">=</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="n">pre_delay</span><span class="p">,</span> <span class="n">sample_time_step</span><span class="p">)</span>
+        <span class="n">post_delay_pt</span> <span class="o">=</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="n">post_delay</span><span class="p">,</span> <span class="n">sample_time_step</span><span class="p">)</span>
+
+        <span class="n">wvf_pre_delay_pt</span> <span class="o">=</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">[</span><span class="s1">&#39;pre_delay&#39;</span><span class="p">],</span> <span class="n">sample_time_step</span><span class="p">)</span>
+        <span class="n">wvf_post_delay_pt</span> <span class="o">=</span> <span class="n">get_effective_point_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">[</span><span class="s1">&#39;post_delay&#39;</span><span class="p">],</span> <span class="n">sample_time_step</span><span class="p">)</span>
+
+        <span class="c1"># points to add/remove from existing waveform</span>
+        <span class="n">n_pt_before</span> <span class="o">=</span> <span class="o">-</span> <span class="n">pre_delay_pt</span> <span class="o">+</span> <span class="n">wvf_pre_delay_pt</span>
+        <span class="n">n_pt_after</span> <span class="o">=</span> <span class="n">post_delay_pt</span> <span class="o">-</span> <span class="n">wvf_post_delay_pt</span>
+
+        <span class="c1"># if cutting is possible (prefered since no copying is involved)</span>
+        <span class="k">if</span> <span class="n">n_pt_before</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">n_pt_after</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n_pt_after</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">[</span><span class="s1">&#39;waveform&#39;</span><span class="p">][</span><span class="o">-</span><span class="n">n_pt_before</span><span class="p">:]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">[</span><span class="s1">&#39;waveform&#39;</span><span class="p">][</span><span class="o">-</span><span class="n">n_pt_before</span><span class="p">:</span> <span class="n">n_pt_after</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_pt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">[</span><span class="s1">&#39;waveform&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="n">n_pt_after</span> <span class="o">+</span> <span class="n">n_pt_before</span>
+            <span class="n">new_waveform</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_pt</span><span class="p">,</span> <span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">n_pt_before</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">new_waveform</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">n_pt_before</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">n_pt_after</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">new_waveform</span><span class="p">[</span><span class="n">n_pt_before</span><span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">[</span><span class="s1">&#39;waveform&#39;</span><span class="p">][:</span><span class="n">n_pt_after</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">n_pt_after</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">new_waveform</span><span class="p">[</span><span class="n">n_pt_before</span><span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">[</span><span class="s1">&#39;waveform&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_waveform</span><span class="p">[</span><span class="n">n_pt_before</span><span class="p">:</span><span class="o">-</span><span class="n">n_pt_after</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">[</span><span class="s1">&#39;waveform&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_waveform</span><span class="p">[:</span><span class="o">-</span><span class="n">n_pt_after</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveform_cache</span><span class="p">[</span><span class="s1">&#39;waveform&#39;</span><span class="p">][</span><span class="o">-</span><span class="n">n_pt_before</span><span class="p">:]</span>
+
+            <span class="k">if</span> <span class="n">n_pt_after</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">new_waveform</span><span class="p">[</span><span class="o">-</span><span class="n">n_pt_after</span><span class="p">:]</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="k">return</span> <span class="n">new_waveform</span></div>
+
+    <span class="k">def</span> <span class="nf">_add_up_pulse_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_pulse</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        add a pulse up to the current pulse in the memory.</span>
+<span class="sd">        new_pulse --&gt; default format as in the add_pulse function</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">my_pulse_data_copy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span>
+        <span class="c1"># step 1: make sure both pulses have the same length</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_time</span> <span class="o">&lt;</span> <span class="n">new_pulse</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">to_insert</span> <span class="o">=</span> <span class="p">[[</span><span class="n">new_pulse</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">my_pulse_data_copy</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]]]</span>
+            <span class="n">my_pulse_data_copy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insert_arrays</span><span class="p">(</span><span class="n">my_pulse_data_copy</span><span class="p">,</span> <span class="n">to_insert</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">my_pulse_data_copy</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_time</span> <span class="o">&gt;</span> <span class="n">new_pulse</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">to_insert</span> <span class="o">=</span> <span class="p">[[</span><span class="n">my_pulse_data_copy</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">new_pulse</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]]]</span>
+            <span class="n">new_pulse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insert_arrays</span><span class="p">(</span><span class="n">new_pulse</span><span class="p">,</span> <span class="n">to_insert</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_pulse</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            
+        <span class="n">my_pulse_data_tmp</span><span class="p">,</span> <span class="n">new_pulse_tmp</span> <span class="o">=</span> <span class="n">seg_func</span><span class="o">.</span><span class="n">interpolate_pulses</span><span class="p">(</span><span class="n">my_pulse_data_copy</span><span class="p">,</span> <span class="n">new_pulse</span><span class="p">)</span>
+
+        <span class="n">final_pulse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">my_pulse_data_tmp</span><span class="p">),</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">final_pulse</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">my_pulse_data_tmp</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">final_pulse</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span>  <span class="n">my_pulse_data_tmp</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>  <span class="o">+</span> <span class="n">new_pulse_tmp</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">final_pulse</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_insert_arrays</span><span class="p">(</span><span class="n">src_array</span><span class="p">,</span> <span class="n">to_insert</span><span class="p">,</span> <span class="n">insert_position</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        insert pulse points in array</span>
+<span class="sd">        Args:</span>
+<span class="sd">            src_array : 2D pulse table</span>
+<span class="sd">            to_insert : 2D pulse table to be inserted in the source</span>
+<span class="sd">            insert_position: after which point the insertion needs to happen</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># calcute how long the piece is you want to insert</span>
+        <span class="n">dim_insert</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">to_insert</span><span class="p">)</span>
+        <span class="n">insert_position</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">new_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">src_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">dim_insert</span><span class="p">,</span> <span class="n">src_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+        
+        <span class="n">new_arr</span><span class="p">[:</span><span class="n">insert_position</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">src_array</span><span class="p">[:</span><span class="n">insert_position</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">new_arr</span><span class="p">[</span><span class="n">insert_position</span><span class="p">:(</span><span class="n">insert_position</span> <span class="o">+</span> <span class="n">dim_insert</span><span class="p">),</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">to_insert</span>
+        <span class="n">new_arr</span><span class="p">[(</span><span class="n">insert_position</span> <span class="o">+</span> <span class="n">dim_insert</span><span class="p">):]</span> <span class="o">=</span> <span class="n">src_array</span><span class="p">[</span><span class="n">insert_position</span> <span class="p">:]</span>
+
+        <span class="k">return</span> <span class="n">new_arr</span>
+
+    <span class="k">def</span> <span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">my_copy</span> <span class="o">=</span> <span class="n">pulse_data</span><span class="p">()</span>
+        <span class="n">my_copy</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span>
+        <span class="n">my_copy</span><span class="o">.</span><span class="n">sin_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span><span class="p">)</span>
+        <span class="n">my_copy</span><span class="o">.</span><span class="n">numpy_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numpy_data</span><span class="p">)</span>
+        <span class="n">my_copy</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">my_copy</span>
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        define addition operator for segment_single</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="n">pulse_data</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="n">pulse_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">new_data</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">new_data</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_data</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_up_pulse_data</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span>
+
+            <span class="n">sin_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span><span class="p">)</span>
+            <span class="n">sin_data</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">sin_data</span><span class="p">)</span>
+            <span class="n">new_data</span><span class="o">.</span><span class="n">sin_data</span> <span class="o">=</span> <span class="n">sin_data</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+            <span class="n">new_pulse</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span>
+            <span class="n">new_pulse</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">other</span>
+            <span class="n">new_data</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="n">new_pulse</span>
+            <span class="n">new_data</span><span class="o">.</span><span class="n">sin_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Please add up segment_single type or a number &quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new_data</span>
+
+    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        muliplication operator for segment_single</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="n">pulse_data</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="n">pulse_data</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">NotImplemented</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="nb">float</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">:</span>
+            <span class="n">new_pulse</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span>
+            <span class="n">new_pulse</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">other</span>
+            <span class="n">new_data</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="n">new_pulse</span>
+            <span class="n">sin_data</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span><span class="p">:</span>
+                <span class="n">my_sin</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">my_sin</span><span class="p">[</span><span class="s1">&#39;amplitude&#39;</span><span class="p">]</span> <span class="o">*=</span><span class="n">other</span>
+                <span class="n">sin_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">my_sin</span><span class="p">)</span>
+
+            <span class="n">new_data</span><span class="o">.</span><span class="n">sin_data</span> <span class="o">=</span> <span class="n">sin_data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;muliplication shoulf be done with a number, type </span><span class="si">{}</span><span class="s2"> not supported&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)))</span>
+        
+        <span class="k">return</span> <span class="n">new_data</span>
+
+<div class="viewcode-block" id="pulse_data.append"><a class="viewcode-back" href="../../intro.html#segments.data_classes.pulse_data.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Append two segments to each other, where the other segment is places after the first segment. Time is the total time of the first segment.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            other (pulse_data) : other pulse data object to be appended</span>
+<span class="sd">            time (double/None) : length that the first segment should be.</span>
+
+<span class="sd">        ** what to do with start time argument?</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">slice_time</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+
+        <span class="n">other_time_shifted</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_shift_all_time</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="n">new_sin_data</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span> <span class="o">+</span>  <span class="n">other_time_shifted</span><span class="o">.</span><span class="n">sin_data</span>
+
+        <span class="n">len_pulse_a</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">len_pulse_a</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">len_pulse_a</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="n">len_pulse_b</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_time_shifted</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">len_pulse_b</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">other_time_shifted</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">other_time_shifted</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">len_pulse_b</span> <span class="o">-=</span> <span class="mi">1</span>
+
+        <span class="n">new_pulse_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">len_pulse_a</span> <span class="o">+</span> <span class="n">len_pulse_b</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+        <span class="n">new_pulse_data</span><span class="p">[:</span><span class="n">len_pulse_a</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[:</span><span class="n">len_pulse_a</span><span class="p">]</span>
+        <span class="n">new_pulse_data</span><span class="p">[</span><span class="n">len_pulse_a</span><span class="p">:]</span> <span class="o">=</span> <span class="n">other_time_shifted</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="o">-</span><span class="n">len_pulse_b</span><span class="p">:]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="n">new_pulse_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sin_data</span> <span class="o">=</span> <span class="n">new_sin_data</span></div></div>
+
+<div class="viewcode-block" id="IQ_data"><a class="viewcode-back" href="../../intro.html#segments.data_classes.IQ_data">[docs]</a><span class="k">class</span> <span class="nc">IQ_data</span><span class="p">(</span><span class="n">pulse_data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    class that manages the data used for generating IQ data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">LO</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LO</span> <span class="o">=</span> <span class="n">LO</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simple_IQ_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MOD_IQ_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numpy_IQ_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># just introduced for wait command (no pulse data stored)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_simple_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simple_IQ_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">input_dict</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">add_mod_data</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simple_IQ_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">input_dict</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_numpy_IQ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numpy_IQ_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">input_dict</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IQ_data.slice_time"><a class="viewcode-back" href="../../intro.html#segments.data_classes.IQ_data.slice_time">[docs]</a>    <span class="k">def</span> <span class="nf">slice_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        slice time in IQ_data class</span>
+<span class="sd">        Args:</span>
+<span class="sd">            start (double) : new start time of the pulse</span>
+<span class="sd">            end (duoble) : new end time of the pulse</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">slice_time</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__slice_sin_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simple_IQ_data</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__slice_sin_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MOD_IQ_data</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__slice_sin_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numpy_IQ_data</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_shift_all_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_shift</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Make a copy of all the data and shift all the time</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            time_shift (double) : shift the time</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            data_copy_shifted (pulse_data) : copy of own data</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">data_copy_shifted</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_shift_all_time</span><span class="p">(</span><span class="n">time_shift</span><span class="p">)</span>
+
+        <span class="n">data_copy_shifted</span><span class="o">.</span><span class="n">_shift_time_IQ_data_obj</span><span class="p">(</span><span class="n">data_copy_shifted</span><span class="o">.</span><span class="n">simple_IQ_data</span><span class="p">)</span>
+        <span class="n">data_copy_shifted</span><span class="o">.</span><span class="n">_shift_time_IQ_data_obj</span><span class="p">(</span><span class="n">data_copy_shifted</span><span class="o">.</span><span class="n">MOD_IQ_data</span><span class="p">)</span>
+        <span class="n">data_copy_shifted</span><span class="o">.</span><span class="n">_shift_time_IQ_data_obj</span><span class="p">(</span><span class="n">data_copy_shifted</span><span class="o">.</span><span class="n">numpy_IQ_data</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data_copy_shifted</span>
+
+    <span class="k">def</span> <span class="nf">_shift_all_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        shift all phases present in this object.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            phase (double) : the amound of microwave phase you want to move around.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">+=</span> <span class="n">phase</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shift_phase_IQ_data_obj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simple_IQ_data</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shift_phase_IQ_data_obj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MOD_IQ_data</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shift_phase_IQ_data_obj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numpy_IQ_data</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_shift_phase_IQ_data_obj</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        shift phase in a data list of microwave IQ signals</span>
+<span class="sd">        Args:</span>
+<span class="sd">            phase (double) : the amound of microwave phase you want to move around.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data_cpy</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">phase</span>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_shift_time_IQ_data_obj</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">time_shift</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        shift time in a data list of microwave IQ signals</span>
+<span class="sd">        Args:</span>
+<span class="sd">            data (list&lt;dict&gt;) : data object, e.g. self.simple_IQ_data</span>
+<span class="sd">            time_shift (double) : time to be shifted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data_cpy</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">time_shift</span>
+            <span class="n">i</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">time_shift</span>
+
+<div class="viewcode-block" id="IQ_data.append"><a class="viewcode-back" href="../../intro.html#segments.data_classes.IQ_data.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Append two segments to each other, where the other segment is places after the first segment. Time is the total time of the first segment.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            other (pulse_data) : other pulse data object to be appended</span>
+<span class="sd">            time (double/None) : length that the first segment should be.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+
+        <span class="n">other_time_shifted</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_shift_all_time</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="n">other_time_shifted</span><span class="o">.</span><span class="n">_shift_all_phases</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">simple_IQ_data</span> <span class="o">+=</span> <span class="n">other_time_shifted</span><span class="o">.</span><span class="n">simple_IQ_data</span>   
+        <span class="bp">self</span><span class="o">.</span><span class="n">MOD_IQ_data</span> <span class="o">+=</span> <span class="n">other_time_shifted</span><span class="o">.</span><span class="n">MOD_IQ_data</span>   
+        <span class="bp">self</span><span class="o">.</span><span class="n">numpy_IQ_data</span> <span class="o">+=</span> <span class="n">other_time_shifted</span><span class="o">.</span><span class="n">numpy_IQ_data</span>   </div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">total_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+        <span class="n">total_time</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">IQ_data_item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">simple_IQ_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">IQ_data_item</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">total_time</span><span class="p">:</span>
+                <span class="n">total_time</span> <span class="o">=</span> <span class="n">IQ_data_item</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">IQ_data_item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">MOD_IQ_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">IQ_data_item</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">total_time</span><span class="p">:</span>
+                <span class="n">total_time</span> <span class="o">=</span> <span class="n">IQ_data_item</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">IQ_data_item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">numpy_IQ_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">IQ_data_item</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">total_time</span><span class="p">:</span>
+                <span class="n">total_time</span> <span class="o">=</span> <span class="n">IQ_data_item</span><span class="p">[</span><span class="s1">&#39;stop_time&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">total_time</span><span class="p">:</span>
+            <span class="n">total_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">total_time</span>
+
+    <span class="k">def</span> <span class="nf">reset_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">extend_only</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">extend_only</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_time</span>
+
+        <span class="n">pulse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],[</span><span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_pulse_data</span><span class="p">(</span><span class="n">pulse</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        make a copy of self.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">my_copy</span> <span class="o">=</span> <span class="n">IQ_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">LO</span><span class="p">)</span>
+        <span class="n">my_copy</span><span class="o">.</span><span class="n">simple_IQ_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simple_IQ_data</span><span class="p">)</span>
+        <span class="n">my_copy</span><span class="o">.</span><span class="n">MOD_IQ_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MOD_IQ_data</span><span class="p">)</span>
+        <span class="n">my_copy</span><span class="o">.</span><span class="n">numpy_IQ_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numpy_IQ_data</span><span class="p">)</span>
+        <span class="n">my_copy</span><span class="o">.</span><span class="n">global_phase</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">global_phase</span><span class="p">)</span>
+        <span class="n">my_copy</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_time</span><span class="p">)</span>
+        <span class="n">my_copy</span><span class="o">.</span><span class="n">my_pulse_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">my_copy</span>
+
+<div class="viewcode-block" id="IQ_data.get_IQ_data"><a class="viewcode-back" href="../../intro.html#segments.data_classes.IQ_data.get_IQ_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_IQ_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">I_or_Q</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get data object containing the I or Q part of the IQ signal</span>
+<span class="sd">        Args:</span>
+<span class="sd">            I_or_Q (str) : string &#39;I&#39; or &#39;Q&#39; to indicate which part of the signal to return</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            new_data (pulse_data) : normal pulse_data object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="n">pulse_data</span><span class="p">()</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">simple_IQ_data</span><span class="p">:</span>
+            <span class="n">my_input</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">my_input</span><span class="p">[</span><span class="s1">&#39;frequency&#39;</span><span class="p">]</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">LO</span>
+            <span class="k">if</span> <span class="n">I_or_Q</span> <span class="o">==</span> <span class="s1">&#39;Q&#39;</span><span class="p">:</span>
+                <span class="n">my_input</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span>
+            <span class="n">new_data</span><span class="o">.</span><span class="n">add_sin_data</span><span class="p">(</span><span class="n">my_input</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new_data</span></div>
+
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+        <span class="c1"># aussume we do not need this.</span>
+        <span class="k">raise</span> <span class="bp">NotImplemented</span>
+
+    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># aussume we do not need this.</span>
+        <span class="k">raise</span> <span class="bp">NotImplemented</span></div>
+
+<div class="viewcode-block" id="data_container"><a class="viewcode-back" href="../../intro.html#segments.data_classes.data_container">[docs]</a><span class="k">class</span> <span class="nc">data_container</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">subtype</span><span class="p">,</span> <span class="n">input_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">data_container</span><span class="p">,</span> <span class="n">subtype</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">subtype</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="nb">object</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">input_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">obj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_type</span>
+
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">total_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="bp">self</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)):</span>
+            <span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">total_time</span>
+
+        <span class="bp">self</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="n">times</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">times</span></div>
+
+<div class="viewcode-block" id="get_effective_point_number"><a class="viewcode-back" href="../../intro.html#segments.data_classes.get_effective_point_number">[docs]</a><span class="k">def</span> <span class="nf">get_effective_point_number</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">time_step</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    function that discretizes time depending on the sample rate of the AWG.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        time (double): time in ns of which you want to know how many points the AWG needs to get there</span>
+<span class="sd">        time_step (double) : time step of the AWG (ns)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        how many points you need to get to the desired time step.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">n_pt</span><span class="p">,</span> <span class="n">mod</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">time_step</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mod</span> <span class="o">&gt;</span> <span class="n">time_step</span><span class="o">/</span><span class="mi">2</span><span class="p">:</span>
+        <span class="n">n_pt</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_pt</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Stephan Philips
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

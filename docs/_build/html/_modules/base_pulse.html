@@ -1,0 +1,477 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>base_pulse &mdash; pulse lib 0.2 alpha documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pulse lib
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pulse lib</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>base_pulse</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for base_pulse</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span> 
+<span class="kn">from</span> <span class="nn">pulse_lib.segments.segments</span> <span class="k">import</span> <span class="n">segment_container</span>
+<span class="kn">from</span> <span class="nn">pulse_lib.keysight_fx</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">pulse_lib.sequencer</span> <span class="k">import</span> <span class="n">sequencer</span>
+<span class="kn">from</span> <span class="nn">pulse_lib.keysight.uploader</span> <span class="k">import</span> <span class="n">keysight_uploader</span>
+<span class="kn">from</span> <span class="nn">pulse_lib.keysight.uploader_core.uploader</span> <span class="k">import</span> <span class="n">keysight_upload_module</span>
+
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="c1"># import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg</span>
+<span class="c1"># import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">ideas:</span>
+
+<span class="sd"># Make a virtual sequence.</span>
+<span class="sd"># </span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="pulselib"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib">[docs]</a><span class="k">class</span> <span class="nc">pulselib</span><span class="p">:</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Global class that is an organisational element in making the pulses.</span>
+<span class="sd">	The idea is that you first make individula segments,</span>
+<span class="sd">	you can than later combine them into a sequence, this sequence will be uploaded</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="c1"># awg channels and locations need to be input parameters.</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">awg_channels</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">awg_channels_to_physical_locations</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">awg_virtual_channels</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">awg_IQ_channels</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">awg_devices</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">cpp_uploader</span> <span class="o">=</span> <span class="n">keysight_upload_module</span><span class="p">()</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">channel_delays</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">channel_delays_computed</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">channel_compenstation_limits</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">delays</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">convertion_matrix</span><span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">voltage_limits_correction</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+		<span class="c1"># Keysight properties.</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s1">&#39;keysight&#39;</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">segments_bin</span> <span class="o">=</span> <span class="kc">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">sequencer</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="pulselib.define_channels"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.define_channels">[docs]</a>	<span class="k">def</span> <span class="nf">define_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">my_input</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		define the channels and their location </span>
+<span class="sd">		Args:</span>
+<span class="sd">			my_input (dict): dict of the channel name (str) as key and name of the instrument (as given in add_awgs()) (str) and channel (int) as tuple (e.g. {&#39;chan1&#39; : (&#39;AWG1&#39;, 1), ... })</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">awg_channels_to_physical_locations</span> <span class="o">=</span> <span class="n">my_input</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">awg_channels</span> <span class="o">=</span> <span class="n">my_input</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_channels</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">channel_delays</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">channel_delays_computed</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">channel_compenstation_limits</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1500</span><span class="p">,</span><span class="mi">1500</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="pulselib.add_channel_delay"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.add_channel_delay">[docs]</a>	<span class="k">def</span> <span class="nf">add_channel_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delays</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Adds to a channel a delay. </span>
+<span class="sd">		The delay is added by adding points in front of the first sequence/or </span>
+<span class="sd">		just after the last sequence. The first value of the sequence will be </span>
+<span class="sd">		taken as an extentsion point.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			delays: dict, e.g. {&#39;P1&#39;:20, &#39;P2&#39;:16} delay P1 with 20 ns and P2 with 16 ns</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			0/Error</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">delays</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_channels</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">channel_delays</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Channel delay error: Channel &#39;</span><span class="si">{}</span><span class="s2">&#39; does not exist. Please provide valid input&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">__process_channel_delays</span><span class="p">()</span>
+		<span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="pulselib.add_channel_compenstation_limits"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.add_channel_compenstation_limits">[docs]</a>	<span class="k">def</span> <span class="nf">add_channel_compenstation_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limits</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		add voltage limitations per channnel that can be used to make sure that the intragral of the total voltages is 0.</span>
+<span class="sd">		Args:</span>
+<span class="sd">			limits (dict) : dict with limits e.g. {&#39;B0&#39;:(-100,500), ... }</span>
+<span class="sd">		Returns:</span>
+<span class="sd">			None</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">limits</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_channels</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">channel_compenstation_limits</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Channel voltage compenstation error: Channel &#39;</span><span class="si">{}</span><span class="s2">&#39; does not exist. Please provide valid input&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="pulselib.add_awgs"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.add_awgs">[docs]</a>	<span class="k">def</span> <span class="nf">add_awgs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">awg</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		add a awg to the library</span>
+<span class="sd">		Args:</span>
+<span class="sd">			name (str) : name you want to give to a peculiar AWG</span>
+<span class="sd">			awg (object) : qcodes object of the concerning AWG</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">awg_devices</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span><span class="n">awg</span></div>
+		<span class="c1"># self.cpp_uploader.add_awg_module(name, awg)</span>
+
+<div class="viewcode-block" id="pulselib.add_virtual_gates"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.add_virtual_gates">[docs]</a>	<span class="k">def</span> <span class="nf">add_virtual_gates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">virtual_gates</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		define virtual gates for the gate set.</span>
+<span class="sd">		Args:</span>
+<span class="sd">			virtual_gates (dict): needs to have the following keys:</span>
+<span class="sd">				&#39;virtual_gates_names_virt&#39; : should constain a list with the channel names of the virtual gates</span>
+<span class="sd">				&#39;virtual_gates_names_real&#39; : should constain a list with the channel names of the read gates (should be as long as the virtual ones)</span>
+<span class="sd">				&#39;virtual_gate_matrix&#39; : numpy array representing the virtual gate matrix</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">awg_virtual_channels</span> <span class="o">=</span> <span class="n">virtual_gates</span></div>
+
+	<span class="k">def</span> <span class="nf">update_virtual_gate_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_matrix</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="bp">NotImplemented</span>
+
+<div class="viewcode-block" id="pulselib.add_IQ_virt_channels"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.add_IQ_virt_channels">[docs]</a>	<span class="k">def</span> <span class="nf">add_IQ_virt_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IQ_virt_channels</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		function to define virtual IQ channels (a channel that combined the I and Q channel for MW applications):</span>
+<span class="sd">		Args:</span>
+<span class="sd">			IQ_virt_channels (dict): a dictionary that needs to contain the following keys:</span>
+<span class="sd">				&#39;vIQ_channels&#39; : list of names of virtual IQ channels</span>
+<span class="sd">				&#39;r_IQ_channels&#39;: list of list, where in each list the two reference channels (I and Q) are denoted (see docs for example).</span>
+<span class="sd">				&#39;LO_freq&#39;(function/double) : local oscillating frequency of the source. Will be used to do automaticcally convert the freq a SSB signal.  </span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">awg_IQ_channels</span> <span class="o">=</span> <span class="n">IQ_virt_channels</span></div>
+
+	<span class="k">def</span> <span class="nf">finish_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="c1"># function that finishes the initialisation</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">uploader</span> <span class="o">=</span> <span class="n">keysight_uploader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">awg_devices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpp_uploader</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_channels_to_physical_locations</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_delays_computed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_compenstation_limits</span><span class="p">)</span>
+
+<div class="viewcode-block" id="pulselib.mk_segment"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.mk_segment">[docs]</a>	<span class="k">def</span> <span class="nf">mk_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		generate a new segment.</span>
+<span class="sd">		Returns:</span>
+<span class="sd">			segment (segment_container) : returns a container that contains all the previously defined gates.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">return</span> <span class="n">segment_container</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">awg_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_virtual_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_IQ_channels</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="pulselib.mk_sequence"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.mk_sequence">[docs]</a>	<span class="k">def</span> <span class="nf">mk_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">seq</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		seq: list of list, </span>
+<span class="sd">			e.g. [ [&#39;name segment 1&#39; (str), number of times to play (int), prescale (int)] ]</span>
+<span class="sd">			prescale (default 0, see keysight manual) (not all awg&#39;s will support this).</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="n">seq_obj</span> <span class="o">=</span> <span class="n">sequencer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uploader</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">voltage_limits_correction</span><span class="p">)</span>
+		<span class="n">seq_obj</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">seq_obj</span></div>
+
+	<span class="k">def</span> <span class="nf">__process_channel_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Makes a variable that contains the amount of points that need to be put before and after when a upload is performed.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">channel_delays_computed</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+		<span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_delays</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">channel_delays_computed</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__get_pre_delay</span><span class="p">(</span><span class="n">channel</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_post_delay</span><span class="p">(</span><span class="n">channel</span><span class="p">))</span>
+
+
+	<span class="k">def</span> <span class="nf">__calculate_total_channel_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		function for calculating how many ns time there is a delay in between the channels.</span>
+<span class="sd">		Also support for negative delays...</span>
+
+<span class="sd">		returns:</span>
+<span class="sd">			tot_delay (the total delay)</span>
+<span class="sd">			max_delay (hight amount of the delay)</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+
+		<span class="n">delays</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_delays</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+		<span class="n">tot_delay</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">delays</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">delays</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="n">tot_delay</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">delays</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__get_pre_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		get the of ns that a channel needs to be pushed forward/backward.</span>
+<span class="sd">		returns</span>
+<span class="sd">			pre-delay : number of points that need to be pushed in from of the segment</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="n">tot_delay</span><span class="p">,</span> <span class="n">max_delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__calculate_total_channel_delay</span><span class="p">()</span>
+		<span class="n">max_pre_delay</span> <span class="o">=</span> <span class="n">tot_delay</span> <span class="o">-</span> <span class="n">max_delay</span>
+		<span class="n">delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_delays</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span>
+		<span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">delay</span> <span class="o">+</span> <span class="n">max_pre_delay</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__get_post_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		get the of ns that a channel needs to be pushed forward/backward.</span>
+<span class="sd">		returns</span>
+<span class="sd">			post-delay: number of points that need to be pushed after the segment</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="n">tot_delay</span><span class="p">,</span> <span class="n">max_delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__calculate_total_channel_delay</span><span class="p">()</span>
+		<span class="n">delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_delays</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span>
+
+		<span class="k">return</span> <span class="o">-</span><span class="n">delay</span> <span class="o">+</span> <span class="n">max_delay</span></div>
+
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+	<span class="n">p</span> <span class="o">=</span> <span class="n">pulselib</span><span class="p">()</span>
+
+	
+	<span class="k">class</span> <span class="nc">AWG</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;docstring for AWG&quot;&quot;&quot;</span>
+		<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">chassis</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">slot</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;DEMO&quot;</span>
+
+	<span class="n">AWG1</span> <span class="o">=</span> <span class="n">AWG</span><span class="p">(</span><span class="s2">&quot;AWG1&quot;</span><span class="p">)</span>
+	<span class="n">AWG2</span> <span class="o">=</span> <span class="n">AWG</span><span class="p">(</span><span class="s2">&quot;AWG2&quot;</span><span class="p">)</span>
+	<span class="n">AWG3</span> <span class="o">=</span> <span class="n">AWG</span><span class="p">(</span><span class="s2">&quot;AWG3&quot;</span><span class="p">)</span>
+	<span class="n">AWG4</span> <span class="o">=</span> <span class="n">AWG</span><span class="p">(</span><span class="s2">&quot;AWG4&quot;</span><span class="p">)</span>
+		
+	<span class="c1"># add to pulse_lib</span>
+	<span class="n">p</span><span class="o">.</span><span class="n">add_awgs</span><span class="p">(</span><span class="s1">&#39;AWG1&#39;</span><span class="p">,</span><span class="n">AWG1</span><span class="p">)</span>
+	<span class="n">p</span><span class="o">.</span><span class="n">add_awgs</span><span class="p">(</span><span class="s1">&#39;AWG2&#39;</span><span class="p">,</span><span class="n">AWG2</span><span class="p">)</span>
+	<span class="n">p</span><span class="o">.</span><span class="n">add_awgs</span><span class="p">(</span><span class="s1">&#39;AWG3&#39;</span><span class="p">,</span><span class="n">AWG3</span><span class="p">)</span>
+	<span class="n">p</span><span class="o">.</span><span class="n">add_awgs</span><span class="p">(</span><span class="s1">&#39;AWG4&#39;</span><span class="p">,</span><span class="n">AWG4</span><span class="p">)</span>
+
+	<span class="c1"># define channels</span>
+	<span class="n">awg_channels_to_physical_locations</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">({</span><span class="s1">&#39;B0&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG1&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;P1&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG1&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+		<span class="s1">&#39;B1&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG1&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s1">&#39;P2&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG1&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+		<span class="s1">&#39;B2&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;P3&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG2&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+		<span class="s1">&#39;B3&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG2&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s1">&#39;P4&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG2&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+		<span class="s1">&#39;B4&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG3&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;P5&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG3&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+		<span class="s1">&#39;B5&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG3&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s1">&#39;G1&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG3&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+		<span class="s1">&#39;I_MW&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG4&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;Q_MW&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG4&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>	
+		<span class="s1">&#39;M1&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG4&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s1">&#39;M2&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG4&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)})</span>
+		
+	<span class="n">p</span><span class="o">.</span><span class="n">define_channels</span><span class="p">(</span><span class="n">awg_channels_to_physical_locations</span><span class="p">)</span>
+
+	<span class="c1"># format : dict of channel name with delay in ns (can be posive/negative)</span>
+	<span class="n">p</span><span class="o">.</span><span class="n">add_channel_delay</span><span class="p">({</span><span class="s1">&#39;I_MW&#39;</span><span class="p">:</span><span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;Q_MW&#39;</span><span class="p">:</span><span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;M1&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;M2&#39;</span><span class="p">:</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="p">})</span>
+
+	<span class="n">awg_virtual_gates</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;virtual_gates_names_virt&#39;</span> <span class="p">:</span>
+		<span class="p">[</span><span class="s1">&#39;vP1&#39;</span><span class="p">,</span><span class="s1">&#39;vP2&#39;</span><span class="p">,</span><span class="s1">&#39;vP3&#39;</span><span class="p">,</span><span class="s1">&#39;vP4&#39;</span><span class="p">,</span><span class="s1">&#39;vP5&#39;</span><span class="p">,</span><span class="s1">&#39;vB0&#39;</span><span class="p">,</span><span class="s1">&#39;vB1&#39;</span><span class="p">,</span><span class="s1">&#39;vB2&#39;</span><span class="p">,</span><span class="s1">&#39;vB3&#39;</span><span class="p">,</span><span class="s1">&#39;vB4&#39;</span><span class="p">,</span><span class="s1">&#39;vB5&#39;</span><span class="p">],</span>
+			<span class="s1">&#39;virtual_gates_names_real&#39;</span> <span class="p">:</span>
+		<span class="p">[</span><span class="s1">&#39;P1&#39;</span><span class="p">,</span><span class="s1">&#39;P2&#39;</span><span class="p">,</span><span class="s1">&#39;P3&#39;</span><span class="p">,</span><span class="s1">&#39;P4&#39;</span><span class="p">,</span><span class="s1">&#39;P5&#39;</span><span class="p">,</span><span class="s1">&#39;B0&#39;</span><span class="p">,</span><span class="s1">&#39;B1&#39;</span><span class="p">,</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span><span class="s1">&#39;B3&#39;</span><span class="p">,</span><span class="s1">&#39;B4&#39;</span><span class="p">,</span><span class="s1">&#39;B5&#39;</span><span class="p">],</span>
+			<span class="s1">&#39;virtual_gate_matrix&#39;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="n">p</span><span class="o">.</span><span class="n">add_virtual_gates</span><span class="p">(</span><span class="n">awg_virtual_gates</span><span class="p">)</span>
+
+	<span class="n">awg_IQ_channels</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;vIQ_channels&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;qubit_1&#39;</span><span class="p">,</span><span class="s1">&#39;qubit_2&#39;</span><span class="p">],</span>
+				<span class="s1">&#39;rIQ_channels&#39;</span> <span class="p">:</span> <span class="p">[[</span><span class="s1">&#39;I_MW&#39;</span><span class="p">,</span><span class="s1">&#39;Q_MW&#39;</span><span class="p">],[</span><span class="s1">&#39;I_MW&#39;</span><span class="p">,</span><span class="s1">&#39;Q_MW&#39;</span><span class="p">]],</span>
+				<span class="s1">&#39;LO_freq&#39;</span> <span class="p">:[</span><span class="mf">2e9</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">]</span>
+				<span class="c1"># do not put the brackets for the MW source</span>
+				<span class="c1"># e.g. MW_source.frequency</span>
+				<span class="p">}</span>
+		
+	<span class="n">p</span><span class="o">.</span><span class="n">add_IQ_virt_channels</span><span class="p">(</span><span class="n">awg_IQ_channels</span><span class="p">)</span>
+
+	<span class="n">p</span><span class="o">.</span><span class="n">finish_init</span><span class="p">()</span>
+
+	<span class="n">seg</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">mk_segment</span><span class="p">()</span>
+	<span class="n">seg2</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">mk_segment</span><span class="p">()</span>
+	<span class="n">seg3</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">mk_segment</span><span class="p">()</span>
+
+	<span class="n">seg</span><span class="o">.</span><span class="n">vP1</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+
+	<span class="c1"># B0 is the barrier 0 channel</span>
+	<span class="c1"># adds a linear ramp from 10 to 20 ns with amplitude of 5 to 10.</span>
+	<span class="n">seg</span><span class="o">.</span><span class="n">B0</span><span class="o">.</span><span class="n">add_pulse</span><span class="p">([[</span><span class="mf">10.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],[</span><span class="mf">10.</span><span class="p">,</span><span class="mf">5.</span><span class="p">],[</span><span class="mf">20.</span><span class="p">,</span><span class="mf">10.</span><span class="p">],[</span><span class="mf">20.</span><span class="p">,</span><span class="mf">0.</span><span class="p">]])</span>
+	<span class="c1"># add a block pulse of 2V from 40 to 70 ns, to whaterver waveform is already there</span>
+	<span class="n">seg</span><span class="o">.</span><span class="n">B0</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span><span class="mi">70</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+	<span class="c1"># just waits (e.g. you want to ake a segment 50 ns longer)</span>
+	<span class="n">seg</span><span class="o">.</span><span class="n">B0</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+	<span class="c1"># resets time back to zero in segment. Al the commannds we run before will be put at a negative time.</span>
+	<span class="n">seg</span><span class="o">.</span><span class="n">B0</span><span class="o">.</span><span class="n">reset_time</span><span class="p">()</span>
+	<span class="c1"># this pulse will be placed directly after the wait()</span>
+	<span class="n">seg</span><span class="o">.</span><span class="n">B0</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Stephan Philips
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

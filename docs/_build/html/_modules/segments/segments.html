@@ -1,0 +1,451 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>segments.segments &mdash; pulse lib 0.2 alpha documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> pulse lib
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pulse lib</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>segments.segments</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for segments.segments</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pulse_lib.segments.segments_base</span> <span class="k">as</span> <span class="nn">seg_base</span>
+<span class="kn">import</span> <span class="nn">pulse_lib.segments.segments_IQ</span> <span class="k">as</span> <span class="nn">seg_IQ</span>
+<span class="kn">import</span> <span class="nn">pulse_lib.segments.looping</span> <span class="k">as</span> <span class="nn">lp</span>
+
+<span class="kn">from</span> <span class="nn">pulse_lib.segments.data_handling_functions</span> <span class="k">import</span> <span class="n">find_common_dimension</span><span class="p">,</span> <span class="n">update_dimension</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TODO : </span>
+<span class="sd">implement reset time for all channels.</span>
+<span class="sd">force right dimensions.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="segment_container"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container">[docs]</a><span class="k">class</span> <span class="nc">segment_container</span><span class="p">():</span>
+	<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">	Class containing all the single segments for for a series of channels.</span>
+<span class="sd">	This is a organisational class.</span>
+<span class="sd">	Class is capable of checking wheather upload is needed.</span>
+<span class="sd">	Class is capable of termining what volatages are required for each channel.</span>
+<span class="sd">	Class returns vmin/vmax data to awg object</span>
+<span class="sd">	Class returns upload data as a numpy&lt;double&gt; array to awg object.</span>
+<span class="sd">	&#39;&#39;&#39;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">real_channels</span><span class="p">,</span> <span class="n">virtual_gates</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">IQ_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="c1"># physical channels</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">r_channels</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="c1"># physical + virtual channels</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">virtual_gates</span> <span class="o">=</span> <span class="n">virtual_gates</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">render_mode</span> <span class="o">=</span> <span class="kc">False</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_Vmin_max_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">real_channels</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_Vmin_max_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;v_min&quot;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;v_max&quot;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">prev_upload</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+		
+		<span class="c1"># Not superclean -- should it be in a different namespace? -- what is the chance of a overlap?</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">real_channels</span><span class="p">:</span>
+			<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">seg_base</span><span class="o">.</span><span class="n">segment_single</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">r_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">virtual_gates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="c1"># make segments for virtual gates.</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">virtual_gates</span><span class="p">[</span><span class="s1">&#39;virtual_gates_names_virt&#39;</span><span class="p">]:</span>
+				<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">seg_base</span><span class="o">.</span><span class="n">segment_single</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;virtual&#39;</span><span class="p">))</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+			<span class="c1"># add reference in real gates.</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">virtual_gates</span><span class="p">[</span><span class="s1">&#39;virtual_gates_names_virt&#39;</span><span class="p">])):</span>
+				<span class="n">current_channel</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">virtual_gates</span><span class="p">[</span><span class="s1">&#39;virtual_gates_names_real&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+				<span class="n">virtual_gates_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">virtual_gates</span><span class="p">[</span><span class="s1">&#39;virtual_gate_matrix&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">,:]</span>
+
+				<span class="k">for</span> <span class="n">virt_channel</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">virtual_gates</span><span class="p">[</span><span class="s1">&#39;virtual_gates_names_virt&#39;</span><span class="p">])):</span>
+					<span class="k">if</span> <span class="n">virtual_gates_values</span><span class="p">[</span><span class="n">virt_channel</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+						<span class="n">current_channel</span><span class="o">.</span><span class="n">add_reference_channel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">virtual_gates</span><span class="p">[</span><span class="s1">&#39;virtual_gates_names_virt&#39;</span><span class="p">][</span><span class="n">virt_channel</span><span class="p">],</span> 
+							<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">virtual_gates</span><span class="p">[</span><span class="s1">&#39;virtual_gates_names_virt&#39;</span><span class="p">][</span><span class="n">virt_channel</span><span class="p">]),</span>
+							<span class="n">virtual_gates_values</span><span class="p">[</span><span class="n">virt_channel</span><span class="p">])</span>
+
+		<span class="k">if</span> <span class="n">IQ_channels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">IQ_channels</span><span class="p">[</span><span class="s1">&#39;vIQ_channels&#39;</span><span class="p">])):</span>
+				<span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IQ_channels</span><span class="p">[</span><span class="s1">&#39;vIQ_channels&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">seg_IQ</span><span class="o">.</span><span class="n">segment_single_IQ</span><span class="p">(</span><span class="n">IQ_channels</span><span class="p">[</span><span class="s1">&#39;vIQ_channels&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">IQ_channels</span><span class="p">[</span><span class="s1">&#39;LO_freq&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]))</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">IQ_channels</span><span class="p">[</span><span class="s1">&#39;vIQ_channels&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">IQ_channels</span><span class="p">[</span><span class="s1">&#39;rIQ_channels&#39;</span><span class="p">])):</span>
+				<span class="n">I_channel</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IQ_channels</span><span class="p">[</span><span class="s1">&#39;rIQ_channels&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+				<span class="n">Q_channel</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IQ_channels</span><span class="p">[</span><span class="s1">&#39;rIQ_channels&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+				<span class="n">I_channel</span><span class="o">.</span><span class="n">add_IQ_ref_channel</span><span class="p">(</span><span class="n">IQ_channels</span><span class="p">[</span><span class="s1">&#39;vIQ_channels&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
+					<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IQ_channels</span><span class="p">[</span><span class="s1">&#39;vIQ_channels&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]),</span> <span class="s1">&#39;I&#39;</span><span class="p">)</span>
+				<span class="n">Q_channel</span><span class="o">.</span><span class="n">add_IQ_ref_channel</span><span class="p">(</span><span class="n">IQ_channels</span><span class="p">[</span><span class="s1">&#39;vIQ_channels&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
+					<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IQ_channels</span><span class="p">[</span><span class="s1">&#39;vIQ_channels&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]),</span> <span class="s1">&#39;Q&#39;</span><span class="p">)</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		get combined shape of all the waveforms</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="n">my_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+			<span class="n">dim</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+			<span class="n">my_shape</span> <span class="o">=</span> <span class="n">find_common_dimension</span><span class="p">(</span><span class="n">my_shape</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="n">my_shape</span>
+		
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">last_mod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+			<span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">segment_single</span><span class="p">())</span><span class="o">.</span><span class="n">last_edit</span> <span class="o">&gt;</span> <span class="n">time</span><span class="p">:</span>
+				<span class="n">time</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">segment_single</span><span class="p">())</span><span class="o">.</span><span class="n">last_edit</span>
+		<span class="k">return</span> <span class="n">time</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">total_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		get the total time that will be uploaded for this segment to the AWG</span>
+<span class="sd">		Returns:</span>
+<span class="sd">			times (np.ndarray) : numpy array with the total time (maximum of all the channels), for all the different loops executed.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">extend_dim</span><span class="p">()</span>
+
+		<span class="n">shape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+		<span class="n">n_channels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">)</span>
+		
+		<span class="n">time_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="n">n_channels</span><span class="p">]</span> <span class="o">+</span> <span class="n">shape</span><span class="p">)</span>
+		
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">)):</span>
+			<span class="n">time_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">total_time</span>
+
+		<span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">time_data</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="n">times</span>
+
+	<span class="nd">@property</span>
+	<span class="k">def</span> <span class="nf">Vmin_max_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_upload</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_mod</span><span class="p">:</span>
+
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">)):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_Vmin_max_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;v_min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">v_min</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_Vmin_max_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;v_max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">v_max</span>
+
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vmin_max_data</span>
+
+<div class="viewcode-block" id="segment_container.append"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.append">[docs]</a>	<span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		append other segments the the current ones in the container.</span>
+<span class="sd">		Args:</span>
+<span class="sd">			other (segment_container) : other segment to append</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">segment_container</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;segment_container object expected. Did you supply a single segment?&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">time</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_time</span>
+
+			<span class="n">time</span> <span class="o">=</span> <span class="n">lp</span><span class="o">.</span><span class="n">loop_obj</span><span class="p">()</span>
+			<span class="n">time</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
+
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+			<span class="n">segment</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+			<span class="n">segment</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">time</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="segment_container.slice_time"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.slice_time">[docs]</a>	<span class="k">def</span> <span class="nf">slice_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		slice time in a segment container</span>
+<span class="sd">		Args:</span>
+<span class="sd">			start (double) : start time of the slice</span>
+<span class="sd">			stop (double) : stop time of the slice</span>
+
+<span class="sd">		The slice_time function allows you to cut all the waveforms in the segment container in different sizes.</span>
+<span class="sd">		This function should be handy for debugging, example usage would be, </span>
+<span class="sd">		You are runnning an algorithm and want to check what the measurement outcomes are though the whole algorithm.</span>
+<span class="sd">		Pratically, you want to know</span>
+<span class="sd">			0 -&gt; 10ns (@10 ns still everything as expected?)</span>
+<span class="sd">			0 -&gt; 20ns</span>
+<span class="sd">			0 -&gt; ...</span>
+<span class="sd">		This function would allow you to do that, e.g. by calling segment_container.cut_segment(0, lp.linspace(10,100,9))</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+			<span class="n">segment</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+			<span class="n">segment</span><span class="o">.</span><span class="n">slice_time</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="segment_container.reset_time"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.reset_time">[docs]</a>	<span class="k">def</span> <span class="nf">reset_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extend_only</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		Args:</span>
+<span class="sd">			extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms...].</span>
+<span class="sd">			</span>
+<span class="sd">		Allings all segments togeter and sets the input time to 0,</span>
+<span class="sd">		e.g. , </span>
+<span class="sd">		chan1 : waveform until 70 ns</span>
+<span class="sd">		chan2 : waveform until 140ns</span>
+<span class="sd">		-&gt; totaltime will be 140 ns,</span>
+<span class="sd">		when you now as a new pulse (e.g. at time 0, it will actually occur at 140 ns in both blocks)</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		
+		<span class="n">times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_time</span>
+
+		<span class="n">loop_obj</span> <span class="o">=</span> <span class="n">lp</span><span class="o">.</span><span class="n">loop_obj</span><span class="p">()</span>
+		<span class="n">loop_obj</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
+
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+			<span class="n">segment</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+			<span class="n">segment</span><span class="o">.</span><span class="n">reset_time</span><span class="p">(</span><span class="n">loop_obj</span><span class="p">,</span> <span class="n">extend_only</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="segment_container.get_waveform"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.get_waveform">[docs]</a>	<span class="k">def</span> <span class="nf">get_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pre_delay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">post_delay</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sample_rate</span><span class="o">=</span><span class="mf">1e9</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		function to get the raw data of a waveform,</span>
+<span class="sd">		inputs:</span>
+<span class="sd">			channel (str) : channel name of the waveform you want</span>
+<span class="sd">			index (tuple) :</span>
+<span class="sd">			pre_delay (int) : extra offset in from of the waveform (start at negative time) (for a certain channel, as defined in channel delays)</span>
+<span class="sd">			post_delay (int) : time gets appended to the waveform (for a certain channel)</span>
+<span class="sd">		returns:</span>
+<span class="sd">			np.ndarray[ndim=1, dtype=double] : waveform as a numpy array</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">get_segment</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">pre_delay</span><span class="p">,</span> <span class="n">post_delay</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="segment_container.extend_dim"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.extend_dim">[docs]</a>	<span class="k">def</span> <span class="nf">extend_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ref</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		extend the dimensions of the waveform to a given shape.</span>
+<span class="sd">		Args:</span>
+<span class="sd">			shape (tuple) : shape of the new waveform</span>
+<span class="sd">			ref (bool) : put to True if you want to extend the dimension by using pointers instead of making full copies.</span>
+<span class="sd">		If referencing is True, a pre-render will already be performed to make sure nothing is rendered double. </span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="k">if</span> <span class="n">shape</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
+
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_mode</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+				<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">update_dimension</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span>
+			
+			<span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;render&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_mode</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+				<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">_pulse_data_all</span> <span class="o">=</span> <span class="n">update_dimension</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">_pulse_data_all</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="segment_container.enter_rendering_mode"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.enter_rendering_mode">[docs]</a>	<span class="k">def</span> <span class="nf">enter_rendering_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		put the segments into rendering mode, which means that they cannot be changed. All segments will get their final length at this moment.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">reset_time</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">render_mode</span> <span class="o">=</span> <span class="kc">True</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">render_mode</span> <span class="o">=</span>  <span class="kc">True</span>
+			<span class="c1"># make a pre-render all all the pulse data (e.g. compose channels, do not render in full).</span>
+			<span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;render&#39;</span><span class="p">:</span>
+				<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">pulse_data_all</span></div>
+
+<div class="viewcode-block" id="segment_container.exit_rendering_mode"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.exit_rendering_mode">[docs]</a>	<span class="k">def</span> <span class="nf">exit_rendering_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">		exit rendering mode and clear all the ram that was used for the rendering.</span>
+<span class="sd">		&#39;&#39;&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">render_mode</span> <span class="o">=</span> <span class="kc">False</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">render_mode</span> <span class="o">=</span>  <span class="kc">False</span>
+			<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">_pulse_data_all</span> <span class="o">=</span> <span class="kc">None</span></div></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">pulse_lib.segments.looping</span> <span class="k">as</span> <span class="nn">lp</span>
+	<span class="n">a</span> <span class="o">=</span> <span class="n">segment_container</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span>
+	<span class="n">b</span> <span class="o">=</span> <span class="n">segment_container</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span>
+
+	<span class="n">b</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">lp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span><span class="mi">100</span><span class="p">)</span>
+	<span class="n">b</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">reset_time</span><span class="p">()</span>
+
+	<span class="n">b</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="n">lp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span><span class="mi">100</span><span class="p">)</span>
+
+	<span class="n">a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+
+	<span class="n">a</span><span class="o">.</span><span class="n">slice_time</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">lp</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+	<span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">my_pulse_data</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Stephan Philips
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
