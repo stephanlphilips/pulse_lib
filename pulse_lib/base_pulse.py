@@ -134,6 +134,7 @@ class pulselib:
 
 	def finish_init(self):
 		# function that finishes the initialisation
+		# TODO rewrite, so this function is embedded in the other ones.
 		self.uploader = keysight_uploader(self.awg_devices, self.cpp_uploader, self.awg_channels, self.awg_channels_to_physical_locations , self.channel_delays_computed, self.channel_compenstation_limits)
 
 	def mk_segment(self):
