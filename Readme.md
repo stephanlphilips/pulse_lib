@@ -50,3 +50,4 @@ TODO list:
 
 TODO bugs and small things to fix,
 * deal with names and units of the loops + setpoints variable
+* remove finish init
