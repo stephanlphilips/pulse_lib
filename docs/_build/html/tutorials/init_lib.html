@@ -27,7 +27,9 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tutorial : Making simple pulses for DC control of qubits." href="simple_pulse.html" />
+    <link rel="prev" title="Structure of the library" href="../struct.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -77,8 +79,16 @@
             
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../struct.html">Structure of the library</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial : Initializing the library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simple_pulse.html">Tutorial : Making simple pulses for DC control of qubits.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MW_pulse.html">Tutorial : Making pulses for Microwave control.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sequence.html">Tutotial : Making from pulses a sequence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="looping.html">Tutorial : Looping variables.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reset_time_and_slicing.html">Concepts : Reset time and slicing of waveforms.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_PT.html">Advanced Tutorial : Programming a process tomography experiment to characterize a two qubit gate.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_RB.html">Advanced Tutorial : Designing pulses for a Randomised Benchmarking experiment.</a></li>
 </ul>
 
             
@@ -145,6 +155,141 @@
             
   <div class="section" id="tutorial-initializing-the-library">
 <h1>Tutorial : Initializing the library<a class="headerlink" href="#tutorial-initializing-the-library" title="Permalink to this headline">¶</a></h1>
+<p>Before making a pulse, the pulse library needs to know some stuff from you. The main items you need to provide are:</p>
+<blockquote>
+<div><ul class="simple">
+<li>QCodes objects of the AWG’s (only when using Keysight AWG’s)</li>
+<li>Translation of you sample channels names (e.g. barrier gate 1) to the physical location if the set up (e.g. AWG3 channel 4)</li>
+<li>Virtual gates and virtual gate matrix if needed &lt;reference needed here&gt;</li>
+<li>Virtual IQ channels, if you are doing IQ modulation &lt;link explaining IQ modulation &gt;</li>
+<li>Channels delay’s (e.g. if not all you coaxes have the same length)</li>
+</ul>
+</div></blockquote>
+<p>All these properties are contained in the <code class="docutils literal notranslate"><span class="pre">pulselib</span></code> object. Below a complete example is worked out to explaining how to do this.
+The source code of the example can be found in <code class="docutils literal notranslate"><span class="pre">tutorials/init_pulselib.py</span></code> if you would want to execute it yourselves [TODO].</p>
+<div class="section" id="tutorial-example-initialization-for-a-two-qubit-setup">
+<h2>Tutorial example : initialization for a two-qubit setup<a class="headerlink" href="#tutorial-example-initialization-for-a-two-qubit-setup" title="Permalink to this headline">¶</a></h2>
+<p>For this setup, we have 6 coax cables going to the sample,</p>
+<blockquote>
+<div><ul class="simple">
+<li>B0, B1, B2 : gates that are connected to the barrier gates on the sample.</li>
+<li>P1, P2 : gates that are connected to the plungers on the sample.</li>
+<li>MW_gate : a screening gate on the sample that can be used for EDSR.</li>
+<li>MW_marker : a marker to control on/off state of the vector source.</li>
+</ul>
+</div></blockquote>
+<dl class="docutils">
+<dt>Practically the things that we want to set are:</dt>
+<dd><ol class="first last arabic simple">
+<li>Which channels of the AWG are corresponding to the gates on the sample.</li>
+<li>Virtual gates to move easily around in charge stability diagrams.</li>
+<li>Two virtual IQ channels, one per qubit.</li>
+<li>A channel delay for the MW channel, to compensate for the time that the waveform spends in the vector signal source generator.</li>
+</ol>
+</dd>
+</dl>
+<div class="section" id="step-1-initializing-the-pulse-lib-object-and-defining-real-gates">
+<h3>Step 1 : initializing the pulse lib object and defining real gates<a class="headerlink" href="#step-1-initializing-the-pulse-lib-object-and-defining-real-gates" title="Permalink to this headline">¶</a></h3>
+<p>The first thing we need to do is to make the <code class="docutils literal notranslate"><span class="pre">pulselib</span></code> object, once it is make, we can start to define extra properties.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pulse_lib.base_pulse</span> <span class="kn">import</span> <span class="n">pulselib</span>
+<span class="n">pulse</span> <span class="o">=</span> <span class="n">pulselib</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>That was it, let’s now add some AWG’s and define the channel names. In this example we will need 8 channels, thus two, 4 channel AWG’s.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># init AWG</span>
+<span class="n">awg1</span> <span class="o">=</span> <span class="n">keysight_awg</span><span class="o">.</span><span class="n">SD_AWG</span><span class="p">(</span><span class="s1">&#39;awg1&#39;</span><span class="p">,</span> <span class="n">chassis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">slot</span><span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">channels</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span> <span class="mi">8</span><span class="p">)</span>
+<span class="n">awg2</span> <span class="o">=</span> <span class="n">keysight_awg</span><span class="o">.</span><span class="n">SD_AWG</span><span class="p">(</span><span class="s1">&#39;awg2&#39;</span><span class="p">,</span> <span class="n">chassis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">slot</span><span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">channels</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">triggers</span><span class="o">=</span> <span class="mi">8</span><span class="p">)</span>
+
+<span class="c1"># add to pulse_lib</span>
+<span class="n">pulse</span><span class="o">.</span><span class="n">add_awgs</span><span class="p">(</span><span class="s1">&#39;AWG1&#39;</span><span class="p">,</span><span class="n">awg1</span><span class="p">)</span>
+<span class="n">pulse</span><span class="o">.</span><span class="n">add_awgs</span><span class="p">(</span><span class="s1">&#39;AWG2&#39;</span><span class="p">,</span><span class="n">awg2</span><span class="p">)</span>
+
+
+<span class="c1"># define channels</span>
+<span class="n">awg_channels_to_physical_locations</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">({</span><span class="s1">&#39;B0&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG1&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;P1&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG1&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="s1">&#39;B1&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG1&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s1">&#39;P2&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG1&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span><span class="s1">&#39;B2&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="s1">&#39;MW_gate_I&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG2&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s1">&#39;MW_gate_Q&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG2&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;MW_marker&#39;</span><span class="p">:(</span><span class="s1">&#39;AWG2&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)})</span>
+
+<span class="n">pulse</span><span class="o">.</span><span class="n">define_channels</span><span class="p">(</span><span class="n">awg_channels_to_physical_locations</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note, when not using the Keysight back-end, you can just call <code class="docutils literal notranslate"><span class="pre">p.add_awgs('AWG1',</span> <span class="pre">None)</span></code>. You will have to feed then the library in another uploaded (e.g. qtt virtual AWG).</p>
+</div>
+<div class="section" id="step-2-defining-the-virtual-gates">
+<h3>Step 2 : defining the virtual gates<a class="headerlink" href="#step-2-defining-the-virtual-gates" title="Permalink to this headline">¶</a></h3>
+<p>This is a quite straightforward process, just define the channels for the virtual gate and their corresponding real channels in a dictionary.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">awg_virtual_gates</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;virtual_gates_names_virt&#39;</span> <span class="p">:</span>
+                <span class="p">[</span><span class="s1">&#39;vB0&#39;</span><span class="p">,</span> <span class="s1">&#39;vB1&#39;</span><span class="p">,</span> <span class="s1">&#39;vB2&#39;</span><span class="p">,</span> <span class="s1">&#39;vP1&#39;</span><span class="p">,</span> <span class="s1">&#39;vP2&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;virtual_gates_names_real&#39;</span> <span class="p">:</span>
+                <span class="p">[</span><span class="s1">&#39;B0&#39;</span><span class="p">,</span> <span class="s1">&#39;B1&#39;</span><span class="p">,</span> <span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="s1">&#39;P1&#39;</span><span class="p">,</span> <span class="s1">&#39;P2&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;virtual_gate_matrix&#39;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">pulse</span><span class="o">.</span><span class="n">add_virtual_gates</span><span class="p">(</span><span class="n">awg_virtual_gates</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this case we just constructed a 1 on 1 map of the virtual gates of real gates (diagonal virtual gate matrix).</p>
+<p>The matrix can be updated at any time with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pulse</span><span class="o">.</span><span class="n">update_virtual_gate_matrix</span><span class="p">(</span><span class="n">my_matrix</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When the matrix is updated, it will automatically also update in all segments that have been created before.
+An example how to practically work with virtual gates can be found here [TODO].</p>
+</div>
+<div class="section" id="step-3-defining-iq-channels">
+<h3>Step 3 : defining IQ channels<a class="headerlink" href="#step-3-defining-iq-channels" title="Permalink to this headline">¶</a></h3>
+<p>If you are new to IQ modulation, it is recommended to read the introduction on IQ modulation, here [TODO].</p>
+<p>When operating a vector source, you usually have to connect (usually) 3 coax cables:</p>
+<blockquote>
+<div><ul class="simple">
+<li>I channel</li>
+<li>Q channel</li>
+<li>marker</li>
+<li><code class="docutils literal notranslate"><span class="pre">[opt]</span></code> if you want to go wide-band, you might also need to provide the negative image of the I/Q channel (currently not implemented .., though easy todo).</li>
+</ul>
+</div></blockquote>
+<p>Most of the time, you will want to make a virtual channel per qubit, as it allows you to keep easy track of the phase of the qubit. An example of this can be found in the mircowave tutorial.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">awg_IQ_channels</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;vIQ_channels&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;qubit_1&#39;</span><span class="p">,</span><span class="s1">&#39;qubit_2&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;rIQ_channels&#39;</span> <span class="p">:</span> <span class="p">[[</span><span class="s1">&#39;MW_gate_I&#39;</span><span class="p">,</span><span class="s1">&#39;MW_gate_Q&#39;</span><span class="p">],[</span><span class="s1">&#39;MW_gate_I&#39;</span><span class="p">,</span><span class="s1">&#39;MW_gate_Q&#39;</span><span class="p">]],</span>
+                <span class="s1">&#39;LO_freq&#39;</span> <span class="p">:[</span><span class="n">MW_source</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">]</span>
+                <span class="c1"># do not put the brackets for the MW source</span>
+                <span class="c1"># e.g. MW_source.frequency (this should be a qcodes parameter)</span>
+                <span class="p">}</span>
+
+<span class="n">pulse</span><span class="o">.</span><span class="n">add_IQ_virt_channels</span><span class="p">(</span><span class="n">awg_IQ_channels</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>At the moment markers are not added automatically, this is something that will be implemented in the next release of this library.</p>
+</div>
+<div class="section" id="step-4-defining-channel-delays">
+<h3>Step 4 : defining channel delays<a class="headerlink" href="#step-4-defining-channel-delays" title="Permalink to this headline">¶</a></h3>
+<p>In our case here, we have to compensate for the fact that some signals take a longer time to get to the sample than other ones. More info on how this is practically accomplished, can be found here <code class="docutils literal notranslate"><span class="pre">TODO</span></code>.
+Practically, example latencies could be the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li>20 ns for the barrier and plunger gates to get from the AWG channels into the fridge.</li>
+<li>70 ns to get to microwave channel from the IQ output into the fridge. 5 ns for the signal to reach the vector source, then the signal needs 45ns to be mixed with the carrier frequency, next 20 additional ns are needed to go down in the fridge.</li>
+<li>5 ns marker delay</li>
+</ul>
+</div></blockquote>
+<p>Or translated into python code,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pulse</span><span class="o">.</span><span class="n">add_channel_delay</span><span class="p">({</span>
+        <span class="s1">&#39;B0&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="s1">&#39;P1&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="s1">&#39;B1&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="s1">&#39;P2&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="s1">&#39;B2&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="s1">&#39;MW_gate_I&#39;</span><span class="p">:</span> <span class="mi">70</span><span class="p">,</span>
+        <span class="s1">&#39;MW_gate_Q&#39;</span><span class="p">:</span> <span class="mi">70</span><span class="p">,</span>
+        <span class="s1">&#39;MW_marker&#39;</span><span class="p">:</span> <span class="mi">5</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+<p>Note, also negative delays are allowed. All units are in <code class="docutils literal notranslate"><span class="pre">ns</span></code> by default.</p>
+</div>
+</div>
 </div>
 
 
@@ -152,6 +297,15 @@
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="simple_pulse.html" class="btn btn-neutral float-right" title="Tutorial : Making simple pulses for DC control of qubits." accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../struct.html" class="btn btn-neutral" title="Structure of the library" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

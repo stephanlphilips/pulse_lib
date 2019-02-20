@@ -9,11 +9,12 @@ This is a pulse library designed to provide all the control signals that are nee
 A lot of attention is given to performance, structure and ease of use.
 
 Features now include:
-	- Support for arbitrary pulse/sine wave based sequences (phase coherent atm)
+	- Support for arbitrary pulse/sine wave based sequences (phase coherent atm).
 	- Fully multidimensional. Execute any command as a loop in any dimension.
 	- Short and clean syntax. No sympy.
-	- Native support for virtual gates
-	- IQ toolkit and IQ virtual channels -- Full suppport for single sideband modulation (Along with PM/AM/FM)
+	- Native support for virtual gates.
+	- IQ toolkit and IQ virtual channels -- Full suppport for single sideband modulation (Along with PM/AM/FM).
+   - Automatic compenstation for DC offsets.
 	- High speed uploader for Keysight PXI systems which supports upload during playback.
 
 .. toctree::

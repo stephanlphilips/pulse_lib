@@ -76,11 +76,19 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Introduction</a></li>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="struct.html">Structure of the library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/init_lib.html">Tutorial : Initializing the library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/simple_pulse.html">Tutorial : Making simple pulses for DC control of qubits.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/MW_pulse.html">Tutorial : Making pulses for Microwave control.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/sequence.html">Tutotial : Making from pulses a sequence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/looping.html">Tutorial : Looping variables.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/reset_time_and_slicing.html">Concepts : Reset time and slicing of waveforms.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/example_PT.html">Advanced Tutorial : Programming a process tomography experiment to characterize a two qubit gate.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/example_RB.html">Advanced Tutorial : Designing pulses for a Randomised Benchmarking experiment.</a></li>
 </ul>
-</div>
+
             
           
         </div>
@@ -537,6 +545,205 @@ Args:</p>
 
 </dd></dl>
 
+<p># Initializing the library</p>
+<p>The general object that will manage all the segments and the interection with the AWG is the pulse object. The pulse object is best created in the station.
+<a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python</p>
+<blockquote>
+<div>from pulse_lib.base_pulse import pulselib
+p = pulselib()</div></blockquote>
+<p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<p>Let’s intitialize the AWG’s and make some channels in the pulse library
+<a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>python</p>
+<blockquote>
+<div><p># init AWG
+awg1 = keysight_awg.SD_AWG(‘awg1’, chassis = 0, slot= 2, channels = 4, triggers= 8)
+awg2 = keysight_awg.SD_AWG(‘awg2’, chassis = 0, slot= 3, channels = 4, triggers= 8)
+awg3 = keysight_awg.SD_AWG(‘awg3’, chassis = 0, slot= 4, channels = 4, triggers= 8)
+awg4 = keysight_awg.SD_AWG(‘awg4’, chassis = 0, slot= 5, channels = 4, triggers= 8)</p>
+<p># add to pulse_lib
+p.add_awgs(‘AWG1’,awg1)
+p.add_awgs(‘AWG2’,awg2)
+p.add_awgs(‘AWG3’,awg3)
+p.add_awgs(‘AWG4’,awg4)</p>
+<p># define channels
+awg_channels_to_physical_locations = dict({‘B0’:(‘AWG1’, 1), ‘P1’:(‘AWG1’, 2),</p>
+<blockquote>
+<div>‘B1’:(‘AWG1’, 3), ‘P2’:(‘AWG1’, 4),
+‘B2’:(‘AWG2’, 1), ‘P3’:(‘AWG2’, 2),
+‘B3’:(‘AWG2’, 3), ‘P4’:(‘AWG2’, 4),
+‘B4’:(‘AWG3’, 1), ‘P5’:(‘AWG3’, 2),
+‘B5’:(‘AWG3’, 3), ‘G1’:(‘AWG3’, 4),
+‘I_MW’:(‘AWG4’, 1), ‘Q_MW’:(‘AWG4’, 2),
+‘M1’:(‘AWG4’, 3), ‘M2’:(‘AWG4’, 4)})</div></blockquote>
+<p>p.define_channels(awg_channels_to_physical_locations)</p>
+</div></blockquote>
+<p><a href="#id13"><span class="problematic" id="id14">``</span></a>`
+Now we have some channels, we can also specity delays (e.g. due to different lenght of coaxial cables, cables that pass through a mixer, …).
+<a href="#id15"><span class="problematic" id="id16">``</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a>python</p>
+<blockquote>
+<div># format : dict of channel name with delay in ns (can be posive/negative)
+p.add_channel_delay({‘I_MW’:50, ‘Q_MW’:50, ‘M1’:20, ‘M2’:-25, })</div></blockquote>
+<p><a href="#id19"><span class="problematic" id="id20">``</span></a><a href="#id21"><span class="problematic" id="id22">`</span></a></p>
+<p>You might also want to define some virtual gates,
+this can simply be done by defining:
+<a href="#id23"><span class="problematic" id="id24">``</span></a><a href="#id25"><span class="problematic" id="id26">`</span></a>python</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>awg_virtual_gates = {‘virtual_gates_names_virt’ :</dt>
+<dd><dl class="first last docutils">
+<dt>[‘vP1’,’vP2’,’vP3’,’vP4’,’vP5’,’vB0’,’vB1’,’vB2’,’vB3’,’vB4’,’vB5’],</dt>
+<dd>‘virtual_gates_names_real’ :</dd>
+<dt>[‘P1’,’P2’,’P3’,’P4’,’P5’,’B0’,’B1’,’B2’,’B3’,’B4’,’B5’],</dt>
+<dd>‘virtual_gate_matrix’ : np.eye(11)</dd>
+</dl>
+</dd>
+</dl>
+<p>}
+p.add_virtual_gates(awg_virtual_gates)</p>
+</div></blockquote>
+<p><a href="#id27"><span class="problematic" id="id28">``</span></a>`
+The matrix can be updated with (not yet implemented):
+<a href="#id29"><span class="problematic" id="id30">``</span></a><a href="#id31"><span class="problematic" id="id32">`</span></a>python</p>
+<blockquote>
+<div>p.update_virtual_gate_matrix(my_matrix)</div></blockquote>
+<p><a href="#id33"><span class="problematic" id="id34">``</span></a>`
+To generate virtual channels for IQ signals, you can add the following code:
+<a href="#id35"><span class="problematic" id="id36">``</span></a><a href="#id37"><span class="problematic" id="id38">`</span></a>python</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>awg_IQ_channels = {‘vIQ_channels’ <span class="classifier-delimiter">:</span> <span class="classifier">[‘qubit_1’,’qubit_2’],</span></dt>
+<dd>‘rIQ_channels’ : [[‘I_MW’,’Q_MW’],[‘I_MW’,’Q_MW’]],
+‘LO_freq’ :[MW_source.frequency, 1e9]
+# do not put the brackets for the MW source
+# e.g. MW_source.frequency
+}</dd>
+</dl>
+<p>p.add_IQ_virt_channels(awg_IQ_channels)</p>
+</div></blockquote>
+<p><a href="#id39"><span class="problematic" id="id40">``</span></a>`
+Where the virtual channels are the new names of the new channels created to do IQ channals. Each of these channels refer to a real channel (note that you can refer to the same real channel multiple times). It is recomendable to create one IQ virtual channel for each qubit.</p>
+<p>Note to finize the initialisation of the pulse library, you should call:
+<a href="#id41"><span class="problematic" id="id42">``</span></a><a href="#id43"><span class="problematic" id="id44">`</span></a>python</p>
+<blockquote>
+<div>p.finish_init()</div></blockquote>
+<p><a href="#id45"><span class="problematic" id="id46">``</span></a>`
+This will prepare all the segment/sequencing objects you might need later.</p>
+<p>The code above can be placed in your station.</p>
+<p># Generating segments</p>
+<p>Segments come by default in containers (e.g. for all the channels (real/virtual) you defined).
+Note that all segments in these containers are assumed to have the same length (so P1, P2, P3, …).</p>
+<p>An example of defining some segments.
+<a href="#id47"><span class="problematic" id="id48">``</span></a><a href="#id49"><span class="problematic" id="id50">`</span></a>python</p>
+<blockquote>
+<div>seg  = p.mk_segment(‘INIT’)
+seg2 = p.mk_segment(‘Manip’)
+seg3 = p.mk_segment(‘Readout’)</div></blockquote>
+<p><a href="#id51"><span class="problematic" id="id52">``</span></a>`
+Each segment has a unique name. This name we will use later for playback.</p>
+<p>## Making your first pulse</p>
+<p>To each segments you can add basic waveforms. Here you are free to add anything you want.
+Some examples follow (times are by default in ns).
+<a href="#id53"><span class="problematic" id="id54">``</span></a><a href="#id55"><span class="problematic" id="id56">`</span></a>python</p>
+<blockquote>
+<div># B0 is the barrier 0 channel
+# adds a linear ramp from 10 to 20 ns with amplitude of 5 to 10.
+seg.B0.add_pulse([[10.,0.],[10.,5.],[20.,10.],[20.,0.]])
+# add a block pulse of 2V from 40 to 70 ns, to whaterver waveform is already there
+seg.B0.add_block(40,70,2)
+# just waits (e.g. you want to ake a segment 50 ns longer)
+seg.B0.wait(50)
+# resets time back to zero in segment. Al the commannds we run before will be put at a negative time.
+seg.B0.reset_time()
+# this pulse will be placed directly after the wait()
+seg.B0.add_block(0,10,2)</div></blockquote>
+<p><a href="#id57"><span class="problematic" id="id58">``</span></a>`
+# Playback of pulses</p>
+<p>Once pulses are added, you can define a sequence like:
+<a href="#id59"><span class="problematic" id="id60">``</span></a><a href="#id61"><span class="problematic" id="id62">`</span></a>python</p>
+<blockquote>
+<div>SEQ = [[‘INIT’, 1, 0], [‘Manip’, 1, 0], [‘Readout’, 1, 0] ]</div></blockquote>
+<p><a href="#id63"><span class="problematic" id="id64">``</span></a>`
+Where (e.g.) init is played once (1) and has a prescalor of 0 (see Keysight manual)</p>
+<p>This sequence can be added to the pulse object and next be uploaded.
+<a href="#id65"><span class="problematic" id="id66">``</span></a><a href="#id67"><span class="problematic" id="id68">`</span></a>python</p>
+<blockquote>
+<div>p.add_sequence(‘mysequence’, SEQ)
+p.start_sequence(‘mysequence’)</div></blockquote>
+<p><a href="#id69"><span class="problematic" id="id70">``</span></a><a href="#id71"><span class="problematic" id="id72">`</span></a></p>
+<p># Some examples of easy pulses:
+(more advanced examples follow later)
+* 1D scan
+<a href="#id73"><span class="problematic" id="id74">``</span></a><a href="#id75"><span class="problematic" id="id76">`</span></a>python
+seg  = p.mk_segment(‘1D_scan’)
+#lets sweep the virtual plunger,
+n_points = 100
+swing = 1000 #mV
+period = 1000 #ns</p>
+<p>v_start =swing/2
+step = swing/npoints</p>
+<dl class="docutils">
+<dt>for i in range(n_points):</dt>
+<dd>seg.vP1.add_block(i*period, (i+1)period, v_start + i*step)</dd>
+</dl>
+<p>#done.
+<a href="#id77"><span class="problematic" id="id78">``</span></a>`
+* 2D scan
+<a href="#id79"><span class="problematic" id="id80">``</span></a><a href="#id81"><span class="problematic" id="id82">`</span></a>python
+seg  = p.mk_segment(‘2D_scan’)
+#lets sweep the virtual plunger 1 versus virtual plunger 2,
+n_points1 = 100
+n_points2 = 100</p>
+<p>swing1 = 1000 #mV
+swing2 = 1000 #mV</p>
+<p>period = 1000 #ns
+period1 = period #ns
+period2 = period*n_points1 #ns</p>
+<p>v_start1 =swing1/2
+step1 = swing1/npoints1
+v_start1 =swing1/2
+step1 = swing1/npoints1</p>
+<dl class="docutils">
+<dt>for i in range(n_points1):</dt>
+<dd>seg.vP1.add_block(i*period1, (i+1)period1, v_start1 + i*step1)</dd>
+</dl>
+<p>seg.repeat(n_points2)
+for i in range(n_points2):</p>
+<blockquote>
+<div>seg.vP1.add_block(i*period2, (i+1)period2, v_start2 + i*step2)</div></blockquote>
+<p>#done.
+<a href="#id83"><span class="problematic" id="id84">``</span></a>`
+* 2D FM scan
+<a href="#id85"><span class="problematic" id="id86">``</span></a><a href="#id87"><span class="problematic" id="id88">`</span></a>python
+lets build on top of the perv sample. let att the modulation on the real plungers (1 and 2) and barrier (2).
+seg.P1.add_sin(10e6, …)
+…</p>
+<p><a href="#id89"><span class="problematic" id="id90">``</span></a>`
+* Ramsey experiment (using loops)
+<a href="#id91"><span class="problematic" id="id92">``</span></a><a href="#id93"><span class="problematic" id="id94">`</span></a>python
+seg  = p.mk_segment(‘Ramsey’)</p>
+<p># do pi/2 pulse
+seg.IQ.add_sin(0,100e-9,freq = 2e9, amp = 10, phase = 0)
+# wait – use a loop object (has access to default numpy operators if it is numerical)
+times = lp.linspace(5,20e3, 500, axis=0, name=”time”, unit=”ns”)
+seg.IQ.wait(times)
+# reset time
+seg.IQ.reset_time()
+# do pi/2 pulse
+seg.IQ.add_sin(0,100e-9,freq = 2e9, amp = 10, phase = 0)
+<a href="#id95"><span class="problematic" id="id96">``</span></a>`
+One can see that here a call to a single loopobject it made. We will be sweeping from 50ns to 20us. This sweep axis is 0 (first axis). The default is always a new axis. You only need to explicitely specify it if you want to parameters to be coupled (e.g. swept on the same axis). The name is optional and can be used for plotting, same for the unit.</p>
+<ul class="simple">
+<li>Rabi experiment (power vs frequency of the pulse): Good example of a two dimensioal sweep</li>
+</ul>
+<p><a href="#id97"><span class="problematic" id="id98">``</span></a><a href="#id99"><span class="problematic" id="id100">`</span></a>python
+seg  = p.mk_segment(‘RABI’)</p>
+<p>t0 = 0
+t1 = 50
+freq = lp.linspace(1e9,1.1e9, 500, axis= 0, name=”frequency”, unit=”Hz”)
+amp = lp.linspace(5,20e3, 500, axis= 1, name=”VoltageIQ”, unit=”a.u.”)
+phase = 0
+seg.IQ.add_sin(t0,t1,freq, amp, phase)
+<a href="#id101"><span class="problematic" id="id102">``</span></a><a href="#id103"><span class="problematic" id="id104">`</span></a></p>
 </div>
 
 

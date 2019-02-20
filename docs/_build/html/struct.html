@@ -27,7 +27,9 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorial : Initializing the library" href="tutorials/init_lib.html" />
+    <link rel="prev" title="Welcome to pulse lib’s documentation" href="index.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -77,8 +79,16 @@
             
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Structure of the library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/init_lib.html">Tutorial : Initializing the library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/simple_pulse.html">Tutorial : Making simple pulses for DC control of qubits.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/MW_pulse.html">Tutorial : Making pulses for Microwave control.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/sequence.html">Tutotial : Making from pulses a sequence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/looping.html">Tutorial : Looping variables.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/reset_time_and_slicing.html">Concepts : Reset time and slicing of waveforms.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/example_PT.html">Advanced Tutorial : Programming a process tomography experiment to characterize a two qubit gate.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/example_RB.html">Advanced Tutorial : Designing pulses for a Randomised Benchmarking experiment.</a></li>
 </ul>
 
             
@@ -145,7 +155,52 @@
             
   <div class="section" id="structure-of-the-library">
 <h1>Structure of the library<a class="headerlink" href="#structure-of-the-library" title="Permalink to this headline">¶</a></h1>
-<p>bladibla</p>
+<dl class="docutils">
+<dt>The structure to the library is given by the following three classes:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="#seg"><span class="std std-ref">Segments</span></a></li>
+<li><a class="reference internal" href="#seg-con"><span class="std std-ref">Segment containers</span></a></li>
+<li><a class="reference internal" href="#seq"><span class="std std-ref">Sequences</span></a></li>
+</ul>
+</dd>
+</dl>
+<p>These is also the pulse-lib class, which is an organizational element. This element is used to generate empty segment containers. More info on how to do this can be found &lt;here&gt;.</p>
+<p><strong>Overview</strong></p>
+<p>A quick overview of the relation between the different structural elements can be found below,</p>
+<p>&lt;&lt;&lt; image &gt;&gt;&gt;</p>
+<div class="section" id="segments">
+<span id="seg"></span><h2>Segments<a class="headerlink" href="#segments" title="Permalink to this headline">¶</a></h2>
+<p>A segment is collection of data points that forms a single waveform. You can think of this as for example, the set of pulses that does the readout on you sample.
+Note that a segment only contains the information for one channel.</p>
+<dl class="docutils">
+<dt>There are two types of segments:</dt>
+<dd><ul class="first last simple">
+<li>segments_base : these are segments that should be used for generating block pulses and ramps.</li>
+<li>segments_IQ : these are segments that are used to work with IQ signals of vector MW sources.</li>
+</ul>
+</dd>
+</dl>
+<p>Both types can be used interchangeably. More details can be found in the tutorials (or if you feel really courageous in the source code).</p>
+</div>
+<div class="section" id="segment-containers">
+<span id="seg-con"></span><h2>Segment containers<a class="headerlink" href="#segment-containers" title="Permalink to this headline">¶</a></h2>
+<p>A segment container, as the name already gives away, is a container of channels. If we would think of the example before, than in this element you would have the collection of all the channels that are involved in your readout pulse. This object is generated automatically, so no need for you to specify channels each time.</p>
+<dl class="docutils">
+<dt>There are some rules for segment containers though,</dt>
+<dd><ul class="first last simple">
+<li>All segments in a segment container must have the same length when rendered</li>
+<li>A segment container contains by default all the AWG channels you have defined in your setup</li>
+<li>All elements in the segment container must contain times that are &gt;= 0.</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="sequences">
+<span id="seq"></span><h2>Sequences<a class="headerlink" href="#sequences" title="Permalink to this headline">¶</a></h2>
+<p>Sequences are a collection of segment containers. Basically it means just concatenate different segment containers.</p>
+<p>One could for example make 3 segment containers, on for initialization of the qubits, one for manipulation and one for readout.
+When executing the experiment, you would tell the the AWG, play initialization -&gt; manipulation -&gt; readout.</p>
+</div>
 </div>
 
 
@@ -153,6 +208,15 @@
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="tutorials/init_lib.html" class="btn btn-neutral float-right" title="Tutorial : Initializing the library" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to pulse lib’s documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

@@ -286,6 +286,7 @@
 
 	<span class="k">def</span> <span class="nf">finish_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="c1"># function that finishes the initialisation</span>
+		<span class="c1"># TODO rewrite, so this function is embedded in the other ones.</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">uploader</span> <span class="o">=</span> <span class="n">keysight_uploader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">awg_devices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpp_uploader</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_channels_to_physical_locations</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_delays_computed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_compenstation_limits</span><span class="p">)</span>
 
 <div class="viewcode-block" id="pulselib.mk_segment"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.mk_segment">[docs]</a>	<span class="k">def</span> <span class="nf">mk_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
