@@ -1,24 +1,26 @@
+.. _struct_lib:
+
 Structure of the library
 ========================
 
 The structure to the library is given by the following three classes:
+
    - :ref:`seg`
    - :ref:`seg_con`
    - :ref:`seq`
-These is also the pulse-lib class, which is an organizational element. This element is used to generate empty segment containers. More info on how to do this can be found <here>.
+These is also the pulse-lib class, which is an organizational element. This element is used to generate :ref:`empty segment containers<mk_segment_container>` and :ref:`set general settings<init_lib>`.
 
 **Overview**
 
 A quick overview of the relation between the different structural elements can be found below,
 
-<<< image >>>
-
+.. figure:: /img/lib_struct.png
 
 .. _seg:
 
 Segments
 --------
-A segment is collection of data points that forms a single waveform. You can think of this as for example, the set of pulses that does the readout on you sample. 
+A segment is collection of data points that forms a single waveform. You can think of this as for example, the set of pulses that does the readout on you sample. m
 Note that a segment only contains the information for one channel.
 
 There are two types of segments:
@@ -36,7 +38,7 @@ A segment container, as the name already gives away, is a container of channels.
 There are some rules for segment containers though, 
    - All segments in a segment container must have the same length when rendered
    - A segment container contains by default all the AWG channels you have defined in your setup
-   - All elements in the segment container must contain times that are >= 0.
+   - All elements in the segment container must contain times that are :math:`\geq 0`.
 
 .. _seq:
 
@@ -46,4 +48,3 @@ Sequences are a collection of segment containers. Basically it means just concat
 
 One could for example make 3 segment containers, on for initialization of the qubits, one for manipulation and one for readout.
 When executing the experiment, you would tell the the AWG, play initialization -> manipulation -> readout. 
-

@@ -27,8 +27,7 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Structure of the library" href="struct.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -77,19 +76,12 @@
               
             
             
-              <p class="caption"><span class="caption-text">Getting started</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="struct.html">Structure of the library</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/init_lib.html">Tutorial : Initializing the library</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/simple_pulse.html">Tutorial : Making simple pulses for DC control of qubits.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/MW_pulse.html">Tutorial : Making pulses for Microwave control.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/sequence.html">Tutotial : Making from pulses a sequence</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/looping.html">Tutorial : Looping variables.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/reset_time_and_slicing.html">Concepts : Reset time and slicing of waveforms.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/example_PT.html">Advanced Tutorial : Programming a process tomography experiment to characterize a two qubit gate.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/example_RB.html">Advanced Tutorial : Designing pulses for a Randomised Benchmarking experiment.</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Welcome to pulse lib’s documentation</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
-
+</div>
             
           
         </div>
@@ -158,41 +150,25 @@
 A lot of attention is given to performance, structure and ease of use.</p>
 <dl class="docutils">
 <dt>Features now include:</dt>
-<dd><blockquote class="first">
-<div><ul class="simple">
+<dd><ul class="first last simple">
 <li>Support for arbitrary pulse/sine wave based sequences (phase coherent atm).</li>
 <li>Fully multidimensional. Execute any command as a loop in any dimension.</li>
 <li>Short and clean syntax. No sympy.</li>
 <li>Native support for virtual gates.</li>
 <li>IQ toolkit and IQ virtual channels – Full suppport for single sideband modulation (Along with PM/AM/FM).</li>
-</ul>
-</div></blockquote>
-<ul class="last simple">
-<li><dl class="first docutils">
-<dt>Automatic compenstation for DC offsets.</dt>
-<dd><ul class="first last">
+<li>Automatic compenstation for DC offsets.</li>
 <li>High speed uploader for Keysight PXI systems which supports upload during playback.</li>
 </ul>
 </dd>
 </dl>
-</li>
+<p>Getting started:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="struct.html#struct-lib"><span class="std std-ref">Structure of the library</span></a></li>
+<li><a class="reference internal" href="tutorials/init_lib.html#init-lib"><span class="std std-ref">Initializing the library</span></a></li>
+<li><a class="reference internal" href="tutorials/simple_pulse.html#simple-pulse"><span class="std std-ref">Making simple pulses for DC control of qubits.</span></a></li>
 </ul>
-</dd>
-</dl>
-<div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Getting started</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="struct.html">Structure of the library</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/init_lib.html">Tutorial : Initializing the library</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/simple_pulse.html">Tutorial : Making simple pulses for DC control of qubits.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/MW_pulse.html">Tutorial : Making pulses for Microwave control.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/sequence.html">Tutotial : Making from pulses a sequence</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/looping.html">Tutorial : Looping variables.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/reset_time_and_slicing.html">Concepts : Reset time and slicing of waveforms.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/example_PT.html">Advanced Tutorial : Programming a process tomography experiment to characterize a two qubit gate.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/example_RB.html">Advanced Tutorial : Designing pulses for a Randomised Benchmarking experiment.</a></li>
-</ul>
-</div>
+</div></blockquote>
 <dl class="docutils">
 <dt>When using the library in combination with the keysight PXI AWG’s, playback of the waveforms is also supported:</dt>
 <dd><ul class="first last simple">
@@ -232,13 +208,6 @@ A lot of attention is given to performance, structure and ease of use.</p>
           </div>
           <footer>
   
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="struct.html" class="btn btn-neutral float-right" title="Structure of the library" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-    </div>
-  
 
   <hr/>
 
@@ -270,6 +239,7 @@ A lot of attention is given to performance, structure and ease of use.</p>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
         <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

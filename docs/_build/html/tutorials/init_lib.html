@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Tutorial : Initializing the library &mdash; pulse lib 0.2 alpha documentation</title>
+  <title>Initializing the library &mdash; pulse lib 0.2 alpha documentation</title>
   
 
   
@@ -27,9 +27,7 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Tutorial : Making simple pulses for DC control of qubits." href="simple_pulse.html" />
-    <link rel="prev" title="Structure of the library" href="../struct.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -78,19 +76,21 @@
               
             
             
-              <p class="caption"><span class="caption-text">Getting started</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../struct.html">Structure of the library</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial : Initializing the library</a></li>
-<li class="toctree-l1"><a class="reference internal" href="simple_pulse.html">Tutorial : Making simple pulses for DC control of qubits.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MW_pulse.html">Tutorial : Making pulses for Microwave control.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sequence.html">Tutotial : Making from pulses a sequence</a></li>
-<li class="toctree-l1"><a class="reference internal" href="looping.html">Tutorial : Looping variables.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reset_time_and_slicing.html">Concepts : Reset time and slicing of waveforms.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="example_PT.html">Advanced Tutorial : Programming a process tomography experiment to characterize a two qubit gate.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="example_RB.html">Advanced Tutorial : Designing pulses for a Randomised Benchmarking experiment.</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Initializing the library</a><ul>
+<li><a class="reference internal" href="#example-initialization-for-a-two-qubit-setup">Example : initialization for a two-qubit setup</a><ul>
+<li><a class="reference internal" href="#step-1-initializing-the-pulse-lib-object-and-defining-real-gates">Step 1 : initializing the pulse lib object and defining real gates</a></li>
+<li><a class="reference internal" href="#step-2-defining-the-virtual-gates">Step 2 : defining the virtual gates</a></li>
+<li><a class="reference internal" href="#step-3-defining-iq-channels">Step 3 : defining IQ channels</a></li>
+<li><a class="reference internal" href="#step-4-defining-channel-delays">Step 4 : defining channel delays</a></li>
+<li><a class="reference internal" href="#step-5-voltage-compensation-boundaries-for-dc-offsets">Step 5 : Voltage compensation boundaries for DC offsets</a></li>
 </ul>
-
+</li>
+</ul>
+</li>
+</ul>
+</div>
             
           
         </div>
@@ -134,7 +134,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>Tutorial : Initializing the library</li>
+      <li>Initializing the library</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -153,8 +153,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="tutorial-initializing-the-library">
-<h1>Tutorial : Initializing the library<a class="headerlink" href="#tutorial-initializing-the-library" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="initializing-the-library">
+<span id="init-lib"></span><h1>Initializing the library<a class="headerlink" href="#initializing-the-library" title="Permalink to this headline">¶</a></h1>
 <p>Before making a pulse, the pulse library needs to know some stuff from you. The main items you need to provide are:</p>
 <blockquote>
 <div><ul class="simple">
@@ -166,9 +166,9 @@
 </ul>
 </div></blockquote>
 <p>All these properties are contained in the <code class="docutils literal notranslate"><span class="pre">pulselib</span></code> object. Below a complete example is worked out to explaining how to do this.
-The source code of the example can be found in <code class="docutils literal notranslate"><span class="pre">tutorials/init_pulselib.py</span></code> if you would want to execute it yourselves [TODO].</p>
-<div class="section" id="tutorial-example-initialization-for-a-two-qubit-setup">
-<h2>Tutorial example : initialization for a two-qubit setup<a class="headerlink" href="#tutorial-example-initialization-for-a-two-qubit-setup" title="Permalink to this headline">¶</a></h2>
+The source code of the example can be found in <code class="docutils literal notranslate"><span class="pre">tutorials/init_pulselib.py</span></code> if you would want to execute it yourselves.</p>
+<div class="section" id="example-initialization-for-a-two-qubit-setup">
+<h2>Example : initialization for a two-qubit setup<a class="headerlink" href="#example-initialization-for-a-two-qubit-setup" title="Permalink to this headline">¶</a></h2>
 <p>For this setup, we have 6 coax cables going to the sample,</p>
 <blockquote>
 <div><ul class="simple">
@@ -185,6 +185,7 @@ The source code of the example can be found in <code class="docutils literal not
 <li>Virtual gates to move easily around in charge stability diagrams.</li>
 <li>Two virtual IQ channels, one per qubit.</li>
 <li>A channel delay for the MW channel, to compensate for the time that the waveform spends in the vector signal source generator.</li>
+<li>Voltage compensation boundaries for <a class="reference internal" href="../basic_things_to_know/DC_offset_s.html#dc-offset-comp"><span class="std std-ref">DC offsets</span></a>.</li>
 </ol>
 </dd>
 </dl>
@@ -289,6 +290,18 @@ Practically, example latencies could be the following:</p>
 </div>
 <p>Note, also negative delays are allowed. All units are in <code class="docutils literal notranslate"><span class="pre">ns</span></code> by default.</p>
 </div>
+<div class="section" id="step-5-voltage-compensation-boundaries-for-dc-offsets">
+<span id="volt-comp-bound"></span><h3>Step 5 : Voltage compensation boundaries for DC offsets<a class="headerlink" href="#step-5-voltage-compensation-boundaries-for-dc-offsets" title="Permalink to this headline">¶</a></h3>
+<p>DC offsets can be corrected automatically, by the software (for more information on how this is done, see <a class="reference internal" href="../basic_things_to_know/DC_offset_s.html#dc-offset-comp"><span class="std std-ref">here</span></a> ). To do this, you will need to specify ranges that can be used for correction. If no range is provided, it means you do not want any correction.</p>
+<p>The range indicates the maximal, minimal voltage that can be provided to make sure that the integral of pulse is zero. You can declare the compensation ranges as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pulse</span><span class="o">.</span><span class="n">add_channel_compenstation_limits</span><span class="p">({</span>
+        <span class="s1">&#39;B0&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span><span class="mi">500</span><span class="p">),</span><span class="s1">&#39;B1&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span><span class="mi">500</span><span class="p">),</span><span class="s1">&#39;B2&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span><span class="mi">500</span><span class="p">),</span>
+        <span class="s1">&#39;P1&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span><span class="mi">500</span><span class="p">),</span><span class="s1">&#39;P2&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span><span class="mi">500</span><span class="p">),</span>
+        <span class="p">})</span>
+</pre></div>
+</div>
+<p>In this case, no limits were set for the markers and the IQ channels, as these signals go in a 50 ohm matched line (no high pass filtering to compensate for).</p>
+</div>
 </div>
 </div>
 
@@ -297,15 +310,6 @@ Practically, example latencies could be the following:</p>
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="simple_pulse.html" class="btn btn-neutral float-right" title="Tutorial : Making simple pulses for DC control of qubits." accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="../struct.html" class="btn btn-neutral" title="Structure of the library" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>
@@ -338,6 +342,7 @@ Practically, example latencies could be the following:</p>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
         <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   

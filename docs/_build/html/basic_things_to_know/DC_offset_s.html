@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Overview: module code &mdash; pulse lib 0.2 alpha documentation</title>
+  <title>Compenstating for DC offset’s &mdash; pulse lib 0.2 alpha documentation</title>
   
 
   
@@ -77,7 +77,13 @@
             
             
               <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Compenstating for DC offset’s</a><ul>
+<li><a class="reference internal" href="#implementation-details">Implementation details</a></li>
+</ul>
+</li>
+</ul>
+</div>
             
           
         </div>
@@ -121,10 +127,14 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>Overview: module code</li>
+      <li>Compenstating for DC offset’s</li>
     
     
       <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/basic_things_to_know/DC_offset_s.rst.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -136,12 +146,37 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>All modules for which code is available</h1>
-<ul><li><a href="base_pulse.html">base_pulse</a></li>
-<li><a href="segments/data_classes.html">segments.data_classes</a></li>
-<li><a href="segments/segments.html">segments.segments</a></li>
-<li><a href="segments/segments_IQ.html">segments.segments_IQ</a></li>
-</ul>
+  <div class="section" id="compenstating-for-dc-offset-s">
+<span id="dc-offset-comp"></span><h1>Compenstating for DC offset’s<a class="headerlink" href="#compenstating-for-dc-offset-s" title="Permalink to this headline">¶</a></h1>
+<p>Most setup’s for spin qubits use biasT’s in their set up’s to combine dc and AC signals. Example below.</p>
+<div class="figure">
+<img alt="../_images/DC_offset_bias_T.png" src="../_images/DC_offset_bias_T.png" />
+</div>
+<p>The DC signal provides a static voltage and the AC signals are used for fast control.</p>
+<p>When applying pulses with the AWG, they are send down through a coax, to the sample.
+When the signal hits the biasT, it act as a high pass filter.</p>
+<div class="figure">
+<img alt="../_images/DC_offset_pulse.png" src="../_images/DC_offset_pulse.png" />
+</div>
+<p>Practically, this means that we filter out the DC part of the signal. In other words, assuming we have an infinite amount of block pulses, we need will need to shift the level in such a way the pulse is symmetric around zero, as the DC part is removed.</p>
+<p>As you can see in the picture, the pulse that originally had a voltage between 0 to 1V, will over time return a voltage change on the device from to -0.5 to 0.5V as the capacitor of the biasT gets charged.</p>
+<p>To correct for this, the integral of the total pulse needs to be zero.
+This can be done automatically in software, by setting the <a class="reference internal" href="../tutorials/init_lib.html#volt-comp-bound"><span class="std std-ref">compensation limits</span></a> and enabling this option in the sequencer [TODO add ref.].</p>
+<div class="section" id="implementation-details">
+<span id="dc-offset-comp-implemenation"></span><h2>Implementation details<a class="headerlink" href="#implementation-details" title="Permalink to this headline">¶</a></h2>
+<p>To correct for this, in software is done the following:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>For the current sequence, calculate for each channel (e.g. B0, B1, B2, P1, P2) the integral (<span class="math notranslate nohighlight">\(\int V(t) dt\)</span>).</li>
+<li>Calculate for each channel the time (<span class="math notranslate nohighlight">\(t_{chan}\)</span>) that would be needed to compensate the integral (according to the <a class="reference internal" href="../tutorials/init_lib.html#volt-comp-bound"><span class="std std-ref">maximal range</span></a> given for the channel).</li>
+<li>Calculate minimal time (<span class="math notranslate nohighlight">\(t_{comp}\)</span>) needed to compensate for all the channels (<span class="math notranslate nohighlight">\(Max(t_{chan})\)</span>).</li>
+<li>Append a segment for each channel that contains the compensation voltage <span class="math notranslate nohighlight">\(V\)</span> for a time <span class="math notranslate nohighlight">\(t_{comp}\)</span></li>
+</ol>
+</div></blockquote>
+<p>Done!</p>
+</div>
+</div>
+
 
            </div>
            

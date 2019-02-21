@@ -14,22 +14,27 @@ Features now include:
 	- Short and clean syntax. No sympy.
 	- Native support for virtual gates.
 	- IQ toolkit and IQ virtual channels -- Full suppport for single sideband modulation (Along with PM/AM/FM).
-   - Automatic compenstation for DC offsets.
+	- Automatic compenstation for DC offsets.
 	- High speed uploader for Keysight PXI systems which supports upload during playback.
 
-.. toctree::
-   :caption: Getting started
-   :titlesonly:
+Getting started:
 
-   struct
-   tutorials/init_lib
-   tutorials/simple_pulse
-   tutorials/MW_pulse
-   tutorials/sequence
-   tutorials/looping
-   tutorials/reset_time_and_slicing
-   tutorials/example_PT
-   tutorials/example_RB
+	- :ref:`struct_lib`
+	- :ref:`init_lib`
+	- :ref:`simple_pulse`
+
+..    :caption: Getting started
+..    :titlesonly:
+
+..    struct
+..    tutorials/init_lib
+..    tutorials/simple_pulse
+..    tutorials/MW_pulse
+..    tutorials/sequence
+..    tutorials/looping
+..    tutorials/reset_time_and_slicing
+..    tutorials/example_PT
+..    tutorials/example_RB
 
 When using the library in combination with the keysight PXI AWG's, playback of the waveforms is also supported:
 	- How does a upload work? What are the different steps?

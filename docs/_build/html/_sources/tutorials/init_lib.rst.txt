@@ -1,5 +1,7 @@
-Tutorial : Initializing the library
-===================================
+.. _init_lib:
+
+Initializing the library
+========================
 
 Before making a pulse, the pulse library needs to know some stuff from you. The main items you need to provide are:
 
@@ -10,10 +12,10 @@ Before making a pulse, the pulse library needs to know some stuff from you. The 
    - Channels delay's (e.g. if not all you coaxes have the same length)
 
 All these properties are contained in the ``pulselib`` object. Below a complete example is worked out to explaining how to do this.
-The source code of the example can be found in ``tutorials/init_pulselib.py`` if you would want to execute it yourselves [TODO].
+The source code of the example can be found in ``tutorials/init_pulselib.py`` if you would want to execute it yourselves.
 
-Tutorial example : initialization for a two-qubit setup
--------------------------------------------------------
+Example : initialization for a two-qubit setup
+----------------------------------------------
 
 For this setup, we have 6 coax cables going to the sample,
 
@@ -27,6 +29,7 @@ Practically the things that we want to set are:
 	2. Virtual gates to move easily around in charge stability diagrams.
 	3. Two virtual IQ channels, one per qubit.
 	4. A channel delay for the MW channel, to compensate for the time that the waveform spends in the vector signal source generator.
+	5. Voltage compensation boundaries for :ref:`DC offsets<dc_offset_comp>`.
 
 Step 1 : initializing the pulse lib object and defining real gates
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -140,3 +143,21 @@ Or translated into python code,
 	})
 
 Note, also negative delays are allowed. All units are in ``ns`` by default.
+
+.. _volt_comp_bound:
+
+Step 5 : Voltage compensation boundaries for DC offsets
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+DC offsets can be corrected automatically, by the software (for more information on how this is done, see :ref:`here<dc_offset_comp>` ). To do this, you will need to specify ranges that can be used for correction. If no range is provided, it means you do not want any correction. 
+
+The range indicates the maximal, minimal voltage that can be provided to make sure that the integral of pulse is zero. You can declare the compensation ranges as:
+
+.. code-block:: python
+
+	pulse.add_channel_compenstation_limits({
+		'B0': (-500,500),'B1': (-500,500),'B2': (-500,500),
+		'P1': (-500,500),'P2': (-500,500),
+		})
+
+In this case, no limits were set for the markers and the IQ channels, as these signals go in a 50 ohm matched line (no high pass filtering to compensate for).

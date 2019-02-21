@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Tutorial : Making simple pulses for DC control of qubits. &mdash; pulse lib 0.2 alpha documentation</title>
+  <title>Making simple pulses for DC control of qubits. &mdash; pulse lib 0.2 alpha documentation</title>
   
 
   
@@ -27,9 +27,7 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Tutorial : Making pulses for Microwave control." href="MW_pulse.html" />
-    <link rel="prev" title="Tutorial : Initializing the library" href="init_lib.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -78,19 +76,20 @@
               
             
             
-              <p class="caption"><span class="caption-text">Getting started</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../struct.html">Structure of the library</a></li>
-<li class="toctree-l1"><a class="reference internal" href="init_lib.html">Tutorial : Initializing the library</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial : Making simple pulses for DC control of qubits.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MW_pulse.html">Tutorial : Making pulses for Microwave control.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sequence.html">Tutotial : Making from pulses a sequence</a></li>
-<li class="toctree-l1"><a class="reference internal" href="looping.html">Tutorial : Looping variables.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reset_time_and_slicing.html">Concepts : Reset time and slicing of waveforms.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="example_PT.html">Advanced Tutorial : Programming a process tomography experiment to characterize a two qubit gate.</a></li>
-<li class="toctree-l1"><a class="reference internal" href="example_RB.html">Advanced Tutorial : Designing pulses for a Randomised Benchmarking experiment.</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Making simple pulses for DC control of qubits.</a><ul>
+<li><a class="reference internal" href="#pulse-construction-basics">Pulse construction basics</a><ul>
+<li><a class="reference internal" href="#making-a-segment-container">Making a segment container</a></li>
+<li><a class="reference internal" href="#segment-operations">Segment operations</a></li>
+<li><a class="reference internal" href="#segment-container-operations">segment container operations</a></li>
+<li><a class="reference internal" href="#how-do-virtual-gates-exactly-work-here">How do virtual gates exactly work here?</a></li>
 </ul>
-
+</li>
+</ul>
+</li>
+</ul>
+</div>
             
           
         </div>
@@ -134,7 +133,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>Tutorial : Making simple pulses for DC control of qubits.</li>
+      <li>Making simple pulses for DC control of qubits.</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -153,23 +152,91 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="tutorial-making-simple-pulses-for-dc-control-of-qubits">
-<h1>Tutorial : Making simple pulses for DC control of qubits.<a class="headerlink" href="#tutorial-making-simple-pulses-for-dc-control-of-qubits" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="making-simple-pulses-for-dc-control-of-qubits">
+<span id="simple-pulse"></span><h1>Making simple pulses for DC control of qubits.<a class="headerlink" href="#making-simple-pulses-for-dc-control-of-qubits" title="Permalink to this headline">¶</a></h1>
 <p>For most experiments, pulses usually consist out of simple ramps and platea’s.
 In the following there will be a few examples that show how to program these things.
 We will consider two experiments,</p>
 <blockquote>
 <div><ul class="simple">
-<li>a pulse that can be used for readout (elzerman style)</li>
-<li>a pulse to control a ST qubit</li>
+<li>a pulse that can be used for <a class="reference internal" href="Pulsing_examples/elzerman_readout.html#elzerman-pulse"><span class="std std-ref">Elzerman readout</span></a></li>
+<li><a class="reference internal" href="Pulsing_examples/ST_qubit.html#singlet-tiplet-qubit"><span class="std std-ref">a pulse to control a ST qubit</span></a></li>
 </ul>
 </div></blockquote>
-<p>Here you will learn how to make the pulse, but also how the channels are working together.</p>
-<div class="section" id="elzerman-readout">
-<h2>Elzerman readout<a class="headerlink" href="#elzerman-readout" title="Permalink to this headline">¶</a></h2>
+<p>Here you will learn how to make the pulse, but also how the channels are working together.
+But before checking the examples, it is best to get a grasp of the theory below.</p>
+<div class="section" id="pulse-construction-basics">
+<h2>Pulse construction basics<a class="headerlink" href="#pulse-construction-basics" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="making-a-segment-container">
+<span id="mk-segment-container"></span><h3>Making a segment container<a class="headerlink" href="#making-a-segment-container" title="Permalink to this headline">¶</a></h3>
+<p>Before we can make any pulse, we need to ask the <code class="docutils literal notranslate"><span class="pre">pulselib</span></code> object for a segment container object,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_new_pulse_container</span>  <span class="o">=</span> <span class="n">pulse</span><span class="o">.</span><span class="n">mk_segment</span><span class="p">()</span>
+</pre></div>
 </div>
-<div class="section" id="controlling-a-st-qubit">
-<h2>Controlling a ST qubit<a class="headerlink" href="#controlling-a-st-qubit" title="Permalink to this headline">¶</a></h2>
+<p>Where <code class="docutils literal notranslate"><span class="pre">my_new_pulse_container</span></code> is of the type <code class="docutils literal notranslate"><span class="pre">segment_container</span></code>.
+From this object we can now access all the channels. For example, if we want to make a block pulse on the plunger gate of dot 1, we can call,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="mi">10</span> <span class="c1"># ns</span>
+<span class="n">stop</span> <span class="o">=</span> <span class="mi">50</span> <span class="c1"># ns</span>
+<span class="n">amp</span> <span class="o">=</span> <span class="mi">100</span> <span class="c1"># mV</span>
+<span class="n">my_new_pulse_container</span><span class="o">.</span><span class="n">P1</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">amp</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>So if we want to apply operations on gates, we can access them like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">segment_container_obj</span><span class="o">.</span><span class="n">my_gate_name</span><span class="o">.</span><span class="n">operation_you_want_to_do</span>
+</pre></div>
+</div>
+<p>In this case, we have quite a few gates available (defined in the <a class="reference internal" href="init_lib.html#init-lib"><span class="std std-ref">init of pulse_lib</span></a>). We can check them,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">my_new_pulse_container</span><span class="o">.</span><span class="n">channels</span><span class="p">)</span>
+
+<span class="go">[ &#39;B0&#39;, &#39;P1&#39;, &#39;B1&#39;, &#39;P2&#39;, &#39;B2&#39;,</span>
+<span class="go">  &#39;MW_gate_I&#39;, &#39;MW_gate_Q&#39;, &#39;MW_marker&#39;,</span>
+<span class="go">  &#39;vB0&#39;, &#39;vB1&#39;, &#39;vB2&#39;, &#39;vP1&#39;, &#39;vP2&#39;,</span>
+<span class="go">  &#39;qubit_1&#39;, &#39;qubit_2&#39; ]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="segment-operations">
+<h3>Segment operations<a class="headerlink" href="#segment-operations" title="Permalink to this headline">¶</a></h3>
+<p>A segment is the entity where you can make you pulses. On a segment you can apply an unlimited amount of operations.
+When the operation changes something to the waveform, it is usually done by adding it up to what is already there. Thus when retaking the example of before, doing</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_new_pulse_container</span><span class="o">.</span><span class="n">P1</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">amp</span><span class="p">)</span>
+<span class="n">my_new_pulse_container</span><span class="o">.</span><span class="n">P1</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">amp</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>is equivalent to doing,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_new_pulse_container</span><span class="o">.</span><span class="n">P1</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">amp</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The operations possible at this moment are:</p>
+<blockquote>
+<div><ul class="simple">
+<li>adding block shaped pulses</li>
+<li>adding ramp’s</li>
+<li>adding an arbitrary row of times and voltages that define a pulse shape.</li>
+<li>add sinus shaped data (for modulation options, use a microwave object)</li>
+<li>counting</li>
+<li>feature possibility add numpy data.</li>
+</ul>
+</div></blockquote>
+<p>Important operators are:</p>
+<blockquote>
+<div><ul class="simple">
+<li>slice time : make a new start/end time of the pulse</li>
+<li>reset time : the time of the last element in the segment will become zero. Now you can restart using time 0.</li>
+<li>wait : just waits. Example usage, call before reset time, to introduce a few ns buffer after a gate.</li>
+<li>append : append waveform x to waveform y</li>
+<li>repeat : repeat the current waveform x times.</li>
+</ul>
+</div></blockquote>
+<p>To get intuition what each of this operators does, it is best to try to execute (and change) some of the examples given in the beginning.</p>
+</div>
+<div class="section" id="segment-container-operations">
+<h3>segment container operations<a class="headerlink" href="#segment-container-operations" title="Permalink to this headline">¶</a></h3>
+<p>This is the container that</p>
+</div>
+<div class="section" id="how-do-virtual-gates-exactly-work-here">
+<h3>How do virtual gates exactly work here?<a class="headerlink" href="#how-do-virtual-gates-exactly-work-here" title="Permalink to this headline">¶</a></h3>
+</div>
 </div>
 </div>
 
@@ -178,15 +245,6 @@ We will consider two experiments,</p>
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="MW_pulse.html" class="btn btn-neutral float-right" title="Tutorial : Making pulses for Microwave control." accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="init_lib.html" class="btn btn-neutral" title="Tutorial : Initializing the library" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>
@@ -219,6 +277,7 @@ We will consider two experiments,</p>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
         <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
 
   
