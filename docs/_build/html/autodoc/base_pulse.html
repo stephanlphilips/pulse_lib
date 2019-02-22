@@ -1,0 +1,301 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>&lt;no title&gt; &mdash; pulse lib 0.2 alpha documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pulse lib
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul class="simple">
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pulse lib</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>&lt;no title&gt;</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/autodoc/base_pulse.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="module-base_pulse"></span><dl class="class">
+<dt id="base_pulse.pulselib">
+<em class="property">class </em><code class="descclassname">base_pulse.</code><code class="descname">pulselib</code><a class="reference internal" href="../_modules/base_pulse.html#pulselib"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global class that is an organisational element in making the pulses.
+The idea is that you first make individula segments,
+you can than later combine them into a sequence, this sequence will be uploaded</p>
+<dl class="method">
+<dt id="base_pulse.pulselib.add_IQ_virt_channels">
+<code class="descname">add_IQ_virt_channels</code><span class="sig-paren">(</span><em>IQ_virt_channels</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/base_pulse.html#pulselib.add_IQ_virt_channels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.add_IQ_virt_channels" title="Permalink to this definition">¶</a></dt>
+<dd><p>function to define virtual IQ channels (a channel that combined the I and Q channel for MW applications):
+Args:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>IQ_virt_channels (dict): a dictionary that needs to contain the following keys:</dt>
+<dd>‘vIQ_channels’ : list of names of virtual IQ channels
+‘r_IQ_channels’: list of list, where in each list the two reference channels (I and Q) are denoted (see docs for example).
+‘LO_freq’(function/double) : local oscillating frequency of the source. Will be used to do automaticcally convert the freq a SSB signal.</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.add_awgs">
+<code class="descname">add_awgs</code><span class="sig-paren">(</span><em>name</em>, <em>awg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/base_pulse.html#pulselib.add_awgs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.add_awgs" title="Permalink to this definition">¶</a></dt>
+<dd><p>add a awg to the library
+Args:</p>
+<blockquote>
+<div>name (str) : name you want to give to a peculiar AWG
+awg (object) : qcodes object of the concerning AWG</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.add_channel_compenstation_limits">
+<code class="descname">add_channel_compenstation_limits</code><span class="sig-paren">(</span><em>limits</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/base_pulse.html#pulselib.add_channel_compenstation_limits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.add_channel_compenstation_limits" title="Permalink to this definition">¶</a></dt>
+<dd><p>add voltage limitations per channnel that can be used to make sure that the intragral of the total voltages is 0.
+Args:</p>
+<blockquote>
+<div>limits (dict) : dict with limits e.g. {‘B0’:(-100,500), … }</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>None</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.add_channel_delay">
+<code class="descname">add_channel_delay</code><span class="sig-paren">(</span><em>delays</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/base_pulse.html#pulselib.add_channel_delay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.add_channel_delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds to a channel a delay. 
+The delay is added by adding points in front of the first sequence/or 
+just after the last sequence. The first value of the sequence will be 
+taken as an extentsion point.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>delays: dict, e.g. {‘P1’:20, ‘P2’:16} delay P1 with 20 ns and P2 with 16 ns</dd>
+<dt>Returns:</dt>
+<dd>0/Error</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.add_virtual_gates">
+<code class="descname">add_virtual_gates</code><span class="sig-paren">(</span><em>virtual_gates</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/base_pulse.html#pulselib.add_virtual_gates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.add_virtual_gates" title="Permalink to this definition">¶</a></dt>
+<dd><p>define virtual gates for the gate set.
+Args:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>virtual_gates (dict): needs to have the following keys:</dt>
+<dd>‘virtual_gates_names_virt’ : should constain a list with the channel names of the virtual gates
+‘virtual_gates_names_real’ : should constain a list with the channel names of the read gates (should be as long as the virtual ones)
+‘virtual_gate_matrix’ : numpy array representing the virtual gate matrix</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.define_channels">
+<code class="descname">define_channels</code><span class="sig-paren">(</span><em>my_input</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/base_pulse.html#pulselib.define_channels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.define_channels" title="Permalink to this definition">¶</a></dt>
+<dd><p>define the channels and their location 
+Args:</p>
+<blockquote>
+<div>my_input (dict): dict of the channel name (str) as key and name of the instrument (as given in add_awgs()) (str) and channel (int) as tuple (e.g. {‘chan1’ : (‘AWG1’, 1), … })</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.mk_segment">
+<code class="descname">mk_segment</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/base_pulse.html#pulselib.mk_segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.mk_segment" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate a new segment.
+Returns:</p>
+<blockquote>
+<div>segment (segment_container) : returns a container that contains all the previously defined gates.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="base_pulse.pulselib.mk_sequence">
+<code class="descname">mk_sequence</code><span class="sig-paren">(</span><em>seq</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/base_pulse.html#pulselib.mk_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_pulse.pulselib.mk_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>seq: list of list, </dt>
+<dd>e.g. [ [‘name segment 1’ (str), number of times to play (int), prescale (int)] ]
+prescale (default 0, see keysight manual) (not all awg’s will support this).</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Stephan Philips
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

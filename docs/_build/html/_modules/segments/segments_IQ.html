@@ -167,7 +167,7 @@
 
 
 
-<div class="viewcode-block" id="segment_single_IQ"><a class="viewcode-back" href="../../intro.html#segments.segments_IQ.segment_single_IQ">[docs]</a><span class="k">class</span> <span class="nc">segment_single_IQ</span><span class="p">(</span><span class="n">segment_single</span><span class="p">):</span>
+<div class="viewcode-block" id="segment_single_IQ"><a class="viewcode-back" href="../../autodoc/segment_IQ.html#segments.segments_IQ.segment_single_IQ">[docs]</a><span class="k">class</span> <span class="nc">segment_single_IQ</span><span class="p">(</span><span class="n">segment_single</span><span class="p">):</span>
 	<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">	Standard single segment for IQ purposes</span>
 <span class="sd">	todo --&gt; add global phase and time shift in the data class instead of this one (cleaner and more generic).</span>
@@ -186,7 +186,6 @@
 		<span class="bp">self</span><span class="o">.</span><span class="n">_last_edit</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
 
 		<span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">=</span> <span class="mi">0</span>
-		<span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">[]</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="p">[]</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -321,7 +320,7 @@
 	<span class="k">def</span> <span class="nf">add_numpy_IQ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">I</span><span class="p">,</span> <span class="n">Q</span><span class="p">):</span>
 		<span class="k">raise</span> <span class="bp">NotImplemented</span>
 
-<div class="viewcode-block" id="segment_single_IQ.get_IQ_data"><a class="viewcode-back" href="../../intro.html#segments.segments_IQ.segment_single_IQ.get_IQ_data">[docs]</a>	<span class="k">def</span> <span class="nf">get_IQ_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">I_or_Q</span><span class="p">):</span>
+<div class="viewcode-block" id="segment_single_IQ.get_IQ_data"><a class="viewcode-back" href="../../autodoc/segment_IQ.html#segments.segments_IQ.segment_single_IQ.get_IQ_data">[docs]</a>	<span class="k">def</span> <span class="nf">get_IQ_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">I_or_Q</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		get I and Q data from the main element.</span>
 <span class="sd">		Args:</span>

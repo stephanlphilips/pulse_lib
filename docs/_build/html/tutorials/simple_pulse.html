@@ -82,7 +82,7 @@
 <li><a class="reference internal" href="#pulse-construction-basics">Pulse construction basics</a><ul>
 <li><a class="reference internal" href="#making-a-segment-container">Making a segment container</a></li>
 <li><a class="reference internal" href="#segment-operations">Segment operations</a></li>
-<li><a class="reference internal" href="#segment-container-operations">segment container operations</a></li>
+<li><a class="reference internal" href="#segment-container-operations">Segment container operations</a></li>
 <li><a class="reference internal" href="#how-do-virtual-gates-exactly-work-here">How do virtual gates exactly work here?</a></li>
 </ul>
 </li>
@@ -197,17 +197,15 @@ From this object we can now access all the channels. For example, if we want to 
 </div>
 <div class="section" id="segment-operations">
 <h3>Segment operations<a class="headerlink" href="#segment-operations" title="Permalink to this headline">¶</a></h3>
-<p>A segment is the entity where you can make you pulses. On a segment you can apply an unlimited amount of operations.
-When the operation changes something to the waveform, it is usually done by adding it up to what is already there. Thus when retaking the example of before, doing</p>
+<p>A segment is the entity that is used to define pulses in function of time. Segments are usually constructed by counting up simple elements (e.g. block pulses, ramps and sinus shaped features).
+The example below shows two waveforms getting counted up (just an extension of the one in the previous section).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_new_pulse_container</span><span class="o">.</span><span class="n">P1</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">amp</span><span class="p">)</span>
-<span class="n">my_new_pulse_container</span><span class="o">.</span><span class="n">P1</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">amp</span><span class="p">)</span>
+<span class="n">my_new_pulse_container</span><span class="o">.</span><span class="n">P1</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">start</span><span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="n">stop</span><span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="n">amp</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>is equivalent to doing,</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_new_pulse_container</span><span class="o">.</span><span class="n">P1</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">amp</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>The operations possible at this moment are:</p>
+<p>The resulting pulse of this operation is:</p>
+<p>&lt;&lt; figure &gt;&gt;</p>
+<p>Default operations are (can be extended if needed):</p>
 <blockquote>
 <div><ul class="simple">
 <li>adding block shaped pulses</li>
@@ -231,11 +229,22 @@ When the operation changes something to the waveform, it is usually done by addi
 <p>To get intuition what each of this operators does, it is best to try to execute (and change) some of the examples given in the beginning.</p>
 </div>
 <div class="section" id="segment-container-operations">
-<h3>segment container operations<a class="headerlink" href="#segment-container-operations" title="Permalink to this headline">¶</a></h3>
-<p>This is the container that</p>
+<h3>Segment container operations<a class="headerlink" href="#segment-container-operations" title="Permalink to this headline">¶</a></h3>
+<p>As mentioned before, this are the containers that contain all the segments and allow you to do also some operation on all the segments at the same time.</p>
+<p>Operations include:</p>
+<blockquote>
+<div><ul class="simple">
+<li>total_time : get maximal time in all the segments present</li>
+<li>append : concatenate one segment container to another one.</li>
+<li>slice time : redefine start and end time of all the segments present in the segment container</li>
+<li>reset time : define total_time in all segments as the new time zero.</li>
+</ul>
+</div></blockquote>
+<p>More on operation can be found in the segment container tutorial.</p>
 </div>
 <div class="section" id="how-do-virtual-gates-exactly-work-here">
 <h3>How do virtual gates exactly work here?<a class="headerlink" href="#how-do-virtual-gates-exactly-work-here" title="Permalink to this headline">¶</a></h3>
+<p>As you</p>
 </div>
 </div>
 </div>

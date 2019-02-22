@@ -156,7 +156,7 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="segment_container"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container">[docs]</a><span class="k">class</span> <span class="nc">segment_container</span><span class="p">():</span>
+<div class="viewcode-block" id="segment_container"><a class="viewcode-back" href="../../autodoc/segment.html#segments.segments.segment_container">[docs]</a><span class="k">class</span> <span class="nc">segment_container</span><span class="p">():</span>
 	<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">	Class containing all the single segments for for a series of channels.</span>
 <span class="sd">	This is a organisational class.</span>
@@ -268,7 +268,7 @@
 
 		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vmin_max_data</span>
 
-<div class="viewcode-block" id="segment_container.append"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.append">[docs]</a>	<span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="segment_container.append"><a class="viewcode-back" href="../../autodoc/segment.html#segments.segments.segment_container.append">[docs]</a>	<span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		append other segments the the current ones in the container.</span>
 <span class="sd">		Args:</span>
@@ -286,7 +286,7 @@
 			<span class="n">segment</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
 			<span class="n">segment</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">time</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="segment_container.slice_time"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.slice_time">[docs]</a>	<span class="k">def</span> <span class="nf">slice_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+<div class="viewcode-block" id="segment_container.slice_time"><a class="viewcode-back" href="../../autodoc/segment.html#segments.segments.segment_container.slice_time">[docs]</a>	<span class="k">def</span> <span class="nf">slice_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
 		<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">		slice time in a segment container</span>
 <span class="sd">		Args:</span>
@@ -306,7 +306,7 @@
 			<span class="n">segment</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
 			<span class="n">segment</span><span class="o">.</span><span class="n">slice_time</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="segment_container.reset_time"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.reset_time">[docs]</a>	<span class="k">def</span> <span class="nf">reset_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extend_only</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="segment_container.reset_time"><a class="viewcode-back" href="../../autodoc/segment.html#segments.segments.segment_container.reset_time">[docs]</a>	<span class="k">def</span> <span class="nf">reset_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extend_only</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Args:</span>
 <span class="sd">			extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms...].</span>
@@ -328,7 +328,7 @@
 			<span class="n">segment</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
 			<span class="n">segment</span><span class="o">.</span><span class="n">reset_time</span><span class="p">(</span><span class="n">loop_obj</span><span class="p">,</span> <span class="n">extend_only</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="segment_container.get_waveform"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.get_waveform">[docs]</a>	<span class="k">def</span> <span class="nf">get_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pre_delay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">post_delay</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sample_rate</span><span class="o">=</span><span class="mf">1e9</span><span class="p">):</span>
+<div class="viewcode-block" id="segment_container.get_waveform"><a class="viewcode-back" href="../../autodoc/segment.html#segments.segments.segment_container.get_waveform">[docs]</a>	<span class="k">def</span> <span class="nf">get_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pre_delay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">post_delay</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sample_rate</span><span class="o">=</span><span class="mf">1e9</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		function to get the raw data of a waveform,</span>
 <span class="sd">		inputs:</span>
@@ -341,7 +341,7 @@
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">get_segment</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">pre_delay</span><span class="p">,</span> <span class="n">post_delay</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="segment_container.extend_dim"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.extend_dim">[docs]</a>	<span class="k">def</span> <span class="nf">extend_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ref</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="segment_container.extend_dim"><a class="viewcode-back" href="../../autodoc/segment.html#segments.segments.segment_container.extend_dim">[docs]</a>	<span class="k">def</span> <span class="nf">extend_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ref</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		extend the dimensions of the waveform to a given shape.</span>
 <span class="sd">		Args:</span>
@@ -359,7 +359,7 @@
 			<span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;render&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_mode</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
 				<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">_pulse_data_all</span> <span class="o">=</span> <span class="n">update_dimension</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">_pulse_data_all</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="segment_container.enter_rendering_mode"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.enter_rendering_mode">[docs]</a>	<span class="k">def</span> <span class="nf">enter_rendering_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="segment_container.enter_rendering_mode"><a class="viewcode-back" href="../../autodoc/segment.html#segments.segments.segment_container.enter_rendering_mode">[docs]</a>	<span class="k">def</span> <span class="nf">enter_rendering_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		put the segments into rendering mode, which means that they cannot be changed. All segments will get their final length at this moment.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -371,7 +371,7 @@
 			<span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;render&#39;</span><span class="p">:</span>
 				<span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">pulse_data_all</span></div>
 
-<div class="viewcode-block" id="segment_container.exit_rendering_mode"><a class="viewcode-back" href="../../intro.html#segments.segments.segment_container.exit_rendering_mode">[docs]</a>	<span class="k">def</span> <span class="nf">exit_rendering_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="segment_container.exit_rendering_mode"><a class="viewcode-back" href="../../autodoc/segment.html#segments.segments.segment_container.exit_rendering_mode">[docs]</a>	<span class="k">def</span> <span class="nf">exit_rendering_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		exit rendering mode and clear all the ram that was used for the rendering.</span>
 <span class="sd">		&#39;&#39;&#39;</span>

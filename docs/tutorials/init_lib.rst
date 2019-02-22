@@ -9,7 +9,8 @@ Before making a pulse, the pulse library needs to know some stuff from you. The 
    - Translation of you sample channels names (e.g. barrier gate 1) to the physical location if the set up (e.g. AWG3 channel 4)
    - Virtual gates and virtual gate matrix if needed <reference needed here>
    - Virtual IQ channels, if you are doing IQ modulation <link explaining IQ modulation >
-   - Channels delay's (e.g. if not all you coaxes have the same length)
+   - :ref:`Channels delay's<chan_delay>` (e.g. if not all you coaxes have the same length)
+   - Which channel need a :ref:`DC offset compenstation<dc_offset_comp>` and what the what the allowed values are.
 
 All these properties are contained in the ``pulselib`` object. Below a complete example is worked out to explaining how to do this.
 The source code of the example can be found in ``tutorials/init_pulselib.py`` if you would want to execute it yourselves.
@@ -28,7 +29,7 @@ Practically the things that we want to set are:
 	1. Which channels of the AWG are corresponding to the gates on the sample.
 	2. Virtual gates to move easily around in charge stability diagrams.
 	3. Two virtual IQ channels, one per qubit.
-	4. A channel delay for the MW channel, to compensate for the time that the waveform spends in the vector signal source generator.
+	4. A :ref:`channel delay<chan_delay>` for the MW channel, to compensate for the time that the waveform spends in the vector signal source generator.
 	5. Voltage compensation boundaries for :ref:`DC offsets<dc_offset_comp>`.
 
 Step 1 : initializing the pulse lib object and defining real gates
@@ -118,9 +119,11 @@ Most of the time, you will want to make a virtual channel per qubit, as it allow
 
 At the moment markers are not added automatically, this is something that will be implemented in the next release of this library.
 
+.. _pulse_lib_chan_delay:
+
 Step 4 : defining channel delays
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-In our case here, we have to compensate for the fact that some signals take a longer time to get to the sample than other ones. More info on how this is practically accomplished, can be found here ``TODO``.
+In our case here, we have to compensate for the fact that some signals take a longer time to get to the sample than other ones. More info on how this is practically accomplished, can be found :ref:`here<chan_delay>`.
 Practically, example latencies could be the following:
 	
 	- 20 ns for the barrier and plunger gates to get from the AWG channels into the fridge.

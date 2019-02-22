@@ -1,0 +1,350 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Segment base class desription &mdash; pulse lib 0.2 alpha documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pulse lib
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Segment base class desription</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pulse lib</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Segment base class desription</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/autodoc/segment_base.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="segment-base-class-desription">
+<span id="segment-base"></span><h1>Segment base class desription<a class="headerlink" href="#segment-base-class-desription" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="segments.segments_base.segment_single">
+<em class="property">class </em><code class="descclassname">segments.segments_base.</code><code class="descname">segment_single</code><span class="sig-paren">(</span><em>name</em>, <em>segment_type='render'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class defining single segments for one sequence.
+This is at the moment rather basic. Here should be added more fuctions.</p>
+<dl class="method">
+<dt id="segments.segments_base.segment_single.add_IQ_ref_channel">
+<code class="descname">add_IQ_ref_channel</code><span class="sig-paren">(</span><em>channel_name</em>, <em>pointer_to_channel</em>, <em>I_or_Q_part</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.add_IQ_ref_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.add_IQ_ref_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a reference to an IQ channel. Same principle as for the virtual one.
+Args:</p>
+<blockquote>
+<div>channel_name (str): human readable name of the virtual channel
+pointer_to_channel (<a href="#id1"><span class="problematic" id="id2">*</span></a>segment_single_IQ): pointer to segment_single_IQ object
+I_or_Q_part (str) : ‘I’ or ‘Q’ to indicate that the reference is to the I or Q part of the signal.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.add_block">
+<code class="descname">add_block</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.add_block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.add_block" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.add_np">
+<code class="descname">add_np</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.add_np"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.add_np" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.add_pulse">
+<code class="descname">add_pulse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.add_pulse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.add_pulse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.add_ramp">
+<code class="descname">add_ramp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.add_ramp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.add_ramp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.add_reference_channel">
+<code class="descname">add_reference_channel</code><span class="sig-paren">(</span><em>channel_name</em>, <em>segment_data</em>, <em>multiplication_factor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.add_reference_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.add_reference_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add channel reference, this can be done to make by making a pointer to another segment.
+Args:</p>
+<blockquote>
+<div>Channels_name (str): human readable name of the virtual gate.
+segment_data (segment_single): pointer so the segment corresponsing the the channel name
+multiplication_factor (float64): times how much this segment should be added to the current one.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.add_sin">
+<code class="descname">add_sin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.add_sin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.add_sin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.append">
+<code class="descname">append</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.get_segment">
+<code class="descname">get_segment</code><span class="sig-paren">(</span><em>index</em>, <em>pre_delay=0</em>, <em>post_delay=0</em>, <em>sample_rate=1000000000.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.get_segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.get_segment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>input:</dt>
+<dd>index of segment (list) : which segment to render (e.g. [0] if dimension is 1 or [2,5,10] if dimension is 3)
+pre_delay : number of points to push before the sequence
+post delay: number of points to push after the sequence.
+sample rate : #/s (number of samples per second)</dd>
+<dt>Returns:</dt>
+<dd>A numpy array that contains the points for each ns
+points is the expected lenght.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.integrate">
+<code class="descname">integrate</code><span class="sig-paren">(</span><em>index</em>, <em>pre_delay=0</em>, <em>post_delay=0</em>, <em>sample_rate=1000000000.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.integrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.integrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>get integral value of the waveform (e.g. to calculate an automatic compensation)
+Args:</p>
+<blockquote>
+<div>index (tuple) : index of the concerning waveform
+pre_delay (double) : ns to delay before the pulse
+post_delay (double) : ns to delay after the pulse
+sample_rate (double) : rate at which to render the pulse</div></blockquote>
+<p>returns: intergral value</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="segments.segments_base.segment_single.last_edit">
+<code class="descname">last_edit</code><a class="headerlink" href="#segments.segments_base.segment_single.last_edit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.plot_segment">
+<code class="descname">plot_segment</code><span class="sig-paren">(</span><em>index=[0], render_full=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.plot_segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.plot_segment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Args:</dt>
+<dd>index : index of which segment to plot
+render full (bool) : do full render (e.g. also get data form virtual channels). Put True if you want to see the waveshape send to the AWG.</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="segments.segments_base.segment_single.pulse_data_all">
+<code class="descname">pulse_data_all</code><a class="headerlink" href="#segments.segments_base.segment_single.pulse_data_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>pulse data object that contains the counted op data of all the reference channels (e.g. IQ and virtual gates).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.repeat">
+<code class="descname">repeat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.repeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.repeat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.reset_time">
+<code class="descname">reset_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.reset_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.reset_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="segments.segments_base.segment_single.shape">
+<code class="descname">shape</code><a class="headerlink" href="#segments.segments_base.segment_single.shape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.slice_time">
+<code class="descname">slice_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.slice_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.slice_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="segments.segments_base.segment_single.total_time">
+<code class="descname">total_time</code><a class="headerlink" href="#segments.segments_base.segment_single.total_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.v_max">
+<code class="descname">v_max</code><span class="sig-paren">(</span><em>index</em>, <em>sample_rate=1000000000.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.v_max"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.v_max" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.v_min">
+<code class="descname">v_min</code><span class="sig-paren">(</span><em>index</em>, <em>sample_rate=1000000000.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.v_min"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.v_min" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="segments.segments_base.segment_single.wait">
+<code class="descname">wait</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/segments/segments_base.html#segment_single.wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#segments.segments_base.segment_single.wait" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Stephan Philips
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

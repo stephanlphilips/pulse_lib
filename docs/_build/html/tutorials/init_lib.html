@@ -162,7 +162,8 @@
 <li>Translation of you sample channels names (e.g. barrier gate 1) to the physical location if the set up (e.g. AWG3 channel 4)</li>
 <li>Virtual gates and virtual gate matrix if needed &lt;reference needed here&gt;</li>
 <li>Virtual IQ channels, if you are doing IQ modulation &lt;link explaining IQ modulation &gt;</li>
-<li>Channels delay’s (e.g. if not all you coaxes have the same length)</li>
+<li><a class="reference internal" href="../channel_delays.html#chan-delay"><span class="std std-ref">Channels delay’s</span></a> (e.g. if not all you coaxes have the same length)</li>
+<li>Which channel need a <a class="reference internal" href="../basic_things_to_know/DC_offset_s.html#dc-offset-comp"><span class="std std-ref">DC offset compenstation</span></a> and what the what the allowed values are.</li>
 </ul>
 </div></blockquote>
 <p>All these properties are contained in the <code class="docutils literal notranslate"><span class="pre">pulselib</span></code> object. Below a complete example is worked out to explaining how to do this.
@@ -184,7 +185,7 @@ The source code of the example can be found in <code class="docutils literal not
 <li>Which channels of the AWG are corresponding to the gates on the sample.</li>
 <li>Virtual gates to move easily around in charge stability diagrams.</li>
 <li>Two virtual IQ channels, one per qubit.</li>
-<li>A channel delay for the MW channel, to compensate for the time that the waveform spends in the vector signal source generator.</li>
+<li>A <a class="reference internal" href="../channel_delays.html#chan-delay"><span class="std std-ref">channel delay</span></a> for the MW channel, to compensate for the time that the waveform spends in the vector signal source generator.</li>
 <li>Voltage compensation boundaries for <a class="reference internal" href="../basic_things_to_know/DC_offset_s.html#dc-offset-comp"><span class="std std-ref">DC offsets</span></a>.</li>
 </ol>
 </dd>
@@ -265,8 +266,8 @@ An example how to practically work with virtual gates can be found here [TODO].<
 <p>At the moment markers are not added automatically, this is something that will be implemented in the next release of this library.</p>
 </div>
 <div class="section" id="step-4-defining-channel-delays">
-<h3>Step 4 : defining channel delays<a class="headerlink" href="#step-4-defining-channel-delays" title="Permalink to this headline">¶</a></h3>
-<p>In our case here, we have to compensate for the fact that some signals take a longer time to get to the sample than other ones. More info on how this is practically accomplished, can be found here <code class="docutils literal notranslate"><span class="pre">TODO</span></code>.
+<span id="pulse-lib-chan-delay"></span><h3>Step 4 : defining channel delays<a class="headerlink" href="#step-4-defining-channel-delays" title="Permalink to this headline">¶</a></h3>
+<p>In our case here, we have to compensate for the fact that some signals take a longer time to get to the sample than other ones. More info on how this is practically accomplished, can be found <a class="reference internal" href="../channel_delays.html#chan-delay"><span class="std std-ref">here</span></a>.
 Practically, example latencies could be the following:</p>
 <blockquote>
 <div><ul class="simple">

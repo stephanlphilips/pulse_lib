@@ -159,7 +159,7 @@
 
 <span class="sd">&#39;&#39;&#39;</span>
 
-<div class="viewcode-block" id="pulselib"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib">[docs]</a><span class="k">class</span> <span class="nc">pulselib</span><span class="p">:</span>
+<div class="viewcode-block" id="pulselib"><a class="viewcode-back" href="../autodoc/base_pulse.html#base_pulse.pulselib">[docs]</a><span class="k">class</span> <span class="nc">pulselib</span><span class="p">:</span>
 	<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">	Global class that is an organisational element in making the pulses.</span>
 <span class="sd">	The idea is that you first make individula segments,</span>
@@ -188,7 +188,7 @@
 		<span class="bp">self</span><span class="o">.</span><span class="n">segments_bin</span> <span class="o">=</span> <span class="kc">None</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">sequencer</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="pulselib.define_channels"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.define_channels">[docs]</a>	<span class="k">def</span> <span class="nf">define_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">my_input</span><span class="p">):</span>
+<div class="viewcode-block" id="pulselib.define_channels"><a class="viewcode-back" href="../autodoc/base_pulse.html#base_pulse.pulselib.define_channels">[docs]</a>	<span class="k">def</span> <span class="nf">define_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">my_input</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		define the channels and their location </span>
 <span class="sd">		Args:</span>
@@ -201,7 +201,7 @@
 			<span class="bp">self</span><span class="o">.</span><span class="n">channel_delays_computed</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
 			<span class="bp">self</span><span class="o">.</span><span class="n">channel_compenstation_limits</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1500</span><span class="p">,</span><span class="mi">1500</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="pulselib.add_channel_delay"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.add_channel_delay">[docs]</a>	<span class="k">def</span> <span class="nf">add_channel_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delays</span><span class="p">):</span>
+<div class="viewcode-block" id="pulselib.add_channel_delay"><a class="viewcode-back" href="../autodoc/base_pulse.html#base_pulse.pulselib.add_channel_delay">[docs]</a>	<span class="k">def</span> <span class="nf">add_channel_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delays</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Adds to a channel a delay. </span>
 <span class="sd">		The delay is added by adding points in front of the first sequence/or </span>
@@ -223,7 +223,7 @@
 		<span class="bp">self</span><span class="o">.</span><span class="n">__process_channel_delays</span><span class="p">()</span>
 		<span class="k">return</span> <span class="mi">0</span></div>
 
-<div class="viewcode-block" id="pulselib.add_channel_compenstation_limits"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.add_channel_compenstation_limits">[docs]</a>	<span class="k">def</span> <span class="nf">add_channel_compenstation_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limits</span><span class="p">):</span>
+<div class="viewcode-block" id="pulselib.add_channel_compenstation_limits"><a class="viewcode-back" href="../autodoc/base_pulse.html#base_pulse.pulselib.add_channel_compenstation_limits">[docs]</a>	<span class="k">def</span> <span class="nf">add_channel_compenstation_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limits</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		add voltage limitations per channnel that can be used to make sure that the intragral of the total voltages is 0.</span>
 <span class="sd">		Args:</span>
@@ -238,7 +238,7 @@
 				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Channel voltage compenstation error: Channel &#39;</span><span class="si">{}</span><span class="s2">&#39; does not exist. Please provide valid input&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></div>
 
 
-<div class="viewcode-block" id="pulselib.add_awgs"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.add_awgs">[docs]</a>	<span class="k">def</span> <span class="nf">add_awgs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">awg</span><span class="p">):</span>
+<div class="viewcode-block" id="pulselib.add_awgs"><a class="viewcode-back" href="../autodoc/base_pulse.html#base_pulse.pulselib.add_awgs">[docs]</a>	<span class="k">def</span> <span class="nf">add_awgs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">awg</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		add a awg to the library</span>
 <span class="sd">		Args:</span>
@@ -248,7 +248,7 @@
 		<span class="bp">self</span><span class="o">.</span><span class="n">awg_devices</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span><span class="n">awg</span></div>
 		<span class="c1"># self.cpp_uploader.add_awg_module(name, awg)</span>
 
-<div class="viewcode-block" id="pulselib.add_virtual_gates"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.add_virtual_gates">[docs]</a>	<span class="k">def</span> <span class="nf">add_virtual_gates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">virtual_gates</span><span class="p">):</span>
+<div class="viewcode-block" id="pulselib.add_virtual_gates"><a class="viewcode-back" href="../autodoc/base_pulse.html#base_pulse.pulselib.add_virtual_gates">[docs]</a>	<span class="k">def</span> <span class="nf">add_virtual_gates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">virtual_gates</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		define virtual gates for the gate set.</span>
 <span class="sd">		Args:</span>
@@ -262,7 +262,7 @@
 	<span class="k">def</span> <span class="nf">update_virtual_gate_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_matrix</span><span class="p">):</span>
 		<span class="k">raise</span> <span class="bp">NotImplemented</span>
 
-<div class="viewcode-block" id="pulselib.add_IQ_virt_channels"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.add_IQ_virt_channels">[docs]</a>	<span class="k">def</span> <span class="nf">add_IQ_virt_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IQ_virt_channels</span><span class="p">):</span>
+<div class="viewcode-block" id="pulselib.add_IQ_virt_channels"><a class="viewcode-back" href="../autodoc/base_pulse.html#base_pulse.pulselib.add_IQ_virt_channels">[docs]</a>	<span class="k">def</span> <span class="nf">add_IQ_virt_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IQ_virt_channels</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		function to define virtual IQ channels (a channel that combined the I and Q channel for MW applications):</span>
 <span class="sd">		Args:</span>
@@ -278,7 +278,7 @@
 		<span class="c1"># TODO rewrite, so this function is embedded in the other ones.</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">uploader</span> <span class="o">=</span> <span class="n">keysight_uploader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">awg_devices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpp_uploader</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_channels_to_physical_locations</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_delays_computed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_compenstation_limits</span><span class="p">)</span>
 
-<div class="viewcode-block" id="pulselib.mk_segment"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.mk_segment">[docs]</a>	<span class="k">def</span> <span class="nf">mk_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="pulselib.mk_segment"><a class="viewcode-back" href="../autodoc/base_pulse.html#base_pulse.pulselib.mk_segment">[docs]</a>	<span class="k">def</span> <span class="nf">mk_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		generate a new segment.</span>
 <span class="sd">		Returns:</span>
@@ -286,7 +286,7 @@
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">return</span> <span class="n">segment_container</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">awg_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_virtual_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">awg_IQ_channels</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="pulselib.mk_sequence"><a class="viewcode-back" href="../intro.html#base_pulse.pulselib.mk_sequence">[docs]</a>	<span class="k">def</span> <span class="nf">mk_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">seq</span><span class="p">):</span>
+<div class="viewcode-block" id="pulselib.mk_sequence"><a class="viewcode-back" href="../autodoc/base_pulse.html#base_pulse.pulselib.mk_sequence">[docs]</a>	<span class="k">def</span> <span class="nf">mk_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">seq</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		seq: list of list, </span>
 <span class="sd">			e.g. [ [&#39;name segment 1&#39; (str), number of times to play (int), prescale (int)] ]</span>

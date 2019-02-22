@@ -60,21 +60,19 @@ In this case, we have quite a few gates available (defined in the :ref:`init of 
 Segment operations
 """"""""""""""""""
 
-A segment is the entity where you can make you pulses. On a segment you can apply an unlimited amount of operations.
-When the operation changes something to the waveform, it is usually done by adding it up to what is already there. Thus when retaking the example of before, doing 
+A segment is the entity that is used to define pulses in function of time. Segments are usually constructed by counting up simple elements (e.g. block pulses, ramps and sinus shaped features).
+The example below shows two waveforms getting counted up (just an extension of the one in the previous section).
 
 .. code-block:: python
 
 	my_new_pulse_container.P1.add_block(start, stop, amp)
-	my_new_pulse_container.P1.add_block(start, stop, amp)
+	my_new_pulse_container.P1.add_block(start+10, stop+10, amp)
 
-is equivalent to doing, 
+The resulting pulse of this operation is:
 
-.. code-block:: python
+<< figure >>
 
-	my_new_pulse_container.P1.add_block(start, stop, amp)
-
-The operations possible at this moment are:
+Default operations are (can be extended if needed):
 	
 	- adding block shaped pulses
 	- adding ramp's
@@ -94,12 +92,22 @@ Important operators are:
 To get intuition what each of this operators does, it is best to try to execute (and change) some of the examples given in the beginning.
 
 
-segment container operations
+Segment container operations
 """"""""""""""""""""""""""""
 
-This is the container that 
+As mentioned before, this are the containers that contain all the segments and allow you to do also some operation on all the segments at the same time.
+
+Operations include:
+
+	- total_time : get maximal time in all the segments present
+	- append : concatenate one segment container to another one.
+	- slice time : redefine start and end time of all the segments present in the segment container
+	- reset time : define total_time in all segments as the new time zero.
+
+More on operation can be found in the segment container tutorial.
 
 
 How do virtual gates exactly work here?
 """""""""""""""""""""""""""""""""""""""
 
+As you

@@ -166,21 +166,21 @@
 </div>
 <div class="section" id="segments">
 <span id="seg"></span><h2>Segments<a class="headerlink" href="#segments" title="Permalink to this headline">¶</a></h2>
-<p>A segment is collection of data points that forms a single waveform. You can think of this as for example, the set of pulses that does the readout on you sample. m
+<p>A segment is the collection of data points that forms a single waveform. For example, the set of pulses one would apply on one the gates for the sample to perform the readout.
 Note that a segment only contains the information for one channel.</p>
 <dl class="docutils">
 <dt>There are two types of segments:</dt>
 <dd><ul class="first last simple">
-<li>segments_base : these are segments that should be used for generating block pulses and ramps.</li>
+<li><a class="reference internal" href="autodoc/segment_base.html#segment-base"><span class="std std-ref">segments_base</span></a> : these are segments that should be used for generating block pulses and ramps.</li>
 <li>segments_IQ : these are segments that are used to work with IQ signals of vector MW sources.</li>
 </ul>
 </dd>
 </dl>
-<p>Both types can be used interchangeably. More details can be found in the tutorials (or if you feel really courageous in the source code).</p>
+<p>Both types can be used interchangeably. More details can be found in the later chapters (or if you feel really courageous in the source code).</p>
 </div>
 <div class="section" id="segment-containers">
 <span id="seg-con"></span><h2>Segment containers<a class="headerlink" href="#segment-containers" title="Permalink to this headline">¶</a></h2>
-<p>A segment container, as the name already gives away, is a container of channels. If we would think of the example before, than in this element you would have the collection of all the channels that are involved in your readout pulse. This object is generated automatically, so no need for you to specify channels each time.</p>
+<p>A segment container, as the name already gives away, is a container of channels. For example, this could be the collection of all the channels that are involved in your readout pulse. This object is generated automatically, so no need for you to specify channels each time.</p>
 <dl class="docutils">
 <dt>There are some rules for segment containers though,</dt>
 <dd><ul class="first last simple">
@@ -194,8 +194,8 @@ Note that a segment only contains the information for one channel.</p>
 <div class="section" id="sequences">
 <span id="seq"></span><h2>Sequences<a class="headerlink" href="#sequences" title="Permalink to this headline">¶</a></h2>
 <p>Sequences are a collection of segment containers. Basically it means just concatenate different segment containers.</p>
-<p>One could for example make 3 segment containers, on for initialization of the qubits, one for manipulation and one for readout.
-When executing the experiment, you would tell the the AWG, play initialization -&gt; manipulation -&gt; readout.</p>
+<p>One could for example make a sequence of three segment containers, on that would contain also the pulse data for initialization, one for manipulation and one for readout of the qubits.
+When executing the experiment, you would tell the the AWG to play this sequence of elements.</p>
 </div>
 </div>
 
