@@ -83,7 +83,6 @@
 <li><a class="reference internal" href="#making-a-segment-container">Making a segment container</a></li>
 <li><a class="reference internal" href="#segment-operations">Segment operations</a></li>
 <li><a class="reference internal" href="#segment-container-operations">Segment container operations</a></li>
-<li><a class="reference internal" href="#how-do-virtual-gates-exactly-work-here">How do virtual gates exactly work here?</a></li>
 </ul>
 </li>
 </ul>
@@ -174,18 +173,18 @@ But before checking the examples, it is best to get a grasp of the theory below.
 </pre></div>
 </div>
 <p>Where <code class="docutils literal notranslate"><span class="pre">my_new_pulse_container</span></code> is of the type <code class="docutils literal notranslate"><span class="pre">segment_container</span></code>.
-From this object we can now access all the channels. For example, if we want to make a block pulse on the plunger gate of dot 1, we can call,</p>
+This is an object that contains the pulses for all channels. Now we can access each channnel and perform operations. For example, if you want to make a block pulse on the plunger gate of dot 1, we can call,</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="mi">10</span> <span class="c1"># ns</span>
 <span class="n">stop</span> <span class="o">=</span> <span class="mi">50</span> <span class="c1"># ns</span>
 <span class="n">amp</span> <span class="o">=</span> <span class="mi">100</span> <span class="c1"># mV</span>
 <span class="n">my_new_pulse_container</span><span class="o">.</span><span class="n">P1</span><span class="o">.</span><span class="n">add_block</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">amp</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>So if we want to apply operations on gates, we can access them like:</p>
+<p>The syntax for this last line of code goes as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">segment_container_obj</span><span class="o">.</span><span class="n">my_gate_name</span><span class="o">.</span><span class="n">operation_you_want_to_do</span>
 </pre></div>
 </div>
-<p>In this case, we have quite a few gates available (defined in the <a class="reference internal" href="init_lib.html#init-lib"><span class="std std-ref">init of pulse_lib</span></a>). We can check them,</p>
+<p>In this case, there are quite a few gates available (they were defined in the <a class="reference internal" href="init_lib.html#init-lib"><span class="std std-ref">init of pulse_lib</span></a>). An other way of checking, is just asking the segment_container object,</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">my_new_pulse_container</span><span class="o">.</span><span class="n">channels</span><span class="p">)</span>
 
 <span class="go">[ &#39;B0&#39;, &#39;P1&#39;, &#39;B1&#39;, &#39;P2&#39;, &#39;B2&#39;,</span>
@@ -211,8 +210,8 @@ The example below shows two waveforms getting counted up (just an extension of t
 <li>adding block shaped pulses</li>
 <li>adding ramp’s</li>
 <li>adding an arbitrary row of times and voltages that define a pulse shape.</li>
-<li>add sinus shaped data (for modulation options, use a microwave object)</li>
-<li>counting</li>
+<li>add sinus shaped data (for modulation options, use an IQ segment)</li>
+<li>Repeating segments</li>
 <li>feature possibility add numpy data.</li>
 </ul>
 </div></blockquote>
@@ -230,7 +229,7 @@ The example below shows two waveforms getting counted up (just an extension of t
 </div>
 <div class="section" id="segment-container-operations">
 <h3>Segment container operations<a class="headerlink" href="#segment-container-operations" title="Permalink to this headline">¶</a></h3>
-<p>As mentioned before, this are the containers that contain all the segments and allow you to do also some operation on all the segments at the same time.</p>
+<p>As mentioned before, this are the containers that contain all the segments of all the channnels. There are also some commands that can be executed on the whole container.</p>
 <p>Operations include:</p>
 <blockquote>
 <div><ul class="simple">
@@ -241,10 +240,6 @@ The example below shows two waveforms getting counted up (just an extension of t
 </ul>
 </div></blockquote>
 <p>More on operation can be found in the segment container tutorial.</p>
-</div>
-<div class="section" id="how-do-virtual-gates-exactly-work-here">
-<h3>How do virtual gates exactly work here?<a class="headerlink" href="#how-do-virtual-gates-exactly-work-here" title="Permalink to this headline">¶</a></h3>
-<p>As you</p>
 </div>
 </div>
 </div>

@@ -49,8 +49,15 @@ def return_pulse_lib():
 	        'MW_marker': 5
 	})
 
+	# add compensation limits
+	pulse.add_channel_compenstation_limits({
+		'B0': (-500,500),'B1': (-500,500),'B2': (-500,500),
+		'P1': (-500,500),'P2': (-500,500),
+		})
 	# finish initialisation (! important if using keysight uploader)
-	return pulse.finish_init()
+	pulse.finish_init()
+
+	return pulse
 
 if __name__ == '__main__':
 	pulse = return_pulse_lib()

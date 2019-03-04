@@ -30,7 +30,7 @@ Before we can make any pulse, we need to ask the ``pulselib`` object for a segme
 	my_new_pulse_container  = pulse.mk_segment()
 
 Where ``my_new_pulse_container`` is of the type ``segment_container``.
-From this object we can now access all the channels. For example, if we want to make a block pulse on the plunger gate of dot 1, we can call,
+This is an object that contains the pulses for all channels. Now we can access each channnel and perform operations. For example, if you want to make a block pulse on the plunger gate of dot 1, we can call,
 
 .. code-block:: python
 
@@ -39,13 +39,13 @@ From this object we can now access all the channels. For example, if we want to 
 	amp = 100 # mV
 	my_new_pulse_container.P1.add_block(start, stop, amp)
 
-So if we want to apply operations on gates, we can access them like:
+The syntax for this last line of code goes as follows:
 
 .. code-block:: python
 
 	segment_container_obj.my_gate_name.operation_you_want_to_do
 
-In this case, we have quite a few gates available (defined in the :ref:`init of pulse_lib<init_lib>`). We can check them,
+In this case, there are quite a few gates available (they were defined in the :ref:`init of pulse_lib<init_lib>`). An other way of checking, is just asking the segment_container object,
 
 .. code-block:: python
 
@@ -77,8 +77,8 @@ Default operations are (can be extended if needed):
 	- adding block shaped pulses
 	- adding ramp's
 	- adding an arbitrary row of times and voltages that define a pulse shape.
-	- add sinus shaped data (for modulation options, use a microwave object)
-	- counting 
+	- add sinus shaped data (for modulation options, use an IQ segment)
+	- Repeating segments 
 	- feature possibility add numpy data.
 
 Important operators are:
@@ -95,7 +95,7 @@ To get intuition what each of this operators does, it is best to try to execute 
 Segment container operations
 """"""""""""""""""""""""""""
 
-As mentioned before, this are the containers that contain all the segments and allow you to do also some operation on all the segments at the same time.
+As mentioned before, this are the containers that contain all the segments of all the channnels. There are also some commands that can be executed on the whole container.
 
 Operations include:
 
@@ -105,9 +105,3 @@ Operations include:
 	- reset time : define total_time in all segments as the new time zero.
 
 More on operation can be found in the segment container tutorial.
-
-
-How do virtual gates exactly work here?
-"""""""""""""""""""""""""""""""""""""""
-
-As you

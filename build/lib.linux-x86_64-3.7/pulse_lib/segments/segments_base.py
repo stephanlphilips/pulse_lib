@@ -77,6 +77,7 @@ class segment_single():
 	
 	@last_edited
 	@loop_controller
+	
 	def reset_time(self, time=None, extend_only = False):
 		'''
 		resets the time back to zero after a certain point

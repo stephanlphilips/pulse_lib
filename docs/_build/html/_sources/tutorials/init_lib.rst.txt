@@ -7,14 +7,15 @@ Before making a pulse, the pulse library needs to know some stuff from you. The 
 
    - QCodes objects of the AWG's (only when using Keysight AWG's)
    - Translation of you sample channels names (e.g. barrier gate 1) to the physical location if the set up (e.g. AWG3 channel 4)
-   - Virtual gates and virtual gate matrix if needed <reference needed here>
-   - Virtual IQ channels, if you are doing IQ modulation <link explaining IQ modulation >
+   - Virtual gates and :ref:`virtual gate matrix<virt_gates>` if needed.
+   - Virtual IQ channels, if you are doing :ref:`IQ modulation<IQ_mod_basics>`
    - :ref:`Channels delay's<chan_delay>` (e.g. if not all you coaxes have the same length)
    - Which channel need a :ref:`DC offset compenstation<dc_offset_comp>` and what the what the allowed values are.
 
 All these properties are contained in the ``pulselib`` object. Below a complete example is worked out to explaining how to do this.
 The source code of the example can be found in ``tutorials/init_pulselib.py`` if you would want to execute it yourselves.
 
+.. _example_init_lib:
 Example : initialization for a two-qubit setup
 ----------------------------------------------
 

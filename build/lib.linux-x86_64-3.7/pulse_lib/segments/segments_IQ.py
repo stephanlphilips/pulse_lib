@@ -45,7 +45,6 @@ class segment_single_IQ(segment_single):
 		self._last_edit = datetime.datetime.now()
 
 		self.ndim = 0
-		self.shape = []
 		self.units = []
 		self.names = []
 
