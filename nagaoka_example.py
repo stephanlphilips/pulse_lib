@@ -1,5 +1,6 @@
 from pulse_lib.base_pulse import pulselib
-
+import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
+import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
 import numpy as np
 
 p = pulselib()
@@ -9,13 +10,17 @@ class AWG(object):
 	def __init__(self, name):
 		self.name = name
 		self.chassis = 0
-		self.slot = 0
-		self.type = "DEMO"
+		self.slot = 2
 
 AWG1 = AWG("AWG1")
 
+awg1 = keysight_awg.SD_AWG('awg1', chassis = 0, slot= 2, channels = 4, triggers= 8)
+awg2 = keysight_awg.SD_AWG('awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
+# awg3 = keysight_awg.SD_AWG('awg3', chassis = 0, slot= 4, channels = 4, triggers= 8)
+# awg4 = keysight_awg.SD_AWG('awg4', chassis = 0, slot= 5, channels = 4, triggers= 8)
 # add to pulse_lib
 p.add_awgs('AWG1',AWG1)
+p.add_awgs('AWG2',awg2)
 
 # define channels
 awg_channels_to_physical_locations = dict({'P1':('AWG1', 1), 'P2':('AWG1', 2),
@@ -56,8 +61,6 @@ nagaoka_pulsing.P2 += nagaoka_pulsing.P1*0.23
 nagaoka_pulsing.P3 += nagaoka_pulsing.P1*1.2
 nagaoka_pulsing.P4 -= nagaoka_pulsing.P1*0.1
 
-nagaoka_pulsing.P1.data[0,0].slice_time(45,125)
-print(nagaoka_pulsing.P1.data[0,0].my_pulse_data)
 
 import matplotlib.pyplot as plt
 # plt.figure()
@@ -73,17 +76,17 @@ import matplotlib.pyplot as plt
 
 
 
-import matplotlib.pyplot as plt
-plt.figure()
-nagaoka_pulsing.P1.plot_segment([0,0])
-nagaoka_pulsing.P1.plot_segment([5,0])
-nagaoka_pulsing.P1.plot_segment([5,5])
-nagaoka_pulsing.P1.plot_segment([10,5])
+# import matplotlib.pyplot as plt
+# plt.figure()
+# nagaoka_pulsing.P1.plot_segment([0,0])
+# nagaoka_pulsing.P1.plot_segment([5,0])
+# nagaoka_pulsing.P1.plot_segment([5,5])
+# nagaoka_pulsing.P1.plot_segment([10,5])
 
-plt.xlabel("time (ns)")
-plt.ylabel("voltage (mV)")
-plt.legend()
-plt.show()
+# plt.xlabel("time (ns)")
+# plt.ylabel("voltage (mV)")
+# plt.legend()
+# plt.show()
 
 readout_level = 5
 readout  = p.mk_segment()

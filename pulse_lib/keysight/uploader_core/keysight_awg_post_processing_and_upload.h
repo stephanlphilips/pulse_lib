@@ -1,5 +1,13 @@
+#ifdef linux
 #include <Keysight/SD1/cpp/SD_Module.h>
 #include <Keysight/SD1/cpp/SD_Module.h>
+#endif
+
+#ifdef _WIN32
+#include <Libraries/include/cpp/SD_Module.h>
+#include <Libraries/include/cpp/SD_Module.h>
+#endif
+
 #include "mem_ctrl.h"
 
 #include <map>
@@ -25,7 +33,7 @@ public:
 	cpp_uploader();
 	~cpp_uploader();
 
-	void add_awg_module(std::string name, std::string module_type, int chassis, int slot);
+	void add_awg_module(std::string name, int chassis, int slot);
 	void add_upload_job(std::map<std::string, std::map<int, waveform_raw_upload_data*>> *upload_data);
 	void release_memory(std::map<std::string, std::map<int, waveform_raw_upload_data*>>* upload_data);
 private:

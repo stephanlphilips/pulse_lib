@@ -1,5 +1,5 @@
 #include "keysight_awg_post_processing_and_upload.h"
-#include <Keysight/SD1/cpp/SD_Module.h>
+
 #include <map>
 #include <string>
 #include <vector>
@@ -9,13 +9,16 @@
 cpp_uploader::cpp_uploader(){}
 cpp_uploader::~cpp_uploader(){}
 
-void cpp_uploader::add_awg_module(std::string name, std::string module_type, int chassis, int slot){
+void cpp_uploader::add_awg_module(std::string name, int chassis, int slot){
 	SD_Module *my_AWG_module;
 	my_AWG_module = new SD_Module(0);
 
+	char * ProductName;
+	my_AWG_module->getProductName(chassis, slot, ProductName);
 
 	int error_handle;
-	error_handle = my_AWG_module->open(module_type.c_str(), chassis, slot, 1);
+
+	error_handle = my_AWG_module->open(ProductName, chassis, slot, 1);
 	check_error(my_AWG_module, &error_handle);
 
 	AWG_modules[name] = my_AWG_module;
@@ -30,7 +33,7 @@ void cpp_uploader::add_upload_job(std::map<std::string, std::map<int, waveform_r
 	double time_multi_upload = *upload_data->begin()->second.begin()->second->npt*4/10e3 + 7.5;
 
 	#pragma omp parallel for if(time_multi_upload < time_no_multi_upload)
-	for (size_t i = 0; i < upload_data->size(); ++i){
+	for (int i = 0; i < upload_data->size(); ++i){
 		auto AWG_iterator = upload_data->begin();
 		advance(AWG_iterator, i);
 		for (auto channel_iterator = AWG_iterator->second.begin(); channel_iterator != AWG_iterator->second.end(); ++channel_iterator){
@@ -73,8 +76,8 @@ void cpp_uploader::load_data_on_awg(std::string awg_name, waveform_raw_upload_da
 	if (segment_location == -1)
 		throw std::invalid_argument("No segments available on the AWG/segment is too long ..");
 
-	// error_handles[awg_name] = AWG_modules[awg_name]->waveformReLoad(segment_location, *upload_data->npt, upload_data->upload_data, 0, 0);
-	// check_error(AWG_modules[awg_name], &error_handles[awg_name]);
+	error_handles[awg_name] = AWG_modules[awg_name]->waveformReLoad(segment_location, *upload_data->npt, upload_data->upload_data, 0, 0);
+	check_error(AWG_modules[awg_name], &error_handles[awg_name]);
 
 	upload_data->data_location_on_AWG.push_back(segment_location);
 }
@@ -93,8 +96,8 @@ void cpp_uploader::release_memory(std::map<std::string, std::map<int, waveform_r
 	}
 }
 void cpp_uploader::check_error(SD_Module *AWG_module, int *error_handle){
-	if (error_handle != 0){
-		std::cout << (AWG_module->getErrorMessage(*error_handle)) << "\n";
-		// throw std::invalid_argument(AWG_module->getErrorMessage(*error_handle));
+	if (error_handle < 0){
+		std::cout << "error : \t" << error_handle << "\t\t"<< (AWG_module->getErrorMessage(*error_handle)) << "\n";
+		//throw std::invalid_argument(AWG_module->getErrorMessage(*error_handle));
 	}
 }
