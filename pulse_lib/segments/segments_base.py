@@ -53,6 +53,12 @@ class segment_single():
 		# variable specifing the lastest time the pulse_data_all is updated
 		self.last_render = datetime.datetime.now() 
 
+		self.loops = list()
+		# some basic properties.
+		self._names = tuple()
+		self._setvals = tuple()
+		self._units = tuple()
+
 	def add_reference_channel(self, channel_name, segment_data, multiplication_factor):
 		'''
 		Add channel reference, this can be done to make by making a pointer to another segment.
@@ -252,7 +258,56 @@ class segment_single():
 	@property
 	def shape(self):
 		return self.data.shape
+
+	@property
+	def ndim(self):
+		return self.data.ndim
+
+	@property
+	def names(self):
+		self.__generate_properties()
+		return self._names
 	
+	@property
+	def units(self):
+		self.__generate_properties()
+		return self._units
+
+	@property
+	def setvals(self):
+		self.__generate_properties()
+		return self._setvals
+
+	def __generate_properties(self):
+		'''
+		generate properties like names, units and setvals of the current segment.
+
+		Note that this are the units of this segment and not the sements around it.
+		Note2 : for a loopobject with a dimensions bigger than one, the setvals are not settable, as a 1D array for each of them is expected. As such, only the first row of the array will be kept... (though it is unlikely that this scenario will occur).
+		'''
+
+		units = ["a.u."]*self.ndim
+		names = ["undefined"]*self.ndim
+		setvals = []*self.ndim
+		enforce_setvals = [False]*self.ndim
+
+		for lp in range(self.loops):
+			for i in range(lp.ndim):
+				if lp.units[i] != 'a.u.':
+					units[lp.axis[i]] = lp.units[i]
+				if lp.names[i] != 'undefined':
+					names[lp.axis[i]] = lp.names[i]
+				if enforce_setvals[i] == False:
+					locations = [0] * lp.ndim
+					locations[i] = slice(0, None)
+
+					setvals[lp.axis[i]] = lp.setvals[ tuple(locations) ]
+					enforce_setvals[lp.axis[i]] = lp.setvals_set
+
+		self._names = names
+		self._units = units
+		self._setvals = setvals
+
 	def __add__(self, other):
 		'''
 		define addition operator for segment_single
@@ -486,3 +541,10 @@ class segment_single():
 		plt.plot(x,y, label=self.name)
 		# plt.show()
 
+
+if __name__ == '__main__':
+	s = segment_single("test")
+	from pulse_lib.segments.looping import linspace
+	s.add_block(0, 10, linspace(2,10,50, unit=("ee")))
+	print(s.loops)
+	print(s.units)

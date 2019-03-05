@@ -9,8 +9,17 @@ class loop_obj():
 		self.units = list()
 		self.axis = list()
 		self.dtype = None
-	
-	def add_data(self, data, axis = None, names = None, units = None):
+		self.setvals_set = False
+		
+	def add_data(self, data, axis = None, names = None, units = None, setvals = None):
+		'''
+		add data to the loop object.
+		data (array/np.ndarray) : n dimensional array with a regular shape (any allowed by numpy) of values you want to sweep
+		axis (int/tuple<str>) : loop axis, if none is provided, a new loop axis is generated when the loop object is used in the pulse library.
+		names (str/tuple<str>) : name of the data that is swept. This will for example be used as an axis label
+		units (str/tuple<str>) : unit of the sweep data
+		setvals (array/np.ndarray) : if you want to display different things on the axis than the normal data point. When None, setvals is the same as the data varaible.
+		'''
 		self.data = np.asarray(data)
 		self.dtype = self.data.dtype
 
@@ -40,6 +49,15 @@ class loop_obj():
 			if len(units) != len(self.data.shape):
 				raise ValueError("Provided incorrect dimensions for the axis.")
 			self.units = units
+
+		if setvals is None:
+			self.setvals = self.data
+		else:
+			setvals = np.asarray(setvals)
+			if self.shape != setvals.shape:
+				raise ValueError("setvals should have the same dimensions as the data dimensions.")
+			self.setvals = setvals
+			self.setvals_set = True
 
 	def __len__(self):
 		return len(self.data)
@@ -96,7 +114,7 @@ class loop_obj():
 
 class linspace(loop_obj):
 	"""docstring for linspace"""
-	def __init__(self, start, stop, n_steps = 50, name = "undefined", unit = 'a.u.', axis = -1):
+	def __init__(self, start, stop, n_steps = 50, name = "undefined", unit = 'a.u.', axis = -1, setvals = None):
 		super().__init__()
-		super().add_data(np.linspace(start, stop, n_steps), axis = axis, names = name, units = unit)
+		super().add_data(np.linspace(start, stop, n_steps), axis = axis, names = name, units = unit, setvals= setvals)
 

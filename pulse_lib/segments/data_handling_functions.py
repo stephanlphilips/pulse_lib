@@ -172,23 +172,25 @@ def loop_controller(func):
 			if isinstance(args[i], loop_obj):
 				info = {
 				'nth_arg': i,
-				'name': args[i].names,
 				'shape' : args[i].shape,
 				'len': len(args[i]),
 				'axis': args[i].axis,
 				'data' : args[i].data}
 				loop_info_args.append(info)
 
+				obj.loops.append(args[i])
+
 		for key in kwargs.keys():
 			if isinstance(kwargs[key], loop_obj):
 				info = {
 				'nth_arg': key,
-				'name': kwargs[key].names,
-				'shape' : args[i].shape,
+				'shape' : kwargs[key].shape,
 				'len': len(kwargs[key]),
 				'axis': kwargs[key].axis,
 				'data' : kwargs[key].data}
 				loop_info_kwargs.append(info)
+
+				obj.loops.append(kwargs[key])
 
 		for lp in loop_info_args:
 			for i in range(len(lp['axis'])-1,-1,-1):
@@ -289,8 +291,32 @@ def get_new_dim_loop(current_dim, axis, shape):
 
 	return new_dim, axis
 
-def update_labels(data_object, loop_spec):
-	pass
+def update_labels(segment, loop_spec):
+	"""
+	Update the labels in the current segment.
+
+	Args:
+		segment (segment_single) : segment object of which to update the labels
+		loop_spec (dict) : dict containing the loop specification, with the updata data.
+	"""
+	units = ['a.u.']*segment.ndim
+	names = ['undefined']*segment.ndim
+	setvals  = []*segment.ndim
+
+	units[:len(segment._units)] = segment._units
+	names[:len(segment._units)] = segment._names
+	setvals[:len(segment._units)] = segment._setvals
+
+	for loop in loop_spec:
+		for i in range(len(loop['axis'])):
+			if loop['data_obj'].units[i] != 'a.u.':
+				units[loop['axis'][i]] = loop['data_obj'].units[i]
+			if loop['data_obj'].names[i] != 'undefined':
+				names[loop['axis'][i]] = loop['data_obj'].names[i]
+			setvals[loop['axis'][i]] = loop['data_obj'].setvals[i]
+
+
+	segment._units = units
 
 def get_union_of_shapes(shape1, shape2):
 	"""
