@@ -27,7 +27,7 @@ cdef extern from "keysight_awg_post_processing_and_upload.h":
 
 	cdef cppclass cpp_uploader:
 		cpp_uploader() except +
-		void add_awg_module(string name, string module_type, int chassis, int slot) nogil
+		void add_awg_module(string name, int chassis, int slot) nogil
 		void add_upload_job(mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *upload_data) nogil
 		void release_memory(mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *upload_data) nogil
 
@@ -54,7 +54,7 @@ cdef class keysight_upload_module():
 		Args:
 			module (qCodeS driver) : qcodes object of the AWG
 		'''
-		self.keysight_uploader.add_awg_module(name.encode(), module.type.encode(), module.chassis, module.slot)
+		self.keysight_uploader.add_awg_module(name.encode(), module.chassis, module.slot)
 
 	def add_upload_data(self, waveform_cache_container waveform_cache):
 		cdef mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data

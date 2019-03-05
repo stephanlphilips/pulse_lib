@@ -11,7 +11,7 @@ class test(object):
 		return self.testing[key[0]]
 
 
-def test_function(a=0, b):
+def test_function(a, b):
 	print(a,b)
 
 test_function(5)

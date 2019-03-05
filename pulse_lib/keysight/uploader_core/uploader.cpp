@@ -9,22 +9,20 @@
             "pulse_lib\\keysight\\uploader_core\\keysight_awg_post_processing_and_upload.h"
         ],
         "extra_compile_args": [
-            "-fopenmp"
+            "/openmp"
         ],
         "include_dirs": [
             "pulse_lib/keysight/uploader_core",
             "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Anaconda3_64\\lib\\site-packages\\numpy\\core\\include",
-            "/usr/local/include/Keysight/SD1/cpp",
-            "/usr/local/include/Keysight/SD1/common"
+            "C://Program Files (x86)//Keysight//SD1"
         ],
         "language": "c++",
         "libraries": [
-            "SD1core",
-            "SD1pxi",
-            "gomp"
+            "keysightSD1"
         ],
         "library_dirs": [
-            "/usr/local/lib/Keysight/SD1/"
+            "C://Program Files (x86)//Keysight//SD1//shared//",
+            "C://Program Files (x86)//Keysight//SD1//Libraries//libx64//Cpp_MSVC2008"
         ],
         "name": "pulse_lib.keysight.uploader_core.uploader",
         "sources": [
@@ -1978,7 +1976,6 @@ static const char __pyx_k_name[] = "name";
 static const char __pyx_k_size[] = "size";
 static const char __pyx_k_slot[] = "slot";
 static const char __pyx_k_test[] = "__test__";
-static const char __pyx_k_type[] = "type";
 static const char __pyx_k_items[] = "items";
 static const char __pyx_k_numpy[] = "numpy";
 static const char __pyx_k_range[] = "range";
@@ -2066,7 +2063,6 @@ static PyObject *__pyx_n_s_setstate_cython;
 static PyObject *__pyx_n_s_size;
 static PyObject *__pyx_n_s_slot;
 static PyObject *__pyx_n_s_test;
-static PyObject *__pyx_n_s_type;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_v_min_max;
 static PyObject *__pyx_n_s_voltage_limits;
@@ -2255,15 +2251,14 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22keysi
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   std::string __pyx_t_4;
-  std::string __pyx_t_5;
+  int __pyx_t_5;
   int __pyx_t_6;
-  int __pyx_t_7;
   __Pyx_RefNannySetupContext("add_awg_module", 0);
 
   /* "pulse_lib/keysight/uploader_core/uploader.pyx":57
  * 			module (qCodeS driver) : qcodes object of the AWG
  * 		'''
- * 		self.keysight_uploader.add_awg_module(name.encode(), module.type.encode(), module.chassis, module.slot)             # <<<<<<<<<<<<<<
+ * 		self.keysight_uploader.add_awg_module(name.encode(), module.chassis, module.slot)             # <<<<<<<<<<<<<<
  * 
  * 	def add_upload_data(self, waveform_cache_container waveform_cache):
  */
@@ -2289,40 +2284,15 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22keysi
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_4 = __pyx_convert_string_from_py_std__in_string(__pyx_t_1); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_module, __pyx_n_s_type); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 57, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_encode); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 57, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_2);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (__pyx_t_2) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 57, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 57, __pyx_L1_error)
-  }
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = __pyx_convert_string_from_py_std__in_string(__pyx_t_1); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 57, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_module, __pyx_n_s_chassis); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 57, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_module, __pyx_n_s_slot); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 57, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 57, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_self->keysight_uploader->add_awg_module(__pyx_t_4, __pyx_t_5, __pyx_t_6, __pyx_t_7);
+  __pyx_v_self->keysight_uploader->add_awg_module(__pyx_t_4, __pyx_t_5, __pyx_t_6);
 
   /* "pulse_lib/keysight/uploader_core/uploader.pyx":51
  * 		self.keysight_uploader = new cpp_uploader()
@@ -2348,7 +2318,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22keysi
 }
 
 /* "pulse_lib/keysight/uploader_core/uploader.pyx":59
- * 		self.keysight_uploader.add_awg_module(name.encode(), module.type.encode(), module.chassis, module.slot)
+ * 		self.keysight_uploader.add_awg_module(name.encode(), module.chassis, module.slot)
  * 
  * 	def add_upload_data(self, waveform_cache_container waveform_cache):             # <<<<<<<<<<<<<<
  * 		cdef mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data
@@ -2565,7 +2535,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22keysi
   goto __pyx_L0;
 
   /* "pulse_lib/keysight/uploader_core/uploader.pyx":59
- * 		self.keysight_uploader.add_awg_module(name.encode(), module.type.encode(), module.chassis, module.slot)
+ * 		self.keysight_uploader.add_awg_module(name.encode(), module.chassis, module.slot)
  * 
  * 	def add_upload_data(self, waveform_cache_container waveform_cache):             # <<<<<<<<<<<<<<
  * 		cdef mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data
@@ -8605,7 +8575,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_size, __pyx_k_size, sizeof(__pyx_k_size), 0, 0, 1, 1},
   {&__pyx_n_s_slot, __pyx_k_slot, sizeof(__pyx_k_slot), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
-  {&__pyx_n_s_type, __pyx_k_type, sizeof(__pyx_k_type), 0, 0, 1, 1},
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},
   {&__pyx_n_s_v_min_max, __pyx_k_v_min_max, sizeof(__pyx_k_v_min_max), 0, 0, 1, 1},
   {&__pyx_n_s_voltage_limits, __pyx_k_voltage_limits, sizeof(__pyx_k_voltage_limits), 0, 0, 1, 1},
