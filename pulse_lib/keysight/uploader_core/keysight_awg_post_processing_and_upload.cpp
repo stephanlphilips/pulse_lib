@@ -23,6 +23,7 @@ void cpp_uploader::add_awg_module(std::string name, int chassis, int slot){
 
 	AWG_modules[name] = my_AWG_module;
 	mem_mgr[name] = new mem_ctrl();
+
 	error_handles[name] = error_handle;
 }
 
@@ -82,7 +83,6 @@ void cpp_uploader::load_data_on_awg(std::string awg_name, waveform_raw_upload_da
 	upload_data->data_location_on_AWG.push_back(segment_location);
 }
 
-
 void cpp_uploader::free_cache(waveform_raw_upload_data* upload_data){
 	delete[] upload_data->upload_data;
 }
@@ -95,9 +95,48 @@ void cpp_uploader::release_memory(std::map<std::string, std::map<int, waveform_r
 		}
 	}
 }
+
 void cpp_uploader::check_error(SD_Module *AWG_module, int *error_handle){
 	if (error_handle < 0){
 		std::cout << "error : \t" << error_handle << "\t\t"<< (AWG_module->getErrorMessage(*error_handle)) << "\n";
 		//throw std::invalid_argument(AWG_module->getErrorMessage(*error_handle));
 	}
 }
+
+void cpp_uploader::resegment_memory(){
+	/*
+		apply the segment allocation on the AWG. As provided in the memctrl object.
+	*/
+	
+
+	// #pragma omp parallel for
+	for (int i = 0; i < AWG_modules.size(); ++i){
+		std::map<std::string, SD_Module*>::iterator my_AWG_module_iter = AWG_modules.begin();
+		advance(my_AWG_module_iter, i);
+		
+		// completely reinit the memory. 
+		delete[] mem_mgr[my_AWG_module_iter->first];
+		mem_mgr[my_AWG_module_iter->first] = new mem_ctrl();
+
+		std::vector<int> waveformNumber = mem_mgr[my_AWG_module_iter->first]->seg_occ->index_info;
+		std::vector<int> waveformSize = mem_mgr[my_AWG_module_iter->first]->seg_occ->memory_sizes;
+
+		error_handles[my_AWG_module_iter->first] = my_AWG_module_iter->second->waveformFlush();
+		check_error(AWG_modules[my_AWG_module_iter->first], &error_handles[my_AWG_module_iter->first]);
+
+		for (int i = 0; i < waveformNumber.size(); ++i)
+		{
+			
+			short* waveformDataRaw = new short[waveformSize[i]];
+
+			std::cout << "making a new segment on the AWG.";
+			// upload to the AWG
+			error_handles[my_AWG_module_iter->first] = my_AWG_module_iter->second->waveformLoad(6, waveformSize[i], waveformDataRaw, waveformNumber[i], 0);
+			check_error(AWG_modules[my_AWG_module_iter->first], &error_handles[my_AWG_module_iter->first]);
+
+			delete[] waveformDataRaw;
+		}
+	}
+
+}
+

@@ -97,8 +97,8 @@ void segment_occupation::free_segment(int seg_number){
 
 mem_ctrl::mem_ctrl(){
 	// Initialize memory management object.
-	memory_layout[1e8] = 4;
-	memory_layout[5e7] = 4;
+	// memory_layout[1e8] = 4;
+	// memory_layout[5e7] = 4;
 	memory_layout[1e7] = 4;
 	memory_layout[5e6] = 8;
 	memory_layout[1e6] = 40;
@@ -133,4 +133,3 @@ void mem_ctrl::release_memory(std::vector<int> segments_numbers){
 		seg_occ->free_segment(segments_numbers[i]);
 	}
 }
-

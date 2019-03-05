@@ -10,10 +10,10 @@ Here classes can be found that control the memory occupation on each AWG module.
 class segment_occupation
 {
 	std::map<int, int> *memory_layout;
-	std::vector<int> memory_sizes;
-	std::vector<int> index_info;
 	std::map<int, std::vector<int>> seg_data;
 public:
+	std::vector<int> memory_sizes;
+	std::vector<int> index_info;
 	segment_occupation(std::map<int, int>* mem_layout);
 
 	std::pair<int, int> request_new_segment(int size);
@@ -23,8 +23,9 @@ public:
 class mem_ctrl
 {
 	std::map<int, int> memory_layout;
-	segment_occupation* seg_occ;
 public:
+	segment_occupation* seg_occ;
+	
 	mem_ctrl();
 	~mem_ctrl();
 

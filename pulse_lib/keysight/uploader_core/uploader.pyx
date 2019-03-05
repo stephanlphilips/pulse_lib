@@ -30,6 +30,7 @@ cdef extern from "keysight_awg_post_processing_and_upload.h":
 		void add_awg_module(string name, int chassis, int slot) nogil
 		void add_upload_job(mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *upload_data) nogil
 		void release_memory(mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *upload_data) nogil
+		void resegment_memory() nogil
 
 cdef struct s_waveform_info:
 	pair[double, double] min_max_voltage
@@ -82,8 +83,16 @@ cdef class keysight_upload_module():
 
 		return AWG_init_data
 
+	def resegment_memory(self):
+		'''
+		Apply a full re-segmentation of the memory of the AWG.
+		Means a full flush and also remaking of the memory table (might take a while...)
+		'''
+		self.keysight_uploader.resegment_memory()
+
 	cdef release_memory(self, mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data):
 		self.keysight_uploader.release_memory(AWG_raw_upload_data)
+
 
 
 cdef class waveform_cache_container():
