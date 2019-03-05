@@ -16,9 +16,21 @@ extensions = [
         "pulse_lib.segments.segments_c_func",
         ["pulse_lib/segments/segments_c_func.pyx"],
         include_dirs=[numpy.get_include()], 
-        library_dirs=['/some/path/to/include/'],
-    ),
-    Extension("pulse_lib.keysight.uploader_core.uploader", 
+    )]
+
+if os.name == 'nt':
+    extensions += [Extension("pulse_lib.keysight.uploader_core.uploader", 
+            sources = ["pulse_lib/keysight/uploader_core/uploader.pyx",
+                    "pulse_lib/keysight/uploader_core/mem_ctrl.cpp", 
+                    "pulse_lib/keysight/uploader_core/keysight_awg_post_processing_and_upload.cpp"],
+            include_dirs=[numpy.get_include(),"C://Program Files (x86)//Keysight//SD1"],
+            libraries =["SD1core", "SD1pxi"],
+            library_dirs =["C://Program Files (x86)//Keysight//SD1//shared//"],
+            language='c++',
+            extra_compile_args=['/openmp'],
+            ) ]
+else:
+    extensions += [Extension("pulse_lib.keysight.uploader_core.uploader", 
             sources = ["pulse_lib/keysight/uploader_core/uploader.pyx",
                     "pulse_lib/keysight/uploader_core/mem_ctrl.cpp", 
                     "pulse_lib/keysight/uploader_core/keysight_awg_post_processing_and_upload.cpp"],
@@ -27,8 +39,7 @@ extensions = [
             library_dirs=["/usr/local/lib/Keysight/SD1/"],
             language='c++',
             extra_compile_args=['-fopenmp'],
-            )
-]
+            ) ]
 
 
 

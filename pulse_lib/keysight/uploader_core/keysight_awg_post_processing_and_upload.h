@@ -1,5 +1,13 @@
+#ifdef linux
 #include <Keysight/SD1/cpp/SD_Module.h>
 #include <Keysight/SD1/cpp/SD_Module.h>
+#endif
+
+#ifdef _WIN32
+#include <Libraries/include/cpp/SD_Module.h>
+#include <Libraries/include/cpp/SD_Module.h>
+#endif
+
 #include "mem_ctrl.h"
 
 #include <map>

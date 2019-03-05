@@ -1,5 +1,5 @@
 #include "keysight_awg_post_processing_and_upload.h"
-#include <Keysight/SD1/cpp/SD_Module.h>
+
 #include <map>
 #include <string>
 #include <vector>
@@ -30,7 +30,7 @@ void cpp_uploader::add_upload_job(std::map<std::string, std::map<int, waveform_r
 	double time_multi_upload = *upload_data->begin()->second.begin()->second->npt*4/10e3 + 7.5;
 
 	#pragma omp parallel for if(time_multi_upload < time_no_multi_upload)
-	for (size_t i = 0; i < upload_data->size(); ++i){
+	for (int i = 0; i < upload_data->size(); ++i){
 		auto AWG_iterator = upload_data->begin();
 		advance(AWG_iterator, i);
 		for (auto channel_iterator = AWG_iterator->second.begin(); channel_iterator != AWG_iterator->second.end(); ++channel_iterator){
