@@ -7,6 +7,10 @@ pulse_lib.egg-info/PKG-INFO
 pulse_lib.egg-info/SOURCES.txt
 pulse_lib.egg-info/dependency_links.txt
 pulse_lib.egg-info/top_level.txt
+pulse_lib/keysight/uploader_core/keysight_awg_post_processing_and_upload.cpp
+pulse_lib/keysight/uploader_core/mem_ctrl.cpp
+pulse_lib/keysight/uploader_core/uploader.cpp
+pulse_lib/segments/segments_c_func.c
 pulse_lib/keysight/__init__.py
 pulse_lib/keysight/setup.py
 pulse_lib/keysight/uploader.py

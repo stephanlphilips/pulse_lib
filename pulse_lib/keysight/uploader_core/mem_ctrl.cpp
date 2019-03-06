@@ -40,7 +40,7 @@ segment_occupation::segment_occupation(std::map<int, int>* mem_layout){
 
 	for (size_t i = 0; i < memory_sizes.size(); i++){
 		seg_data[memory_sizes[i]] = int_linspace(mem_number, mem_number + memory_layout->find(memory_sizes[i])->second);
-		mem_number =  memory_layout->find(memory_sizes[i])->second;
+		mem_number +=  memory_layout->find(memory_sizes[i])->second;
 		index_info.push_back(mem_number);
 	}
 
@@ -91,19 +91,25 @@ void segment_occupation::free_segment(int seg_number){
 		}
 	}
 	seg_data.find(memory_sizes[seg_loc])->second.push_back(seg_number);
+}
 
+std::vector<int> *segment_occupation::get_memory_sizes(){
+	return &memory_sizes;
+}
+std::map<int, std::vector<int>> *segment_occupation::get_seg_data(){
+	return &seg_data;
 }
 
 
 mem_ctrl::mem_ctrl(){
 	// Initialize memory management object.
-	// memory_layout[1e8] = 4;
-	// memory_layout[5e7] = 4;
+	memory_layout[1e8] = 4;
+	memory_layout[5e7] = 4;
 	memory_layout[1e7] = 4;
 	memory_layout[5e6] = 8;
-	memory_layout[1e6] = 40;
-	memory_layout[1e5] = 500;
-	memory_layout[1e4] = 1000;
+	// memory_layout[1e6] = 40;
+	// memory_layout[1e5] = 500;
+	// memory_layout[1e4] = 1000;
 
 	seg_occ = new segment_occupation(&memory_layout);
 };
@@ -132,4 +138,8 @@ void mem_ctrl::release_memory(std::vector<int> segments_numbers){
 	for (size_t i = 0; i < segments_numbers.size(); ++i){
 		seg_occ->free_segment(segments_numbers[i]);
 	}
+}
+
+segment_occupation* mem_ctrl::get_segment_occupation(){
+	return seg_occ;
 }

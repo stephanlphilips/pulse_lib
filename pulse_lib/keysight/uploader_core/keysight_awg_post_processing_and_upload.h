@@ -33,7 +33,7 @@ public:
 	cpp_uploader();
 	~cpp_uploader();
 
-	void add_awg_module(std::string name, int chassis, int slot);
+	void add_awg_module(std::string AWG_name, int chassis, int slot);
 	void add_upload_job(std::map<std::string, std::map<int, waveform_raw_upload_data*>> *upload_data);
 	void release_memory(std::map<std::string, std::map<int, waveform_raw_upload_data*>>* upload_data);
 	void resegment_memory();

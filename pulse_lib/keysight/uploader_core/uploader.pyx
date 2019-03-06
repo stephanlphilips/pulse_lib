@@ -55,7 +55,10 @@ cdef class keysight_upload_module():
 		Args:
 			module (qCodeS driver) : qcodes object of the AWG
 		'''
-		self.keysight_uploader.add_awg_module(name.encode(), module.chassis, module.slot)
+		cdef string c_name = name.encode('utf8')
+		print(name, c_name)
+
+		self.keysight_uploader.add_awg_module(c_name, module.chassis, module.slot)
 
 	def add_upload_data(self, waveform_cache_container waveform_cache):
 		cdef mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data
