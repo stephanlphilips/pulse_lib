@@ -80,7 +80,7 @@ cdef class keysight_upload_module():
 			min_max_voltage = (channel_data.min_max_voltage.first, channel_data.min_max_voltage.second,)
 			upload_locations = list(channel_data.data_location_on_AWG)
 
-			AWG_init_data[dereference(it).first] = (min_max_voltage, upload_locations)
+			AWG_init_data[dereference(it).first] = (min_max_voltage, upload_locations, channel_data.npt)
 
 			postincrement(it)
 

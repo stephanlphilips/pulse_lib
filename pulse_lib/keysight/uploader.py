@@ -78,10 +78,19 @@ class keysight_uploader():
 
 		return None
 
-	def __segment_AWG_memory(self):
+	def _segment_AWG_memory(self):
 		'''
 		Generates segments in the memory in the Keysight AWG.
 		'''
+		self.cpp_uploader.resegment_memory()
+
+	def play(self, id, index):
+		"""
+		start playback of a sequence that has been uploaded.
+		Args:
+			id
+		"""
+
 	@mk_thread
 	def uploader(self):
 		'''
@@ -174,12 +183,13 @@ class keysight_uploader():
 
 class upload_job(object):
 	"""docstring for upload_job"""
-	def __init__(self, sequence, index, seq_id, neutralize=True, priority=0):
+	def __init__(self, sequence, index, seq_id, n_rep, neutralize=True, priority=0):
 		'''
 		Args:
 			sequence (list of list): list with list of the sequence, number of repetitions and prescalor (// upload rate , see keysight manual)
 			index (tuple) : index that needs to be uploaded
 			seq_id (uuid) : if of the sequence
+			n_rep (int) : number of repetitions of this sequence.
 			neutralize (bool) : place a neutralizing segment at the end of the upload
 			priority (int) : priority of the job (the higher one will be excuted first)
 		'''
@@ -187,13 +197,25 @@ class upload_job(object):
 		self.sequence = sequence
 		self.id = seq_id
 		self.index = index
+		self.n_rep = n_rep
 		self.neutralize = True
 		self.priority = priority
 		self.DSP = False
 		self.upload_data = None
+		self.HVI = None
 	
 	def add_dsp_function(self, DSP):
-		self.DSP =True
+		self.DSP = True
 		self.DSP_func = DSP
 
-
+	def add_HVI(HVI, compile_function, start_function):
+		"""
+		Introduce HVI functionality to the upload.
+		args:
+			HVI (SD_HVI) : HVI object from the keysight libraries
+			compile_function (function) : function that compiles the HVI code. Default arguments that will be provided are (HVI, npt, n_rep) = (HVI object, number of points of the sequence, number of repetitions wanted)
+			start_function (function) :function to be executed to start the HVI (this can also be None)
+		"""
+		self.HVI = HVI
+		self.HVI_compile_function = compile_function
+		self.HVI_start_function = start_function

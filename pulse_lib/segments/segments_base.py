@@ -285,7 +285,8 @@ class segment_single():
 		Note that this are the units of this segment and not the sements around it.
 		Note2 : for a loopobject with a dimensions bigger than one, the setvals are not settable, as a 1D array for each of them is expected. As such, only the first row of the array will be kept... (though it is unlikely that this scenario will occur).
 		'''
-
+		
+		
 		units = ["a.u."]*self.ndim
 		names = ["undefined"]*self.ndim
 		setvals = []*self.ndim

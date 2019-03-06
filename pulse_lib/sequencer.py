@@ -2,6 +2,8 @@ from pulse_lib.segments.segments import segment_container
 from pulse_lib.segments.data_handling_functions import find_common_dimension
 from pulse_lib.keysight.uploader import upload_job
 
+import uuid
+
 class sequencer():
 	"""
 	Class to make sequences for segments.
@@ -16,22 +18,26 @@ class sequencer():
 			None
 		'''
 		# each segment had its own unique identifier.
-		self.id = None
-		self.units = None
-		self.setpoints = None
-		self.names = None
-		self.units = None
+		self.id = uuid.uuid4()
+		
+		self._units = None
+		self._setpoints = None
+		self._names = None
 
 		self._shape = (1,)
 		self.sequence = list()
 		self.uploader = upload_module
 		self.correction_limits = correction_limits
+		
 		# arguments of post processing the might be needed during rendering.
 		self.DSP = None
 		self.neutralize = True
 		self.priority = -1
+		
 		# HVI if needed..
 		self.HVI = None
+		self.n_rep = 1000
+
 
 	@property
 	def shape(self):
@@ -79,17 +85,19 @@ class sequencer():
 		'''
 		add a voltage compenstation at the end of the sequence
 		Args:
-			compenstate (bool) : compenstate yes or no (default if not set it yes)
+			compenstate (bool) : compenstate yes or no (default is True)
 		'''
 		self.neutralize = compenstate
 
-	def add_hvi(self, HVI):
+	def add_HVI(self, HVI_to_load, compile_function, start_function):
 		'''
 		Add HVI code to the AWG.
 		Args:
-			HVI (path) : location of the HVI file to upload, before doing the experiment.
+			HVI_to_load (function) : function that returns a HVI file.
+			compile_function (function) : function that compiles the HVI code. Default arguments that will be provided are (HVI, npt, n_rep) = (HVI object, number of points of the sequence, number of repetitions wanted)
+			start_function (function) :function to be executed to start the HVI (this can also be None)
 		'''
-		self.HVI = HVI
+		self.HVI = (HVI_to_load(), compile_function, start_function)
 
 	def upload(self, index):
 		'''
@@ -104,6 +112,8 @@ class sequencer():
 		
 		upload_object = upload_job(self.sequence, index, self.id, self.neutralize, self.priority)
 		upload_object.add_dsp_function(self.DSP)
+		if self.HVI is not None:
+			upload_job.add_HVI(*self.HVI)
 
 		self.uploader.add_upload_job(upload_object)
 
@@ -117,9 +127,7 @@ class sequencer():
 
 		Note that the playback will not start until you have uploaded the waveforms.
 		'''
-		upload_data = self.uploader.get_upload_info(self.id, index)
-
-		
+		self.uploader.play(self.id, index)
 		self._free_memory(index)
 
 	def _free_memory(self, index):
