@@ -29,10 +29,7 @@ Navigate in the github folder and run the following in the terminal:
 ```bash
 	python3 setup.py install
 ```
-To install the uploading backend, you need to call:
-```bash
-	windows compilation under development
-```
+The python scrip will also take care of compuling the c code.
 
 # Documentation
 Documentation for the library can be found at:
