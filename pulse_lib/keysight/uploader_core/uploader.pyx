@@ -13,7 +13,7 @@ cimport numpy as np
 cdef extern from "keysight_awg_post_processing_and_upload.h":
 	struct waveform_raw_upload_data:
 		vector[double*] *wvf_data
-		# np added here already as you cannot fetch it without the gil 
+		# npt added here already as you cannot fetch it without the gil 
 		vector[int] *wvf_npt
 		pair[double, double] *min_max_voltage
 		vector[double*] *DSP_param
@@ -76,11 +76,13 @@ cdef class keysight_upload_module():
 			# make tuple with gate voltages for the channel and location of the AWG memeory where the waveforms are stored. 
 
 			channel_data = dereference(dereference(AWG_raw_upload_data.find(dereference(it).second.first)).second.find(dereference(it).second.second)).second
-			
-			min_max_voltage = (channel_data.min_max_voltage.first, channel_data.min_max_voltage.second,)
-			upload_locations = list(channel_data.data_location_on_AWG)
 
-			AWG_init_data[dereference(it).first] = (min_max_voltage, upload_locations, channel_data.npt)
+			min_max_voltage = (channel_data.min_max_voltage.first, channel_data.min_max_voltage.second,)
+
+			# (memory_upload_location, cycles, prescalor) (last two not implented in c++ upload part)
+			upload_locations = list( (channel_data.data_location_on_AWG, 1, 0))
+
+			AWG_init_data[dereference(it).first] = (min_max_voltage, upload_locations)
 
 			postincrement(it)
 

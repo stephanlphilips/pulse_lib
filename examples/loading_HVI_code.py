@@ -32,26 +32,26 @@ def load_HVI():
 define a function that applies the settings to a HVI file and then compiles it before the experiment.
 """
 
-def set_and_compile_HVI(HVI, npt, n_rep, *args, **kwargs):
+def set_and_compile_HVI(HVI, playback_time, n_rep, *args, **kwargs):
 	"""
 	Function that set values to the currently loaded HVI script and then performs a compile step.
 	Args:
 		HVI (SD_HVI) : HVI object that is already loaded in the memory. Will be loaded by default.
-		npt (int) : number of points of the sequence (assuming every point is one ns) (this is a default argument that will be provided by the pulse_lib library)
+		playback_time (int) : #ns to play the sequence (assuming every point is one ns)
 		n_rep (int) : number of repertitions. This is the number of reperititons that you set in the pulselub object.
 	Returns:
 		None
 	"""
 
 	# Length of the sequence
-	HVI.writeIntegerConstantWithIndex(0, "length_sequence", int(npt/10 + 20))
-	HVI.writeIntegerConstantWithIndex(1, "length_sequence", int(npt/10 + 20))
-	HVI.writeIntegerConstantWithIndex(2, "length_sequence", int(npt/10 + 20))
-	HVI.writeIntegerConstantWithIndex(3, "length_sequence", int(npt/10 + 20))
+	HVI.writeIntegerConstantWithIndex(0, "length_sequence", int(playback_time/10 + 20))
+	HVI.writeIntegerConstantWithIndex(1, "length_sequence", int(playback_time/10 + 20))
+	HVI.writeIntegerConstantWithIndex(2, "length_sequence", int(playback_time/10 + 20))
+	HVI.writeIntegerConstantWithIndex(3, "length_sequence", int(playback_time/10 + 20))
 
 
 	# number of repetitions
-	nrep = n_rep
+	nrep = int(n_rep)
 	if nrep == 0:
 		nrep = 1
 
@@ -80,9 +80,14 @@ This function is optional, if not defined, there will be just two calls,
 So only define if you want to set custom settings just before the experiment starts. Note that you can access most settings via HVI itselves, so it is better to do it via there.
 """
 
-def load_HVI():
-	# TODO define AWGs..
-	for awg in awgs:
+def load_HVI(AWGs, channel_map, *args, **kwargs):
+	"""
+	load HVI code.
+	Args:
+		AWGS (dict <str, QCoDeS Intrument>) : key is AWGname, value awg object. 
+		channel_map (dict <str, (tuple <str, int>)) : key is channelname, value is AWGname, channel number
+	"""
+	for awg in AWGs:
 		# set a certain filter on the FPGA
 		awg.setDigitalFilterMode(2)
 	
