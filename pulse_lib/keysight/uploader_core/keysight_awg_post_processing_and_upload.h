@@ -1,11 +1,11 @@
 #ifdef linux
 #include <Keysight/SD1/cpp/SD_Module.h>
-#include <Keysight/SD1/cpp/SD_Module.h>
+#include <Keysight/SD1/cpp/SD_AIO.h>
 #endif
 
 #ifdef _WIN32
 #include <Libraries/include/cpp/SD_Module.h>
-#include <Libraries/include/cpp/SD_Module.h>
+#include <Libraries/include/cpp/SD_AIO.h>
 #endif
 
 #include "mem_ctrl.h"
@@ -26,7 +26,8 @@ struct waveform_raw_upload_data{
 
 class cpp_uploader
 {
-	std::map<std::string, SD_Module*> AWG_modules;
+	std::map<std::string, SD_Module*> SD_modules;
+	std::map<std::string, SD_AIO*> AWG_modules;
 	std::map<std::string, mem_ctrl*> mem_mgr;
 	std::map<std::string, int> error_handles;
 public:

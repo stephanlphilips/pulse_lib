@@ -36,18 +36,8 @@ class segment_single_IQ(segment_single):
 		Args: frequency of the LO (in Hz). 
 		Tip, make on of these segments for each qubit. Then you get a very clean implementation of reference frame changes!
 		'''
-		self.name = name
-		self.type = 'IQ_virtual'
-		self.render_mode = False
-		super(segment_single, self).__init__()
+		super().__init__(name, segment_type = 'IQ_virtual')
 		self.data = data_container(IQ_data(LO))
-		
-		self._last_edit = datetime.datetime.now()
-
-		self.ndim = 0
-		self.units = []
-		self.names = []
-
 
 	@loop_controller
 	def add_global_phase(self,phase):
@@ -193,8 +183,7 @@ class segment_single_IQ(segment_single):
 		for i in range(len(data)):
 			data[i] =  local_data[i].get_IQ_data(I_or_Q)
 		
-		data.reshape(self.data.shape)
-
+		data = data.reshape(self.data.shape)
 		return data
 
 

@@ -1,4 +1,4 @@
-from pulse_lib.segments.segments import segment_container
+import pulse_lib.segments.segments
 from pulse_lib.segments.data_handling_functions import find_common_dimension
 from pulse_lib.keysight.uploader import upload_job
 
@@ -56,7 +56,7 @@ class sequencer():
 		'''
 		# correct format if needed
 		for i in range(len(sequence)):
-			if isinstance(sequence[i], segment_container):
+			if isinstance(sequence[i], pulse_lib.segments.segments.segment_container):
 				self.sequence.append([sequence[i], 1, 1])
 			elif isinstance(sequence[i], list):
 				self.sequence.append(sequence[i])
@@ -97,7 +97,9 @@ class sequencer():
 			compile_function (function) : function that compiles the HVI code. Default arguments that will be provided are (HVI, npt, n_rep) = (HVI object, number of points of the sequence, number of repetitions wanted)
 			start_function (function) :function to be executed to start the HVI (this can also be None)
 		'''
-		self.HVI = (HVI_to_load(), compile_function, start_function)
+		self.HVI = HVI_to_load(self.uploader.AWGs, self.uploader.channel_map)
+		self.HVI_compile_function = compile_function
+		self.HVI_start_function = start_function
 
 	def upload(self, index):
 		'''
@@ -110,10 +112,11 @@ class sequencer():
 		(note that this is only possible if you AWG supports upload while doing playback)
 		'''
 		
-		upload_object = upload_job(self.sequence, index, self.id, self.neutralize, self.priority)
-		upload_object.add_dsp_function(self.DSP)
+		upload_object = upload_job(self.sequence, index, self.id, self.n_rep ,self.neutralize, self.priority)
+		if self.DSP is not None:
+			upload_object.add_dsp_function(self.DSP)
 		if self.HVI is not None:
-			upload_job.add_HVI(*self.HVI)
+			upload_object.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function)
 
 		self.uploader.add_upload_job(upload_object)
 
@@ -128,14 +131,13 @@ class sequencer():
 		Note that the playback will not start until you have uploaded the waveforms.
 		'''
 		self.uploader.play(self.id, index)
-		self._free_memory(index)
-
-	def _free_memory(self, index):
+		
+	def release_memory(self, index):
 		'''
 		function to free up memory in the AWG manually. By default the sequencer class will do garbarge collection for you (e.g. delete waveforms after playback)
 		Args:
 			index (tuple) : index if wich you wannt to upload. This index should fit into the shape of the sequence being played.
 		'''
-		pass
+		self.uploader.release_memory(self.id, index)
 
 

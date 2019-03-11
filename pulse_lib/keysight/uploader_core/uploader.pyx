@@ -79,8 +79,8 @@ cdef class keysight_upload_module():
 
 			min_max_voltage = (channel_data.min_max_voltage.first, channel_data.min_max_voltage.second,)
 
-			# (memory_upload_location, cycles, prescalor) (last two not implented in c++ upload part)
-			upload_locations = list( (channel_data.data_location_on_AWG, 1, 0))
+			# TODO format as (memory_upload_location, cycles, prescalor) (last two not implented in c++ upload part)
+			upload_locations = channel_data.data_location_on_AWG
 
 			AWG_init_data[dereference(it).first] = (min_max_voltage, upload_locations)
 
@@ -95,7 +95,10 @@ cdef class keysight_upload_module():
 		'''
 		self.keysight_uploader.resegment_memory()
 
-	cdef release_memory(self, mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data):
+	def release_memory(self, waveform_cache_container waveform_cache):
+		cdef mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data
+		AWG_raw_upload_data = &waveform_cache.AWG_raw_upload_data
+		
 		self.keysight_uploader.release_memory(AWG_raw_upload_data)
 
 
