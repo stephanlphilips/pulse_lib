@@ -37,7 +37,10 @@ class keysight_uploader():
 		self.channel_delays = channel_delays
 		self.channel_compenstation_limits = channel_compenstation_limits
 		self.upload_queue = []
+		self.upload_ready_to_start = []
 		self.upload_done = []
+		self.uploader()
+		self.kill_uploader_thread = False
 
 	def add_upload_job(self, job):
 		'''
@@ -76,12 +79,14 @@ class keysight_uploader():
 		Return:
 			job (upload_job) :job, with locations of the sequences to be uploaded.
 		"""
-		# wait 50 ms
+		# wait 50 ms max
 		for j in range(5):
-			for job in self.upload_done:
+			for i in range(len(self.upload_ready_to_start)):
+				job = self.upload_ready_to_start[i]
 				if job.id == seq_id and job.index == index:
-					return seq_id
+					return self.upload_ready_to_start.pop(i)
 			# sleep 10ms to give the uploader time to finish.
+			# print("doing a sleep")
 			time.sleep(0.01)
 
 		in_queue = False
@@ -92,14 +97,15 @@ class keysight_uploader():
 					in_queue = True
 					# prioritize upload
 					job.priority += 100
-					# wait for upload ... (30ms)
-					time.wait(0.03)
-					__get_upload_data(seq_id, index)
+					# wait for upload ... (20ms)
+					time.sleep(0.02)
+					self.__get_upload_data(seq_id, index)
 
 		# Make sure that the job did not come free during the search in the upload queue.
-		for job in self.upload_done:
-				if job.id == seq_id and job.index == index:
-					return seq_id
+		for i in range(len(self.upload_ready_to_start)):
+			job = self.upload_ready_to_start[i]
+			if job.id == seq_id and job.index == index:
+				return self.upload_ready_to_start.pop(i)
 
 		raise ValueError("Sequence with id {}, index {} not placed for upload .. . Always make sure to first upload your segment and then do the playback.")
 
@@ -128,11 +134,14 @@ class keysight_uploader():
 		2) make queue for each channels (now assuming single waveform upload).
 		3) upload HVI code & start.
 		"""
-
+		a = time.time()
 		# 0)
 		job =  self.__get_upload_data(seq_id, index)
 
 		# 1 + 2)
+		# flush the queue's
+
+		b = time.time()
 		for channel_name, data in job.upload_data.items():
 			"""
 			upload data <tuple>:
@@ -141,23 +150,49 @@ class keysight_uploader():
 					(by definition backend now merges all segments in 1 since it should
 					not slow you down, but option is left open if this would change .. )
 			"""
-			awg_name, channel_number = self.channel_map[channel_name]
+			awg_name, channel_number = self.channel_map[channel_name.decode('ascii')]
 			v_pp, v_off = convert_min_max_to_vpp_voff(*data[0])
+			
+			self.AWGs[awg_name].awg_stop(channel_number)
+			print(channel_name.decode('ascii'), "VPP and VOFF" , v_pp, v_off)
+			# self.AWGs[awg_name].set_channel_amplitude(v_pp/1000/2,channel_number)
+			# self.AWGs[awg_name].set_channel_offset(v_off/1000,channel_number)
 
-			self.AWGs[awg_name].set_channel_amplitude(v_pp,channel_number)
-			self.AWGs[awg_name].set_channel_offset(v_off,channel_number)
+			# mode 0
+			self.AWGs[awg_name].set_channel_amplitude(v_pp/1000/2,channel_number)
+			self.AWGs[awg_name].set_channel_offset(v_off/1000,channel_number)
+
+			self.AWGs[awg_name].awg_flush(channel_number)
 
 			start_delay = 0 # no start delay
 			trigger_mode = 1 # software/HVI trigger
-			for i in data[1]:
-				self.AWGs[awg_name].awg_queue_waveform(channel_number,i[0],trigger_mode,start_delay,i[1],i[2])
+			cycles = 1
+			precaler = 0
+			for segment_number in data[1]:
+				self.AWGs[awg_name].awg_queue_waveform(channel_number,segment_number,trigger_mode,start_delay,cycles,precaler)
 				trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
 		# 3)
-		if self.job.HVI_start_function == None:
-			self.job.HVI.load()
-			self.job.HVI.start()
+		c = time.time()
+		if job.HVI_start_function is None:
+			job.HVI.load()
+			job.HVI.start()
 		else:
-			self.job.HVI_start_function(self.AWGs, self.channel_map)
+			job.HVI_start_function(job.HVI, self.AWGs, self.channel_map, job.playback_time, job.n_rep )
+		d = time.time()
+
+		self.upload_done.append(job)
+		print("play sequence data resumae")
+		print("fetch job : ", b-a)
+		print("prpare AWG : ", c-b)
+		print("load hvi : ", d-c)
+		print("total_time : ", d-a )
+
+	def release_memory(self, seq_id, index):
+		for i in range(len(self.upload_done)):
+			job = self.upload_done[i]
+			if job.id == seq_id and job.index == index: 
+				self.cpp_uploader.release_memory(job.waveform_cache)
+				self.upload_done.pop(i)
 
 	@mk_thread
 	def uploader(self):
@@ -165,13 +200,13 @@ class keysight_uploader():
 		Class taking care of putting the waveform on the right AWG. This is a continuous thread that is run in the background.
 
 		Steps:
-		0) compile the HVI script for the next upload
 		1) get all the upload data
 		2) perform DC correction (if needed)
-		3) perform DSP correction (if needed)
-		4a) convert data in an aprropriate upload format (c++)
-		4b) upload all data (c++)
-		5) write in the job object the resulting locations of sequences that have been uploaded.
+		3) compile the HVI script for the next upload
+		4) perform DSP correction (if needed)
+		5a) convert data in an aprropriate upload format (c++)
+		5b) upload all data (c++)
+		6) write in the job object the resulting locations of sequences that have been uploaded.
 
 		'''
 
@@ -181,12 +216,11 @@ class keysight_uploader():
 			if job is None:
 				# wait 5 ms and continue
 				time.sleep(0.005)
-				self.upload = False
+				if self.kill_uploader_thread == True:
+					break
 				continue
 			
-			# 0) 
-			if job.HVI is not None:
-				job.compile_HVI()
+			
 
 			start = time.time()
 
@@ -196,7 +230,7 @@ class keysight_uploader():
 
 			pre_delay = 0
 			post_delay = 0
-			print("\n\nnew call on pulse data\n")
+
 			for i in range(len(job.sequence)):
 
 				seg = job.sequence[i][0]
@@ -236,24 +270,32 @@ class keysight_uploader():
 			'''
 			waveform_cache.generate_DC_compenstation()
 			# TODO express this in time instead of points (now assumed one ns is point in the AWG (not very robust..))
+			job.waveform_cache = waveform_cache
 			job.playback_time = waveform_cache.npt
 
-			end2 = time.time()
 			
-			# 3) DSP correction
+			# 3) 
+			if job.HVI is not None:
+				job.compile_HVI()
+			end2 = time.time()
+
+			# 3) DSP correction --> moved to c++
 			# TODO later
 
-			# 4a+b)
+			# 3 + 4a+b)
 			job.upload_data = self.cpp_uploader.add_upload_data(waveform_cache)
 
 			# submit the current job as completed.
-			self.upload_done.append(job)
+			self.upload_ready_to_start.append(job)
 
 			end3 = time.time()
 			print("time needed to render and compenstate",end3 - start)
 			print("rendering = ", end1 - start)
 			print("compensation = ", end2 - end1)
 			print("cpp conversion to short = ", end3 - end2)
+
+			if self.kill_uploader_thread == True:
+				break
 
 
 class upload_job(object):
@@ -278,13 +320,14 @@ class upload_job(object):
 		self.DSP = False
 		self.playback_time = 0 #total playtime of the waveform
 		self.upload_data = None
+		self.waveform_cache = None
 		self.HVI = None
 	
 	def add_dsp_function(self, DSP):
 		self.DSP = True
 		self.DSP_func = DSP
 
-	def add_HVI(HVI, compile_function, start_function):
+	def add_HVI(self, HVI, compile_function, start_function):
 		"""
 		Introduce HVI functionality to the upload.
 		args:
@@ -299,4 +342,11 @@ class upload_job(object):
 		self.HVI_start_function = start_function
 
 	def compile_HVI(self):
+		print("HVI compile number of repetitions", self.n_rep)
 		self.HVI_compile_function(self.HVI, self.playback_time, self.n_rep)
+
+
+def convert_min_max_to_vpp_voff(v_min, v_max):
+	vpp = v_max - v_min
+	voff = (v_min + v_max)/2
+	return vpp, voff

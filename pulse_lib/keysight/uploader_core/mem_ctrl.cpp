@@ -107,9 +107,9 @@ mem_ctrl::mem_ctrl(){
 	memory_layout[5e7] = 4;
 	memory_layout[1e7] = 4;
 	memory_layout[5e6] = 8;
-	// memory_layout[1e6] = 40;
-	// memory_layout[1e5] = 500;
-	// memory_layout[1e4] = 1000;
+	memory_layout[1e6] = 40;
+	memory_layout[1e5] = 400;
+	// memory_layout[1e4] = 500;
 
 	seg_occ = new segment_occupation(&memory_layout);
 };

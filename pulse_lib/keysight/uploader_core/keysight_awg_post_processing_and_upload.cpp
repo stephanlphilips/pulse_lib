@@ -10,20 +10,24 @@ cpp_uploader::cpp_uploader(){}
 cpp_uploader::~cpp_uploader(){}
 
 void cpp_uploader::add_awg_module(std::string AWG_name, int chassis, int slot){
-	SD_Module *my_AWG_module;
-	my_AWG_module = new SD_Module(0);
+	SD_Module *my_SD_module;
+	my_SD_module = new SD_Module(0);
+
+	SD_AIO *my_AWG_module;
+	my_AWG_module = new SD_AIO();
 
 	int error_handle;
 
 	char* ProductName = new char[128];
-	error_handle = my_AWG_module->getProductName(chassis, slot, ProductName);
-	check_error(my_AWG_module, &error_handle);
+	error_handle = my_SD_module->getProductName(chassis, slot, ProductName);
+	check_error(my_SD_module, &error_handle);
 
 	error_handle = my_AWG_module->open(ProductName, chassis, slot, 1);
-	check_error(my_AWG_module, &error_handle);
+	check_error(my_SD_module, &error_handle);
 	delete[] ProductName;
 	
 	AWG_modules[AWG_name] = my_AWG_module;
+	SD_modules[AWG_name] = my_SD_module;
 	mem_mgr[AWG_name] = new mem_ctrl();
 
 	error_handles[AWG_name] = error_handle;
@@ -36,7 +40,7 @@ void cpp_uploader::add_upload_job(std::map<std::string, std::map<int, waveform_r
 	double time_no_multi_upload = *upload_data->begin()->second.begin()->second->npt * 4*upload_data->size()/10e3;
 	double time_multi_upload = *upload_data->begin()->second.begin()->second->npt*4/10e3 + 7.5;
 
-	#pragma omp parallel for if(time_multi_upload < time_no_multi_upload)
+	// #pragma omp parallel for if(time_multi_upload < time_no_multi_upload)
 	for (int i = 0; i < upload_data->size(); ++i){
 		auto AWG_iterator = upload_data->begin();
 		advance(AWG_iterator, i);
@@ -80,8 +84,11 @@ void cpp_uploader::load_data_on_awg(std::string awg_name, waveform_raw_upload_da
 	if (segment_location == -1)
 		throw std::invalid_argument("No segments available on the AWG/segment is too long ..");
 
-	error_handles[awg_name] = AWG_modules[awg_name]->waveformReLoad(segment_location, *upload_data->npt, upload_data->upload_data, 0, 0);
-	check_error(AWG_modules[awg_name], &error_handles[awg_name]);
+	// std::cout << "trying upload of " << *upload_data->npt << " points @ " << segment_location << " end report ... \n";
+	error_handles[awg_name] = AWG_modules[awg_name]->waveformLoad(0, *upload_data->npt, upload_data->upload_data, segment_location, 0);
+	check_error(SD_modules[awg_name], &error_handles[awg_name]);
+	// std::cout << "succeeded trying upload?\n";
+
 
 	upload_data->data_location_on_AWG.push_back(segment_location);
 }
@@ -112,13 +119,13 @@ void cpp_uploader::resegment_memory(){
 	*/
 	
 
-	// #pragma omp parallel for
+	#pragma omp parallel for
 	for (int i = 0; i < AWG_modules.size(); ++i){
-		std::map<std::string, SD_Module*>::iterator my_AWG_module_iter = AWG_modules.begin();
+		std::map<std::string, SD_AIO*>::iterator my_AWG_module_iter = AWG_modules.begin();
 		advance(my_AWG_module_iter, i);
 		
 		std::cout << my_AWG_module_iter->first;
-		// // completely reinit the memory. 
+		// completely reinit the memory. 
 		mem_ctrl * mem_ctrl_tmp = mem_mgr[my_AWG_module_iter->first];
 		delete mem_ctrl_tmp;
 		mem_mgr[my_AWG_module_iter->first] = new mem_ctrl();
@@ -127,23 +134,16 @@ void cpp_uploader::resegment_memory(){
 		std::map<int, std::vector<int>> *seg_data = mem_mgr[my_AWG_module_iter->first]->get_segment_occupation()->get_seg_data();
 
 		error_handles[my_AWG_module_iter->first] = my_AWG_module_iter->second->waveformFlush();
-		check_error(AWG_modules[my_AWG_module_iter->first], &error_handles[my_AWG_module_iter->first]);
+		check_error(SD_modules[my_AWG_module_iter->first], &error_handles[my_AWG_module_iter->first]);
 
-		std::cout << "making a new segment on the AWG, len :: \n " ;
 		for (int i = 0; i < waveformSize->size(); ++i)
 		{
-			
-			std::cout << "\n\n new size :: "  <<  waveformSize->at(i) << "\n" ;
 			short* waveformDataRaw = new short[waveformSize->at(i)];
 			for (int j = 0; j < seg_data->at(waveformSize->at(i)).size(); ++j)
 			{
-				std::cout <<  " num_load::  " << seg_data->at(waveformSize->at(i)).at(j) << "\t" ;
-
 				// upload to the AWG
 				error_handles[my_AWG_module_iter->first] = my_AWG_module_iter->second->waveformLoad(0, waveformSize->at(i), waveformDataRaw, seg_data->at(waveformSize->at(i)).at(j), 0);
-				// error_handles[my_AWG_module_iter->first] = my_AWG_module_iter->second->waveformLoad(0, seg_data->at(waveformSize->at(i)).at(j), waveformDataRaw,  waveformSize->at(i), 0);
-				std::cout << "err handle " << error_handles[my_AWG_module_iter->first]  << "\n"; 
-				check_error(AWG_modules[my_AWG_module_iter->first], &error_handles[my_AWG_module_iter->first]);
+				check_error(SD_modules[my_AWG_module_iter->first], &error_handles[my_AWG_module_iter->first]);
 			}
 
 			delete[] waveformDataRaw;

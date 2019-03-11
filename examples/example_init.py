@@ -1,4 +1,7 @@
 from pulse_lib.base_pulse import pulselib
+import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
+import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
+
 import numpy as np
 
 def return_pulse_lib():
@@ -6,8 +9,16 @@ def return_pulse_lib():
 
 
 	# Let's just use a non-pysical AWG
-	pulse.add_awgs('AWG1',None)
-	pulse.add_awgs('AWG2',None)
+	awg1 = keysight_awg.SD_AWG('my_awg1', chassis = 0, slot= 2, channels = 4, triggers= 8)
+	awg2 = keysight_awg.SD_AWG('my_awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
+	awg3 = keysight_awg.SD_AWG('my_awg3', chassis = 0, slot= 3, channels = 4, triggers= 8)
+	awg4 = keysight_awg.SD_AWG('my_awg4', chassis = 0, slot= 3, channels = 4, triggers= 8)
+
+
+	pulse.add_awgs('AWG1',awg1)
+	pulse.add_awgs('AWG2',awg2)
+	pulse.add_awgs('AWG3',awg3)
+	pulse.add_awgs('AWG4',awg4)
 
 
 	# define real channels
