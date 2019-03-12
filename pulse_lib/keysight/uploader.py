@@ -347,6 +347,8 @@ class upload_job(object):
 
 
 def convert_min_max_to_vpp_voff(v_min, v_max):
-	vpp = v_max - v_min
-	voff = (v_min + v_max)/2
+	# vpp = v_max - v_min
+	# voff = (v_min + v_max)/2
+	voff = 0
+	vpp = max(abs(v_min), abs(v_max))
 	return vpp, voff

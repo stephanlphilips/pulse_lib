@@ -5,6 +5,7 @@
 #include <vector>
 #include <stdexcept>
 #include <iostream>
+#include <math.h>
 
 cpp_uploader::cpp_uploader(){}
 cpp_uploader::~cpp_uploader(){}
@@ -61,8 +62,11 @@ void cpp_uploader::rescale_concatenate_and_convert_to_16_bit_number(waveform_raw
 	upload_data->upload_data = new short[*upload_data->npt];
 	
 	double *wvf_ptr;
-	static double v_offset = (upload_data->min_max_voltage->second + upload_data->min_max_voltage->first)/2;
-	static double v_pp = upload_data->min_max_voltage->second - upload_data->min_max_voltage->first;
+	static double v_offset = 0;
+	static double v_pp = fmax(fabs(upload_data->min_max_voltage->first),fabs(upload_data->min_max_voltage->second)) ;
+	// Alternative, define v_offset, but atm bad idea, since the AWG takes v_offset as default zero. -> Bias T problems.
+	// static double v_offset = (upload_data->min_max_voltage->second + upload_data->min_max_voltage->first)/2;
+	// static double v_pp = upload_data->min_max_voltage->second - upload_data->min_max_voltage->first;
 
 	static double offset_factor = v_offset + v_pp*0.5/65535.;
 	static double rescaling_factor = 65535./v_pp;
@@ -84,10 +88,8 @@ void cpp_uploader::load_data_on_awg(std::string awg_name, waveform_raw_upload_da
 	if (segment_location == -1)
 		throw std::invalid_argument("No segments available on the AWG/segment is too long ..");
 
-	// std::cout << "trying upload of " << *upload_data->npt << " points @ " << segment_location << " end report ... \n";
-	error_handles[awg_name] = AWG_modules[awg_name]->waveformLoad(0, *upload_data->npt, upload_data->upload_data, segment_location, 0);
+	error_handles[awg_name] = AWG_modules[awg_name]->waveformReLoad(0, *upload_data->npt, upload_data->upload_data, segment_location, 0);
 	check_error(SD_modules[awg_name], &error_handles[awg_name]);
-	// std::cout << "succeeded trying upload?\n";
 
 
 	upload_data->data_location_on_AWG.push_back(segment_location);

@@ -19,7 +19,7 @@ nagaoka_pulsing  = pulse.mk_segment()
 
 import pulse_lib.segments.looping as lp
 
-ramp_amp = lp.linspace(50,200,20, axis=0)
+ramp_amp = lp.linspace(50,200,50, axis=0)
 ramp_speed = lp.linspace(5,100,50, axis=1)
 
 # nagaoka_pulsing.B0 += base_level
@@ -88,13 +88,12 @@ my_seq.n_rep = 1000
 import time
 my_seq.neutralize = False
 s = time.time()
-for j in range(20):
+for j in range(10):
 	for i in range(50):
-		if i>=1:
-			my_seq.release_memory([i-1, j])
 		my_seq.upload([i,j])
 		time.sleep(0.01)
 		my_seq.play([i,j])
+
 t2 = time.time()
 
 
