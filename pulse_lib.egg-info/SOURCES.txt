@@ -17,10 +17,12 @@ pulse_lib/keysight/uploader_core/mem_ctrl.cpp
 pulse_lib/keysight/uploader_core/uploader.cpp
 pulse_lib/segments/__init__.py
 pulse_lib/segments/data_classes.py
+pulse_lib/segments/data_classes_markers.cpp
 pulse_lib/segments/data_handling_functions.py
 pulse_lib/segments/looping.py
 pulse_lib/segments/segments.py
 pulse_lib/segments/segments_IQ.py
 pulse_lib/segments/segments_base.py
 pulse_lib/segments/segments_c_func.c
+pulse_lib/segments/setup.py
 pulse_lib/segments/test.py
