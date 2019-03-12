@@ -187,3 +187,12 @@ class segment_single_IQ(segment_single):
 		return data
 
 
+class segment_marker(segment_single):
+	"""docstring for segment_marker"""
+	def __init__(self, arg):
+		super(segment_marker, self).__init__()
+		self.data = data_container()
+
+	def add_pulse(self, start, stop):
+
+		
