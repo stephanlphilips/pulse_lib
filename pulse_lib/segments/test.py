@@ -1,21 +1,14 @@
 import numpy as np
-import pulse_lib.segments.segments_c_func as seg_func
+import pulse_lib.segments.data_classes_markers as mk
 
-class test(object):
-	"""docstring for test"""
-	def __init__(self, testing):
-		super(test, self).__init__()
-		self.testing = testing
+t = mk.marker_data()
+t.add_marker(10,20)
+t.add_marker(30,40)
+# t.add_marker(60,1000)
+# t.add_marker(400,1000)
+# t.slice_time(150,500)
+# t.print_all()
 
-	def __getitem__(self, *key):
-		return self.testing[key[0]]
+# newt = t.append(t, None)
 
-
-def test_function(a, b):
-	print(a,b)
-
-test_function(5)
-
-t = test(np.zeros([5,5]))
-print(t[1,2])
-		
+print(t.get_vmin())

@@ -215,9 +215,7 @@ class pulse_data():
         # express in Gs/s
         sample_rate = sample_rate*1e-9
         sample_time_step = 1/sample_rate
-
-        start = time.time()
-        
+                
         t_tot = self.total_time
 
         # get number of points that need to be rendered
@@ -272,8 +270,6 @@ class pulse_data():
                 my_sequence[start:stop] += amp*np.sin(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase)
             else: 
                 raise ValueError("type of sin pulse not implemented. currently only standard pulses supported")
-
-        stop = time.time()
 
         return my_sequence      
 

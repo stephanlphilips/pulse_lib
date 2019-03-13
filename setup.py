@@ -16,8 +16,13 @@ extensions = [
         "pulse_lib.segments.segments_c_func",
         ["pulse_lib/segments/segments_c_func.pyx"],
         include_dirs=[numpy.get_include()], 
-    )]
-
+    ),
+    Extension(
+        "pulse_lib.segments.data_classes_markers",
+        ["pulse_lib/segments/data_classes_markers.pyx"],
+        include_dirs=[numpy.get_include()], 
+    )
+    ]
 if os.name == 'nt':
     extensions += [Extension("pulse_lib.keysight.uploader_core.uploader", 
             sources = ["pulse_lib/keysight/uploader_core/uploader.pyx",
@@ -29,17 +34,17 @@ if os.name == 'nt':
             language='c++',
             extra_compile_args=['/openmp'],
             ) ]
-else:
-    extensions += [Extension("pulse_lib.keysight.uploader_core.uploader", 
-            sources = ["pulse_lib/keysight/uploader_core/uploader.pyx",
-                    "pulse_lib/keysight/uploader_core/mem_ctrl.cpp", 
-                    "pulse_lib/keysight/uploader_core/keysight_awg_post_processing_and_upload.cpp"],
-            include_dirs=[numpy.get_include(),"/usr/local/include/Keysight/SD1/cpp", "/usr/local/include/Keysight/SD1/common"],
-            libraries=["SD1core", "SD1pxi", "gomp"],
-            library_dirs=["/usr/local/lib/Keysight/SD1/"],
-            language='c++',
-            extra_compile_args=['-fopenmp'],
-            ) ]
+# else:
+#     extensions += [Extension("pulse_lib.keysight.uploader_core.uploader", 
+#             sources = ["pulse_lib/keysight/uploader_core/uploader.pyx",
+#                     "pulse_lib/keysight/uploader_core/mem_ctrl.cpp", 
+#                     "pulse_lib/keysight/uploader_core/keysight_awg_post_processing_and_upload.cpp"],
+#             include_dirs=[numpy.get_include(),"/usr/local/include/Keysight/SD1/cpp", "/usr/local/include/Keysight/SD1/common"],
+#             libraries=["SD1core", "SD1pxi", "gomp"],
+#             library_dirs=["/usr/local/lib/Keysight/SD1/"],
+#             language='c++',
+#             extra_compile_args=['-fopenmp'],
+#             ) ]
 
 
 
