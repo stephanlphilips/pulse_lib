@@ -1,2 +1,0 @@
-.. automodule:: segments.segments
-	:members:
