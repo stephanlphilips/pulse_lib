@@ -13,15 +13,10 @@ print('packages: %s' % packages)
 
 extensions = [
     Extension(
-        "pulse_lib.segments.segments_c_func",
-        ["pulse_lib/segments/segments_c_func.pyx"],
+        "pulse_lib.segments.utility.segments_c_func",
+        ["pulse_lib/segments/utility/segments_c_func.pyx"],
         include_dirs=[numpy.get_include()], 
     ),
-    Extension(
-        "pulse_lib.segments.data_classes_markers",
-        ["pulse_lib/segments/data_classes_markers.pyx"],
-        include_dirs=[numpy.get_include()], 
-    )
     ]
 if os.name == 'nt':
     extensions += [Extension("pulse_lib.keysight.uploader_core.uploader", 
