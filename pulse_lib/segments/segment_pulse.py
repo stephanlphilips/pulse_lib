@@ -22,37 +22,6 @@ class segment_pulse(segment_base):
 		'''
 		super().__init__(name, pulse_data() ,segment_type)
 
-	def add_reference_channel(self, channel_name, segment_data, multiplication_factor):
-		'''
-		Add channel reference, this can be done to make by making a pointer to another segment.
-		Args:
-			Channels_name (str): human readable name of the virtual gate.
-			segment_data (segment_single): pointer so the segment corresponsing the the channel name
-			multiplication_factor (float64): times how much this segment should be added to the current one.
-		'''
-		virtual_segment = {'name': channel_name, 'segment': segment_data, 'multiplication_factor': multiplication_factor}
-		self.reference_channels.append(virtual_segment)
-
-	def add_IQ_ref_channel(self, channel_name, pointer_to_channel, I_or_Q_part):
-		'''
-		Add a reference to an IQ channel. Same principle as for the virtual one.
-		Args:
-			channel_name (str): human readable name of the virtual channel
-			pointer_to_channel (*segment_single_IQ): pointer to segment_single_IQ object
-			I_or_Q_part (str) : 'I' or 'Q' to indicate that the reference is to the I or Q part of the signal.
-		'''
-		virtual_IQ_segment = {'name': channel_name, 'segment': pointer_to_channel, 'I/Q': I_or_Q_part}
-		self.IQ_ref_channels.append(virtual_IQ_segment)
-	
-	@last_edited
-	@loop_controller
-	def reset_time(self, time=None, extend_only = False):
-		'''
-		resets the time back to zero after a certain point
-		Args: 
-			time (double) : (optional), after time to reset back to 0. Note that this is absolute time and not rescaled time.
-		'''
-		self.data_tmp.reset_time(time, extend_only)
 
 	@last_edited
 	@loop_controller
@@ -161,65 +130,6 @@ class segment_pulse(segment_base):
 		data_copy = copy.copy(self.data_tmp)
 		for i in range(number-1):
 			self.data_tmp.append(data_copy)
-
-		# old code -- needs to be removed if the above function is validated.
-		# this function can also be moved to segments base as it is generic.
-		
-		# if number <= 1:
-		# 	return
-
-		# # if repeating elemenets with double points in the start/end, we don't want them in the segement, so we will strip the first and add them later (back in the big sequence).
-		# my_pulse_data_copy = copy.copy(self.data_tmp.my_pulse_data)
-		# if my_pulse_data_copy[-1,0] < self.data_tmp.total_time:
-		# 	my_pulse_data_copy = np.append(my_pulse_data_copy, [[self.data_tmp.total_time, my_pulse_data_copy[-1,1]]], axis=0)
-
-		# front_pulse_corr = None
-		# back_pulse_corr = None
-		# # check if there is twice the same starting number 
-		
-		# if my_pulse_data_copy[0,0] == my_pulse_data_copy[1,0]:
-		# 	front_pulse_corr = my_pulse_data_copy[0]
-		# 	my_pulse_data_copy = my_pulse_data_copy[1:]
-
-		# if my_pulse_data_copy[-1,0] == my_pulse_data_copy[-2,0]:
-		# 	back_pulse_corr = my_pulse_data_copy[-1]
-		# 	my_pulse_data_copy = my_pulse_data_copy[:-1]
-
-
-		# pulse_data = np.zeros([my_pulse_data_copy.shape[0]*number, my_pulse_data_copy.shape[1]])
-
-		# sin_data = []
-		# total_time = self.data_tmp.total_time
-		# indices = 0
-
-		# for i in range(number):
-		# 	new_pulse = copy.copy(my_pulse_data_copy)
-			
-		# 	new_pulse[:,0] +=  total_time*i
-		# 	pulse_data[indices:indices + new_pulse.shape[0]] = new_pulse
-		# 	indices += new_pulse.shape[0]
-
-		# 	for sin_data_item in self.data_tmp.sin_data:
-		# 		sin_data_item_new = copy.copy(sin_data_item)
-		# 		sin_data_item_new['start_time'] += total_time*i
-		# 		sin_data_item_new['stop_time'] += total_time*i
-		# 		sin_data.append(sin_data_item_new)
-
-		# if front_pulse_corr is not None:
-		# 	corr_pulse = np.zeros([pulse_data.shape[0] + 1, pulse_data.shape[1]])
-		# 	corr_pulse[1:] = pulse_data
-		# 	corr_pulse[0] = front_pulse_corr
-		# 	pulse_data = corr_pulse
-
-		# if back_pulse_corr is not None:
-		# 	corr_pulse = np.zeros([pulse_data.shape[0] + 1, pulse_data.shape[1]])
-		# 	corr_pulse[:-1] = pulse_data
-		# 	back_pulse_corr[0] = pulse_data[-1,0]
-		# 	corr_pulse[-1] = back_pulse_corr
-		# 	pulse_data = corr_pulse
-
-		# self.data_tmp.my_pulse_data = pulse_data
-		# self.data_tmp.sin_data = sin_data
 
 	@last_edited
 	@loop_controller
