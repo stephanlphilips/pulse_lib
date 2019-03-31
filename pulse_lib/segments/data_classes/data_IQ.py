@@ -1,8 +1,6 @@
 """
 data class to store IQ based signals.
 """
-
-from abc import ABC, abstractmethod
 import numpy as np
 import copy
 

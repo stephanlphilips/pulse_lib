@@ -1,8 +1,6 @@
 """
 data class to make pulses.
 """
-
-from abc import ABC, abstractmethod
 import numpy as np
 import copy
 
