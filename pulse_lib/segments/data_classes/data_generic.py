@@ -4,6 +4,7 @@ Generic data class where all others should be derived from.
 
 from abc import ABC, abstractmethod
 import numpy as np
+from pulse_lib.segments.utility.segments_c_func import get_effective_point_number
 
 class parent_data(ABC):
     """

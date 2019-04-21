@@ -5,6 +5,7 @@ This object also allows you to do operations on all segments at the same time.
 
 from pulse_lib.segments.segment_pulse import segment_pulse
 from pulse_lib.segments.segment_IQ import segment_IQ
+from pulse_lib.segments.segment_markers import segment_marker
 
 import pulse_lib.segments.utility.looping as lp
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension
@@ -24,57 +25,77 @@ class segment_container():
 	Class returns vmin/vmax data to awg object
 	Class returns upload data as a numpy<double> array to awg object.
 	'''
-	def __init__(self, real_channels, virtual_gates = None, IQ_channels=None):
+	def __init__(self, channel_names, markers = [], virtual_gates_objs = [], IQ_channels_objs = []):
+		"""
+		initialize a container for segments.
+		Args:
+			channel_names (list<str>) : list with names of physical output channels on the AWG
+			markers (list<str>) : declaration which of these channels are markers
+			virtual_gates_objs (list<virtual_gates_constructor>) : list of object that define virtual gates
+			IQ_channels_objs (list<IQ_channel_constructor>) : list of objects taht define virtual IQ channels.
+		"""
 		# physical channels
 		self.r_channels = []
 		# physical + virtual channels
 		self.channels = []
-		self.virtual_gates = virtual_gates
 		self.render_mode = False
 		self.id = uuid.uuid4()
 		self._Vmin_max_data = dict()
 
-		for i in real_channels:
-			self._Vmin_max_data[i] = {"v_min" : None, "v_max" : None}
+		for name in channel_names:
+			self._Vmin_max_data[name] = {"v_min" : None, "v_max" : None}
 		
 		self.prev_upload = datetime.datetime.utcfromtimestamp(0)
 
 		
-		# Not superclean -- should it be in a different namespace? -- what is the chance of a overlap?
-		for i in real_channels:
-			setattr(self, i, segment_pulse(i))
-			self.channels.append(i)
-			self.r_channels.append(i)
+		# define real channels (+ markers)
+		for name in channel_names:
+			if name in markers:
+				setattr(self, name, segment_marker(name))
+			else:
+				setattr(self, name, segment_pulse(name))
+			self.channels.append(name)
+			self.r_channels.append(name)
 
-		if virtual_gates is not None:
+		# define virtual gates
+		for virtual_gates in virtual_gates_objs:
 			# make segments for virtual gates.
-			for i in self.virtual_gates['virtual_gates_names_virt']:
-				setattr(self, i, segment_pulse(i, 'virtual'))
-				self.channels.append(i)
+			for virtual_gate_name in virtual_gates.virtual_gate_names:
+				setattr(self, virtual_gate_name, segment_pulse(virtual_gate_name, 'virtual_baseband'))
+				self.channels.append(virtual_gate_name)
 
 			# add reference in real gates.
-			for i in range(len(self.virtual_gates['virtual_gates_names_virt'])):
-				current_channel = getattr(self, self.virtual_gates['virtual_gates_names_real'][i])
-				virtual_gates_values = self.virtual_gates['virtual_gate_matrix'][i,:]
+			for i in range(virtual_gates.size):
+				real_channel = getattr(self, virtual_gates.virtual_gate_names[i])
+				virtual_gates_values = self.virtual_gate_matrix[i,:]
 
-				for virt_channel in range(len(self.virtual_gates['virtual_gates_names_virt'])):
+				for j in range(virtual_gates.size):
 					if virtual_gates_values[virt_channel] != 0:
-						current_channel.add_reference_channel(self.virtual_gates['virtual_gates_names_virt'][virt_channel], 
-							getattr(self, self.virtual_gates['virtual_gates_names_virt'][virt_channel]),
-							virtual_gates_values[virt_channel])
+						real_channel.add_reference_channel(virtual.virtual_gate_names[j], 
+							getattr(self, virtual_gates.virtual_gate_names[j]),
+							virtual_gates_values[j])
 
-		if IQ_channels is not None:
-			for i in range(len(IQ_channels['vIQ_channels'])):
-				setattr(self, IQ_channels['vIQ_channels'][i], seg_IQ.segment_IQ(IQ_channels['vIQ_channels'][i], IQ_channels['LO_freq'][i]))
-				self.channels.append(IQ_channels['vIQ_channels'][i])
 
-			for i in range(len(IQ_channels['rIQ_channels'])):
-				I_channel = getattr(self, IQ_channels['rIQ_channels'][i][0])
-				Q_channel = getattr(self, IQ_channels['rIQ_channels'][i][1])
-				I_channel.add_IQ_ref_channel(IQ_channels['vIQ_channels'][i],
-					getattr(self, IQ_channels['vIQ_channels'][i]), 'I')
-				Q_channel.add_IQ_ref_channel(IQ_channels['vIQ_channels'][i],
-					getattr(self, IQ_channels['vIQ_channels'][i]), 'Q')
+		# define virtual IQ channels
+		for IQ_channels_obj in IQ_channels_objs:
+			for virtual_channel_name in IQ_channels_obj.virtual_channel_map:
+				setattr(self, virtual_channel_name.channel_name, segment_IQ(virtual_channel_name.channel_name, virtual_channel_name.reference_frequency))
+				self.channels.append(virtual_channel_name)
+
+			# set up maping to real IQ channels:
+			for IQ_real_channel_info in IQ_channels_obj.IQ_channel_map:
+				real_channel = getattr(self, IQ_real_channel_info.channel_name)
+				for virtual_channel_name in IQ_channels_obj.virtual_channel_map:
+					virtual_channel = getattr(self, virtual_channel_name.channel_name)
+					real_channel.add_IQ_channel(IQ_channels_obj.LO, virtual_channel_name.channel_name, virtual_channel, IQ_real_channel_info.IQ_comp, IQ_real_channel_info.image)
+
+			# set up markers
+			for marker_info in IQ_channels_obj.markers:
+				real_channel_marker = getattr(self, marker_info.Marker_channel)
+				
+				for virtual_channel_name in IQ_channels_obj.virtual_channel_map:
+					virtual_channel = getattr(self, virtual_channel_name.channel_name)
+					real_channel_marker.add_reference_marker_IQ(virtual_channel, marker_info.pre_delay, marker_info.post_delay)
 
 	@property
 	def shape(self):

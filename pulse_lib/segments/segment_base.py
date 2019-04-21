@@ -3,14 +3,29 @@ File containing the parent class where all segment objects are derived from.
 """
 
 import numpy as np
+from dataclasses import dataclass
 import datetime
 
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, get_union_of_shapes, update_dimension
 from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.looping import loop_obj
+
 import copy
 
 import matplotlib.pyplot as plt
+
+
+@dataclass
+class IQ_render_info:
+	"""
+	structure to save relevant information about the rendering of the IQ channels (for is in channel object).
+	"""
+	LO : float
+	virtual_channel_name: str
+	virtual_channel_pointer: loop_obj 
+	IQ_render_option : str
+	image_render_option : str
+
 
 def last_edited(f):
 	'''
@@ -74,16 +89,17 @@ class segment_base():
 		virtual_segment = {'name': channel_name, 'segment': segment_data, 'multiplication_factor': multiplication_factor}
 		self.reference_channels.append(virtual_segment)
 
-	def add_IQ_ref_channel(self, channel_name, pointer_to_channel, I_or_Q_part):
+	def add_IQ_channel(self, LO, channel_name, pointer_to_channel, I_or_Q_part, image):
 		'''
 		Add a reference to an IQ channel. Same principle as for the virtual one.
 		Args:
+			LO (float) : frequecy at which MW source runs (needed to calculate final IQ signal.)
 			channel_name (str): human readable name of the virtual channel
 			pointer_to_channel (*segment_single_IQ): pointer to segment_single_IQ object
 			I_or_Q_part (str) : 'I' or 'Q' to indicate that the reference is to the I or Q part of the signal.
+			image (str) : '+' / '-', take the image of the signal (needed for differential inputs)
 		'''
-		virtual_IQ_segment = {'name': channel_name, 'segment': pointer_to_channel, 'I/Q': I_or_Q_part}
-		self.IQ_ref_channels.append(virtual_IQ_segment)
+		self.IQ_ref_channels.append(IQ_render_info(LO, channel_name, pointer_to_channel, I_or_Q_part, image))
 	
 	@last_edited
 	@loop_controller

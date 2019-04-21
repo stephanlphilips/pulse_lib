@@ -1,19 +1,21 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 from pulse_lib.segments.segment_container import segment_container
-from pulse_lib.sequencer import sequencer
-from pulse_lib.keysight.uploader import keysight_uploader
-from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
+# from pulse_lib.sequencer import sequencer
+# from pulse_lib.keysight.uploader import keysight_uploader
+# from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
 
+from dataclasses import dataclass
+# from qcodes.intruments.parameter import Parameter
 import uuid
 
-'''
-ideas:
+class keysight_upload_module(object):
+	"""docstring for keysight_upload_module"""
+	def __init__(self, ):
+		super(keysight_upload_module, self).__init__()
+	def add_awg_module(self, name, awgs):
+		pass	
 
-# Make a virtual sequence.
-# 
-
-'''
 
 class pulselib:
 	'''
@@ -21,78 +23,31 @@ class pulselib:
 	The idea is that you first make individula segments,
 	you can than later combine them into a sequence, this sequence will be uploaded
 	'''
-	def __init__(self):
+	def __init__(self, backend = "keysight"):
 		# awg channels and locations need to be input parameters.
-		self.awg_channels = []
-		self.awg_channels_to_physical_locations = dict()
-		self.awg_virtual_channels = None
-		self.awg_IQ_channels = None
 		self.awg_devices = dict()
-		self.cpp_uploader = keysight_upload_module()
+		self.awg_channels = []
+		self.awg_markers = []
+		self.virtual_channels = []
+		self.IQ_channels = []
 
+		if backend == "keysight":
+			self.cpp_uploader = keysight_upload_module()
+			# TODO
+			# self.uploader = ... 
 		self.channel_delays = dict()
 		self.channel_delays_computed = dict()
 		self.channel_compenstation_limits = dict()
+		self.channels_to_physical_locations = dict()
+
 
 		self.delays = []
 		self.convertion_matrix= []
 		self.voltage_limits_correction = dict()
 
-		# Keysight properties.
-		self.backend = 'keysight'
 
 		self.segments_bin = None
 		self.sequencer = None
-
-	def define_channels(self, my_input):
-		'''
-		define the channels and their location 
-		Args:
-			my_input (dict): dict of the channel name (str) as key and name of the instrument (as given in add_awgs()) (str) and channel (int) as tuple (e.g. {'chan1' : ('AWG1', 1), ... })
-		'''
-		self.awg_channels_to_physical_locations = my_input
-		self.awg_channels = my_input.keys()
-		for i in self.awg_channels:
-			self.channel_delays[i] = 0
-			self.channel_delays_computed[i] = (0,0)
-			self.channel_compenstation_limits[i] = (1500,1500)
-
-	def add_channel_delay(self, delays):
-		'''
-		Adds to a channel a delay. 
-		The delay is added by adding points in front of the first sequence/or 
-		just after the last sequence. The first value of the sequence will be 
-		taken as an extentsion point.
-
-		Args:
-			delays: dict, e.g. {'P1':20, 'P2':16} delay P1 with 20 ns and P2 with 16 ns
-
-		Returns:
-			0/Error
-		'''
-		for i in delays.items():
-			if i[0] in self.awg_channels:
-				self.channel_delays[i[0]] = i[1]
-			else:
-				raise ValueError("Channel delay error: Channel '{}' does not exist. Please provide valid input".format(i[0]))
-
-		self.__process_channel_delays()
-		return 0
-
-	def add_channel_compenstation_limits(self, limits):
-		'''
-		add voltage limitations per channnel that can be used to make sure that the intragral of the total voltages is 0.
-		Args:
-			limits (dict) : dict with limits e.g. {'B0':(-100,500), ... }
-		Returns:
-			None
-		'''
-		for i in limits.items():
-			if i[0] in self.awg_channels:
-				self.channel_compenstation_limits[i[0]] = i[1]
-			else:
-				raise ValueError("Channel voltage compenstation error: Channel '{}' does not exist. Please provide valid input".format(i[0]))
-
 
 	def add_awgs(self, name, awg):
 		'''
@@ -104,30 +59,70 @@ class pulselib:
 		self.awg_devices[name] =awg
 		self.cpp_uploader.add_awg_module(name, awg)
 
-	def add_virtual_gates(self, virtual_gates):
+	def define_channel(self, channel_name, AWG_name, channel_number):
 		'''
-		define virtual gates for the gate set.
+		define the channels and their location 
 		Args:
-			virtual_gates (dict): needs to have the following keys:
-				'virtual_gates_names_virt' : should constain a list with the channel names of the virtual gates
-				'virtual_gates_names_real' : should constain a list with the channel names of the read gates (should be as long as the virtual ones)
-				'virtual_gate_matrix' : numpy array representing the virtual gate matrix
+			channel_name (str) : name of a given channel on the AWG. This would usually the name of the gate that it is connected to.
+			AWG_name (str) : name of the instrument (as given in add_awgs())
+			channel_number (int) : channel number on the AWG
 		'''
-		self.awg_virtual_channels = virtual_gates
+		self._check_uniqueness_of_channel_name(channel_name)
 
-	def update_virtual_gate_matrix(self, new_matrix):
-		raise NotImplemented
+		self.awg_channels.append(channel_name)
 
-	def add_IQ_virt_channels(self, IQ_virt_channels):
+		# initialize basic properties of the channel
+		self.channel_delays[channel_name] = 0
+		self.channel_delays_computed[channel_name] = (0,0)
+		self.channel_compenstation_limits[channel_name] = (0,0)
+		self.channels_to_physical_locations[channel_name] = (AWG_name, channel_number)
+
+	def define_marker(self, marker_name, AWG_name, channel_number):
 		'''
-		function to define virtual IQ channels (a channel that combined the I and Q channel for MW applications):
+		define the channels and their location 
 		Args:
-			IQ_virt_channels (dict): a dictionary that needs to contain the following keys:
-				'vIQ_channels' : list of names of virtual IQ channels
-				'r_IQ_channels': list of list, where in each list the two reference channels (I and Q) are denoted (see docs for example).
-				'LO_freq'(function/double) : local oscillating frequency of the source. Will be used to do automaticcally convert the freq a SSB signal.  
+			marker_name (str) : name of a given channel on the AWG. This would usually the name of the gate that it is connected to.
+			AWG_name (str) : name of the instrument (as given in add_awgs())
+			channel_number (int) : channel number on the AWG
 		'''
-		self.awg_IQ_channels = IQ_virt_channels
+		self.awg_markers.append(marker_name)
+		self.define_channel(marker_name, AWG_name, channel_number)
+
+	def add_channel_delay(self, channel, delay):
+		'''
+		Adds to a channel a delay. 
+		The delay is added by adding points in front of the first sequence/or 
+		just after the last sequence. The first value of the sequence will be 
+		taken as an extentsion point.
+
+		Args:
+			channel (str) : channel name as defined in self.define_channel().
+			delay (int): delay of the current coax line (this may be a postive or negative number)
+
+		Returns:
+			0/Error
+		'''
+		if channel in self.awg_channels:
+			self.channel_delays[channel] = delay
+		else:
+			raise ValueError("Channel delay error: Channel '{}' does not exist. Please provide valid input".format(i[0]))
+
+		self.__process_channel_delays()
+		return 0
+
+	def add_channel_compenstation_limit(self, channel_name, limit):
+		'''
+		add voltage limitations per channnel that can be used to make sure that the intragral of the total voltages is 0.
+		Args:
+			channel (str) : channel name as defined in self.define_channel().
+			limit (tuple<float,float>) : lower/upper limit for DC compensation, e.g. (-100,500)
+		Returns:
+			None
+		'''
+		if channel_name in self.awg_channels:
+			self.channel_compenstation_limits[channel_name] = limit
+		else:
+			raise ValueError("Channel voltage compenstation error: Channel '{}' does not exist. Please provide valid input".format(i[0]))
 
 	def finish_init(self):
 		# function that finishes the initialisation
@@ -140,7 +135,7 @@ class pulselib:
 		Returns:
 			segment (segment_container) : returns a container that contains all the previously defined gates.
 		'''
-		return segment_container(self.awg_channels, self.awg_virtual_channels, self.awg_IQ_channels)
+		return segment_container(self.awg_channels, self.awg_markers, self.virtual_channels, self.IQ_channels)
 
 	def mk_sequence(self,seq):
 		'''
@@ -199,10 +194,13 @@ class pulselib:
 
 		return -delay + max_delay
 
-
-
+	def _check_uniqueness_of_channel_name(self, channel_name):
+		if channel_name in self.awg_channels:
+			raise ValueError("double declaration of the a channel/marker name ({}).".format(channel_name))
 
 if __name__ == '__main__':
+	from pulse_lib.virtual_channel_constructors import IQ_channel_constructor, virtual_gates_constructor
+
 	p = pulselib()
 
 	
@@ -226,55 +224,71 @@ if __name__ == '__main__':
 	p.add_awgs('AWG4',AWG4)
 
 	# define channels
-	awg_channels_to_physical_locations = dict({'B0':('AWG1', 1), 'P1':('AWG1', 2),
-		'B1':('AWG1', 3), 'P2':('AWG1', 4),
-		'B2':('AWG2', 1), 'P3':('AWG2', 2),
-		'B3':('AWG2', 3), 'P4':('AWG2', 4),
-		'B4':('AWG3', 1), 'P5':('AWG3', 2),
-		'B5':('AWG3', 3), 'G1':('AWG3', 4),
-		'I_MW':('AWG4', 1), 'Q_MW':('AWG4', 2),	
-		'M1':('AWG4', 3), 'M2':('AWG4', 4)})
-		
-	p.define_channels(awg_channels_to_physical_locations)
+	p.define_channel('B0','AWG1', 1)
+	p.define_channel('P1','AWG1', 2)
+	p.define_channel('B1','AWG1', 3)
+	p.define_channel('P2','AWG1', 4)
+	p.define_channel('B2','AWG2', 1)
+	p.define_channel('P3','AWG2', 2)
+	p.define_channel('B3','AWG2', 3)
+	p.define_channel('P4','AWG2', 4)
+	p.define_channel('B4','AWG3', 1)
+	p.define_channel('P5','AWG3', 2)
+	p.define_channel('B5','AWG3', 3)
+	p.define_channel('G1','AWG3', 4)
+	p.define_channel('I_MW','AWG4',1)
+	p.define_channel('Q_MW','AWG4',2)
+	p.define_marker('M1','AWG4', 3)
+	p.define_marker('M2','AWG4', 4)
 
-	# format : dict of channel name with delay in ns (can be posive/negative)
-	p.add_channel_delay({'I_MW':50, 'Q_MW':50, 'M1':20, 'M2':-25, })
 
-	awg_virtual_gates = {'virtual_gates_names_virt' :
-		['vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5'],
-			'virtual_gates_names_real' :
-		['P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5'],
-			'virtual_gate_matrix' : np.eye(11)
-	}
-	p.add_virtual_gates(awg_virtual_gates)
+	# format : channel name with delay in ns (can be posive/negative)
+	p.add_channel_delay('I_MW',50)
+	p.add_channel_delay('Q_MW',50)
+	p.add_channel_delay('M1',20)
+	p.add_channel_delay('M2',-25)
 
-	awg_IQ_channels = {'vIQ_channels' : ['qubit_1','qubit_2'],
-				'rIQ_channels' : [['I_MW','Q_MW'],['I_MW','Q_MW']],
-				'LO_freq' :[2e9, 1e9]
-				# do not put the brackets for the MW source
-				# e.g. MW_source.frequency
-				}
-		
-	p.add_IQ_virt_channels(awg_IQ_channels)
+	# add limits on voltages for DC channel compenstation (if no limit is specified, no compensation is performed).
+	p.add_channel_compenstation_limit('B0', (-100, 500))
 
-	p.finish_init()
+	# set a virtual gate matrix (note that you are not limited to one matrix if you would which so)
+	virtual_gate_set_1 = virtual_gates_constructor(p)
+	virtual_gate_set_1.add_real_gates('P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5')
+	virtual_gate_set_1.add_virtual_gates('vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5')
+	virtual_gate_set_1.add_virtual_gate_matrix(np.eye(11))
+
+	#make virtual channels for IQ usage (also here, make one one of these object per MW source)
+	IQ_chan_set_1 = IQ_channel_constructor(p)
+	# set right association of the real channels with I/Q output.
+	IQ_chan_set_1.add_IQ_chan("I_MW", "I")
+	IQ_chan_set_1.add_IQ_chan("Q_MW", "Q")
+	IQ_chan_set_1.add_marker("M1", -15, 15)
+	IQ_chan_set_1.add_marker("M2", -15, 15)
+	# set LO frequency of the MW source. This can be changed troughout the experiments, bit only newly created segments will hold the latest value.
+	IQ_chan_set_1.set_LO(1e9)
+	# name virtual channels to be used.
+	IQ_chan_set_1.add_virtual_IQ_channel("MW_qubit_1")
+	IQ_chan_set_1.add_virtual_IQ_channel("MW_qubit_2")
+
+
+	# p.finish_init()
 
 	seg  = p.mk_segment()
-	seg2 = p.mk_segment()
-	seg3 = p.mk_segment()
+	# seg2 = p.mk_segment()
+	# seg3 = p.mk_segment()
 
-	seg.vP1.add_block(0,10,1)
+	# seg.vP1.add_block(0,10,1)
 
 
-	# B0 is the barrier 0 channel
-	# adds a linear ramp from 10 to 20 ns with amplitude of 5 to 10.
-	seg.B0.add_pulse([[10.,0.],[10.,5.],[20.,10.],[20.,0.]])
-	# add a block pulse of 2V from 40 to 70 ns, to whaterver waveform is already there
-	seg.B0.add_block(40,70,2)
-	# just waits (e.g. you want to ake a segment 50 ns longer)
-	seg.B0.wait(50)
-	# resets time back to zero in segment. Al the commannds we run before will be put at a negative time.
-	seg.B0.reset_time()
-	# this pulse will be placed directly after the wait()
-	seg.B0.add_block(0,10,2)
+	# # B0 is the barrier 0 channel
+	# # adds a linear ramp from 10 to 20 ns with amplitude of 5 to 10.
+	# seg.B0.add_pulse([[10.,0.],[10.,5.],[20.,10.],[20.,0.]])
+	# # add a block pulse of 2V from 40 to 70 ns, to whaterver waveform is already there
+	# seg.B0.add_block(40,70,2)
+	# # just waits (e.g. you want to ake a segment 50 ns longer)
+	# seg.B0.wait(50)
+	# # resets time back to zero in segment. Al the commannds we run before will be put at a negative time.
+	# seg.B0.reset_time()
+	# # this pulse will be placed directly after the wait()
+	# seg.B0.add_block(0,10,2)
 
