@@ -1,5 +1,5 @@
-import pulse_lib.segments.segments
-from pulse_lib.segments.data_handling_functions import find_common_dimension
+import pulse_lib.segments.segment_container
+from pulse_lib.segments.utility.data_handling_functions import find_common_dimension
 from pulse_lib.keysight.uploader import upload_job
 
 import uuid

@@ -1,14 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt 
-from pulse_lib.segments.segments import segment_container
-from pulse_lib.keysight_fx import *
+from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
 from pulse_lib.keysight.uploader import keysight_uploader
 from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
 
 import uuid
-# import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
-# import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
 
 '''
 ideas:
