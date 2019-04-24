@@ -540,7 +540,7 @@ class segment_single():
 		x = np.linspace(0, pulse_data_curr_seg.total_time*sample_time_step-sample_time_step, len(y))*1e9
 
 		plt.plot(x,y, label=self.name)
-		# plt.show()
+		plt.show()
 
 
 if __name__ == '__main__':

@@ -195,4 +195,4 @@ class segment_marker(segment_single):
 
 	def add_pulse(self, start, stop):
 
-		
+		pass
