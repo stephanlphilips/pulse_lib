@@ -191,11 +191,3 @@ if __name__ == '__main__':
 
 	s1 = segment_IQ("test", 1e9)
 	s1.add_sin(20,50,1e6,1)
-
-
-	# s1.plot_segment()
-	# s2.plot_segment()
-	# s3.plot_segment()
-	# plt.legend()
-	# plt.show()
-		
