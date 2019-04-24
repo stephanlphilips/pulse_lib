@@ -16,36 +16,37 @@ nagaoka_pulsing  = pulse.mk_segment()
 
 # base_level = 5 #mV
 
-import pulse_lib.segments.looping as lp
+import pulse_lib.segments.utility.looping as lp
 
 ramp_amp = lp.linspace(50,200,50, axis=0)
 ramp_speed = lp.linspace(5,100,50, axis=1)
 
-# nagaoka_pulsing.MW_gate_I += base_level
-nagaoka_pulsing.MW_gate_I.add_block(0,50,1000)
-nagaoka_pulsing.MW_gate_I.reset_time()
-nagaoka_pulsing.MW_gate_I.add_block(0,50,900)
-nagaoka_pulsing.MW_gate_I.reset_time()
-nagaoka_pulsing.MW_gate_I.add_block(0,100,100)
-nagaoka_pulsing.MW_gate_I.reset_time()
-nagaoka_pulsing.MW_gate_I.add_ramp(0,100,ramp_amp*.8)
-nagaoka_pulsing.MW_gate_I.reset_time()
-nagaoka_pulsing.MW_gate_I.add_block(0,ramp_speed,ramp_amp*.8)
-nagaoka_pulsing.MW_gate_I.add_ramp(0,ramp_speed,ramp_amp*.2)
-# nagaoka_pulsing.MW_gate_I.add_block(0,2e3,0)
-nagaoka_pulsing.MW_gate_I.reset_time()
-nagaoka_pulsing.MW_gate_I.add_block(0,100,500)
-# nagaoka_pulsing.MW_gate_I.reset_time()
-# nagaoka_pulsing.MW_gate_I.add_block(0,100,0)
-# nagaoka_pulsing.MW_gate_I.reset_time()
+# nagaoka_pulsing.B4 += base_level
+nagaoka_pulsing.B4.add_block(0,50,1000)
+nagaoka_pulsing.B4.reset_time()
+nagaoka_pulsing.B4.add_block(0,50,900)
+nagaoka_pulsing.B4.reset_time()
+nagaoka_pulsing.B4.add_block(0,100,100)
+nagaoka_pulsing.B4.reset_time()
+nagaoka_pulsing.B4.add_ramp(0,100,ramp_amp*.8)
+nagaoka_pulsing.B4.reset_time()
+nagaoka_pulsing.B4.add_block(0,ramp_speed,ramp_amp*.8)
+nagaoka_pulsing.B4.add_ramp(0,ramp_speed,ramp_amp*.2)
+# nagaoka_pulsing.B4.add_block(0,2e3,0)
+nagaoka_pulsing.B4.reset_time()
+nagaoka_pulsing.B4.add_block(0,100,500)
+# nagaoka_pulsing.B4.reset_time()
+# nagaoka_pulsing.B4.add_block(0,100,0)
+# nagaoka_pulsing.B4.reset_time()
 # nagaoka_pulsing.P2 += nagaoka_pulsing.P1
-# nagaoka_pulsing.MW_gate_I += nagaoka_pulsing.P1
+# nagaoka_pulsing.B4 += nagaoka_pulsing.P1
 # nagaoka_pulsing.B1 -= nagaoka_pulsing.P1
 
-
+nagaoka_pulsing.B5 = nagaoka_pulsing.B4
+ 
 import matplotlib.pyplot as plt
 # plt.figure()
-# nagaoka_pulsing.MW_gate_I.plot_segment([0,0])
+# nagaoka_pulsing.B4.plot_segment([0,0])
 # nagaoka_pulsing.P2.plot_segment([0,0])
 # nagaoka_pulsing.P3.plot_segment([0,0])
 # nagaoka_pulsing.P4.plot_segment([0,0])
@@ -58,10 +59,10 @@ import matplotlib.pyplot as plt
 
 # import matplotlib.pyplot as plt
 # plt.figure()
-# nagaoka_pulsing.MW_gate_I.plot_segment([0,0])
-# nagaoka_pulsing.MW_gate_I.plot_segment([1,0])
-# nagaoka_pulsing.MW_gate_I.plot_segment([2,0])
-# nagaoka_pulsing.MW_gate_I.plot_segment([3,0])
+# nagaoka_pulsing.B4.plot_segment([0,0])
+# nagaoka_pulsing.B4.plot_segment([1,0])
+# nagaoka_pulsing.B4.plot_segment([2,0])
+# nagaoka_pulsing.B4.plot_segment([3,0])
 
 # plt.xlabel("time (ns)")
 # plt.ylabel("voltage (mV)")
@@ -72,14 +73,14 @@ readout_level = -200
 readout  = pulse.mk_segment()
 # readout.P1 += readout_level
 # readout.P1.wait(2e3)
-# readout.MW_gate_I.add_block(0,2e3,0)
-readout.MW_gate_I.add_block(0,8e3,100)
-readout.MW_gate_I.reset_time()
-# readout.MW_gate_I.add_block(0,8e3,80)
-# readout.MW_gate_I.reset_time()
-# readout.MW_gate_I.add_block(0,8e3,60)
-# readout.MW_gate_I.reset_time()
-# readout.MW_gate_I.add_block(0,8e3,40)
+# readout.B4.add_block(0,2e3,0)
+readout.B4.add_block(0,8e3,100)
+readout.B4.reset_time()
+# readout.B4.add_block(0,8e3,80)
+# readout.B4.reset_time()
+# readout.B4.add_block(0,8e3,60)
+# readout.B4.reset_time()
+# readout.B4.add_block(0,8e3,40)
 
 # sequence using default settings
 sequence = [nagaoka_pulsing, readout]

@@ -26,7 +26,7 @@ def load_HVI(AWGs, channel_map):
 		awg.awg.setDigitalFilterMode(0)
 
 	HVI = keysightSD1.SD_HVI()
-	HVI.open("C:/V2_code/HVI/For_loop_single_sequence_fast.HVI")
+	HVI.open("C:/V2_code/HVI/HVI_playback_restless.HVI")
 
 	HVI.assignHardwareWithUserNameAndSlot("Module 0",0,2)
 	HVI.assignHardwareWithUserNameAndSlot("Module 1",0,3)
@@ -35,6 +35,8 @@ def load_HVI(AWGs, channel_map):
 
 	HVI.compile()
 	HVI.load()
+	HVI.start()
+
 	return HVI
 
 
@@ -78,21 +80,16 @@ def excute_HVI(HVI, AWGs, channel_map, playback_time, n_rep, *args, **kwargs):
 	# 	awg.awg.setDigitalFilterMode(0)
 	
 	nrep = int(n_rep)
-	if nrep == 0:
-		nrep = 1
-
 	step = 1
-	if n_rep == 0:
-		step  = 0
+
 	length = int(playback_time/10 + 20)
 
 	for awgname, awg in AWGs.items():
-		awg.writeRegisterByNumber(1, int(nrep))
-		awg.writeRegisterByNumber(2, int(length))
-		awg.writeRegisterByNumber(4, int(step))
+		awg.writeRegisterByNumber(2, int(nrep))
+		awg.writeRegisterByNumber(3, int(length))
 
-
-	HVI.start()
+	# writing a 1 to the register starts the AWG.
+	AWGs['AWG1'].writeRegisterByNumber(0,int(1))
 
 if __name__ == '__main__':
 	

@@ -243,7 +243,7 @@ def loop_over_data(func, data, args, args_info, kwargs, kwargs_info):
 			args_cpy[0].data_tmp = data[i]
 			func(*args_cpy, **kwargs_cpy)
 		else:
-			# clean up args, kwards
+			# clean up args, kwargs
 			loop_over_data(func, data[i], args_cpy, args_info, kwargs_cpy, kwargs_info)
 
 def get_new_dim_loop(current_dim, axis, shape):

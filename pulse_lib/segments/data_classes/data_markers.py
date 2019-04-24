@@ -35,7 +35,7 @@ class marker_data(parent_data):
 		if stop + self.start_time > self.end_time:
 			self.end_time = self.start_time + stop
 	
-	def reset_time(self, time = None):
+	def reset_time(self, time = None, extend_only = False):
 		"""
 		reset the effective start time. See online manual in pulse building instructions to understand this command.
 		Args:

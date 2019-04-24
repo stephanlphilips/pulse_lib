@@ -133,7 +133,6 @@ class keysight_uploader():
 			v_pp, v_off = convert_min_max_to_vpp_voff(*data[0])
 			
 			self.AWGs[awg_name].awg_stop(channel_number)
-			print(channel_name.decode('ascii'), "VPP and VOFF" , v_pp, v_off)
 			# self.AWGs[awg_name].set_channel_amplitude(v_pp/1000/2,channel_number)
 			# self.AWGs[awg_name].set_channel_offset(v_off/1000,channel_number)
 
@@ -283,6 +282,7 @@ class keysight_uploader():
 
 		idle = 1 # 1 is False
 		while idle == 1:
+			print("AWG running")
 			idle = awg.awg.AWGisRunning(channel)
 
 

@@ -33,6 +33,7 @@ class segment_marker(segment_base):
 
 	def add_reference_marker_IQ(self, IQ_channel_ptr, pre_delay, post_delay):
 		pass
+		
 if __name__ == '__main__':
  
 	import matplotlib.pyplot as plt
