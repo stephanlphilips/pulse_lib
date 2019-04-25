@@ -23,7 +23,7 @@ class parent_data(ABC):
         raise NotImplemented
     
     @abstractmethod
-    def reset_time():
+    def reset_time(time = None, extend_only = False):
         raise NotImplemented
     
     @abstractmethod

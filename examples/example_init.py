@@ -7,64 +7,64 @@ import numpy as np
 def return_pulse_lib():
 	pulse = pulselib()
 
+	AWG1 = keysight_awg.SD_AWG('my_awg1', chassis = 0, slot= 2, channels = 4, triggers= 8)
+	AWG2 = keysight_awg.SD_AWG('my_awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
+	AWG3 = keysight_awg.SD_AWG('my_awg3', chassis = 0, slot= 4, channels = 4, triggers= 8)
+	AWG4 = keysight_awg.SD_AWG('my_awg4', chassis = 0, slot= 5, channels = 4, triggers= 8)
+		
+	# add to pulse_lib
+	pulse.add_awgs('AWG1',AWG1)
+	pulse.add_awgs('AWG2',AWG2)
+	pulse.add_awgs('AWG3',AWG3)
+	pulse.add_awgs('AWG4',AWG4)
 
-	# Let's just use a non-pysical AWG
-	awg1 = keysight_awg.SD_AWG('my_awg1', chassis = 0, slot= 2, channels = 4, triggers= 8)
-	awg2 = keysight_awg.SD_AWG('my_awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
-	awg3 = keysight_awg.SD_AWG('my_awg3', chassis = 0, slot= 3, channels = 4, triggers= 8)
-	awg4 = keysight_awg.SD_AWG('my_awg4', chassis = 0, slot= 3, channels = 4, triggers= 8)
+	# define channels
+	pulse.define_channel('B0','AWG1', 1)
+	pulse.define_channel('P1','AWG1', 2)
+	pulse.define_channel('B1','AWG1', 3)
+	pulse.define_channel('P2','AWG1', 4)
+	pulse.define_channel('B2','AWG2', 1)
+	pulse.define_channel('P3','AWG2', 2)
+	pulse.define_channel('B3','AWG2', 3)
+	pulse.define_channel('P4','AWG2', 4)
+	pulse.define_channel('B4','AWG3', 1)
+	pulse.define_channel('P5','AWG3', 2)
+	pulse.define_channel('B5','AWG3', 3)
+	pulse.define_channel('G1','AWG3', 4)
+	pulse.define_channel('I_MW','AWG4',1)
+	pulse.define_channel('Q_MW','AWG4',2)
+	pulse.define_channel('M1','AWG4', 3)
+	pulse.define_channel('M2','AWG4', 4)
 
 
-	pulse.add_awgs('AWG1',awg1)
-	pulse.add_awgs('AWG2',awg2)
-	pulse.add_awgs('AWG3',awg3)
-	pulse.add_awgs('AWG4',awg4)
+	# format : channel name with delay in ns (can be posive/negative)
+	# pulse.add_channel_delay('I_MW',50)
+	# pulse.add_channel_delay('Q_MW',50)
+	# pulse.add_channel_delay('M1',20)
+	# pulse.add_channel_delay('M2',-25)
 
+	# add limits on voltages for DC channel compenstation (if no limit is specified, no compensation is performed).
+	# pulse.add_channel_compenstation_limit('B0', (-100, 500))
 
-	# define real channels
-	awg_channels_to_physical_locations = dict({'B0':('AWG1', 1), 'P1':('AWG1', 2),
-	        'B1':('AWG1', 3), 'P2':('AWG1', 4),'B2':('AWG2', 1),
-	        'MW_gate_I':('AWG2', 2), 'MW_gate_Q':('AWG2', 3),
-	        'MW_marker':('AWG2', 4)})
+	# set a virtual gate matrix (note that you are not limited to one matrix if you would which so)
+	# virtual_gate_set_1 = virtual_gates_constructor(p)
+	# virtual_gate_set_1.add_real_gates('P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5')
+	# virtual_gate_set_1.add_virtual_gates('vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5')
+	# virtual_gate_set_1.add_virtual_gate_matrix(npulse.eye(11))
 
-	pulse.define_channels(awg_channels_to_physical_locations)
+	#make virtual channels for IQ usage (also here, make one one of these object per MW source)
+	# IQ_chan_set_1 = IQ_channel_constructor(p)
+	# set right association of the real channels with I/Q output.
+	# IQ_chan_set_1.add_IQ_chan("I_MW", "I")
+	# IQ_chan_set_1.add_IQ_chan("Q_MW", "Q")
+	# IQ_chan_set_1.add_marker("M1", -15, 15)
+	# IQ_chan_set_1.add_marker("M2", -15, 15)
+	# set LO frequency of the MW source. This can be changed troughout the experiments, bit only newly created segments will hold the latest value.
+	# IQ_chan_set_1.set_LO(1e9)
+	# name virtual channels to be used.
+	# IQ_chan_set_1.add_virtual_IQ_channel("MW_qubit_1")
+	# IQ_chan_set_1.add_virtual_IQ_channel("MW_qubit_2")
 
-	# define virtual channels
-	awg_virtual_gates = {
-	        'virtual_gates_names_virt' :
-	                ['vB0', 'vB1', 'vB2', 'vP1', 'vP2'],
-	        'virtual_gates_names_real' :
-	                ['B0', 'B1', 'B2', 'P1', 'P2'],
-	        'virtual_gate_matrix' : np.eye(5)
-	}
-	pulse.add_virtual_gates(awg_virtual_gates)
-
-	# define IQ channels
-	awg_IQ_channels = {
-	                'vIQ_channels' : ['qubit_1','qubit_2'],
-	                'rIQ_channels' : [['MW_gate_I','MW_gate_Q'],['MW_gate_I','MW_gate_Q']],
-	                'LO_freq' :[10e9, 10e9]
-	                }
-
-	pulse.add_IQ_virt_channels(awg_IQ_channels)
-
-	# define delays
-	pulse.add_channel_delay({
-	        'B0': 20,
-	        'P1': 20,
-	        'B1': 20,
-	        'P2': 20,
-	        'B2': 20,
-	        'MW_gate_I': 70,
-	        'MW_gate_Q': 70,
-	        'MW_marker': 5
-	})
-
-	# add compensation limits
-	pulse.add_channel_compenstation_limits({
-		'B0': (-500,500),'B1': (-500,500),'B2': (-500,500),
-		'P1': (-500,500),'P2': (-500,500),
-		})
 	# finish initialisation (! important if using keysight uploader)
 	pulse.finish_init()
 

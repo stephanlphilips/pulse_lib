@@ -56,7 +56,7 @@ class sequencer():
 		'''
 		# correct format if needed
 		for i in range(len(sequence)):
-			if isinstance(sequence[i], pulse_lib.segments.segments.segment_container):
+			if isinstance(sequence[i], pulse_lib.segments.segment_container.segment_container):
 				self.sequence.append([sequence[i], 1, 1])
 			elif isinstance(sequence[i], list):
 				self.sequence.append(sequence[i])

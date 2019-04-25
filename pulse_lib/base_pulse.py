@@ -1,21 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 from pulse_lib.segments.segment_container import segment_container
-# from pulse_lib.sequencer import sequencer
-# from pulse_lib.keysight.uploader import keysight_uploader
-# from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
+from pulse_lib.sequencer import sequencer
+from pulse_lib.keysight.uploader import keysight_uploader
+from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
 
 from dataclasses import dataclass
 # from qcodes.intruments.parameter import Parameter
 import uuid
-
-class keysight_upload_module(object):
-	"""docstring for keysight_upload_module"""
-	def __init__(self, ):
-		super(keysight_upload_module, self).__init__()
-	def add_awg_module(self, name, awgs):
-		pass	
-
 
 class pulselib:
 	'''
@@ -127,7 +119,7 @@ class pulselib:
 	def finish_init(self):
 		# function that finishes the initialisation
 		# TODO rewrite, so this function is embedded in the other ones.
-		self.uploader = keysight_uploader(self.awg_devices, self.cpp_uploader, self.awg_channels, self.awg_channels_to_physical_locations , self.channel_delays_computed, self.channel_compenstation_limits)
+		self.uploader = keysight_uploader(self.awg_devices, self.cpp_uploader, self.awg_channels, self.channels_to_physical_locations , self.channel_delays_computed, self.channel_compenstation_limits)
 
 	def mk_segment(self):
 		'''

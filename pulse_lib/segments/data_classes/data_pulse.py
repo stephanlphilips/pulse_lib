@@ -231,7 +231,7 @@ class pulse_data(parent_data):
                 amp  =  sin_data_item['amplitude']
                 freq =  sin_data_item['frequency']
                 phase = sin_data_item['phase']
-                
+                print(amp, freq, phase)
                 my_sequence[start:stop] += amp*np.sin(np.linspace(start_t, stop_t-sample_time_step, stop-start)*freq*1e-9*2*np.pi + phase)
             else: 
                 raise ValueError("type of sin pulse not implemented. currently only standard pulses supported")

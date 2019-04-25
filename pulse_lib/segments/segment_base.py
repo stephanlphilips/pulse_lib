@@ -387,3 +387,12 @@ class segment_base():
 
 		plt.plot(x,y, label=self.name)
 		# plt.show()
+
+
+if __name__ == '__main__':
+	s = segment_single("test")
+	from pulse_lib.segments.looping import linspace
+	s.add_block(0, 10, linspace(2,10,50, unit=("ee")))
+	print(s.loops)
+	print(s.units)
+
