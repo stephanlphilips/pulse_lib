@@ -8,6 +8,54 @@ import copy
 import pulse_lib.segments.utility.segments_c_func as seg_func
 from pulse_lib.segments.utility.segments_c_func import py_calc_value_point_in_between, get_effective_point_number
 from pulse_lib.segments.data_classes.data_generic import parent_data, data_container
+from dataclasses import dataclass
+
+class envelope_generator():
+    """
+    Object that handles envelope functions that can be used in spin qubit experiments.
+    Key properties 
+        * Makes sure average amplitude of the evelope is the one expressed
+        * Executes some subsampling functions to give greater time resolution than the sample rate of the AWG.
+        * Allows for plotting the FT of the envelope function.
+    """
+    def __init__(self, AM_envelope_function, PM_envelope_function=None):
+        """
+        define envelope funnctions.
+        Args
+            AM_envelope_functoin (lamba M) : function where M is the number of points where the evelopen should be rendered for.
+        """
+        self.AM_envelope_function = AM_envelope_function
+        self.PM_envelope_function = PM_envelope_function
+
+    def get_AM_envelope(self, delta_t, sample_rate=1e9):
+        """
+        Render the envelope for the given waveshape (in init).
+        
+        Args:
+            delta_t (float) : time of the pulse (5.6 ns)
+            sample_rate (float) : number of samples per second (e.g. 1GS/s)
+        """
+        n_points = delta_t/sample_rate*1e9 #times by default in ns
+       
+        if n_points < 1: #skip
+            return np.asarray([0])
+
+        envelope_extended = self.AM_envelope_function(int(n_points)*10)
+        np.trapz(np.abs(envelope_extended), dx = 1/sample_rate)
+
+
+@dataclass
+class IQ_data_single:
+    """
+    structure to save relevant information about marker data.
+    """
+    start : float
+    stop : float
+    amplitude : float
+    start_phase : float
+    frequency : float
+    envelope : envelope_generator
+
 
 class IQ_data(parent_data):
     """
@@ -15,24 +63,19 @@ class IQ_data(parent_data):
     """
     def __init__(self, LO):
         super().__init__()
-
-        self.LO = LO
-        self.simple_IQ_data = []
-        self.MOD_IQ_data = []
-        self.numpy_IQ_data = []
-        self.start_time = 0
+        self.qubit_LO = LO
+        self.MW_pulse_data = []
         self.global_phase = 0
         # just introduced for wait command (no pulse data stored)
         self.my_pulse_data = np.zeros([1,2], dtype=np.double)
 
-    def add_simple_data(self, input_dict):
-        self.simple_IQ_data.append(input_dict)
-    
-    def add_mod_data (self, input_dict):
-        self.simple_IQ_data.append(input_dict)
-
-    def add_numpy_IQ(self, input_dict):
-        self.numpy_IQ_data.append(input_dict)
+    def add_MW_data(self, data):
+        '''
+        add data with all the pulse information
+        Args:
+            data (IQ_data_single) : data object for MW data.
+        '''
+        self.MW_pulse_data( data)
 
     def slice_time(self, start, end):
         '''
@@ -43,7 +86,7 @@ class IQ_data(parent_data):
         '''
         super().slice_time(start, end)
 
-        super().__slice_sin_data(self.simple_IQ_data, start, end)
+        super().__slice_sin_data(self.MW_pulse_data, start, end)
         super().__slice_sin_data(self.MOD_IQ_data, start, end)
         super().__slice_sin_data(self.numpy_IQ_data, start, end)
 
@@ -209,3 +252,5 @@ class IQ_data(parent_data):
             integrate (double) : the integrated value of the waveform (unit is mV/sec).
         '''
         raise NotImplemented
+
+

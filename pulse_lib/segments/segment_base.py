@@ -22,7 +22,7 @@ class IQ_render_info:
 	"""
 	LO : float
 	virtual_channel_name: str
-	virtual_channel_pointer: loop_obj 
+	virtual_channel_pointer: loop_obj #TODO fix to segment_IQ data type, needs to be post loaded somehow. 
 	IQ_render_option : str
 	image_render_option : str
 
