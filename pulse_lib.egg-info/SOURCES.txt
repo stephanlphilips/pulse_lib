@@ -31,3 +31,4 @@ pulse_lib/segments/data_classes/data_pulse.py
 pulse_lib/segments/utility/__init__.py
 pulse_lib/segments/utility/data_handling_functions.py
 pulse_lib/segments/utility/looping.py
+pulse_lib/segments/utility/segments_c_func.c

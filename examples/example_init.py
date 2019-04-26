@@ -9,30 +9,27 @@ def return_pulse_lib():
 
 
 	# Let's just use a non-pysical AWG
-	# awg1 = keysight_awg.SD_AWG('my_awg1', chassis = 0, slot= 2, channels = 4, triggers= 8)
-	# awg2 = keysight_awg.SD_AWG('my_awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
+	awg1 = keysight_awg.SD_AWG('my_awg1', chassis = 0, slot= 2, channels = 4, triggers= 8)
+	awg2 = keysight_awg.SD_AWG('my_awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
 	awg3 = keysight_awg.SD_AWG('my_awg3', chassis = 0, slot= 4, channels = 4, triggers= 8)
-	# awg4 = keysight_awg.SD_AWG('my_awg4', chassis = 0, slot= 5, channels = 4, triggers= 8)
+	awg4 = keysight_awg.SD_AWG('my_awg4', chassis = 0, slot= 5, channels = 4, triggers= 8)
 
 
-	# pulse.add_awgs('AWG1',awg1)
-	# pulse.add_awgs('AWG2',awg2)
+	pulse.add_awgs('AWG1',awg1)
+	pulse.add_awgs('AWG2',awg2)
 	pulse.add_awgs('AWG3',awg3)
-	# pulse.add_awgs('AWG4',awg4)
+	pulse.add_awgs('AWG4',awg4)
 
 
 	# define real channels
-	# awg_channels_to_physical_locations = dict({ 'B0':('AWG1', 1), 'P1':('AWG1', 2),
-	# 									        'B1':('AWG1', 3), 'P2':('AWG1', 4),
-	# 									        'B2':('AWG2', 1), 'P3':('AWG2', 2),
-	# 									        'B3':('AWG2', 3), 'P4':('AWG2', 4),
-	# 									        'MW_gate_I':('AWG3', 1), 'MW_gate_Q':('AWG3', 2),
-	# 									        'MW_marker':('AWG3', 4),
-	# 									        'MW_gate_I+':('AWG4', 1), 'MW_gate_I-':('AWG4', 2),
-	# 									        'MW_gate_Q+':('AWG4', 3), 'MW_gate_Q-':('AWG4', 4),
-	# 											})
-	awg_channels_to_physical_locations = dict({ 'MW_gate_I':('AWG3', 1), 'MW_gate_Q':('AWG3', 2),
-										        'MW_marker':('AWG3', 4),
+	awg_channels_to_physical_locations = dict({ 'B0':('AWG1', 1), 'P1':('AWG1', 2),
+										        'B1':('AWG1', 3), 'P2':('AWG1', 4),
+										        'B2':('AWG2', 1), 'P3':('AWG2', 2),
+										        'B3':('AWG2', 3), 'P4':('AWG2', 4),
+										        'B4':('AWG3', 1), 'P5':('AWG3', 2),
+										        'B5':('AWG3', 4), 'G1':('AWG3', 4),
+										        'I_MW':('AWG4', 1), 'Q_MW':('AWG4', 2),
+										        'M1':('AWG4', 3), 'M2':('AWG4', 4),
 												})
 
 	pulse.define_channels(awg_channels_to_physical_locations)

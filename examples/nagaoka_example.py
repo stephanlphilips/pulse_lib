@@ -16,7 +16,7 @@ nagaoka_pulsing  = pulse.mk_segment()
 
 # base_level = 5 #mV
 
-import pulse_lib.segments.looping as lp
+import pulse_lib.segments.utility.looping as lp
 
 ramp_amp = lp.linspace(50,200,50, axis=0)
 ramp_speed = lp.linspace(5,100,50, axis=1)
@@ -103,82 +103,3 @@ for j in range(50):
 
 pulse.uploader.wait_until_AWG_idle()
 pulse.uploader.release_memory()
-
-# for j in range(50):
-# 	for i in range(50):
-# 		my_seq.upload([i, j])
-# 		my_seq.play([i, j])
-
-# pulse.uploader.wait_until_AWG_idle()
-# pulse.uploader.release_memory()
-# for j in range(50):
-# 	for i in range(50):
-# 		my_seq.upload([i, j])
-# 		my_seq.play([i, j])
-
-# pulse.uploader.wait_until_AWG_idle()
-# pulse.uploader.release_memory()
-
-# for j in range(50):
-# 	for i in range(50):
-# 		my_seq.upload([i, j])
-# 		my_seq.play([i, j])
-
-# pulse.uploader.wait_until_AWG_idle()
-# pulse.uploader.release_memory()
-
-# for j in range(50):
-# 	for i in range(50):
-# 		my_seq.upload([i, j])
-# 		my_seq.play([i, j])
-
-# pulse.uploader.wait_until_AWG_idle()
-# pulse.uploader.release_memory()
-
-# for j in range(50):
-# 	for i in range(50):
-# 		my_seq.upload([i, j])
-# 		my_seq.play([i, j])
-
-# pulse.uploader.wait_until_AWG_idle()
-# pulse.uploader.release_memory()
-
-# for j in range(50):
-# 	for i in range(50):
-# 		my_seq.upload([i, j])
-# 		my_seq.play([i, j])
-
-# pulse.uploader.wait_until_AWG_idle()
-# pulse.uploader.release_memory()
-
-# for j in range(50):
-# 	for i in range(50):
-# 		my_seq.upload([i, j])
-# 		my_seq.play([i, j])
-
-# pulse.uploader.wait_until_AWG_idle()
-# pulse.uploader.release_memory()
-
-# for j in range(50):
-# 	for i in range(50):
-# 		my_seq.upload([i, j])
-# 		my_seq.play([i, j])
-
-# pulse.uploader.wait_until_AWG_idle()
-# pulse.uploader.release_memory()
-
-# for j in range(50):
-# 	for i in range(50):
-# 		my_seq.upload([i, j])
-# 		my_seq.play([i, j])
-
-# pulse.uploader.wait_until_AWG_idle()
-# pulse.uploader.release_memory()
-
-# for j in range(50):
-# 	for i in range(50):
-# 		my_seq.upload([i, j])
-# 		my_seq.play([i, j])
-
-# pulse.uploader.wait_until_AWG_idle()
-# pulse.uploader.release_memory()
