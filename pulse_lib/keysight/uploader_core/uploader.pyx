@@ -56,7 +56,6 @@ cdef class keysight_upload_module():
 			module (qCodeS driver) : qcodes object of the AWG
 		'''
 		cdef string c_name = name.encode('utf8')
-		print(name, c_name)
 
 		self.keysight_uploader.add_awg_module(c_name, module.chassis, module.slot)
 
@@ -78,7 +77,6 @@ cdef class keysight_upload_module():
 			channel_data = dereference(dereference(AWG_raw_upload_data.find(dereference(it).second.first)).second.find(dereference(it).second.second)).second
 
 			min_max_voltage = (channel_data.min_max_voltage.first, channel_data.min_max_voltage.second,)
-
 			# TODO format as (memory_upload_location, cycles, prescalor) (last two not implented in c++ upload part)
 			upload_locations = channel_data.data_location_on_AWG
 
@@ -148,32 +146,39 @@ cdef class waveform_cache_container():
 		idx = next(iter(self.waveform_chache_python))
 		return self[idx].npt
 
-	def generate_DC_compenstation(self):
+	def generate_DC_compenstation(self, sample_rate):
 		'''
 		generate a DC compensation of the pulse.
 		As assuallly we put condensaters in between the AWG and the gate on the sample, you need to correct for the fact that the low fequencies are not present in your transfer function.
 		This can be done simply by making the total integral of your function 0.
+
+		Args:
+			sample_rate (float) : rate at which the AWG runs.
 		'''
 
-		cdef int compensation_time = 0
+		cdef int compensation_npt = 0
 		cdef int wvf_npt = 0
+
 		for chan in self.waveform_chache_python:
-			if self[chan].compensation_time > compensation_time:
-				compensation_time = self[chan].compensation_time 
-				wvf_npt = self[chan].npt
+			if int(self[chan].compensation_time*sample_rate +0.99) > compensation_npt:
+				compensation_npt = int(self[chan].compensation_time*sample_rate +0.99)
+			wvf_npt = self[chan].npt
+		
+		
 		# make sure we have modulo 10 time
-		cdef int total_pt = compensation_time + wvf_npt
+		cdef int total_pt = compensation_npt + wvf_npt
 		cdef int mod = total_pt%10
+
 		if mod != 0:
 			total_pt += 10-mod
-		compensation_time = total_pt - wvf_npt
-
+		compensation_npt = total_pt - wvf_npt
+		
 		#generate the compensation
 		for chan in self.waveform_chache_python:
-			self[chan].generate_voltage_compensation(compensation_time)
+			self[chan].generate_voltage_compensation(compensation_npt, sample_rate)
 
 cdef class waveform_upload_chache():
-	"""object that holds some cache for uploads and does some basic calculations"""
+	"""object that holds some cache for uploads (for a single channel) and does some basic calculations"""
 	cdef waveform_raw_upload_data raw_data
 	cdef vector[waveform_info] wvf_info
 	cdef vector[double *] wvf_data
@@ -233,29 +238,32 @@ cdef class waveform_upload_chache():
 		if self.compenstation_limit.first == 0 or self.compenstation_limit.second == 0:
 			return 0
 
-		cdef double comp_time = self.integral
-		if comp_time <= 0:
-			return -comp_time / self.compenstation_limit.second
+		if self.integral <= 0:
+			return -self.integral / self.compenstation_limit.second
 		else:
-			return -comp_time / self.compenstation_limit.first
+			return -self.integral / self.compenstation_limit.first
 
 	@property
 	def npt(self):
 		return self._npt
 
-	cpdef void generate_voltage_compensation(self, double time):
+	cpdef void generate_voltage_compensation(self, int npt, double sample_rate):
 		'''
 		make a voltage compenstation pulse of time t
 		Args:
-			time (double) : time of the compenstation in ns
+			npt (double) : number of points allocated for the compenstation pulse
+			sample_rate (double) : rate at which the pulse is generated. 
 		'''
 		cdef double voltage = 0
-		if round(time) == 0:
+		if npt == 0:
 			voltage = 0
 		else:
-			voltage = self.integral/round(time)
+			voltage = -self.integral*sample_rate/npt
 
-		self.add_data(np.full((int(round(time)),), voltage), (voltage, voltage), -self.integral)
+		pulse = np.full((npt+10,), voltage)
+		pulse[-10:] = 0 #add 10 points extra to make sure you end up with 0V when done.
+		self.add_data(pulse, (voltage, voltage), -self.integral)
+
 
 	cdef waveform_raw_upload_data* return_raw_data(self):
 		self.raw_data.wvf_data = &self.wvf_data

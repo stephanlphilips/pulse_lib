@@ -96,8 +96,8 @@ import time
 my_seq.neutralize = False
 s = time.time()
 
-for j in range(50):
-	for i in range(50):
+for j in range(1):
+	for i in range(1):
 		my_seq.upload([i, j])
 		my_seq.play([i, j])
 		print(i,j)
