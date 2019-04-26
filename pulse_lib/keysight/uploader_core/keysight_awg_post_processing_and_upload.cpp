@@ -68,12 +68,13 @@ void cpp_uploader::rescale_concatenate_and_convert_to_16_bit_number(waveform_raw
 	// static double v_offset = (upload_data->min_max_voltage->second + upload_data->min_max_voltage->first)/2;
 	// static double v_pp = upload_data->min_max_voltage->second - upload_data->min_max_voltage->first;
 
-	static double offset_factor = 0;// v_offset + v_pp*0.5/65535.;
+	static double offset_factor = 0; // v_offset + v_pp*0.5;
 	static double rescaling_factor = 65535./v_pp;
 
 	size_t i = 0;
 	for(size_t wvf_id = 0; wvf_id < upload_data->wvf_npt->size(); ++wvf_id ){
 		wvf_ptr = upload_data->wvf_data->at(wvf_id);
+
 		for(int idx_view = 0; idx_view < upload_data->wvf_npt->at(wvf_id); ++ idx_view){
 			upload_data->upload_data[i] = ( wvf_ptr[idx_view] - offset_factor)*rescaling_factor;
 			++i;

@@ -58,8 +58,8 @@ import numpy # Import numpy which is used to make an array
 product = 'M3202A' # Product's model number
 chassis = 0 # Chassis number holding product
 slot = 5 # Slot number of product in chassis
-channel = 1 # Channel being used
-amplitude = 1 # (Unit: Vpp) Amplitude of AWG output signal (0.1 Vpp)
+channel = 2 # Channel being used
+amplitude = 1 # (Unit: Vp) Amplitude of AWG output signal (0.1 Vp)
 waveshape = keysightSD1.SD_Waveshapes.AOU_AWG # Specify AWG output
 delay = 0 # (Unit: ns) Delay after trigger before generating output.
 cycles = 0 # Number of cycles. Zero specifies infinite cycles.
@@ -74,10 +74,10 @@ awg.channelWaveShape(channel, waveshape) # Sets output signal type for awg
 awg.waveformFlush() # Cleans the queue
 awg.AWGflush(channel) # Stops signal from outputing out of channel 1
 # Create an array that represents a sawtooth signal using "numpy"
-array = numpy.zeros(1000) # Create array of zeros with 1000 elements
-array[0] = -0.5 # Initialize element 0 as -0.5
+array = numpy.zeros(10000) # Create array of zeros with 1000 elements
+array[0] = -1 # Initialize element 0 as -0.5
 for i in range(1, len(array)): # This for..loop will increment from -0.5
-	array[i] = array[i-1] + .001 # Increment by .001 every iteration
+	array[i] = array[i-1] + .0002 # Increment by .001 every iteration
 wave = keysightSD1.SD_Wave() # Create SD_Wave object and call it "wave"
 # (will place the array inside "wave")
 error = wave.newFromArrayDouble(keysightSD1.SD_WaveformTypes.WAVE_ANALOG,

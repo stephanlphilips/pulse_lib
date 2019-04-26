@@ -22,9 +22,8 @@ def load_HVI(AWGs, channel_map):
 		AWGs[channel_loc[0]].awg_stop(channel_loc[1])
 		AWGs[channel_loc[0]].set_channel_wave_shape(keysightSD1.SD_Waveshapes.AOU_AWG,channel_loc[1])
 		AWGs[channel_loc[0]].awg_queue_config(channel_loc[1], 1)
-	for awg_name, awg in AWGs.items():
-		awg.awg.setDigitalFilterMode(0)
 
+			
 	HVI = keysightSD1.SD_HVI()
 	HVI.open("C:/V2_code/HVI/HVI_playback_restless.HVI")
 
@@ -35,6 +34,8 @@ def load_HVI(AWGs, channel_map):
 
 	HVI.compile()
 	HVI.load()
+	
+
 	HVI.start()
 
 	return HVI
@@ -75,10 +76,7 @@ def excute_HVI(HVI, AWGs, channel_map, playback_time, n_rep, *args, **kwargs):
 		playback_time (int) : #ns to play the sequence (assuming every point is one ns)
 		n_rep (int) : number of repertitions. This is the number of reperititons that you set in the pulselub object.
 	"""
-	# for awg_name, awg in AWGs.items():
-	# 	# set a certain filter on the FPGA
-	# 	awg.awg.setDigitalFilterMode(0)
-	
+
 	nrep = int(n_rep)
 	step = 1
 

@@ -83,6 +83,32 @@ class segment_pulse(segment_base):
 
 	@last_edited
 	@loop_controller
+	def add_ramp_ss(self, start, stop, start_amplitude, stop_amplitude, keep_amplitude=False):
+		'''
+		Makes a linear ramp (with start and stop amplitude)
+		Args:
+			start (double) : starting time of the ramp
+			stop (double) : stop time of the ramp
+			amplitude : total hight of the ramp, starting from the base point
+			keep_amplitude : when pulse is done, keep reached amplitude for time infinity
+		'''
+		if keep_amplitude == False:
+			if start != 0:
+				pulse = np.array([[0,0], [start + self.data_tmp.start_time, 0],[start + self.data_tmp.start_time, start_amplitude], 
+					[stop + self.data_tmp.start_time, stop_amplitude], [stop + self.data_tmp.start_time, 0]], dtype=np.double)
+			else:
+				pulse = np.array([[start + self.data_tmp.start_time, 0],[start + self.data_tmp.start_time, start_amplitude],
+					[stop + self.data_tmp.start_time, stop_amplitude], [stop + self.data_tmp.start_time, 0]], dtype=np.double)
+		else:
+			if start != 0:
+				pulse = np.array([[0,0], [start + self.data_tmp.start_time, 0],[start + self.data_tmp.start_time, start_amplitude], [stop + self.data_tmp.start_time, stop_amplitude] ], dtype=np.double)
+			else:
+				pulse = np.array([[start + self.data_tmp.start_time, 0],[start + self.data_tmp.start_time, start_amplitude],  [stop + self.data_tmp.start_time, stop_amplitude] ], dtype=np.double)
+
+		self.data_tmp.add_pulse_data(pulse)
+
+	@last_edited
+	@loop_controller
 	def wait(self, wait):
 		'''
 		wait for x ns after the lastest wave element that was programmed.

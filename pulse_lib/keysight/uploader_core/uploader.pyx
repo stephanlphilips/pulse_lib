@@ -98,7 +98,7 @@ cdef class keysight_upload_module():
 	def release_memory(self, waveform_cache_container waveform_cache):
 		cdef mapcpp[string, mapcpp[int, waveform_raw_upload_data_ptr]] *AWG_raw_upload_data
 		AWG_raw_upload_data = &waveform_cache.AWG_raw_upload_data
-		print("realeae of memory started")
+
 		self.keysight_uploader.release_memory(AWG_raw_upload_data)
 
 
