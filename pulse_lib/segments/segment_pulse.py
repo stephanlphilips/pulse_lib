@@ -8,6 +8,7 @@ import datetime
 from pulse_lib.segments.segment_base import last_edited, segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller
 from pulse_lib.segments.data_classes.data_pulse import pulse_data
+from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
 import copy
 
 class segment_pulse(segment_base):
@@ -101,7 +102,7 @@ class segment_pulse(segment_base):
 	def add_sin(self, start, stop, amp, freq, phase_offset=0):
 		'''
 		add a sinus to the current segment, parameters should be self exlenatory.
-		The pulse will have a relative phase (as this is needed to all IQ work).
+		The pulse will have a not have a relative phase phase.
 		Args:
 			start (double) : start time in ns of the pulse
 			stop (double) : stop time in ns of the pulse
@@ -109,14 +110,7 @@ class segment_pulse(segment_base):
 			freq (double) : frequency of the pulse
 			phase_offset (double) : offset in phase is needed
 		'''
-		self.data_tmp.add_sin_data(
-			{
-			'type' : 'std', 
-			'start_time' : start + self.data_tmp.start_time,
-			'stop_time' : stop + self.data_tmp.start_time,
-			'amplitude' : amp,
-			'frequency' : freq,
-			'phase' : phase_offset})
+		self.data_tmp.add_MW_data(IQ_data_single(start, stop, amp, freq, phase_offset))
 
 	@last_edited
 	@loop_controller
@@ -135,8 +129,6 @@ class segment_pulse(segment_base):
 	@loop_controller
 	def add_np(self,start, array):
 		raise NotImplemented
-
-
 
 
 
