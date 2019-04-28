@@ -186,7 +186,7 @@ class marker_data(parent_data):
 			start = get_effective_point_number(data_points[0], sample_time_step) + pre_delay_pt
 			stop = get_effective_point_number(data_points[1], sample_time_step) + pre_delay_pt
 
-			my_sequence[start:stop] = 1
+			my_sequence[start:stop] = 1*self.pulse_amplitude
 
 		return my_sequence
 

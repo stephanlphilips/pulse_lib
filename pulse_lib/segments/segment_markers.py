@@ -17,7 +17,7 @@ class segment_marker(segment_base):
 			name (str) : name of the marker channel.
 			marker_voltage (double) : voltage in mV to output when the marker is on (default is 1V),
 		"""
-		super(segment_marker, self).__init__(name, marker_data(marker_voltage), segment_type = 'marker')
+		super(segment_marker, self).__init__(name, marker_data(marker_voltage), segment_type = 'render')
 
 
 	@last_edited

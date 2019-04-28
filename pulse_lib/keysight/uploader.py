@@ -49,26 +49,6 @@ class keysight_uploader():
 		# self.upload_queue.append(job)
 		self.upload(job)
 
-	# def __get_new_job(self):
-	# 	'''
-	# 	get the next job that needs to be uploaded.
-
-	# 	'''
-	# 	# get item in the queue with the highest prioriry
-	# 	priority = -1
-	# 	for i in self.upload_queue:
-	# 		if i.priority > priority:
-	# 			priority = i.priority 
-
-	# 	# get the job
-	# 	for i in range(len(self.upload_queue)):
-	# 		if self.upload_queue[i].priority == priority:
-	# 			job = self.upload_queue[i]
-	# 			self.upload_queue.pop(i)
-	# 			return job
-
-	# 	return None
-
 	def __get_upload_data(self, seq_id, index):
 		"""
 		get job data of an uploaded segment
@@ -97,12 +77,13 @@ class keysight_uploader():
 		for channel, channel_loc in self.channel_map.items(): 
 			self.awg[channel_loc[0]].awg_queue_config(channel_loc[1], 0)
 
-	def play(self, seq_id, index):
+	def play(self, seq_id, index, release = True):
 		"""
 		start playback of a sequence that has been uploaded.
 		Args:
 			seq_id (uuid) : id of the sequence
 			index (tuple) : index that has to be played
+			release (bool) : release memory on AWG after done.
 		"""
 
 		"""
@@ -112,15 +93,12 @@ class keysight_uploader():
 		2) make queue for each channels (now assuming single waveform upload).
 		3) upload HVI code & start.
 		"""
-		a = time.time()
 		# 0)
 		job =  self.__get_upload_data(seq_id, index)
 		self.wait_until_AWG_idle()
 		
 		# 1 + 2)
 		# flush the queue's
-
-		b = time.time()
 		for channel_name, data in job.upload_data.items():
 			"""
 			upload data <tuple>:
@@ -132,12 +110,10 @@ class keysight_uploader():
 			awg_name, channel_number = self.channel_map[channel_name.decode('ascii')]
 			v_pp, v_off = convert_min_max_to_vpp_voff(*data[0])
 			
-			self.AWGs[awg_name].awg_stop(channel_number)
-			# self.AWGs[awg_name].set_channel_amplitude(v_pp/1000/2,channel_number)
-			# self.AWGs[awg_name].set_channel_offset(v_off/1000,channel_number)
+			# This should happen in HVI			
+			# self.AWGs[awg_name].awg_stop(channel_number)
 
-			# mode 0
-			self.AWGs[awg_name].set_channel_amplitude(v_pp/1000/2,channel_number)
+			self.AWGs[awg_name].set_channel_amplitude(v_pp/1000/2,channel_number) #amp = vpp/2 (speciefied in V on module, so therefore factor 1000)
 			self.AWGs[awg_name].set_channel_offset(v_off/1000,channel_number)
 
 			self.AWGs[awg_name].awg_flush(channel_number)
@@ -150,22 +126,17 @@ class keysight_uploader():
 				self.AWGs[awg_name].awg_queue_waveform(channel_number,segment_number,trigger_mode,start_delay,cycles,precaler)
 				trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
 		# 3)
-		c = time.time()
 		if job.HVI_start_function is None:
 			job.HVI.load()
 			job.HVI.start()
 		else:
 			job.HVI_start_function(job.HVI, self.AWGs, self.channel_map, job.playback_time, job.n_rep )
-		d = time.time()
 		
-		self.release_memory()
+		if release == True:
+			self.release_memory()
+
 		self.upload_done.append(job)
 
-		print("play sequence data resumae")
-		print("fetch job : ", b-a)
-		print("prpare AWG : ", c-b)
-		print("load hvi : ", d-c)
-		print("total_time : ", d-a )
 
 	def release_memory(self):
 		# release the memory of all jobs that are uploaded. Be careful to do not run this when active playback is happening. Otherwise you risk of overwriting a waveform while playing.
@@ -200,7 +171,7 @@ class keysight_uploader():
 			
 			
 
-		start = time.time()
+		# start = time.time()
 
 		# 1) get all the upload data -- construct object to hall the rendered data
 		waveform_cache = waveform_cache_container(self.channel_map, self.channel_compenstation_limits)
@@ -209,12 +180,15 @@ class keysight_uploader():
 		pre_delay = 0
 		post_delay = 0
 
+		# TODO implement prescalors? (no just assuming one sampling rate.)
+		sample_rate = 1e9
+
 		for i in range(len(job.sequence)):
 
 			seg = job.sequence[i][0]
 			n_rep = job.sequence[i][1]
 			prescaler = job.sequence[i][2]
-			
+
 			# TODO add precaler in as sample rate
 			for channel in self.channel_names:
 				if i == 0:
@@ -222,23 +196,20 @@ class keysight_uploader():
 				if i == len(job.sequence) -1:
 					post_delay = self.channel_delays[channel][1]
 				
-				sample_rate = 1e9
 				wvf = seg.get_waveform(channel, job.index, pre_delay, post_delay, sample_rate)
-
 				integral = 0
 				if job.neutralize == True:
 					integral = getattr(seg, channel).integrate(job.index, pre_delay, post_delay, sample_rate)
 
 				vmin = getattr(seg, channel).v_min(job.index, sample_rate)
 				vmax = getattr(seg, channel).v_max(job.index, sample_rate)
-				
+
 				waveform_cache[channel].add_data(wvf, (vmin, vmax), integral)
 
 				pre_delay = 0
 				post_delay = 0
-
 		
-		end1 = time.time()
+		# end1 = time.time()
 		# 2) perform DC correction (if needed)
 		'''
 		Steps: [TODO : best way to include sample rate here? (by default now 1GS/s)]
@@ -246,16 +217,14 @@ class keysight_uploader():
 			b) make sure time is modulo 10 (do that here?)
 			c) add segments with the compenstated pulse for the given total time.
 		'''
-		waveform_cache.generate_DC_compenstation()
+		waveform_cache.generate_DC_compenstation(sample_rate)
 		# TODO express this in time instead of points (now assumed one ns is point in the AWG (not very robust..))
 		job.waveform_cache = waveform_cache
 		job.playback_time = waveform_cache.npt
-
 		
 		# 3) 
 		if job.HVI is not None:
 			job.compile_HVI()
-		end2 = time.time()
 
 		# 3) DSP correction --> moved to c++
 		# TODO later
@@ -266,11 +235,7 @@ class keysight_uploader():
 		# submit the current job as completed.
 		self.upload_ready_to_start.append(job)
 
-		end3 = time.time()
-		print("time needed to render and compenstate",end3 - start)
-		print("rendering = ", end1 - start)
-		print("compensation = ", end2 - end1)
-		print("cpp conversion to short = ", end3 - end2)
+
 
 	def wait_until_AWG_idle(self):
 		'''
@@ -282,7 +247,6 @@ class keysight_uploader():
 
 		idle = 1 # 1 is False
 		while idle == 1:
-			print("AWG running")
 			idle = awg.awg.AWGisRunning(channel)
 
 
@@ -337,5 +301,5 @@ def convert_min_max_to_vpp_voff(v_min, v_max):
 	# vpp = v_max - v_min
 	# voff = (v_min + v_max)/2
 	voff = 0
-	vpp = 2*max(abs(v_min), abs(v_max))
+	vpp = max(abs(v_min), abs(v_max))*2
 	return vpp, voff
