@@ -203,6 +203,29 @@ class pulse_data(parent_data):
 
         self.MW_pulse_data = new_MW_data
 
+    def shift_MW_frequency(self, frequency):
+        '''
+        shift the frequency of a MW signal that is defined. This is needed for dealing with the upconverion of a IQ signal.
+        
+        Args:
+            frequency (float) : frequency you want to shift
+        '''
+        for IQ_data_single_object in self.MW_pulse_data:
+            IQ_data_single_object.frequency -= frequency
+ 
+    def shift_MW_phases(self, phase_shift):
+        '''
+        Shift the phases of all the microwaves present in the MW data object
+        
+        Args:
+            phase_shift (float) : amount of phase to shift in rad.
+        '''
+        if phase_shift == 0:
+            return
+
+        for IQ_data_single_object in self.MW_pulse_data:
+            IQ_data_single_object.start_phase += phase_shift
+
     def _shift_all_time(self, time_shift):
         '''
         Make a copy of all the data and shift all the time
@@ -222,7 +245,6 @@ class pulse_data(parent_data):
             IQ_data_single_object.stop += time_shift
 
         return data_copy_shifted
-
 
     def _add_up_pulse_data(self, new_pulse):
         '''

@@ -21,9 +21,10 @@ import numpy as np
 import datetime
 
 from pulse_lib.segments.segment_base import last_edited, segment_base
-from pulse_lib.segments.utility.data_handling_functions import loop_controller
-from pulse_lib.segments.data_classes.data_IQ import IQ_data
-
+from pulse_lib.segments.utility.data_handling_functions import loop_controller, update_dimension
+from pulse_lib.segments.data_classes.data_pulse import pulse_data
+from pulse_lib.segments.data_classes.data_IQ import envelope_generator, IQ_data_single, make_chirp
+from pulse_lib.segments.data_classes.data_markers import marker_data
 
 
 class segment_IQ(segment_base):
@@ -31,12 +32,12 @@ class segment_IQ(segment_base):
 	Standard single segment for IQ purposes
 	todo --> add global phase and time shift in the data class instead of this one (cleaner and more generic).
 	"""
-	def __init__(self, name, LO):
+	def __init__(self, name):
 		'''
 		Args: frequency of the LO (in Hz). 
 		Tip, make on of these segments for each qubit. Then you get a very clean implementation of reference frame changes!
 		'''
-		super().__init__(name, IQ_data(LO) ,segment_type = 'IQ_virtual')
+		super().__init__(name, pulse_data() ,segment_type = 'IQ_virtual')
 
 	@loop_controller
 	def add_global_phase(self,phase):
@@ -51,25 +52,22 @@ class segment_IQ(segment_base):
 
 	@last_edited
 	@loop_controller
-	def add_sin(self, t0, t1, freq, amp, phase = 0):
+	def add_MW_pulse(self, t0, t1, amp, freq, phase = 0, AM = None, PM = None):
 		'''
-		Add simple sine to the segment.
+		Make a sine pulse (generic constructor)
+
 		Args:
 			t0(float) : start time in ns
 			t1(float) : stop tiume in ns
-			freq(float) : frequency
 			amp (float) : amplitude of the pulse.
+			freq(float) : frequency
 			phase (float) : phase of the microwave.
+			AM ('str/tuple/function') : function describing an amplitude modulation (see examples in pulse_lib.segments.data_classes.data_IQ)
+			PM ('str/tuple/function') : function describing an phase modulation (see examples in pulse_lib.segments.data_classes.data_IQ)
 		'''
-		data = {
-			'type' : 'std',
-			'start_time' : t0 + self.data_tmp.start_time,
-			'stop_time' : t1 + self.data_tmp.start_time,
-			'frequency' : freq,
-			'amplitude' : amp,
-			'phase' : phase + self.data_tmp.global_phase,
-			}
-		self.data_tmp.add_simple_data(data)
+		MW_data = IQ_data_single(t0, t1, amp, freq, phase, envelope_generator(AM, PM))
+
+		self.data_tmp.add_MW_data(MW_data)
 
 	@last_edited
 	@loop_controller
@@ -83,111 +81,60 @@ class segment_IQ(segment_base):
 			f1 (float) : stop frequency
 			amp (float) : amplitude of the pulse.
 		'''
-		data = {
-			'type' : 'chirp',
-			'start_time' : t0 + self.data_tmp.start_time,
-			'stop_time' : t1 + self.data_tmp.start_time,
-			'frequency1' : f0,
-			'frequency2' : f1,
-			'amplitude' : amp,
-			}
-		self.data_tmp.add_simple_data(data)
+		PM = make_chirp(f0, f1)
+		MW_data = IQ_data_single(t0, t1, amp, f0, 0, envelope_generator(None, PM))
+		
+		self.data_tmp.add_MW_data(MW_data)
 
-	@last_edited
-	@loop_controller
-	def add_AM_sin(self, t0, t1, freq, amp, phase, mod=None):
-		'''
-		Add amplitude modulation.
-		Args:
-			t0(float) : start time in ns
-			t1(float) : stop tiume in ns
-			freq(float) : frequency of the pulse (total frequency, not offet frequency from central frequency)
-			amp (float) : amplitude of the applied signal in the unit you set the pulse lib
-			mod (np.ndarray) : modualtion of the sin(should have the same number of points as the time between t0 and t1 (use same sample rate))
-		'''
-		data = {
-			'type' : 'AM_mod',
-			'start_time' : t0 + self.data_tmp.start_time,
-			'stop_time' : t1 + self.data_tmp.start_time,
-			'frequency' : freq,
-			'amplitude' : amp,
-			'phase' : phase + self.data_tmp.global_phase,
-			'mod' : mod
-			}
-		self.data_tmp.add_simple_data(data)
-
-	@last_edited
-	@loop_controller
-	def add_FM_sin(self, t0, t1, freq, amp, phase, mod=None):
-		'''
-		Add frequency modulation.
-		Args:
-			t0(float) : start time in ns
-			t1(float) : stop tiume in ns
-			freq(float) : frequency of the pulse (total frequency, not offet frequency from central frequency)
-			amp (float) : amplitude of the applied signal in the unit you set the pulse lib
-			mod (np.ndarray) : modualtion of the sin(should have the same number of points as the time between t0 and t1 (use same sample rate))
-		'''
-		data = {
-			'type' : 'FM_mod',
-			'start_time' : t0 + self.data_tmp.start_time,
-			'stop_time' : t1 + self.data_tmp.start_time,
-			'frequency' : freq,
-			'amplitude' : amp,
-			'phase' : phase + self.data_tmp.global_phase,
-			'mod' : mod
-			}
-		self.data_tmp.add_simple_data(data)
-
-	@last_edited
-	@loop_controller
-	def add_PM_sin(self, t0, t1, freq, amp, phase, mod=None):
-		'''
-		Add phase modulation.
-		Args:
-			t0(float) : start time in ns
-			t1(float) : stop tiume in ns
-			freq(float) : frequency of the pulse (total frequency, not offet frequency from central frequency)
-			amp (float) : amplitude of the applied signal in the unit you set the pulse lib
-			mod (np.ndarray) : modualtion of the sin(should have the same number of points as the time between t0 and t1 (use same sample rate))
-		'''
-		data = {
-			'type' : 'PM_mod',
-			'start_time' : t0 + self.data_tmp.start_time,
-			'stop_time' : t1 + self.data_tmp.start_time,
-			'frequency' : freq,
-			'amplitude' : amp,
-			'phase' : phase + self.data_tmp.global_phase,
-			'mod' : mod
-			}
-
-		self.data_tmp.add_simple_data(data)
-
-	@last_edited
-	@loop_controller
-	def add_numpy_IQ(self,I, Q):
-		raise NotImplemented
-
-	def get_IQ_data(self, I_or_Q):
+	def get_IQ_data(self, LO, I_or_Q, image):
 		'''
 		get I and Q data from the main element.
 		Args:
+			LO (float): frequency of microwave source
 			I_or_Q (str) : 'I'/'Q', denoting if you want the I or the Q channel
+			Image : '+'/'-', - if you want the differential signal.
 		Returns:
-			data (np.ndarray) : array with the objects inside
+			data (np.ndarray<pulse_data>) : array with the pulsedata objects inside
 		'''
-		local_data = self.data.flatten()
-		data = np.empty(local_data.shape, dtype=object)
-		
-		for i in range(len(data)):
-			data[i] =  local_data[i].get_IQ_data(I_or_Q)
-		
-		data = data.reshape(self.data.shape)
-		return data
 
+		phase_shift = 0
+		if I_or_Q == 'Q':
+			phase_shift += np.pi/2
+		if image == '-':
+			phase_shift += np.pi
+
+		local_data = copy.copy(self.data).flatten()
+		# downconvert the sigal saved in the data object, so later on, in the real MW source, it can be upconverted again.
+		for i in range(len(data)):
+			local_data[i].shift_MW_phases(phase_shift)
+			local_data[i].shift_MW_frequency(LO)
+		
+		local_data = local_data.reshape(self.local_data.shape)
+		
+		return local_data
+
+	def get_marker_data(self, pre_delay, post_delay):
+		'''
+		generate markers for the PM of the IQ modulation
+		'''
+		my_marker_data = update_dimension(data_container(marker_data()), self.shape)
+		my_marker_data = my_marker.flatten()
+		
+		# make a flat reference.
+		local_data = self.data.flatten()
+		
+		for i in range(len(local_data)):
+			for MW_pulse_info in local_data[i].MW_pulse_data:
+				my_marker_data[i].add_marker(MW_pulse_info.start - pre_delay, MW_pulse_info.stop + post_delay)
+
+		return my_marker_data
 
 if __name__ == '__main__':
 	import matplotlib.pyplot as plt
 
-	s1 = segment_IQ("test", 1e9)
-	s1.add_sin(20,50,1e6,1)
+	s1 = segment_IQ("test")
+	s1.add_MW_pulse(0,1000,1,1e7,0, "flattop")
+	s1.reset_time()
+	s1.add_chirp(1500,2500,1e6,1e7,1)
+	s1.plot_segment(sample_rate = 1e9)
+	plt.show()

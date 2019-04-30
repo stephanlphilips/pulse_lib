@@ -103,13 +103,13 @@ class segment_base():
 	
 	@last_edited
 	@loop_controller
-	def reset_time(self, time=None, extend_only = False):
+	def reset_time(self, time=None):
 		'''
 		resets the time back to zero after a certain point
 		Args: 
 			time (double) : (optional), after time to reset back to 0. Note that this is absolute time and not rescaled time.
 		'''
-		self.data_tmp.reset_time(time, extend_only)
+		self.data_tmp.reset_time(time)
 
 	@property
 	def shape(self):
@@ -365,14 +365,13 @@ class segment_base():
 		my_sequence = pulse_data_all_curr_seg.render(pre_delay, post_delay, sample_rate)
 		return my_sequence
 
-	def plot_segment(self, index = [0], render_full = True):
+	def plot_segment(self, index = [0], render_full = True, sample_rate = 1e9):
 		'''
 		Args:
 			index : index of which segment to plot
 			render full (bool) : do full render (e.g. also get data form virtual channels). Put True if you want to see the waveshape send to the AWG.
 		'''
 		# standard 1 Gs/s
-		sample_rate = 1e9
 		sample_time_step = 1/sample_rate
 
 		if render_full == True:
@@ -388,11 +387,4 @@ class segment_base():
 		plt.plot(x,y, label=self.name)
 		# plt.show()
 
-
-if __name__ == '__main__':
-	s = segment_single("test")
-	from pulse_lib.segments.looping import linspace
-	s.add_block(0, 10, linspace(2,10,50, unit=("ee")))
-	print(s.loops)
-	print(s.units)
 
