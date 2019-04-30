@@ -121,9 +121,9 @@ class keysight_uploader():
 			start_delay = 0 # no start delay
 			trigger_mode = 1 # software/HVI trigger
 			cycles = 1
-			precaler = 0
+			prescaler = job.prescaler
 			for segment_number in data[1]:
-				self.AWGs[awg_name].awg_queue_waveform(channel_number,segment_number,trigger_mode,start_delay,cycles,precaler)
+				self.AWGs[awg_name].awg_queue_waveform(channel_number,segment_number,trigger_mode,start_delay,cycles,prescaler)
 				trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
 		# 3)
 		if job.HVI_start_function is None:
@@ -180,14 +180,11 @@ class keysight_uploader():
 		pre_delay = 0
 		post_delay = 0
 
-		# TODO implement prescalors? (no just assuming one sampling rate.)
-		sample_rate = 1e9
+		sample_rate = job.sample_rate
 
 		for i in range(len(job.sequence)):
 
 			seg = job.sequence[i][0]
-			n_rep = job.sequence[i][1]
-			prescaler = job.sequence[i][2]
 
 			# TODO add precaler in as sample rate
 			for channel in self.channel_names:
@@ -209,7 +206,6 @@ class keysight_uploader():
 				pre_delay = 0
 				post_delay = 0
 		
-		# end1 = time.time()
 		# 2) perform DC correction (if needed)
 		'''
 		Steps: [TODO : best way to include sample rate here? (by default now 1GS/s)]
@@ -220,7 +216,12 @@ class keysight_uploader():
 		waveform_cache.generate_DC_compenstation(sample_rate)
 		# TODO express this in time instead of points (now assumed one ns is point in the AWG (not very robust..))
 		job.waveform_cache = waveform_cache
-		job.playback_time = waveform_cache.npt
+		if job.prescaler == 0:
+			job.playback_time = waveform_cache.npt
+		else:
+			job.playback_time = waveform_cache.npt*5*job.prescaler
+		print(waveform_cache.npt)
+		print(job.playback_time)
 		
 		# 3) 
 		if job.HVI is not None:
@@ -252,13 +253,14 @@ class keysight_uploader():
 
 class upload_job(object):
 	"""docstring for upload_job"""
-	def __init__(self, sequence, index, seq_id, n_rep, neutralize=True, priority=0):
+	def __init__(self, sequence, index, seq_id, n_rep, prescaler=0, neutralize=True, priority=0):
 		'''
 		Args:
-			sequence (list of list): list with list of the sequence, number of repetitions and prescalor (// upload rate , see keysight manual)
+			sequence (list of list): list with list of the sequence
 			index (tuple) : index that needs to be uploaded
 			seq_id (uuid) : if of the sequence
 			n_rep (int) : number of repetitions of this sequence.
+			prescaler (int) : scale the upluading speeds (f_sampling = 1Gs/(5*prescaler))
 			neutralize (bool) : place a neutralizing segment at the end of the upload
 			priority (int) : priority of the job (the higher one will be excuted first)
 		'''
@@ -267,6 +269,8 @@ class upload_job(object):
 		self.id = seq_id
 		self.index = index
 		self.n_rep = n_rep
+		self.prescaler = prescaler
+		self.sample_rate = convert_prescaler_to_sample_rate(prescaler)
 		self.neutralize = True
 		self.priority = priority
 		self.DSP = False
@@ -303,3 +307,20 @@ def convert_min_max_to_vpp_voff(v_min, v_max):
 	voff = 0
 	vpp = max(abs(v_min), abs(v_max))*2
 	return vpp, voff
+
+def convert_prescaler_to_sample_rate(prescalor):
+	"""
+	Keysight specific function.
+
+	Args:
+		prescalor (int) : prescalor set to the awg.
+	
+	Returns:
+		sample_rate (float) : effective sample rate the AWG will be running
+	"""
+	if prescalor == 0:
+		return 1e9
+	if prescalor == 1:
+		return 200e6
+	else: 
+		return 1e9/(2*5*prescalor)

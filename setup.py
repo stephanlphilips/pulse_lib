@@ -11,6 +11,7 @@ os.environ['CFLAGS'] = '-I' + numpy.get_include()
 packages = find_packages()
 print('packages: %s' % packages)
 
+
 extensions = [
     Extension(
         "pulse_lib.segments.utility.segments_c_func",
@@ -46,6 +47,7 @@ if os.name == 'nt':
 setup(name="pulse_lib",
 	version="1.1",
 	packages = find_packages(),
-	ext_modules = cythonize(extensions)
+	ext_modules = cythonize(extensions),
+    install_requires=['si_prefix', ],
 	)
 

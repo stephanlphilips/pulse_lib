@@ -32,6 +32,17 @@ class pulse_data(parent_data):
     def add_numpy_data(self, input):
         raise NotImplemented
 
+    def wait(self, time):
+        """
+        Wait after last point for x ns (note that this does not reset time)
+        
+        Args:
+            time (double) : time in ns to wait
+        """
+        wait_time = self.total_time + time
+        pulse = np.asarray([[0, 0],[wait_time, 0]])
+        self.add_pulse_data(pulse)
+
     def slice_time(self, start, end):
         '''
         slice the time in the pulse data object.
@@ -341,7 +352,7 @@ class pulse_data(parent_data):
         
         return new_data
 
-    def append(self, other, time):
+    def append(self, other, time=None):
         '''
         Append two segments to each other, where the other segment is places after the first segment. Time is the total time of the first segment.
         Args:
@@ -350,6 +361,8 @@ class pulse_data(parent_data):
 
         ** what to do with start time argument?
         '''
+        if time == None:
+            time = self.total_time
 
         self.slice_time(0, time)
 

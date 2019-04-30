@@ -8,6 +8,7 @@ pulse_lib/virtual_channel_constructors.py
 pulse_lib.egg-info/PKG-INFO
 pulse_lib.egg-info/SOURCES.txt
 pulse_lib.egg-info/dependency_links.txt
+pulse_lib.egg-info/requires.txt
 pulse_lib.egg-info/top_level.txt
 pulse_lib/keysight/uploader_core/keysight_awg_post_processing_and_upload.cpp
 pulse_lib/keysight/uploader_core/mem_ctrl.cpp

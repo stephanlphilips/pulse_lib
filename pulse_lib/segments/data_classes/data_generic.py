@@ -27,6 +27,10 @@ class parent_data(ABC):
         raise NotImplemented
     
     @abstractmethod
+    def wait(time):
+        raise NotImplemented
+
+    @abstractmethod
     def get_vmax(self,sample_rate):
         '''
         Calculate the maximum voltage in the current segment_single.
