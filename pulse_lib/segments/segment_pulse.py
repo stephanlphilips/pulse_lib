@@ -140,19 +140,6 @@ class segment_pulse(segment_base):
 
 	@last_edited
 	@loop_controller
-	def repeat(self, number):
-		'''
-		repeat a waveform n times.
-		Args:
-			number (int) : number of ties to repeat the waveform
-		'''
-		
-		data_copy = copy.copy(self.data_tmp)
-		for i in range(number-1):
-			self.data_tmp.append(data_copy)
-
-	@last_edited
-	@loop_controller
 	def add_np(self,start, array):
 		raise NotImplemented
 

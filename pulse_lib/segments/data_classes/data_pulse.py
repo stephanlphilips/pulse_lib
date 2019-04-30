@@ -21,12 +21,6 @@ class pulse_data(parent_data):
         self.start = 0
 
     def add_pulse_data(self, input):
-        '''
-        add up baseband pulse data to the current
-
-        Args:
-            input (np.ndarray[ndim=2, dtype=double]) : pulse definition (see pulse_lib.segments.segment_pulse)
-        '''
         self.baseband_pulse_data = self._add_up_pulse_data(input)
 
     def add_MW_data(self, MW_data_object):
@@ -59,6 +53,17 @@ class pulse_data(parent_data):
         if time is not None:
             pulse = np.asarray([[0, 0],[time, 0]], dtype=np.double)
             self.add_pulse_data(pulse)
+
+    def wait(self, time):
+        """
+        Wait after last point for x ns (note that this does not reset time)
+        
+        Args:
+            time (double) : time in ns to wait
+        """
+        wait_time = self.total_time + time
+        pulse = np.asarray([[0, 0],[wait_time, 0]])
+        self.add_pulse_data(pulse)
 
     def append(self, other, time):
         '''
@@ -353,13 +358,12 @@ class pulse_data(parent_data):
         
         return new_data
 
-    '''
-    method for rendering.
-    '''
+
     def _render(self, sample_rate, pre_delay = 0, post_delay = 0):
         '''
         make a full rendering of the waveform at a predetermined sample rate.
         '''
+
         # express in Gs/s
         sample_rate = sample_rate*1e-9
         sample_time_step = 1/sample_rate

@@ -1,6 +1,7 @@
 import pulse_lib.segments.segment_container
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension
-from pulse_lib.keysight.uploader import upload_job
+from pulse_lib.keysight.uploader import upload_job,convert_prescaler_to_sample_rate
+from si_prefix import si_format
 
 import uuid
 
@@ -37,6 +38,8 @@ class sequencer():
 		# HVI if needed..
 		self.HVI = None
 		self.n_rep = 1000
+		self.prescaler = 0
+		self._sample_rate = 1e9
 
 
 	@property
@@ -46,6 +49,31 @@ class sequencer():
 	@property
 	def ndim(self):
 		return len(self.shape)
+
+	@property
+	def sample_rate(self):
+		return self._sample_rate
+
+	@sample_rate.setter
+	def sample_rate(self, rate):
+		"""
+		Rate at which to set the AWG. Note that not all rates are supported and a rate as close to the one you enter will be put.
+		
+		Args:
+			rate (float) : target sample rate for the AWG.
+		"""
+		if rate > 200e6:
+			prescaler = 0
+		elif rate > 50e6:
+			prescaler = 1
+		else:
+			prescaler = 1e9/(5*rate*2)
+
+		self.prescaler = int(prescaler)
+		self._sample_rate = convert_prescaler_to_sample_rate(prescaler)
+
+		print("Info : effective sampling rate is set to {}S/s".format(si_format(self._sample_rate, precision=1)))
+
 
 	def add_sequence(self, sequence):
 		'''
@@ -112,7 +140,7 @@ class sequencer():
 		(note that this is only possible if you AWG supports upload while doing playback)
 		'''
 		
-		upload_object = upload_job(self.sequence, index, self.id, self.n_rep ,self.neutralize, self.priority)
+		upload_object = upload_job(self.sequence, index, self.id, self.n_rep ,self.prescaler, self.neutralize, self.priority)
 		if self.DSP is not None:
 			upload_object.add_dsp_function(self.DSP)
 		if self.HVI is not None:

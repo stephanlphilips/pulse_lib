@@ -103,13 +103,13 @@ std::map<int, std::vector<int>> *segment_occupation::get_seg_data(){
 
 mem_ctrl::mem_ctrl(){
 	// Initialize memory management object.
-	// memory_layout[1e8] = 4;
-	// memory_layout[5e7] = 4;
-	// memory_layout[1e7] = 4;
-	// memory_layout[5e6] = 8;
-	// memory_layout[1e6] = 10;
-	memory_layout[1e5] = 20;
-	// memory_layout[1e4] = 500;
+	memory_layout[1e8] = 4;
+	memory_layout[5e7] = 4;
+	memory_layout[1e7] = 4;
+	memory_layout[5e6] = 8;
+	memory_layout[1e6] = 10;
+	memory_layout[1e5] = 400;
+	memory_layout[1e4] = 500;
 
 	seg_occ = new segment_occupation(&memory_layout);
 };

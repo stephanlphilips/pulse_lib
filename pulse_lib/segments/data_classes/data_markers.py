@@ -43,11 +43,20 @@ class marker_data(parent_data):
 		"""
 		self.start_time = self.total_time
 		if time is not None:
-			self.start_time = time
+			self.start_time =time
 
 		if self.start_time > self.end_time:
 			self.end_time = self.start_time
 
+	def wait(self, time):
+		"""
+		Wait after marker for x ns.
+		
+		Args:
+			time (double) : time in ns to wait
+		"""
+		self.end_time += time
+		
 	@property
 	def total_time(self):
 		'''

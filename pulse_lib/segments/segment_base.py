@@ -111,6 +111,16 @@ class segment_base():
 		'''
 		self.data_tmp.reset_time(time)
 
+	@last_edited
+	@loop_controller
+	def wait(self, time):
+		'''
+		resets the time back to zero after a certain point
+		Args: 
+			time (double) : time in ns to wait
+		'''
+		self.data_tmp.wait(time)
+
 	@property
 	def shape(self):
 		return self.data.shape
@@ -242,6 +252,19 @@ class segment_base():
 
 		return self
 
+	@last_edited
+	@loop_controller
+	def repeat(self, number):
+		'''
+		repeat a waveform n times.
+		Args:
+			number (int) : number of ties to repeat the waveform
+		'''
+		
+		data_copy = copy.copy(self.data_tmp)
+		for i in range(number-1):
+			self.data_tmp.append(data_copy)
+			
 	@loop_controller
 	def __append(self, other, time):
 		"""
@@ -370,8 +393,9 @@ class segment_base():
 		Args:
 			index : index of which segment to plot
 			render full (bool) : do full render (e.g. also get data form virtual channels). Put True if you want to see the waveshape send to the AWG.
+			sample_rate (float): standard 1 Gs/s
 		'''
-		# standard 1 Gs/s
+
 		sample_time_step = 1/sample_rate
 
 		if render_full == True:
