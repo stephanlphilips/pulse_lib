@@ -103,13 +103,14 @@ class segment_base():
 	
 	@last_edited
 	@loop_controller
-	def reset_time(self, time=None):
+	def reset_time(self, time=None, extend_only = False):
 		'''
 		resets the time back to zero after a certain point
 		Args: 
 			time (double) : (optional), after time to reset back to 0. Note that this is absolute time and not rescaled time.
+			extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms...].
 		'''
-		self.data_tmp.reset_time(time)
+		self.data_tmp.reset_time(time, extend_only)
 
 	@last_edited
 	@loop_controller
@@ -406,9 +407,12 @@ class segment_base():
 			pulse_data_curr_seg = self.data.flat[flat_index]
 
 		y = pulse_data_curr_seg.render(0, 0, sample_rate)
-		x = np.linspace(0, pulse_data_curr_seg.total_time*sample_time_step-sample_time_step, len(y))*1e9
+		x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))
 
 		plt.plot(x,y, label=self.name)
+		plt.xlabel("time (ns)")
+		plt.ylabel("amplitude (mV)")
+		plt.legend()
 		# plt.show()
 
 

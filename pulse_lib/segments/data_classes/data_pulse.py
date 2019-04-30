@@ -18,7 +18,7 @@ class pulse_data(parent_data):
         self.baseband_pulse_data = np.zeros([1,2], dtype=np.double)
         self.MW_pulse_data = list()
 
-        self.start = 0
+        self.start_time = 0
 
     def add_pulse_data(self, input):
         self.baseband_pulse_data = self._add_up_pulse_data(input)
@@ -44,15 +44,21 @@ class pulse_data(parent_data):
 
         return self.baseband_pulse_data[-1,0]
 
-    def reset_time(self, time = None):
+    def reset_time(self, time,  extend_only = False):
         '''
         Preform a reset time on the current segment.
         Args:
             time (float) : time where you want the reset. Of None, the totaltime of the segment will be taken.
+            extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms...].
         '''
-        if time is not None:
-            pulse = np.asarray([[0, 0],[time, 0]], dtype=np.double)
-            self.add_pulse_data(pulse)
+        if time is None:
+            time = self.total_time
+
+        pulse = np.asarray([[0, 0],[time, 0]], dtype=np.double)
+        self.add_pulse_data(pulse)
+
+        if extend_only == False:
+            self.start_time = time
 
     def wait(self, time):
         """
@@ -65,7 +71,7 @@ class pulse_data(parent_data):
         pulse = np.asarray([[0, 0],[wait_time, 0]])
         self.add_pulse_data(pulse)
 
-    def append(self, other, time):
+    def append(self, other, time = None):
         '''
         Append two segments to each other, where the other segment is places after the first segment. Time is the total time of the first segment.
         Args:
@@ -74,6 +80,8 @@ class pulse_data(parent_data):
 
         ** what to do with start time argument?
         '''
+        if time is None:
+            time = self.total_time
 
         self.slice_time(0, time)
 
@@ -304,7 +312,7 @@ class pulse_data(parent_data):
         my_copy = pulse_data()
         my_copy.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
         my_copy.MW_pulse_data = copy.copy(self.MW_pulse_data)
-        my_copy.start = copy.copy(self.start)
+        my_copy.start_time = copy.copy(self.start_time)
         return my_copy
 
     def __add__(self, other):

@@ -116,7 +116,7 @@ class segment_pulse(segment_base):
 		Args:
 			wait (double) : time in ns to wait
 		'''
-		amp_0 = self.data_tmp.my_pulse_data[-1,1]
+		amp_0 = self.data_tmp.baseband_pulse_data[-1,1]
 		t0 = self.data_tmp.total_time
 
 		pulse = np.asarray([[t0, 0],[wait+t0, 0]], dtype=np.double)
@@ -150,6 +150,12 @@ if __name__ == '__main__':
 
 	s = segment_pulse("test")
 	from pulse_lib.segments.utility.looping import linspace
-	s.add_block(0, 10, linspace(2,10,50, unit=("ee")))
+	s.add_block(0, 10, 50)
+
+	s.reset_time()
+	s.add_block(20, 30, 50)
+	s.wait(10)
+	s.plot_segment()
+	plt.show()
 	# print(s.loops)
 	# print(s.units)

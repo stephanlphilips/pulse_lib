@@ -136,5 +136,5 @@ if __name__ == '__main__':
 	s1.add_MW_pulse(0,1000,1,1e7,0, "flattop")
 	s1.reset_time()
 	s1.add_chirp(1500,2500,1e6,1e7,1)
-	s1.plot_segment(sample_rate = 1e9)
+	s1.plot_segment(sample_rate = 1e10)
 	plt.show()

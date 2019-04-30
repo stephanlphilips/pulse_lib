@@ -218,10 +218,10 @@ class keysight_uploader():
 		job.waveform_cache = waveform_cache
 		if job.prescaler == 0:
 			job.playback_time = waveform_cache.npt
-		else:
+		elif job.prescaler == 1:
 			job.playback_time = waveform_cache.npt*5*job.prescaler
-		print(waveform_cache.npt)
-		print(job.playback_time)
+		else:
+			job.playback_time = waveform_cache.npt*5*job.prescaler*2
 		
 		# 3) 
 		if job.HVI is not None:
