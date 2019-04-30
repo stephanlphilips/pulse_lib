@@ -22,7 +22,7 @@ class IQ_render_info:
 	"""
 	LO : float
 	virtual_channel_name: str
-	virtual_channel_pointer: loop_obj 
+	virtual_channel_pointer: loop_obj #TODO fix to segment_IQ data type, needs to be post loaded somehow. 
 	IQ_render_option : str
 	image_render_option : str
 
@@ -388,14 +388,13 @@ class segment_base():
 		my_sequence = pulse_data_all_curr_seg.render(pre_delay, post_delay, sample_rate)
 		return my_sequence
 
-	def plot_segment(self, index = [0], render_full = True):
+	def plot_segment(self, index = [0], render_full = True, sample_rate=1e9):
 		'''
 		Args:
 			index : index of which segment to plot
 			render full (bool) : do full render (e.g. also get data form virtual channels). Put True if you want to see the waveshape send to the AWG.
+			sample_rate (float): standard 1 Gs/s
 		'''
-		# standard 1 Gs/s
-		sample_rate = 1e9
 		sample_time_step = 1/sample_rate
 
 		if render_full == True:

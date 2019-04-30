@@ -152,7 +152,7 @@ class parent_data(ABC):
             new_waveform =  np.zeros((n_pt, ))
 
             if n_pt_before > 0:
-                new_waveform[0:n_pt_before] = self.my_pulse_data[0,1]
+                new_waveform[0:n_pt_before] = self.baseband_pulse_data[0,1]
                 if n_pt_after < 0:
                     new_waveform[n_pt_before:] = self.waveform_cache['waveform'][:n_pt_after]
                 elif n_pt_after == 0:
@@ -163,7 +163,7 @@ class parent_data(ABC):
                 new_waveform[:-n_pt_after] = self.waveform_cache['waveform'][-n_pt_before:]
 
             if n_pt_after > 0:
-                new_waveform[-n_pt_after:] =  self.my_pulse_data[-1,1]
+                new_waveform[-n_pt_after:] =  self.baseband_pulse_data[-1,1]
 
             return new_waveform
 
