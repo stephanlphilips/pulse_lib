@@ -40,12 +40,9 @@ https://pulse-lib.readthedocs.io
 
 # TODO
 TODO list:
-* Update virtual gate matrix function
 * Support for calibarion arguments? -- this should be engineered well.
 * HVI2 integration
 * add DSP module (must also be C++)
-* add marker functions, put it in MW object
-* All qubit IQ things should be done in an object instead of list (better overview -- more generic)
 
 TODO bugs and small things to fix,
 * deal with names and units of the loops + setpoints variable
