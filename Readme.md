@@ -9,7 +9,7 @@ Features now include:
 * Native support for virtual gates.
 * IQ toolkit and IQ virtual channels -- Full suppport for single sideband modulation (Along with PM/AM/FM)
 * Automatic compenstation for DC offsets.
-* High speed uploader for Keysight PXI systems which supports upload during playback (up to ~ 50 experiments per second)
+* High speed uploader for Keysight PXI systems which supports upload during playback (up to ~ 100 experiments per second (record~350))
 
 !! keysight AWG's their waveforms need to have a length of modulo 10 !! (related to the clock of the AWG)
 --> segments are concatenated for this purose when uploading (e.g. upload happens in one big chunk)
