@@ -66,12 +66,12 @@ class segment_container():
 
 			# add reference in real gates.
 			for i in range(virtual_gates.size):
-				real_channel = getattr(self, virtual_gates.virtual_gate_names[i])
-				virtual_gates_values = self.virtual_gate_matrix[i,:]
+				real_channel = getattr(self, virtual_gates.real_gate_names[i])
+				virtual_gates_values = virtual_gates.virtual_gate_matrix[i,:]
 
 				for j in range(virtual_gates.size):
-					if virtual_gates_values[virt_channel] != 0:
-						real_channel.add_reference_channel(virtual.virtual_gate_names[j], 
+					if virtual_gates_values[j] != 0:
+						real_channel.add_reference_channel(virtual_gates.virtual_gate_names[j], 
 							getattr(self, virtual_gates.virtual_gate_names[j]),
 							virtual_gates_values[j])
 

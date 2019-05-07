@@ -162,6 +162,7 @@ cdef class waveform_cache_container():
 		for chan in self.waveform_chache_python:
 			if int(self[chan].compensation_time*sample_rate +0.99) > compensation_npt:
 				compensation_npt = int(self[chan].compensation_time*sample_rate +0.99)
+			
 			wvf_npt = self[chan].npt
 		
 		
@@ -171,8 +172,9 @@ cdef class waveform_cache_container():
 
 		if mod != 0:
 			total_pt += 10-mod
+
 		compensation_npt = total_pt - wvf_npt
-		
+
 		#generate the compensation
 		for chan in self.waveform_chache_python:
 			self[chan].generate_voltage_compensation(compensation_npt, sample_rate)
@@ -210,6 +212,7 @@ cdef class waveform_upload_chache():
 				self.min_max_voltage.second = v_min_max[1]
 
 		self._npt += wvf.size
+
 		data_info.min_max_voltage = v_min_max
 		data_info.integral = integral
 
@@ -235,8 +238,8 @@ cdef class waveform_upload_chache():
 		Returns:
 			compensation_time : minimal duration that is needed for the voltage compensation
 		'''
-		if self.compenstation_limit.first == 0 or self.compenstation_limit.second == 0:
-			return 0
+		if self.compenstation_limit.first == 0 and self.compenstation_limit.second == 0:
+			return 0.
 
 		if self.integral <= 0:
 			return -self.integral / self.compenstation_limit.second
@@ -255,7 +258,7 @@ cdef class waveform_upload_chache():
 			sample_rate (double) : rate at which the pulse is generated. 
 		'''
 		cdef double voltage = 0
-		if npt == 0:
+		if npt == 0 or self.compensation_time == 0:
 			voltage = 0
 		else:
 			voltage = -self.integral*sample_rate/npt

@@ -37,6 +37,10 @@ class sequencer():
 		
 		# HVI if needed..
 		self.HVI = None
+		self.HVI_compile_function = None
+		self.HVI_start_function = None
+		self.HVI_kwargs = None
+
 		self.n_rep = 1000
 		self.prescaler = 0
 		self._sample_rate = 1e9
@@ -117,17 +121,19 @@ class sequencer():
 		'''
 		self.neutralize = compenstate
 
-	def add_HVI(self, HVI_to_load, compile_function, start_function):
+	def add_HVI(self, HVI_to_load, compile_function, start_function, **kwargs):
 		'''
 		Add HVI code to the AWG.
 		Args:
 			HVI_to_load (function) : function that returns a HVI file.
 			compile_function (function) : function that compiles the HVI code. Default arguments that will be provided are (HVI, npt, n_rep) = (HVI object, number of points of the sequence, number of repetitions wanted)
-			start_function (function) :function to be executed to start the HVI (this can also be None)
+			start_function (function) : function to be executed to start the HVI (this can also be None)
+			kwargs : keyword arguments for the HVI script (see usage in the examples (e.g. when you want to provide your digitzer card))
 		'''
-		self.HVI = HVI_to_load(self.uploader.AWGs, self.uploader.channel_map)
+		self.HVI = HVI_to_load(self.uploader.AWGs, self.uploader.channel_map, **kwargs)
 		self.HVI_compile_function = compile_function
 		self.HVI_start_function = start_function
+		self.HVI_kwargs = kwargs
 
 	def upload(self, index):
 		'''
@@ -144,7 +150,7 @@ class sequencer():
 		if self.DSP is not None:
 			upload_object.add_dsp_function(self.DSP)
 		if self.HVI is not None:
-			upload_object.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function)
+			upload_object.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **self.HVI_kwargs)
 
 		self.uploader.add_upload_job(upload_object)
 

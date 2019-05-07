@@ -1248,7 +1248,7 @@ struct __pyx_obj_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_cache_c
 };
 
 
-/* "pulse_lib/keysight/uploader_core/uploader.pyx":180
+/* "pulse_lib/keysight/uploader_core/uploader.pyx":182
  * 			self[chan].generate_voltage_compensation(compensation_npt, sample_rate)
  * 
  * cdef class waveform_upload_chache():             # <<<<<<<<<<<<<<
@@ -1625,6 +1625,9 @@ static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UIN
 #define __PYX_UPDATE_DICT_CACHE(dict, value, cache_var, version_var)
 #define __PYX_PY_DICT_LOOKUP_IF_MODIFIED(VAR, DICT, LOOKUP)  (VAR) = (LOOKUP);
 #endif
+
+/* PyIntCompare.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyInt_EqObjC(PyObject *op1, PyObject *op2, long intval, long inplace);
 
 /* GetModuleGlobalName.proto */
 #if CYTHON_USE_DICT_VERSIONS
@@ -2179,6 +2182,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
 static PyObject *__pyx_tp_new_9pulse_lib_8keysight_13uploader_core_8uploader_keysight_upload_module(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_cache_container(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_float_0_;
 static PyObject *__pyx_float_0_99;
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_neg_10;
@@ -3540,7 +3544,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_24wavef
  * 		for chan in self.waveform_chache_python:
  * 			if int(self[chan].compensation_time*sample_rate +0.99) > compensation_npt:             # <<<<<<<<<<<<<<
  * 				compensation_npt = int(self[chan].compensation_time*sample_rate +0.99)
- * 			wvf_npt = self[chan].npt
+ * 
  */
     __pyx_t_5 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 163, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
@@ -3569,8 +3573,8 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_24wavef
  * 		for chan in self.waveform_chache_python:
  * 			if int(self[chan].compensation_time*sample_rate +0.99) > compensation_npt:
  * 				compensation_npt = int(self[chan].compensation_time*sample_rate +0.99)             # <<<<<<<<<<<<<<
- * 			wvf_npt = self[chan].npt
  * 
+ * 			wvf_npt = self[chan].npt
  */
       __pyx_t_8 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 164, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
@@ -3595,29 +3599,29 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_24wavef
  * 		for chan in self.waveform_chache_python:
  * 			if int(self[chan].compensation_time*sample_rate +0.99) > compensation_npt:             # <<<<<<<<<<<<<<
  * 				compensation_npt = int(self[chan].compensation_time*sample_rate +0.99)
- * 			wvf_npt = self[chan].npt
+ * 
  */
     }
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":165
- * 			if int(self[chan].compensation_time*sample_rate +0.99) > compensation_npt:
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":166
  * 				compensation_npt = int(self[chan].compensation_time*sample_rate +0.99)
+ * 
  * 			wvf_npt = self[chan].npt             # <<<<<<<<<<<<<<
  * 
  * 
  */
-    __pyx_t_8 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 165, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 166, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_npt); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 165, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_npt); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 166, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 165, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_7); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 166, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __pyx_v_wvf_npt = __pyx_t_6;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":169
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":170
  * 
  * 		# make sure we have modulo 10 time
  * 		cdef int total_pt = compensation_npt + wvf_npt             # <<<<<<<<<<<<<<
@@ -3626,7 +3630,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_24wavef
  */
   __pyx_v_total_pt = (__pyx_v_compensation_npt + __pyx_v_wvf_npt);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":170
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":171
  * 		# make sure we have modulo 10 time
  * 		cdef int total_pt = compensation_npt + wvf_npt
  * 		cdef int mod = total_pt%10             # <<<<<<<<<<<<<<
@@ -3635,44 +3639,44 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_24wavef
  */
   __pyx_v_mod = __Pyx_mod_long(__pyx_v_total_pt, 10);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":172
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":173
  * 		cdef int mod = total_pt%10
  * 
  * 		if mod != 0:             # <<<<<<<<<<<<<<
  * 			total_pt += 10-mod
- * 		compensation_npt = total_pt - wvf_npt
+ * 
  */
   __pyx_t_9 = ((__pyx_v_mod != 0) != 0);
   if (__pyx_t_9) {
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":173
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":174
  * 
  * 		if mod != 0:
  * 			total_pt += 10-mod             # <<<<<<<<<<<<<<
- * 		compensation_npt = total_pt - wvf_npt
  * 
+ * 		compensation_npt = total_pt - wvf_npt
  */
     __pyx_v_total_pt = (__pyx_v_total_pt + (10 - __pyx_v_mod));
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":172
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":173
  * 		cdef int mod = total_pt%10
  * 
  * 		if mod != 0:             # <<<<<<<<<<<<<<
  * 			total_pt += 10-mod
- * 		compensation_npt = total_pt - wvf_npt
+ * 
  */
   }
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":174
- * 		if mod != 0:
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":176
  * 			total_pt += 10-mod
+ * 
  * 		compensation_npt = total_pt - wvf_npt             # <<<<<<<<<<<<<<
  * 
  * 		#generate the compensation
  */
   __pyx_v_compensation_npt = (__pyx_v_total_pt - __pyx_v_wvf_npt);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":177
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":179
  * 
  * 		#generate the compensation
  * 		for chan in self.waveform_chache_python:             # <<<<<<<<<<<<<<
@@ -3682,9 +3686,9 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_24wavef
   __pyx_t_3 = 0;
   if (unlikely(__pyx_v_self->waveform_chache_python == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    __PYX_ERR(1, 177, __pyx_L1_error)
+    __PYX_ERR(1, 179, __pyx_L1_error)
   }
-  __pyx_t_7 = __Pyx_dict_iterator(__pyx_v_self->waveform_chache_python, 1, ((PyObject *)NULL), (&__pyx_t_2), (&__pyx_t_4)); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 177, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_dict_iterator(__pyx_v_self->waveform_chache_python, 1, ((PyObject *)NULL), (&__pyx_t_2), (&__pyx_t_4)); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 179, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_1);
   __pyx_t_1 = __pyx_t_7;
@@ -3692,24 +3696,24 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_24wavef
   while (1) {
     __pyx_t_6 = __Pyx_dict_iter_next(__pyx_t_1, __pyx_t_2, &__pyx_t_3, &__pyx_t_7, NULL, NULL, __pyx_t_4);
     if (unlikely(__pyx_t_6 == 0)) break;
-    if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(1, 177, __pyx_L1_error)
+    if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(1, 179, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_XDECREF_SET(__pyx_v_chan, __pyx_t_7);
     __pyx_t_7 = 0;
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":178
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":180
  * 		#generate the compensation
  * 		for chan in self.waveform_chache_python:
  * 			self[chan].generate_voltage_compensation(compensation_npt, sample_rate)             # <<<<<<<<<<<<<<
  * 
  * cdef class waveform_upload_chache():
  */
-    __pyx_t_8 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 178, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_chan); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 180, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_generate_voltage_compensation); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 178, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_generate_voltage_compensation); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 180, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_v_compensation_npt); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 178, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_v_compensation_npt); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 180, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __pyx_t_10 = NULL;
     __pyx_t_6 = 0;
@@ -3726,7 +3730,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_24wavef
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_5)) {
       PyObject *__pyx_temp[3] = {__pyx_t_10, __pyx_t_8, __pyx_v_sample_rate};
-      __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 178, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 180, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -3735,14 +3739,14 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_24wavef
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
       PyObject *__pyx_temp[3] = {__pyx_t_10, __pyx_t_8, __pyx_v_sample_rate};
-      __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 178, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 180, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     } else
     #endif
     {
-      __pyx_t_11 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 178, __pyx_L1_error)
+      __pyx_t_11 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_11)) __PYX_ERR(1, 180, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_11);
       if (__pyx_t_10) {
         __Pyx_GIVEREF(__pyx_t_10); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_10); __pyx_t_10 = NULL;
@@ -3753,7 +3757,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_24wavef
       __Pyx_GIVEREF(__pyx_v_sample_rate);
       PyTuple_SET_ITEM(__pyx_t_11, 1+__pyx_t_6, __pyx_v_sample_rate);
       __pyx_t_8 = 0;
-      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_11, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 178, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_11, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 180, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
     }
@@ -3896,7 +3900,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_24wavef
   return __pyx_r;
 }
 
-/* "pulse_lib/keysight/uploader_core/uploader.pyx":191
+/* "pulse_lib/keysight/uploader_core/uploader.pyx":193
  * 	cdef list data
  * 
  * 	def __init__(self, compenstation_limit):             # <<<<<<<<<<<<<<
@@ -3930,7 +3934,7 @@ static int __pyx_pw_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(1, 191, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(1, 193, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
       goto __pyx_L5_argtuple_error;
@@ -3941,7 +3945,7 @@ static int __pyx_pw_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 191, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 193, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pulse_lib.keysight.uploader_core.uploader.waveform_upload_chache.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3961,17 +3965,17 @@ static int __pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":192
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":194
  * 
  * 	def __init__(self, compenstation_limit):
  * 		self.compenstation_limit = compenstation_limit             # <<<<<<<<<<<<<<
  * 		self._npt = 0
  * 		self.data = []
  */
-  __pyx_t_1 = __pyx_convert_pair_from_py_double__and_double(__pyx_v_compenstation_limit); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 192, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_pair_from_py_double__and_double(__pyx_v_compenstation_limit); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 194, __pyx_L1_error)
   __pyx_v_self->compenstation_limit = __pyx_t_1;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":193
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":195
  * 	def __init__(self, compenstation_limit):
  * 		self.compenstation_limit = compenstation_limit
  * 		self._npt = 0             # <<<<<<<<<<<<<<
@@ -3980,14 +3984,14 @@ static int __pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
  */
   __pyx_v_self->_npt = 0;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":194
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":196
  * 		self.compenstation_limit = compenstation_limit
  * 		self._npt = 0
  * 		self.data = []             # <<<<<<<<<<<<<<
  * 
  * 	def add_data(self, np.ndarray[np.double_t,ndim=1] wvf, v_min_max, integral):
  */
-  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 194, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 196, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
   __Pyx_GOTREF(__pyx_v_self->data);
@@ -3995,7 +3999,7 @@ static int __pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
   __pyx_v_self->data = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":191
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":193
  * 	cdef list data
  * 
  * 	def __init__(self, compenstation_limit):             # <<<<<<<<<<<<<<
@@ -4015,7 +4019,7 @@ static int __pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
   return __pyx_r;
 }
 
-/* "pulse_lib/keysight/uploader_core/uploader.pyx":196
+/* "pulse_lib/keysight/uploader_core/uploader.pyx":198
  * 		self.data = []
  * 
  * 	def add_data(self, np.ndarray[np.double_t,ndim=1] wvf, v_min_max, integral):             # <<<<<<<<<<<<<<
@@ -4058,17 +4062,17 @@ static PyObject *__pyx_pw_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_v_min_max)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_data", 1, 3, 3, 1); __PYX_ERR(1, 196, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_data", 1, 3, 3, 1); __PYX_ERR(1, 198, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_integral)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_data", 1, 3, 3, 2); __PYX_ERR(1, 196, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_data", 1, 3, 3, 2); __PYX_ERR(1, 198, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_data") < 0)) __PYX_ERR(1, 196, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_data") < 0)) __PYX_ERR(1, 198, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -4083,13 +4087,13 @@ static PyObject *__pyx_pw_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_data", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 196, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_data", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 198, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pulse_lib.keysight.uploader_core.uploader.waveform_upload_chache.add_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_wvf), __pyx_ptype_5numpy_ndarray, 1, "wvf", 0))) __PYX_ERR(1, 196, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_wvf), __pyx_ptype_5numpy_ndarray, 1, "wvf", 0))) __PYX_ERR(1, 198, __pyx_L1_error)
   __pyx_r = __pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_upload_chache_2add_data(((struct __pyx_obj_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache *)__pyx_v_self), __pyx_v_wvf, __pyx_v_v_min_max, __pyx_v_integral);
 
   /* function exit code */
@@ -4123,11 +4127,11 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   __pyx_pybuffernd_wvf.rcbuffer = &__pyx_pybuffer_wvf;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_wvf.rcbuffer->pybuffer, (PyObject*)__pyx_v_wvf, &__Pyx_TypeInfo_nn___pyx_t_5numpy_double_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(1, 196, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_wvf.rcbuffer->pybuffer, (PyObject*)__pyx_v_wvf, &__Pyx_TypeInfo_nn___pyx_t_5numpy_double_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(1, 198, __pyx_L1_error)
   }
   __pyx_pybuffernd_wvf.diminfo[0].strides = __pyx_pybuffernd_wvf.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_wvf.diminfo[0].shape = __pyx_pybuffernd_wvf.rcbuffer->pybuffer.shape[0];
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":204
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":206
  * 		cdef waveform_info data_info
  * 
  * 		if self._npt == 0:             # <<<<<<<<<<<<<<
@@ -4137,17 +4141,17 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   __pyx_t_1 = ((__pyx_v_self->_npt == 0) != 0);
   if (__pyx_t_1) {
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":205
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":207
  * 
  * 		if self._npt == 0:
  * 			self.min_max_voltage = v_min_max             # <<<<<<<<<<<<<<
  * 		else:
  * 			if self.min_max_voltage.first > v_min_max[0]:
  */
-    __pyx_t_2 = __pyx_convert_pair_from_py_double__and_double(__pyx_v_v_min_max); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 205, __pyx_L1_error)
+    __pyx_t_2 = __pyx_convert_pair_from_py_double__and_double(__pyx_v_v_min_max); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 207, __pyx_L1_error)
     __pyx_v_self->min_max_voltage = __pyx_t_2;
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":204
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":206
  * 		cdef waveform_info data_info
  * 
  * 		if self._npt == 0:             # <<<<<<<<<<<<<<
@@ -4157,7 +4161,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
     goto __pyx_L3;
   }
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":207
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":209
  * 			self.min_max_voltage = v_min_max
  * 		else:
  * 			if self.min_max_voltage.first > v_min_max[0]:             # <<<<<<<<<<<<<<
@@ -4165,31 +4169,31 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
  * 			if self.min_max_voltage.second < v_min_max[1]:
  */
   /*else*/ {
-    __pyx_t_3 = PyFloat_FromDouble(__pyx_v_self->min_max_voltage.first); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 207, __pyx_L1_error)
+    __pyx_t_3 = PyFloat_FromDouble(__pyx_v_self->min_max_voltage.first); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 209, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_v_min_max, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 207, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_v_min_max, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 209, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = PyObject_RichCompare(__pyx_t_3, __pyx_t_4, Py_GT); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 207, __pyx_L1_error)
+    __pyx_t_5 = PyObject_RichCompare(__pyx_t_3, __pyx_t_4, Py_GT); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 209, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 207, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 209, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     if (__pyx_t_1) {
 
-      /* "pulse_lib/keysight/uploader_core/uploader.pyx":208
+      /* "pulse_lib/keysight/uploader_core/uploader.pyx":210
  * 		else:
  * 			if self.min_max_voltage.first > v_min_max[0]:
  * 				self.min_max_voltage.first = v_min_max[0]             # <<<<<<<<<<<<<<
  * 			if self.min_max_voltage.second < v_min_max[1]:
  * 				self.min_max_voltage.second = v_min_max[1]
  */
-      __pyx_t_5 = __Pyx_GetItemInt(__pyx_v_v_min_max, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 208, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_GetItemInt(__pyx_v_v_min_max, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 210, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_5); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 208, __pyx_L1_error)
+      __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_5); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 210, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_v_self->min_max_voltage.first = __pyx_t_6;
 
-      /* "pulse_lib/keysight/uploader_core/uploader.pyx":207
+      /* "pulse_lib/keysight/uploader_core/uploader.pyx":209
  * 			self.min_max_voltage = v_min_max
  * 		else:
  * 			if self.min_max_voltage.first > v_min_max[0]:             # <<<<<<<<<<<<<<
@@ -4198,38 +4202,38 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
  */
     }
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":209
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":211
  * 			if self.min_max_voltage.first > v_min_max[0]:
  * 				self.min_max_voltage.first = v_min_max[0]
  * 			if self.min_max_voltage.second < v_min_max[1]:             # <<<<<<<<<<<<<<
  * 				self.min_max_voltage.second = v_min_max[1]
  * 
  */
-    __pyx_t_5 = PyFloat_FromDouble(__pyx_v_self->min_max_voltage.second); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 209, __pyx_L1_error)
+    __pyx_t_5 = PyFloat_FromDouble(__pyx_v_self->min_max_voltage.second); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 211, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_v_min_max, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 209, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_v_min_max, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 211, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_3 = PyObject_RichCompare(__pyx_t_5, __pyx_t_4, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 209, __pyx_L1_error)
+    __pyx_t_3 = PyObject_RichCompare(__pyx_t_5, __pyx_t_4, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 211, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 209, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 211, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     if (__pyx_t_1) {
 
-      /* "pulse_lib/keysight/uploader_core/uploader.pyx":210
+      /* "pulse_lib/keysight/uploader_core/uploader.pyx":212
  * 				self.min_max_voltage.first = v_min_max[0]
  * 			if self.min_max_voltage.second < v_min_max[1]:
  * 				self.min_max_voltage.second = v_min_max[1]             # <<<<<<<<<<<<<<
  * 
  * 		self._npt += wvf.size
  */
-      __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_v_min_max, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 210, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_v_min_max, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 212, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_3); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 210, __pyx_L1_error)
+      __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_3); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 212, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __pyx_v_self->min_max_voltage.second = __pyx_t_6;
 
-      /* "pulse_lib/keysight/uploader_core/uploader.pyx":209
+      /* "pulse_lib/keysight/uploader_core/uploader.pyx":211
  * 			if self.min_max_voltage.first > v_min_max[0]:
  * 				self.min_max_voltage.first = v_min_max[0]
  * 			if self.min_max_voltage.second < v_min_max[1]:             # <<<<<<<<<<<<<<
@@ -4240,46 +4244,46 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   }
   __pyx_L3:;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":212
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":214
  * 				self.min_max_voltage.second = v_min_max[1]
  * 
  * 		self._npt += wvf.size             # <<<<<<<<<<<<<<
+ * 
  * 		data_info.min_max_voltage = v_min_max
- * 		data_info.integral = integral
  */
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_self->_npt); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 212, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_self->_npt); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_wvf), __pyx_n_s_size); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 212, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_wvf), __pyx_n_s_size); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyNumber_InPlaceAdd(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 212, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_InPlaceAdd(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 212, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 214, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_v_self->_npt = __pyx_t_7;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":213
- * 
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":216
  * 		self._npt += wvf.size
+ * 
  * 		data_info.min_max_voltage = v_min_max             # <<<<<<<<<<<<<<
  * 		data_info.integral = integral
  * 
  */
-  __pyx_t_2 = __pyx_convert_pair_from_py_double__and_double(__pyx_v_v_min_max); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 213, __pyx_L1_error)
+  __pyx_t_2 = __pyx_convert_pair_from_py_double__and_double(__pyx_v_v_min_max); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 216, __pyx_L1_error)
   __pyx_v_data_info.min_max_voltage = __pyx_t_2;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":214
- * 		self._npt += wvf.size
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":217
+ * 
  * 		data_info.min_max_voltage = v_min_max
  * 		data_info.integral = integral             # <<<<<<<<<<<<<<
  * 
  * 		self.wvf_info.push_back(data_info)
  */
-  __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_v_integral); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 214, __pyx_L1_error)
+  __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_v_integral); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 217, __pyx_L1_error)
   __pyx_v_data_info.integral = __pyx_t_6;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":216
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":219
  * 		data_info.integral = integral
  * 
  * 		self.wvf_info.push_back(data_info)             # <<<<<<<<<<<<<<
@@ -4290,10 +4294,10 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
     __pyx_v_self->wvf_info.push_back(__pyx_v_data_info);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(1, 216, __pyx_L1_error)
+    __PYX_ERR(1, 219, __pyx_L1_error)
   }
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":217
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":220
  * 
  * 		self.wvf_info.push_back(data_info)
  * 		cdef double* my_data =  <double*> wvf.data             # <<<<<<<<<<<<<<
@@ -4302,7 +4306,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
  */
   __pyx_v_my_data = ((double *)__pyx_v_wvf->data);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":218
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":221
  * 		self.wvf_info.push_back(data_info)
  * 		cdef double* my_data =  <double*> wvf.data
  * 		self.wvf_data.push_back(my_data)             # <<<<<<<<<<<<<<
@@ -4313,10 +4317,10 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
     __pyx_v_self->wvf_data.push_back(__pyx_v_my_data);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(1, 218, __pyx_L1_error)
+    __PYX_ERR(1, 221, __pyx_L1_error)
   }
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":220
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":223
  * 		self.wvf_data.push_back(my_data)
  * 		# use dummy python list for reference counting ..
  * 		self.data.append(wvf)             # <<<<<<<<<<<<<<
@@ -4325,29 +4329,29 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
  */
   if (unlikely(__pyx_v_self->data == Py_None)) {
     PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%.30s'", "append");
-    __PYX_ERR(1, 220, __pyx_L1_error)
+    __PYX_ERR(1, 223, __pyx_L1_error)
   }
-  __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_self->data, ((PyObject *)__pyx_v_wvf)); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(1, 220, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_self->data, ((PyObject *)__pyx_v_wvf)); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(1, 223, __pyx_L1_error)
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":222
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":225
  * 		self.data.append(wvf)
  * 
  * 		self.wvf_npt.push_back(wvf.size)             # <<<<<<<<<<<<<<
  * 
  * 	@property
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_wvf), __pyx_n_s_size); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_wvf), __pyx_n_s_size); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 225, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 222, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 225, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   try {
     __pyx_v_self->wvf_npt.push_back(__pyx_t_7);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    __PYX_ERR(1, 222, __pyx_L1_error)
+    __PYX_ERR(1, 225, __pyx_L1_error)
   }
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":196
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":198
  * 		self.data = []
  * 
  * 	def add_data(self, np.ndarray[np.double_t,ndim=1] wvf, v_min_max, integral):             # <<<<<<<<<<<<<<
@@ -4379,7 +4383,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   return __pyx_r;
 }
 
-/* "pulse_lib/keysight/uploader_core/uploader.pyx":225
+/* "pulse_lib/keysight/uploader_core/uploader.pyx":228
  * 
  * 	@property
  * 	def integral(self):             # <<<<<<<<<<<<<<
@@ -4411,7 +4415,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":226
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":229
  * 	@property
  * 	def integral(self):
  * 		cdef double integral = 0             # <<<<<<<<<<<<<<
@@ -4420,7 +4424,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
  */
   __pyx_v_integral = 0.0;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":227
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":230
  * 	def integral(self):
  * 		cdef double integral = 0
  * 		for i in self.wvf_info:             # <<<<<<<<<<<<<<
@@ -4435,7 +4439,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
     ++__pyx_t_1;
     __pyx_v_i = __pyx_t_3;
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":228
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":231
  * 		cdef double integral = 0
  * 		for i in self.wvf_info:
  * 			integral += i.integral             # <<<<<<<<<<<<<<
@@ -4444,7 +4448,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
  */
     __pyx_v_integral = (__pyx_v_integral + __pyx_v_i.integral);
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":227
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":230
  * 	def integral(self):
  * 		cdef double integral = 0
  * 		for i in self.wvf_info:             # <<<<<<<<<<<<<<
@@ -4453,7 +4457,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
  */
   }
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":229
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":232
  * 		for i in self.wvf_info:
  * 			integral += i.integral
  * 		return integral             # <<<<<<<<<<<<<<
@@ -4461,13 +4465,13 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
  * 	@property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_integral); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 229, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_integral); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 232, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_r = __pyx_t_4;
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":225
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":228
  * 
  * 	@property
  * 	def integral(self):             # <<<<<<<<<<<<<<
@@ -4486,7 +4490,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   return __pyx_r;
 }
 
-/* "pulse_lib/keysight/uploader_core/uploader.pyx":232
+/* "pulse_lib/keysight/uploader_core/uploader.pyx":235
  * 
  * 	@property
  * 	def compensation_time(self):             # <<<<<<<<<<<<<<
@@ -4517,15 +4521,15 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   PyObject *__pyx_t_5 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":238
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":241
  * 			compensation_time : minimal duration that is needed for the voltage compensation
  * 		'''
- * 		if self.compenstation_limit.first == 0 or self.compenstation_limit.second == 0:             # <<<<<<<<<<<<<<
- * 			return 0
+ * 		if self.compenstation_limit.first == 0 and self.compenstation_limit.second == 0:             # <<<<<<<<<<<<<<
+ * 			return 0.
  * 
  */
   __pyx_t_2 = ((__pyx_v_self->compenstation_limit.first == 0.0) != 0);
-  if (!__pyx_t_2) {
+  if (__pyx_t_2) {
   } else {
     __pyx_t_1 = __pyx_t_2;
     goto __pyx_L4_bool_binop_done;
@@ -4535,43 +4539,43 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":239
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":242
  * 		'''
- * 		if self.compenstation_limit.first == 0 or self.compenstation_limit.second == 0:
- * 			return 0             # <<<<<<<<<<<<<<
+ * 		if self.compenstation_limit.first == 0 and self.compenstation_limit.second == 0:
+ * 			return 0.             # <<<<<<<<<<<<<<
  * 
  * 		if self.integral <= 0:
  */
     __Pyx_XDECREF(__pyx_r);
-    __Pyx_INCREF(__pyx_int_0);
-    __pyx_r = __pyx_int_0;
+    __Pyx_INCREF(__pyx_float_0_);
+    __pyx_r = __pyx_float_0_;
     goto __pyx_L0;
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":238
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":241
  * 			compensation_time : minimal duration that is needed for the voltage compensation
  * 		'''
- * 		if self.compenstation_limit.first == 0 or self.compenstation_limit.second == 0:             # <<<<<<<<<<<<<<
- * 			return 0
+ * 		if self.compenstation_limit.first == 0 and self.compenstation_limit.second == 0:             # <<<<<<<<<<<<<<
+ * 			return 0.
  * 
  */
   }
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":241
- * 			return 0
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":244
+ * 			return 0.
  * 
  * 		if self.integral <= 0:             # <<<<<<<<<<<<<<
  * 			return -self.integral / self.compenstation_limit.second
  * 		else:
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 241, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 244, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyObject_RichCompare(__pyx_t_3, __pyx_int_0, Py_LE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 241, __pyx_L1_error)
+  __pyx_t_4 = PyObject_RichCompare(__pyx_t_3, __pyx_int_0, Py_LE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 244, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 241, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(1, 244, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (__pyx_t_1) {
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":242
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":245
  * 
  * 		if self.integral <= 0:
  * 			return -self.integral / self.compenstation_limit.second             # <<<<<<<<<<<<<<
@@ -4579,14 +4583,14 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
  * 			return -self.integral / self.compenstation_limit.first
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 242, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 245, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_3 = PyNumber_Negative(__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 242, __pyx_L1_error)
+    __pyx_t_3 = PyNumber_Negative(__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 245, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyFloat_FromDouble(__pyx_v_self->compenstation_limit.second); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 242, __pyx_L1_error)
+    __pyx_t_4 = PyFloat_FromDouble(__pyx_v_self->compenstation_limit.second); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 245, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_PyNumber_Divide(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 242, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyNumber_Divide(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 245, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -4594,8 +4598,8 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
     __pyx_t_5 = 0;
     goto __pyx_L0;
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":241
- * 			return 0
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":244
+ * 			return 0.
  * 
  * 		if self.integral <= 0:             # <<<<<<<<<<<<<<
  * 			return -self.integral / self.compenstation_limit.second
@@ -4603,7 +4607,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
  */
   }
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":244
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":247
  * 			return -self.integral / self.compenstation_limit.second
  * 		else:
  * 			return -self.integral / self.compenstation_limit.first             # <<<<<<<<<<<<<<
@@ -4612,14 +4616,14 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
  */
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 244, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 247, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_4 = PyNumber_Negative(__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 244, __pyx_L1_error)
+    __pyx_t_4 = PyNumber_Negative(__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 247, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = PyFloat_FromDouble(__pyx_v_self->compenstation_limit.first); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 244, __pyx_L1_error)
+    __pyx_t_5 = PyFloat_FromDouble(__pyx_v_self->compenstation_limit.first); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 247, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_3 = __Pyx_PyNumber_Divide(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 244, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyNumber_Divide(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 247, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -4628,7 +4632,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
     goto __pyx_L0;
   }
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":232
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":235
  * 
  * 	@property
  * 	def compensation_time(self):             # <<<<<<<<<<<<<<
@@ -4649,7 +4653,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   return __pyx_r;
 }
 
-/* "pulse_lib/keysight/uploader_core/uploader.pyx":247
+/* "pulse_lib/keysight/uploader_core/uploader.pyx":250
  * 
  * 	@property
  * 	def npt(self):             # <<<<<<<<<<<<<<
@@ -4676,7 +4680,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":248
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":251
  * 	@property
  * 	def npt(self):
  * 		return self._npt             # <<<<<<<<<<<<<<
@@ -4684,13 +4688,13 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
  * 	cpdef void generate_voltage_compensation(self, int npt, double sample_rate):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->_npt); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 248, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->_npt); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 251, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":247
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":250
  * 
  * 	@property
  * 	def npt(self):             # <<<<<<<<<<<<<<
@@ -4709,7 +4713,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   return __pyx_r;
 }
 
-/* "pulse_lib/keysight/uploader_core/uploader.pyx":250
+/* "pulse_lib/keysight/uploader_core/uploader.pyx":253
  * 		return self._npt
  * 
  * 	cpdef void generate_voltage_compensation(self, int npt, double sample_rate):             # <<<<<<<<<<<<<<
@@ -4731,7 +4735,8 @@ static void __pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
   int __pyx_t_7;
   PyObject *__pyx_t_8 = NULL;
   int __pyx_t_9;
-  double __pyx_t_10;
+  int __pyx_t_10;
+  double __pyx_t_11;
   __Pyx_RefNannySetupContext("generate_voltage_compensation", 0);
   /* Check if called by wrapper */
   if (unlikely(__pyx_skip_dispatch)) ;
@@ -4742,12 +4747,12 @@ static void __pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_type_dict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_generate_voltage_compensation); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 250, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_generate_voltage_compensation); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 253, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)(void*)__pyx_pw_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_upload_chache_5generate_voltage_compensation)) {
-        __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_npt); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 250, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_npt); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 253, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_4 = PyFloat_FromDouble(__pyx_v_sample_rate); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 250, __pyx_L1_error)
+        __pyx_t_4 = PyFloat_FromDouble(__pyx_v_sample_rate); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 253, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_INCREF(__pyx_t_1);
         __pyx_t_5 = __pyx_t_1; __pyx_t_6 = NULL;
@@ -4765,7 +4770,7 @@ static void __pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
         #if CYTHON_FAST_PYCALL
         if (PyFunction_Check(__pyx_t_5)) {
           PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_t_3, __pyx_t_4};
-          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 250, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 253, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4775,7 +4780,7 @@ static void __pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
         #if CYTHON_FAST_PYCCALL
         if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
           PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_t_3, __pyx_t_4};
-          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 250, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 253, __pyx_L1_error)
           __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4783,7 +4788,7 @@ static void __pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
         } else
         #endif
         {
-          __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 250, __pyx_L1_error)
+          __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 253, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_8);
           if (__pyx_t_6) {
             __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_6); __pyx_t_6 = NULL;
@@ -4794,7 +4799,7 @@ static void __pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
           PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_7, __pyx_t_4);
           __pyx_t_3 = 0;
           __pyx_t_4 = 0;
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_8, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 250, __pyx_L1_error)
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_8, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 253, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
         }
@@ -4816,45 +4821,59 @@ static void __pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
     #endif
   }
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":257
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":260
  * 			sample_rate (double) : rate at which the pulse is generated.
  * 		'''
  * 		cdef double voltage = 0             # <<<<<<<<<<<<<<
- * 		if npt == 0:
+ * 		if npt == 0 or self.compensation_time == 0:
  * 			voltage = 0
  */
   __pyx_v_voltage = 0.0;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":258
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":261
  * 		'''
  * 		cdef double voltage = 0
- * 		if npt == 0:             # <<<<<<<<<<<<<<
+ * 		if npt == 0 or self.compensation_time == 0:             # <<<<<<<<<<<<<<
  * 			voltage = 0
  * 		else:
  */
-  __pyx_t_9 = ((__pyx_v_npt == 0) != 0);
+  __pyx_t_10 = ((__pyx_v_npt == 0) != 0);
+  if (!__pyx_t_10) {
+  } else {
+    __pyx_t_9 = __pyx_t_10;
+    goto __pyx_L4_bool_binop_done;
+  }
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_compensation_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 261, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyInt_EqObjC(__pyx_t_1, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 261, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(1, 261, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_9 = __pyx_t_10;
+  __pyx_L4_bool_binop_done:;
   if (__pyx_t_9) {
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":259
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":262
  * 		cdef double voltage = 0
- * 		if npt == 0:
+ * 		if npt == 0 or self.compensation_time == 0:
  * 			voltage = 0             # <<<<<<<<<<<<<<
  * 		else:
  * 			voltage = -self.integral*sample_rate/npt
  */
     __pyx_v_voltage = 0.0;
 
-    /* "pulse_lib/keysight/uploader_core/uploader.pyx":258
+    /* "pulse_lib/keysight/uploader_core/uploader.pyx":261
  * 		'''
  * 		cdef double voltage = 0
- * 		if npt == 0:             # <<<<<<<<<<<<<<
+ * 		if npt == 0 or self.compensation_time == 0:             # <<<<<<<<<<<<<<
  * 			voltage = 0
  * 		else:
  */
     goto __pyx_L3;
   }
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":261
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":264
  * 			voltage = 0
  * 		else:
  * 			voltage = -self.integral*sample_rate/npt             # <<<<<<<<<<<<<<
@@ -4862,50 +4881,50 @@ static void __pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
  * 		pulse = np.full((npt+10,), voltage)
  */
   /*else*/ {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 261, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = PyNumber_Negative(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 261, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 264, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyFloat_FromDouble(__pyx_v_sample_rate); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 261, __pyx_L1_error)
+    __pyx_t_1 = PyNumber_Negative(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 264, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_5 = PyNumber_Multiply(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 261, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = PyFloat_FromDouble(__pyx_v_sample_rate); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 264, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_5 = PyNumber_Multiply(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 264, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_npt); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 261, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyNumber_Divide(__pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 261, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_npt); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 264, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_1 = __Pyx_PyNumber_Divide(__pyx_t_5, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 264, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_10 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_10 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 261, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_v_voltage = __pyx_t_10;
+    __pyx_t_11 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 264, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_v_voltage = __pyx_t_11;
   }
   __pyx_L3:;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":263
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":266
  * 			voltage = -self.integral*sample_rate/npt
  * 
  * 		pulse = np.full((npt+10,), voltage)             # <<<<<<<<<<<<<<
  * 		pulse[-10:] = 0 #add 10 points extra to make sure you end up with 0V when done.
  * 		self.add_data(pulse, (voltage, voltage), -self.integral)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 263, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_full); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 263, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 266, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_full); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 266, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_long((__pyx_v_npt + 10)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 263, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_8 = PyTuple_New(1); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 263, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyInt_From_long((__pyx_v_npt + 10)); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 266, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_8 = PyTuple_New(1); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 266, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_1);
-  __pyx_t_1 = 0;
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_voltage); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 263, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_2);
+  __pyx_t_2 = 0;
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_voltage); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 266, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   __pyx_t_7 = 0;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
@@ -4920,86 +4939,86 @@ static void __pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
   }
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_5)) {
-    PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_8, __pyx_t_1};
-    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 263, __pyx_L1_error)
+    PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_8, __pyx_t_2};
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 266, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   } else
   #endif
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
-    PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_8, __pyx_t_1};
-    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 263, __pyx_L1_error)
+    PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_8, __pyx_t_2};
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 266, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   } else
   #endif
   {
-    __pyx_t_3 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 263, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 266, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4); __pyx_t_4 = NULL;
     }
     __Pyx_GIVEREF(__pyx_t_8);
     PyTuple_SET_ITEM(__pyx_t_3, 0+__pyx_t_7, __pyx_t_8);
-    __Pyx_GIVEREF(__pyx_t_1);
-    PyTuple_SET_ITEM(__pyx_t_3, 1+__pyx_t_7, __pyx_t_1);
+    __Pyx_GIVEREF(__pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_3, 1+__pyx_t_7, __pyx_t_2);
     __pyx_t_8 = 0;
-    __pyx_t_1 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 263, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_2 = 0;
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 266, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_v_pulse = __pyx_t_2;
-  __pyx_t_2 = 0;
+  __pyx_v_pulse = __pyx_t_1;
+  __pyx_t_1 = 0;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":264
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":267
  * 
  * 		pulse = np.full((npt+10,), voltage)
  * 		pulse[-10:] = 0 #add 10 points extra to make sure you end up with 0V when done.             # <<<<<<<<<<<<<<
  * 		self.add_data(pulse, (voltage, voltage), -self.integral)
  * 
  */
-  if (__Pyx_PyObject_SetSlice(__pyx_v_pulse, __pyx_int_0, -10L, 0, NULL, NULL, &__pyx_slice__6, 1, 0, 1) < 0) __PYX_ERR(1, 264, __pyx_L1_error)
+  if (__Pyx_PyObject_SetSlice(__pyx_v_pulse, __pyx_int_0, -10L, 0, NULL, NULL, &__pyx_slice__6, 1, 0, 1) < 0) __PYX_ERR(1, 267, __pyx_L1_error)
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":265
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":268
  * 		pulse = np.full((npt+10,), voltage)
  * 		pulse[-10:] = 0 #add 10 points extra to make sure you end up with 0V when done.
  * 		self.add_data(pulse, (voltage, voltage), -self.integral)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_add_data); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 265, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_add_data); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 268, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_voltage); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 265, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_voltage); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 268, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_voltage); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 265, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_8 = PyTuple_New(2); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 265, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_voltage); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 268, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_8 = PyTuple_New(2); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 268, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_8, 1, __pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_8, 1, __pyx_t_2);
   __pyx_t_3 = 0;
-  __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 265, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyNumber_Negative(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 265, __pyx_L1_error)
+  __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_integral); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 268, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = PyNumber_Negative(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 268, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = NULL;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = NULL;
   __pyx_t_7 = 0;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
-    __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_5);
-    if (likely(__pyx_t_1)) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_5);
+    if (likely(__pyx_t_2)) {
       PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
-      __Pyx_INCREF(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_2);
       __Pyx_INCREF(function);
       __Pyx_DECREF_SET(__pyx_t_5, function);
       __pyx_t_7 = 1;
@@ -5007,29 +5026,29 @@ static void __pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
   }
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_5)) {
-    PyObject *__pyx_temp[4] = {__pyx_t_1, __pyx_v_pulse, __pyx_t_8, __pyx_t_3};
-    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_7, 3+__pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 265, __pyx_L1_error)
-    __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_GOTREF(__pyx_t_2);
+    PyObject *__pyx_temp[4] = {__pyx_t_2, __pyx_v_pulse, __pyx_t_8, __pyx_t_3};
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_7, 3+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 268, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else
   #endif
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
-    PyObject *__pyx_temp[4] = {__pyx_t_1, __pyx_v_pulse, __pyx_t_8, __pyx_t_3};
-    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_7, 3+__pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 265, __pyx_L1_error)
-    __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_GOTREF(__pyx_t_2);
+    PyObject *__pyx_temp[4] = {__pyx_t_2, __pyx_v_pulse, __pyx_t_8, __pyx_t_3};
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_7, 3+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 268, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else
   #endif
   {
-    __pyx_t_4 = PyTuple_New(3+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 265, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(3+__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 268, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    if (__pyx_t_1) {
-      __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1); __pyx_t_1 = NULL;
+    if (__pyx_t_2) {
+      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __pyx_t_2 = NULL;
     }
     __Pyx_INCREF(__pyx_v_pulse);
     __Pyx_GIVEREF(__pyx_v_pulse);
@@ -5040,14 +5059,14 @@ static void __pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_up
     PyTuple_SET_ITEM(__pyx_t_4, 2+__pyx_t_7, __pyx_t_3);
     __pyx_t_8 = 0;
     __pyx_t_3 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_4, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 265, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 268, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":250
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":253
  * 		return self._npt
  * 
  * 	cpdef void generate_voltage_compensation(self, int npt, double sample_rate):             # <<<<<<<<<<<<<<
@@ -5103,11 +5122,11 @@ static PyObject *__pyx_pw_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sample_rate)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("generate_voltage_compensation", 1, 2, 2, 1); __PYX_ERR(1, 250, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("generate_voltage_compensation", 1, 2, 2, 1); __PYX_ERR(1, 253, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "generate_voltage_compensation") < 0)) __PYX_ERR(1, 250, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "generate_voltage_compensation") < 0)) __PYX_ERR(1, 253, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -5115,12 +5134,12 @@ static PyObject *__pyx_pw_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_npt = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_npt == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 250, __pyx_L3_error)
-    __pyx_v_sample_rate = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_sample_rate == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 250, __pyx_L3_error)
+    __pyx_v_npt = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_npt == (int)-1) && PyErr_Occurred())) __PYX_ERR(1, 253, __pyx_L3_error)
+    __pyx_v_sample_rate = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_sample_rate == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 253, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("generate_voltage_compensation", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 250, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("generate_voltage_compensation", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 253, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pulse_lib.keysight.uploader_core.uploader.waveform_upload_chache.generate_voltage_compensation", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -5139,7 +5158,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("generate_voltage_compensation", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_void_to_None(__pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_upload_chache_generate_voltage_compensation(__pyx_v_self, __pyx_v_npt, __pyx_v_sample_rate, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 250, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_void_to_None(__pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_upload_chache_generate_voltage_compensation(__pyx_v_self, __pyx_v_npt, __pyx_v_sample_rate, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 253, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -5156,7 +5175,7 @@ static PyObject *__pyx_pf_9pulse_lib_8keysight_13uploader_core_8uploader_22wavef
   return __pyx_r;
 }
 
-/* "pulse_lib/keysight/uploader_core/uploader.pyx":268
+/* "pulse_lib/keysight/uploader_core/uploader.pyx":271
  * 
  * 
  * 	cdef waveform_raw_upload_data* return_raw_data(self):             # <<<<<<<<<<<<<<
@@ -5169,7 +5188,7 @@ static struct waveform_raw_upload_data *__pyx_f_9pulse_lib_8keysight_13uploader_
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("return_raw_data", 0);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":269
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":272
  * 
  * 	cdef waveform_raw_upload_data* return_raw_data(self):
  * 		self.raw_data.wvf_data = &self.wvf_data             # <<<<<<<<<<<<<<
@@ -5178,7 +5197,7 @@ static struct waveform_raw_upload_data *__pyx_f_9pulse_lib_8keysight_13uploader_
  */
   __pyx_v_self->raw_data.wvf_data = (&__pyx_v_self->wvf_data);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":270
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":273
  * 	cdef waveform_raw_upload_data* return_raw_data(self):
  * 		self.raw_data.wvf_data = &self.wvf_data
  * 		self.raw_data.wvf_npt = &self.wvf_npt             # <<<<<<<<<<<<<<
@@ -5187,7 +5206,7 @@ static struct waveform_raw_upload_data *__pyx_f_9pulse_lib_8keysight_13uploader_
  */
   __pyx_v_self->raw_data.wvf_npt = (&__pyx_v_self->wvf_npt);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":271
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":274
  * 		self.raw_data.wvf_data = &self.wvf_data
  * 		self.raw_data.wvf_npt = &self.wvf_npt
  * 		self.raw_data.min_max_voltage = &self.min_max_voltage             # <<<<<<<<<<<<<<
@@ -5196,7 +5215,7 @@ static struct waveform_raw_upload_data *__pyx_f_9pulse_lib_8keysight_13uploader_
  */
   __pyx_v_self->raw_data.min_max_voltage = (&__pyx_v_self->min_max_voltage);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":272
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":275
  * 		self.raw_data.wvf_npt = &self.wvf_npt
  * 		self.raw_data.min_max_voltage = &self.min_max_voltage
  * 		self.raw_data.npt = &self._npt             # <<<<<<<<<<<<<<
@@ -5205,7 +5224,7 @@ static struct waveform_raw_upload_data *__pyx_f_9pulse_lib_8keysight_13uploader_
  */
   __pyx_v_self->raw_data.npt = (&__pyx_v_self->_npt);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":274
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":277
  * 		self.raw_data.npt = &self._npt
  * 
  * 		return &self.raw_data             # <<<<<<<<<<<<<<
@@ -5213,7 +5232,7 @@ static struct waveform_raw_upload_data *__pyx_f_9pulse_lib_8keysight_13uploader_
   __pyx_r = (&__pyx_v_self->raw_data);
   goto __pyx_L0;
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":268
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":271
  * 
  * 
  * 	cdef waveform_raw_upload_data* return_raw_data(self):             # <<<<<<<<<<<<<<
@@ -8862,14 +8881,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "pulse_lib/keysight/uploader_core/uploader.pyx":264
+  /* "pulse_lib/keysight/uploader_core/uploader.pyx":267
  * 
  * 		pulse = np.full((npt+10,), voltage)
  * 		pulse[-10:] = 0 #add 10 points extra to make sure you end up with 0V when done.             # <<<<<<<<<<<<<<
  * 		self.add_data(pulse, (voltage, voltage), -self.integral)
  * 
  */
-  __pyx_slice__6 = PySlice_New(__pyx_int_neg_10, Py_None, Py_None); if (unlikely(!__pyx_slice__6)) __PYX_ERR(1, 264, __pyx_L1_error)
+  __pyx_slice__6 = PySlice_New(__pyx_int_neg_10, Py_None, Py_None); if (unlikely(!__pyx_slice__6)) __PYX_ERR(1, 267, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__6);
   __Pyx_GIVEREF(__pyx_slice__6);
 
@@ -8977,6 +8996,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
 static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(1, 1, __pyx_L1_error);
+  __pyx_float_0_ = PyFloat_FromDouble(0.); if (unlikely(!__pyx_float_0_)) __PYX_ERR(1, 1, __pyx_L1_error)
   __pyx_float_0_99 = PyFloat_FromDouble(0.99); if (unlikely(!__pyx_float_0_99)) __PYX_ERR(1, 1, __pyx_L1_error)
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(1, 1, __pyx_L1_error)
   __pyx_int_neg_10 = PyInt_FromLong(-10); if (unlikely(!__pyx_int_neg_10)) __PYX_ERR(1, 1, __pyx_L1_error)
@@ -9060,14 +9080,14 @@ static int __Pyx_modinit_type_init_code(void) {
   __pyx_vtabptr_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache = &__pyx_vtable_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache;
   __pyx_vtable_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache.generate_voltage_compensation = (void (*)(struct __pyx_obj_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache *, int, double, int __pyx_skip_dispatch))__pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_upload_chache_generate_voltage_compensation;
   __pyx_vtable_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache.return_raw_data = (struct waveform_raw_upload_data *(*)(struct __pyx_obj_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache *))__pyx_f_9pulse_lib_8keysight_13uploader_core_8uploader_22waveform_upload_chache_return_raw_data;
-  if (PyType_Ready(&__pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 180, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 182, __pyx_L1_error)
   __pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache.tp_print = 0;
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache.tp_dictoffset && __pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache.tp_dict, __pyx_vtabptr_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 180, __pyx_L1_error)
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_waveform_upload_chache, (PyObject *)&__pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 180, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 180, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache.tp_dict, __pyx_vtabptr_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 182, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_waveform_upload_chache, (PyObject *)&__pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 182, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache) < 0) __PYX_ERR(1, 182, __pyx_L1_error)
   __pyx_ptype_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache = &__pyx_type_9pulse_lib_8keysight_13uploader_core_8uploader_waveform_upload_chache;
   __Pyx_RefNannyFinishContext();
   return 0;
@@ -11302,6 +11322,73 @@ static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UIN
     return obj_dict_version == __Pyx_get_object_dict_version(obj);
 }
 #endif
+
+/* PyIntCompare */
+    static CYTHON_INLINE PyObject* __Pyx_PyInt_EqObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED long intval, CYTHON_UNUSED long inplace) {
+    if (op1 == op2) {
+        Py_RETURN_TRUE;
+    }
+    #if PY_MAJOR_VERSION < 3
+    if (likely(PyInt_CheckExact(op1))) {
+        const long b = intval;
+        long a = PyInt_AS_LONG(op1);
+        if (a == b) Py_RETURN_TRUE; else Py_RETURN_FALSE;
+    }
+    #endif
+    #if CYTHON_USE_PYLONG_INTERNALS
+    if (likely(PyLong_CheckExact(op1))) {
+        int unequal;
+        unsigned long uintval;
+        Py_ssize_t size = Py_SIZE(op1);
+        const digit* digits = ((PyLongObject*)op1)->ob_digit;
+        if (intval == 0) {
+            if (size == 0) Py_RETURN_TRUE; else Py_RETURN_FALSE;
+        } else if (intval < 0) {
+            if (size >= 0)
+                Py_RETURN_FALSE;
+            intval = -intval;
+            size = -size;
+        } else {
+            if (size <= 0)
+                Py_RETURN_FALSE;
+        }
+        uintval = (unsigned long) intval;
+#if PyLong_SHIFT * 4 < SIZEOF_LONG*8
+        if (uintval >> (PyLong_SHIFT * 4)) {
+            unequal = (size != 5) || (digits[0] != (uintval & (unsigned long) PyLong_MASK))
+                 | (digits[1] != ((uintval >> (1 * PyLong_SHIFT)) & (unsigned long) PyLong_MASK)) | (digits[2] != ((uintval >> (2 * PyLong_SHIFT)) & (unsigned long) PyLong_MASK)) | (digits[3] != ((uintval >> (3 * PyLong_SHIFT)) & (unsigned long) PyLong_MASK)) | (digits[4] != ((uintval >> (4 * PyLong_SHIFT)) & (unsigned long) PyLong_MASK));
+        } else
+#endif
+#if PyLong_SHIFT * 3 < SIZEOF_LONG*8
+        if (uintval >> (PyLong_SHIFT * 3)) {
+            unequal = (size != 4) || (digits[0] != (uintval & (unsigned long) PyLong_MASK))
+                 | (digits[1] != ((uintval >> (1 * PyLong_SHIFT)) & (unsigned long) PyLong_MASK)) | (digits[2] != ((uintval >> (2 * PyLong_SHIFT)) & (unsigned long) PyLong_MASK)) | (digits[3] != ((uintval >> (3 * PyLong_SHIFT)) & (unsigned long) PyLong_MASK));
+        } else
+#endif
+#if PyLong_SHIFT * 2 < SIZEOF_LONG*8
+        if (uintval >> (PyLong_SHIFT * 2)) {
+            unequal = (size != 3) || (digits[0] != (uintval & (unsigned long) PyLong_MASK))
+                 | (digits[1] != ((uintval >> (1 * PyLong_SHIFT)) & (unsigned long) PyLong_MASK)) | (digits[2] != ((uintval >> (2 * PyLong_SHIFT)) & (unsigned long) PyLong_MASK));
+        } else
+#endif
+#if PyLong_SHIFT * 1 < SIZEOF_LONG*8
+        if (uintval >> (PyLong_SHIFT * 1)) {
+            unequal = (size != 2) || (digits[0] != (uintval & (unsigned long) PyLong_MASK))
+                 | (digits[1] != ((uintval >> (1 * PyLong_SHIFT)) & (unsigned long) PyLong_MASK));
+        } else
+#endif
+            unequal = (size != 1) || (((unsigned long) digits[0]) != (uintval & (unsigned long) PyLong_MASK));
+        if (unequal == 0) Py_RETURN_TRUE; else Py_RETURN_FALSE;
+    }
+    #endif
+    if (PyFloat_CheckExact(op1)) {
+        const long b = intval;
+        double a = PyFloat_AS_DOUBLE(op1);
+        if ((double)a == (double)b) Py_RETURN_TRUE; else Py_RETURN_FALSE;
+    }
+    return (
+        PyObject_RichCompare(op1, op2, Py_EQ));
+}
 
 /* GetModuleGlobalName */
     #if CYTHON_USE_DICT_VERSIONS

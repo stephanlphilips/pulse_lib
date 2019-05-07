@@ -4,9 +4,6 @@ from loading_HVI_code_fast import load_HVI, set_and_compile_HVI, excute_HVI
 
 import numpy as np
 
-pulse = return_pulse_lib()
-pulse.cpp_uploader.resegment_memory()
-
 
 def construct_ct(gate1, gate2, marker, t_step, vpp, n_pt):
 	"""
@@ -39,19 +36,22 @@ def construct_ct(gate1, gate2, marker, t_step, vpp, n_pt):
 
 	return charge_st
 
-sequence = [construct_ct("A1", "A2", "A7",1000 ,1000, 30)]
+if __name__ == '__main__':
+	pulse, _ = return_pulse_lib()
+	pulse.cpp_uploader.resegment_memory()
+	sequence = [construct_ct("A6", "A2", "A4",1000 ,1000, 30)]
 
-my_seq = pulse.mk_sequence(sequence)
+	my_seq = pulse.mk_sequence(sequence)
 
-my_seq.add_HVI(load_HVI, set_and_compile_HVI, excute_HVI)
-my_seq.n_rep = 10000
-print(my_seq.sample_rate)
-my_seq.sample_rate = 10e6
-print(my_seq.sample_rate)
-print(my_seq.prescaler)
+	my_seq.add_HVI(load_HVI, set_and_compile_HVI, excute_HVI)
+	my_seq.n_rep = 100000
+	print(my_seq.sample_rate)
+	my_seq.sample_rate = 10e6
+	print(my_seq.sample_rate)
+	print(my_seq.prescaler)
 
-my_seq.upload([0])
-my_seq.play([0])
+	my_seq.upload([0])
+	my_seq.play([0])
 
-pulse.uploader.wait_until_AWG_idle()
-pulse.uploader.release_memory()
+	pulse.uploader.wait_until_AWG_idle()
+	pulse.uploader.release_memory()

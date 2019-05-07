@@ -57,7 +57,7 @@ import numpy # Import numpy which is used to make an array
 # Specify values for variables
 product = 'M3202A' # Product's model number
 chassis = 0 # Chassis number holding product
-slot = 5 # Slot number of product in chassis
+slot = 4 # Slot number of product in chassis
 channel = 2 # Channel being used
 amplitude = 1 # (Unit: Vp) Amplitude of AWG output signal (0.1 Vp)
 waveshape = keysightSD1.SD_Waveshapes.AOU_AWG # Specify AWG output

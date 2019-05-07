@@ -8,7 +8,7 @@ define a function that loads the HVI file that will be used thoughout the experi
 """
 import keysightSD1
 
-def load_HVI(AWGs, channel_map, *args, **kwargs):
+def load_HVI(AWGs, channel_map, *args,**kwargs):
 	"""
 	load a HVI file on the AWG.
 	Args:
@@ -25,12 +25,14 @@ def load_HVI(AWGs, channel_map, *args, **kwargs):
 
 			
 	HVI = keysightSD1.SD_HVI()
-	HVI.open("C:/V2_code/HVI/HVI_playback_restless_test.HVI")
+	HVI.open("C:/V2_code/HVI/HVI_playback_restless_with_single_shot.HVI")
 
 	HVI.assignHardwareWithUserNameAndSlot("Module 0",0,2)
 	HVI.assignHardwareWithUserNameAndSlot("Module 1",0,3)
 	HVI.assignHardwareWithUserNameAndSlot("Module 2",0,4)
 	HVI.assignHardwareWithUserNameAndSlot("Module 3",0,5)
+	HVI.assignHardwareWithUserNameAndSlot("Module 4",0,6)
+
 
 	HVI.compile()
 	HVI.load()
@@ -86,7 +88,16 @@ def excute_HVI(HVI, AWGs, channel_map, playback_time, n_rep, *args, **kwargs):
 		awg.writeRegisterByNumber(2, int(nrep))
 		awg.writeRegisterByNumber(3, int(length))
 
-	# writing a 1 to the register starts the AWG.
+	print(kwargs)
+	dig = kwargs['digitizer'] 
+	dig_wait = kwargs['dig_wait']
+
+	delay_1 = int(dig_wait/10)
+	dig.writeRegisterByNumber(2, int(nrep))
+	dig.writeRegisterByNumber(4, int(delay_1))
+	dig.writeRegisterByNumber(3, int(length-delay_1))
+	
+	# start sequence
 	AWGs['AWG1'].writeRegisterByNumber(0,int(1))
 
 if __name__ == '__main__':

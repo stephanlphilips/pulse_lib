@@ -28,14 +28,14 @@ def return_pulse_lib():
 	pulse.define_channel('B1','AWG2', 2)
 	pulse.define_channel('P2','AWG2', 3)
 	pulse.define_channel('B0','AWG2', 4)
-	pulse.define_channel('A1','AWG3', 1)
+	pulse.define_channel('B5','AWG3', 1)
 	pulse.define_channel('A2','AWG3', 2)
 	pulse.define_channel('A3','AWG3', 3)
-	pulse.define_channel('A4','AWG3', 4)
+	pulse.define_marker('A4','AWG3', 4)
 	pulse.define_channel('A5','AWG4',1)
 	pulse.define_marker('M1','AWG4',2)
-	pulse.define_marker('A6','AWG4', 3)
-	pulse.define_channel('A7','AWG4', 4)
+	pulse.define_channel('A6','AWG4', 3)
+	pulse.define_channel('P3','AWG4', 4)
 
 
 	# format : channel name with delay in ns (can be posive/negative)
@@ -53,11 +53,12 @@ def return_pulse_lib():
 	pulse.add_channel_compenstation_limit('P2', (-1000, 500))
 	pulse.add_channel_compenstation_limit('P4', (-1000, 500))
 	pulse.add_channel_compenstation_limit('P5', (-1000, 500))
+	pulse.add_channel_compenstation_limit('B5', (-1000, 500))
 	# set a virtual gate matrix (note that you are not limited to one matrix if you would which so)
-	# virtual_gate_set_1 = virtual_gates_constructor(pulse)
-	# virtual_gate_set_1.add_real_gates('P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5')
-	# virtual_gate_set_1.add_virtual_gates('vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5')
-	# virtual_gate_set_1.add_virtual_gate_matrix(np.eye(11))
+	virtual_gate_set_1 = virtual_gates_constructor(pulse)
+	virtual_gate_set_1.add_real_gates('P4','P5','B3','B4','B5')
+	virtual_gate_set_1.add_virtual_gates('vP4','vP5','vB3','vB4','vB5')
+	virtual_gate_set_1.add_virtual_gate_matrix(np.eye(5))
 
 	# # make virtual channels for IQ usage (also here, make one one of these object per MW source)
 	# IQ_chan_set_1 = IQ_channel_constructor(pulse)
@@ -75,7 +76,7 @@ def return_pulse_lib():
 	# finish initialisation (! important if using keysight uploader)
 	pulse.finish_init()
 
-	return pulse
+	return pulse, virtual_gate_set_1
 
 if __name__ == '__main__':
 	pulse = return_pulse_lib()

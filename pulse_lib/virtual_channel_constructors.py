@@ -13,6 +13,7 @@ class virtual_gates_constructor(object):
 			pulse_lib_obj (pulse_lib) : add a pulse lib object to whom properties need to be added.
 		"""
 		self.pulse_lib_obj = pulse_lib_obj
+		self.pulse_lib_obj.virtual_channels.append(self)
 		self.real_gate_names = []
 		self.virtual_gate_names = []
 		self._virtual_gate_matrix = None

@@ -67,7 +67,6 @@ void cpp_uploader::rescale_concatenate_and_convert_to_16_bit_number(waveform_raw
 	// Alternative, define v_offset, but atm bad idea, since the AWG takes v_offset as default zero. -> Bias T problems.
 	// double v_offset = (upload_data->min_max_voltage->second + upload_data->min_max_voltage->first)/2;
 	// double v_pp = upload_data->min_max_voltage->second - upload_data->min_max_voltage->first;
-
 	double offset_factor = 0; // v_offset + v_pp*0.5;
 	double rescaling_factor = 65535./v_pp;
 

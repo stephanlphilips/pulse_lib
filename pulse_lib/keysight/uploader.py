@@ -130,7 +130,7 @@ class keysight_uploader():
 			job.HVI.load()
 			job.HVI.start()
 		else:
-			job.HVI_start_function(job.HVI, self.AWGs, self.channel_map, job.playback_time, job.n_rep )
+			job.HVI_start_function(job.HVI, self.AWGs, self.channel_map, job.playback_time, job.n_rep, **job.HVI_kwargs)
 		
 		if release == True:
 			self.release_memory()
@@ -200,7 +200,6 @@ class keysight_uploader():
 
 				vmin = getattr(seg, channel).v_min(job.index, sample_rate)
 				vmax = getattr(seg, channel).v_max(job.index, sample_rate)
-
 				waveform_cache[channel].add_data(wvf, (vmin, vmax), integral)
 
 				pre_delay = 0
@@ -271,7 +270,7 @@ class upload_job(object):
 		self.n_rep = n_rep
 		self.prescaler = prescaler
 		self.sample_rate = convert_prescaler_to_sample_rate(prescaler)
-		self.neutralize = True
+		self.neutralize = neutralize
 		self.priority = priority
 		self.DSP = False
 		self.playback_time = 0 #total playtime of the waveform
@@ -283,22 +282,22 @@ class upload_job(object):
 		self.DSP = True
 		self.DSP_func = DSP
 
-	def add_HVI(self, HVI, compile_function, start_function):
+	def add_HVI(self, HVI, compile_function, start_function, **kwargs):
 		"""
 		Introduce HVI functionality to the upload.
 		args:
 			HVI (SD_HVI) : HVI object from the keysight libraries
 			compile_function (function) : function that compiles the HVI code. Default arguments that will be provided are (HVI, npt, n_rep) = (HVI object, number of points of the sequence, number of repetitions wanted)
 			start_function (function) :function to be executed to start the HVI (this can also be None)
-		
-		TODO: add optional parameter for the functions.
+			kwargs : keyword arguments for the HVI script (see usage in the examples (e.g. when you want to provide your digitzer card))
 		"""
 		self.HVI = HVI
 		self.HVI_compile_function = compile_function
 		self.HVI_start_function = start_function
+		self.HVI_kwargs = kwargs
 
 	def compile_HVI(self):
-		self.HVI_compile_function(self.HVI, self.playback_time, self.n_rep)
+		self.HVI_compile_function(self.HVI, self.playback_time, self.n_rep, **self.HVI_kwargs)
 
 
 def convert_min_max_to_vpp_voff(v_min, v_max):
