@@ -43,6 +43,7 @@ TODO list:
 * Support for calibarion arguments? -- this should be engineered well.
 * HVI2 integration
 * add DSP module (must also be C++)
+* Add HVI markers in the software --> push varibles to the HVI upload process.
 
 TODO bugs and small things to fix,
 * deal with names and units of the loops + setpoints variable
