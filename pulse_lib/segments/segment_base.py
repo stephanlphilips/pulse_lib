@@ -9,7 +9,7 @@ import datetime
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, get_union_of_shapes, update_dimension
 from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.looping import loop_obj
-
+from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 import copy
 
 import matplotlib.pyplot as plt
@@ -60,6 +60,7 @@ class segment_base():
 		
 		# store data in numpy looking object for easy operator access.
 		self.data = data_container(data_object)
+		
 
 		# references to other channels (for virtual gates).
 		self.reference_channels = []
@@ -72,11 +73,9 @@ class segment_base():
 		# variable specifing the lastest time the pulse_data_all is updated
 		self.last_render = datetime.datetime.now() 
 
-		self.loops = list()
-		# some basic properties.
-		self._names = tuple()
-		self._setvals = tuple()
-		self._units = tuple()
+		# setpoints of the loops (with labels and units)
+		self._setpoints = setpoint_mgr()
+
 
 	def add_reference_channel(self, channel_name, segment_data, multiplication_factor):
 		'''
@@ -131,51 +130,9 @@ class segment_base():
 		return self.data.ndim
 
 	@property
-	def names(self):
-		self.__generate_properties()
-		return self._names
+	def setpoints(self):
+		return self._setpoints
 	
-	@property
-	def units(self):
-		self.__generate_properties()
-		return self._units
-
-	@property
-	def setvals(self):
-		self.__generate_properties()
-		return self._setvals
-
-	def __generate_properties(self):
-		'''
-		generate properties like names, units and setvals of the current segment.
-
-		Note that this are the units of this segment and not the sements around it.
-		Note2 : for a loopobject with a dimensions bigger than one, the setvals are not settable, as a 1D array for each of them is expected. As such, only the first row of the array will be kept... (though it is unlikely that this scenario will occur).
-		'''
-		
-		
-		units = ["a.u."]*self.ndim
-		names = ["undefined"]*self.ndim
-		setvals = []*self.ndim
-		enforce_setvals = [False]*self.ndim
-
-		for lp in range(self.loops):
-			for i in range(lp.ndim):
-				if lp.units[i] != 'a.u.':
-					units[lp.axis[i]] = lp.units[i]
-				if lp.names[i] != 'undefined':
-					names[lp.axis[i]] = lp.names[i]
-				if enforce_setvals[i] == False:
-					locations = [0] * lp.ndim
-					locations[i] = slice(0, None)
-
-					setvals[lp.axis[i]] = lp.setvals[ tuple(locations) ]
-					enforce_setvals[lp.axis[i]] = lp.setvals_set
-
-		self._names = names
-		self._units = units
-		self._setvals = setvals
-
 	def __add__(self, other):
 		'''
 		define addition operator for segment_single
@@ -248,7 +205,7 @@ class segment_base():
 		'''
 		other_loopobj = loop_obj()
 		other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)))
-
+		self._setpoints += other._setpoints
 		self.__append(other_loopobj, time)
 
 		return self
@@ -276,6 +233,7 @@ class segment_base():
 		"""
 		if time is None:
 			time = self.data_tmp.total_time
+
 
 		self.data_tmp.append(other, time)
 

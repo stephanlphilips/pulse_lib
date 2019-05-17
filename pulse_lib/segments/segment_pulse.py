@@ -9,6 +9,8 @@ from pulse_lib.segments.segment_base import last_edited, segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller
 from pulse_lib.segments.data_classes.data_pulse import pulse_data
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
+from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
+
 import copy
 
 class segment_pulse(segment_base):
@@ -150,12 +152,19 @@ if __name__ == '__main__':
 
 	s = segment_pulse("test")
 	from pulse_lib.segments.utility.looping import linspace
-	s.add_block(0, 10, 50)
 
+	a = tuple()
+	b = tuple()
+	print(a, b, a+b)
+	t2 = linspace(100,500, 20, axis= 0)
+	t = linspace(1,50, 20, name = "test", unit = "test", axis= 0)
+	s.add_block(0, 10, t2)
 	s.reset_time()
-	s.add_block(20, 30, 50)
+	print("test")
+	s.add_block(20, 30, t)
 	s.wait(10)
-	s.plot_segment()
+	# s.plot_segment()
 	plt.show()
+	print(s.setpoints)
 	# print(s.loops)
 	# print(s.units)
