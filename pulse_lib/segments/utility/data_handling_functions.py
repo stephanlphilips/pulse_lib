@@ -1,5 +1,6 @@
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.data_classes.data_generic import data_container
+from pulse_lib.segments.utility.setpoint_mgr import setpoint
 import numpy as np
 import copy
 
@@ -170,16 +171,24 @@ def loop_controller(func):
 		loop_info_kwargs = []
 		for i in range(1,len(args)):
 			if isinstance(args[i], loop_obj):
+				if len(args[i].axis) == 1 :
+					setpnt = setpoint(args[i].axis[0])
+					setpnt.setpoint = (args[i].data,)
+					setpnt.label = args[i].labels
+					setpnt.unit = args[i].units
+				else:
+					setpnt=None
+					print("detected 2d loop, unit generation not supported at the moment.")
+
 				info = {
 				'nth_arg': i,
 				'shape' : args[i].shape,
 				'len': len(args[i]),
 				'axis': args[i].axis,
-				'data' : args[i].data}
+				'data' : args[i].data,
+				'setpnt' : setpnt}
 				loop_info_args.append(info)
-
-				obj.loops.append(args[i])
-
+				
 		for key in kwargs.keys():
 			if isinstance(kwargs[key], loop_obj):
 				info = {
@@ -187,17 +196,31 @@ def loop_controller(func):
 				'shape' : kwargs[key].shape,
 				'len': len(kwargs[key]),
 				'axis': kwargs[key].axis,
-				'data' : kwargs[key].data}
+				'data' : kwargs[key].data,
+				'setpnt' : setpnt}
 				loop_info_kwargs.append(info)
 
-				obj.loops.append(kwargs[key])
+				if len(kwargs[key].axis) == 1 :
+					setpnt = setpoint(kwargs[key].axis[0])
+					setpnt.setpoint = (kwargs[key].data,)
+					setpnt.label = kwargs[key].labels
+					setpnt.unit = kwargs[key].units
+
+					obj._setpoints += setpnt
+				else:
+					print("detected 2d loop, unit generation not supported at the moment.")
 
 		for lp in loop_info_args:
 			for i in range(len(lp['axis'])-1,-1,-1):
 				new_dim, axis = get_new_dim_loop(obj.data.shape, lp['axis'][i], lp['shape'][i])
 				lp['axis'][i] = axis
 				obj.data = update_dimension(obj.data, new_dim)
-		
+
+				if lp['setpnt'] is not None and i == 0:
+					lp['setpnt'].axis = axis
+					obj._setpoints += lp['setpnt']
+
+		# todo update : (not used atm, but just to be generaric.)
 		for lp in loop_info_kwargs:
 			new_dim = get_new_dim_loop(obj.data.shape, lp)
 			obj.data = update_dimension(obj.data, new_dim)

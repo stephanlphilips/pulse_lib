@@ -1,5 +1,6 @@
 import pulse_lib.segments.segment_container
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension
+from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.keysight.uploader import upload_job,convert_prescaler_to_sample_rate
 from si_prefix import si_format
 
@@ -53,6 +54,27 @@ class sequencer():
 	@property
 	def ndim(self):
 		return len(self.shape)
+
+	@property
+	def setpoint_data(self):
+		setpoint_data = setpoint_mgr()
+		for seg_container in self.sequence:
+			setpoint_data += seg_container[0].setpoint_data
+
+		return setpoint_data
+
+	@property
+	def units(self):
+		return self.setpoint_data.units
+	
+	@property
+	def labels(self):
+		return self.setpoint_data.labels
+
+	@property
+	def setpoints(self):
+		return self.setpoint_data.setpoints
+	
 
 	@property
 	def sample_rate(self):
@@ -175,3 +197,26 @@ class sequencer():
 		self.uploader.release_memory(self.id, index)
 
 
+
+if __name__ == '__main__':
+	from pulse_lib.segments.segment_container import segment_container
+	import pulse_lib.segments.utility.looping as lp
+
+	a = segment_container(["a", "b"])
+	b = segment_container(["a", "b"])
+
+	b.a.add_block(0,lp.linspace(30,100,10),100)
+	b.a.reset_time()
+
+	a.a.add_block(20,lp.linspace(50,100,10, axis = 1, name = "time", unit = "ns"),100)
+
+	b.slice_time(0,lp.linspace(80,100,10, name = "time", unit = "ns", axis= 2))
+	
+	my_seq = [a,b]
+
+	seq = sequencer(None, dict())
+	seq.add_sequence(my_seq)
+
+	print(seq.labels)
+	print(seq.units)
+	print(seq.setpoints)

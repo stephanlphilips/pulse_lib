@@ -1,0 +1,148 @@
+from dataclasses import dataclass
+
+"""
+file that constains a few classes that do automatric unit management.
+The idea of these modules is to provide the units that qcodes needs for plotting.
+The setpoint_mgr is meant to run in segment object and can be conbined easily
+for all the channels on segment_contianer level and further into the sequence. 
+"""
+
+class setpoint_mgr():
+	"""docstring for setpoint_mgr"""
+	def __init__(self):
+		self._setpoints = dict()
+
+	def __add__(self, other):
+		"""
+		add other setpoint /setpoint_mgr to this object
+		
+		Args:
+			other (setpoint/setpoint_mgr) : object with setpoints.
+
+		Returns:
+			self (setpoint_mgr)
+		"""
+		if isinstance(other, setpoint):
+			if other.axis in self._setpoints.keys():
+				self._setpoints[other.axis] += other
+			else:
+				self._setpoints.update({other.axis : other})
+
+		elif isinstance(other, self.__class__):
+			for setpnt in other:
+				self += setpnt
+		else:
+			raise ValueError("setpoint_mgr does not support counting up of the type {}. Please use the setpoint_mgr or setpoint type".format(type(other)))
+
+		return self
+
+	def __str__(self):
+		content = "\rSetpoint_mgr class. Contained data:\r\r"
+
+		for key in sorted(self._setpoints.keys()):
+			content += "axis : {}\r".format(key)
+			content += self._setpoints[key].__str__()
+			content += "\r\r"
+
+		return content
+	
+	def __getitem__(self, axis):
+		"""
+		get setpoint data for a certain axis
+		"""
+		set_point = self._setpoints[axis]
+
+		return set_point
+
+	def __iter__(self):
+		self.n = 0
+		return self
+
+	def __next__(self):
+		if self.n < len(self):
+			setpoint = list(self._setpoints.values())[self.n]
+			self.n += 1
+			return setpoint
+		else:
+			raise StopIteration
+
+	def __len__(self):
+		return len(self._setpoints)
+
+	@property
+	def labels(self):
+		labels = tuple()
+		for key in sorted(self._setpoints.keys()):
+			if len(self._setpoints[key].label) >= 1:
+				labels += (self._setpoints[key].label[0] , )
+			else:
+				labels += ("No label defined", )
+		return labels
+	
+	@property
+	def units(self):
+		units = tuple()
+		for key in sorted(self._setpoints.keys()):
+			if len(self._setpoints[key].unit) >= 1:
+				units += (self._setpoints[key].unit[0] , )
+			else:
+				units += ("a.u.", )
+		return units
+
+	@property
+	def setpoints(self):
+		setpnts = tuple()
+		for key in sorted(self._setpoints.keys()):
+			if len(self._setpoints[key].setpoint) >= 1:
+				setpnts += (self._setpoints[key].setpoint[0] , )
+			else:
+				setpnts += (None, )
+		return setpnts
+	
+
+@dataclass
+class setpoint():
+	axis : int
+	setpoint : tuple = tuple()
+	label : tuple = tuple()
+	unit : tuple = tuple()
+
+	def __add__(self, other):
+		if self.axis != other.axis:
+			raise ValueError("Counting of two setpoint variables on two axis. This is not allowed.")
+
+		# prioritize setpoints of variables where units/labels are defined.
+		if len(other.label) == 1 or len(other.unit) == 1:
+			self.setpoint = other.setpoint + self.setpoint
+			self.label = other.label + self.label
+			self.unit = other.unit + self.unit
+		else:
+			self.setpoint = self.setpoint + other.setpoint
+			self.label = self.label + other.label
+			self.unit = self.unit + other.unit
+
+		return self
+
+if __name__ == '__main__':
+	b = setpoint(1)
+	b.label = ('Voltage1',)
+	b.unit = ('V',)
+	a = setpoint(0)
+	a.label = ('Voltage',)
+
+	# c = a + b
+	# print(c)
+
+	setpoint_manager = setpoint_mgr()
+
+	setpoint_manager += a
+	setpoint_manager += a
+	setpoint_manager += b
+	# print(a, b)
+
+	setpoint_manager += setpoint_manager
+
+	print(setpoint_manager)
+	print(setpoint_manager.labels)
+	print(setpoint_manager.units)
+	print(setpoint_manager.setpoints)

@@ -5,18 +5,18 @@ class loop_obj():
 	"""object that initializes some standard fields that need to be there in a loop object"""
 	def __init__(self):
 		# little inspiration from qcodes parameter ...
-		self.names = list()
+		self.labels = list()
 		self.units = list()
 		self.axis = list()
 		self.dtype = None
 		self.setvals_set = False
 		
-	def add_data(self, data, axis = None, names = None, units = None, setvals = None):
+	def add_data(self, data, axis = None, labels = None, units = None, setvals = None):
 		'''
 		add data to the loop object.
 		data (array/np.ndarray) : n dimensional array with a regular shape (any allowed by numpy) of values you want to sweep
-		axis (int/tuple<str>) : loop axis, if none is provided, a new loop axis is generated when the loop object is used in the pulse library.
-		names (str/tuple<str>) : name of the data that is swept. This will for example be used as an axis label
+		axis (int/tuple<int>) : loop axis, if none is provided, a new loop axis is generated when the loop object is used in the pulse library.
+		labels (str/tuple<str>) : name of the data that is swept. This will for example be used as an axis label
 		units (str/tuple<str>) : unit of the sweep data
 		setvals (array/np.ndarray) : if you want to display different things on the axis than the normal data point. When None, setvals is the same as the data varaible.
 		'''
@@ -32,19 +32,19 @@ class loop_obj():
 				raise ValueError("Provided incorrect dimensions for the axis.")
 			self.axis = axis
 		
-		if names is None:
-			self.names = ["undefined"]*len(self.data)
-		elif type(names) == str:
-			self.names = [names]
+		if labels is None:
+			self.labels = tuple()
+		elif type(labels) == str:
+			self.labels = (labels, )
 		else:
-			if len(names) != len(self.data.shape):
+			if len(labels) != len(self.data.shape):
 				raise ValueError("Provided incorrect dimensions for the axis.")
-			self.names = names
+			self.labels = labels
 
 		if units is None:
-			self.units = ["a.u"]*len(self.data)
+			self.units = tuple()
 		elif type(units) == str:
-			self.units = [units]
+			self.units = (units, )
 		else:
 			if len(units) != len(self.data.shape):
 				raise ValueError("Provided incorrect dimensions for the axis.")
@@ -75,7 +75,7 @@ class loop_obj():
 			return self.data[key]
 		else:
 			partial = loop_obj()
-			partial.names =self.names[1:] 
+			partial.labels =self.labels[1:] 
 			partial.units = self.units[1:]
 			partial.axis = self.axis[1:]
 			partial.dtype = self.dtype
@@ -102,7 +102,7 @@ class loop_obj():
 
 	def __copy__(self):
 		cpy = loop_obj()
-		cpy.names = copy.copy(self.names)
+		cpy.labels = copy.copy(self.labels)
 		cpy.units = copy.copy(self.units)
 		cpy.axis = copy.copy(self.axis)
 		cpy.dtype = copy.copy(self.dtype)
@@ -114,7 +114,7 @@ class loop_obj():
 
 class linspace(loop_obj):
 	"""docstring for linspace"""
-	def __init__(self, start, stop, n_steps = 50, name = "undefined", unit = 'a.u.', axis = -1, setvals = None):
+	def __init__(self, start, stop, n_steps = 50, name = None, unit = None, axis = -1, setvals = None):
 		super().__init__()
-		super().add_data(np.linspace(start, stop, n_steps), axis = axis, names = name, units = unit, setvals= setvals)
+		super().add_data(np.linspace(start, stop, n_steps), axis = axis, labels = name, units = unit, setvals= setvals)
 

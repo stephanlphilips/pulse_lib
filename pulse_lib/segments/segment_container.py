@@ -9,12 +9,13 @@ from pulse_lib.segments.segment_markers import segment_marker
 
 import pulse_lib.segments.utility.looping as lp
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension
+from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 
 import uuid
 
 import numpy as np
 import datetime
-
+import copy
 
 class segment_container():
 	'''
@@ -97,6 +98,8 @@ class segment_container():
 					virtual_channel = getattr(self, virtual_channel_name.channel_name)
 					real_channel_marker.add_reference_marker_IQ(virtual_channel, marker_info.pre_delay, marker_info.post_delay)
 
+		self._setpoints = setpoint_mgr()
+
 	@property
 	def shape(self):
 		'''
@@ -139,6 +142,17 @@ class segment_container():
 		return times
 
 	@property
+	def setpoint_data(self):
+		comb_setpoints = copy.copy(self._setpoints)
+
+		for i in self.channels:
+			segment = getattr(self, i)
+			comb_setpoints += segment.setpoints
+
+		return comb_setpoints
+	
+
+	@property
 	def Vmin_max_data(self):
 		if self.prev_upload < self.last_mod:
 
@@ -156,12 +170,19 @@ class segment_container():
 		'''
 		if not isinstance(other, segment_container):
 			raise TypeError("segment_container object expected. Did you supply a single segment?")
+
+		# make sure all object have a full size.
+		my_shape = find_common_dimension(self.shape, other.shape)
+		other.extend_dim(my_shape)
+		self.extend_dim(my_shape)
+
+		self._setpoints += other._setpoints
+
 		if time == None:
 			times = self.total_time
 
 			time = lp.loop_obj()
 			time.add_data(times, list(range(len(times.shape)-1, -1,-1)))
-
 		for i in self.channels:
 			segment = getattr(self, i)
 			segment.append(getattr(other, i), time)
@@ -268,10 +289,11 @@ if __name__ == '__main__':
 	b.a.add_block(0,lp.linspace(50,100,10),100)
 	b.a.reset_time()
 
-	b.a.add_block(20,lp.linspace(50,100,10),100)
+	a.a.add_block(20,lp.linspace(50,100,10, axis = 1, name = "time", unit = "ns"),100)
 
-	a.append(b,10)
+	b.append(a)
 
-	a.slice_time(0,lp.linspace(80,100,10))
-	print(a.shape)
-	print(a.a.data[2,2,2].my_pulse_data)
+	b.slice_time(0,lp.linspace(80,100,10, name = "time", unit = "ns"))
+
+	print(b.setpoints)
+	# print(a.a.data[2,2,2])
