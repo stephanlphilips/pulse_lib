@@ -31,11 +31,11 @@ def return_pulse_lib():
 	pulse.define_channel('B5','AWG3', 1)
 	pulse.define_channel('A2','AWG3', 2)
 	pulse.define_channel('A3','AWG3', 3)
-	pulse.define_marker('A4','AWG3', 4)
+	pulse.define_channel('A4','AWG3', 4)
 	pulse.define_channel('A5','AWG4',1)
-	pulse.define_marker('M1','AWG4',2)
+	pulse.define_channel('M1','AWG4',2)
 	pulse.define_channel('A6','AWG4', 3)
-	pulse.define_channel('P3','AWG4', 4)
+	pulse.define_marker('M2','AWG4', 4)
 
 
 	# format : channel name with delay in ns (can be posive/negative)

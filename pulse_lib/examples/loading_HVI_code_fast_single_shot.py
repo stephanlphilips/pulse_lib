@@ -94,8 +94,8 @@ def excute_HVI(HVI, AWGs, channel_map, playback_time, n_rep, *args, **kwargs):
 
 	delay_1 = int(dig_wait/10)
 	dig.writeRegisterByNumber(2, int(nrep))
-	dig.writeRegisterByNumber(4, int(delay_1))
-	dig.writeRegisterByNumber(3, int(length-delay_1))
+	# dig.writeRegisterByNumber(4, int(delay_1))
+	dig.writeRegisterByNumber(3, int(length))
 
 	dig.set_meas_time(1000)
 	dig.set_MAV_filter(16,1)	# writing a 1 to the register starts the AWG.

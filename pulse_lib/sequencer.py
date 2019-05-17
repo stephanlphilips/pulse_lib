@@ -64,7 +64,7 @@ class sequencer():
 		Rate at which to set the AWG. Note that not all rates are supported and a rate as close to the one you enter will be put.
 		
 		Args:
-			rate (float) : target sample rate for the AWG.
+			rate (float) : target sample rate for the AWG (unit : S/s).
 		"""
 		if rate > 200e6:
 			prescaler = 0

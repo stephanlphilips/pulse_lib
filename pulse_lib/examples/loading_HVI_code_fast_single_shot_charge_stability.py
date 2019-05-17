@@ -25,7 +25,7 @@ def load_HVI(AWGs, channel_map, *args,**kwargs):
 
 			
 	HVI = keysightSD1.SD_HVI()
-	HVI.open("C:/V2_code/HVI/HVI_playback_restless_with_single_shot_std.HVI")
+	HVI.open("C:/V2_code/HVI/HVI_playback_charge_stability.HVI")
 
 	HVI.assignHardwareWithUserNameAndSlot("Module 0",0,2)
 	HVI.assignHardwareWithUserNameAndSlot("Module 1",0,3)
@@ -36,9 +36,6 @@ def load_HVI(AWGs, channel_map, *args,**kwargs):
 
 	HVI.compile()
 	HVI.load()
-	
-
-	HVI.start()
 
 	return HVI
 
@@ -85,19 +82,19 @@ def excute_HVI(HVI, AWGs, channel_map, playback_time, n_rep, *args, **kwargs):
 	length = int(playback_time/10 + 20)
 
 	for awgname, awg in AWGs.items():
-		awg.writeRegisterByNumber(2, int(nrep))
 		awg.writeRegisterByNumber(3, int(length))
 
 	dig = kwargs['digitizer'] 
-	dig_wait = kwargs['dig_wait']
+	t_single_point = kwargs['t_single_point']
+	npt = kwargs['number_of_points']
 
-	delay_1 = int(dig_wait/10)
-	dig.writeRegisterByNumber(2, int(nrep))
-	dig.writeRegisterByNumber(3, int(length))
-	# dig.writeRegisterByNumber(4, int(delay_1))
-	# start sequence
-	AWGs['AWG1'].writeRegisterByNumber(1, 0)
-	AWGs['AWG1'].writeRegisterByNumber(0,int(1))
+	t_single_point_formatted = int((t_single_point-160)/10) # divide by 10 since 100MHz clock (160 ns HVI overhead)
+
+	dig.writeRegisterByNumber(2, npt)
+	dig.writeRegisterByNumber(3, t_single_point_formatted)
+
+	HVI.start()
+
 
 if __name__ == '__main__':
 	
