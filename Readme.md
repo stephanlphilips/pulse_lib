@@ -31,7 +31,7 @@ Navigate in the github folder and run the following in the terminal:
 ```bash
 	python3 setup.py install
 ```
-The python scrip will also take care of compuling the c code. On windows, it is recommended to do this in a Anaconda promt. You will need to run the promt with administarator privelages.
+The python scrip will also take care of compiling the c code. On windows, it is recommended to do this in a Anaconda promt. You will need to run the promt with administarator privelages.
 
 # Documentation
 Documentation for the library can be found at:
