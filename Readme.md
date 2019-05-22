@@ -31,7 +31,7 @@ Navigate in the github folder and run the following in the terminal:
 ```bash
 	python3 setup.py install
 ```
-The python scrip will also take care of compuling the c code. On windows, it is recommended to do this in a Anaconda promt. You will need to run the promt with administarator privelages.
+The python scrip will also take care of compiling the c code. On windows, it is recommended to do this in a Anaconda promt. You will need to run the promt with administarator privelages.
 
 # Documentation
 Documentation for the library can be found at:
@@ -46,5 +46,7 @@ TODO list:
 * Add HVI markers in the software --> push varibles to the HVI upload process.
 
 TODO bugs and small things to fix,
-* deal with names and units of the loops + setpoints variable
 * remove finish init
+* inefficiency in waveform generation for pulsed waveforms (e.g. assume waveform in 100x100 loop) --> crappy performance : 870ms needed for adding a pulse in this loop (10k pulses in total) --> this feels bad. --> target 1M at decent speeds (few/10 ms) --> this is fixable. Time when the snappyness feeling breaks is around 300ms.
+* memory bug : memory is not released automatically after the sequence is done. This should be automated.This can lead to accumulating memory when doing playback and crash the system (badly --> reboot needed).
+* Keysight FPGA pulse correction not there? --> investigation needed.
