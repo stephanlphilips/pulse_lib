@@ -92,7 +92,6 @@ def _extend_dimensions(data, shape, use_ref):
 		shape (list/np.ndarray) : list of the new dimensions of the array (should have the same lenght as the dimension of the data!)
 		use_ref (bool) : use pointer to copy, or take full copy (False is full copy)
 	'''
-
 	new_data = data_container(shape = shape)
 	for i in range(len(shape)):
 		if data.shape[i] != shape[i]:
@@ -141,13 +140,13 @@ def cpy_numpy_shallow(data, use_ref):
 			return copy(data)
 
 		if data.shape == (1,):
-			return copy.copy(data[0])
+			return data[0].__copy__()
 
 		shape = data.shape
 		data_flat = data.flatten()
 		new_arr = np.empty(data_flat.shape, dtype=object)
 
-		for i in range(len(new_arr)):
+		for i in range(len(new_arr)):		
 			new_arr[i] = copy.copy(data_flat[i])
 
 		new_arr = new_arr.reshape(shape)
@@ -165,6 +164,8 @@ def loop_controller(func):
 	if no loop, just apply func on all data (easy)
 	'''
 	def wrapper(*args, **kwargs):
+		import time
+		t0 = time.time()
 		obj = args[0]
 
 		loop_info_args = []
@@ -186,7 +187,8 @@ def loop_controller(func):
 				'len': len(args[i]),
 				'axis': args[i].axis,
 				'data' : args[i].data,
-				'setpnt' : setpnt}
+				'setpnt' : setpnt
+				}
 				loop_info_args.append(info)
 				
 		for key in kwargs.keys():
@@ -224,8 +226,9 @@ def loop_controller(func):
 		for lp in loop_info_kwargs:
 			new_dim = get_new_dim_loop(obj.data.shape, lp)
 			obj.data = update_dimension(obj.data, new_dim)
-
+		
 		loop_over_data(func, obj.data, args, loop_info_args, kwargs, loop_info_kwargs)
+
 
 	return wrapper
 
@@ -375,3 +378,86 @@ def get_union_of_shapes(shape1, shape2):
 			raise ValueError("Dimension Mismatch when trying to combine two data object. The first object has on axis {} a dimension of {}, where the second one has a dimension of {}".format(i, shape1[i], shape2[i]))
 	return tuple(new_shape)
 
+def upconvert_dimension(arr, shape):
+	"""
+	upconverts the dimension of the array.
+	
+	Args:
+		arr (np.ndarray) : input array
+		shape (tuple) : wanted final shape.
+
+	Returns:
+		new_arr (np.ndarray) : upconverted array
+	"""
+
+	if arr.shape == shape:
+		return arr
+		
+	new_arr = np.empty(shape, arr.dtype)
+	input_shape = arr.shape
+	axis_filled = []
+	for i in range(len(input_shape)):
+		if input_shape[i] != 1:
+			axis_filled.append(len(arr.shape) -1 - i)
+
+	# swap axis to all data in lower axis numbers
+	j = 0
+	axis_swapped = []
+	for i in axis_filled:
+		if i!=j:
+			arr = np.swapaxes(arr, len(arr.shape) -1 - i,len(arr.shape) -1 -  j)
+			new_arr = np.swapaxes(new_arr, len(new_arr.shape) -1 - j, len(new_arr.shape) -1 - i)
+			axis_swapped.append((len(arr.shape) -1 - i,len(arr.shape) -1 -  j, len(new_arr.shape) -1 - j, len(new_arr.shape) -1 - i))
+
+		j += 1
+
+	# reshape to easy copy dat form arr in new arr
+	old_shape = new_arr.shape
+	new_arr = new_arr.reshape([int(new_arr.size/arr.size),int(arr.size)])
+	new_arr[:] = arr.flatten()
+
+	new_arr = new_arr.reshape(old_shape)
+	# swap back all the axis.
+	for i in axis_swapped[::-1]:
+		arr = np.swapaxes(arr, i[0], i[1])
+		new_arr = np.swapaxes(new_arr, i[2], i[3])
+
+	return new_arr
+
+
+def reduce_arr(arr):
+	"""
+	Return which elements on which axis are unique
+
+	Args:
+		arr (np.ndarray) : input array which to reduce to unique value
+	
+	Returns:
+		reduced array(np.ndarray) : array with reduced data.
+		data_axis (list) : the axises that have changing data.
+	"""
+	ndim = len(arr.shape)
+	data_axis = []
+
+	for i in range(ndim):
+		new_arr = arr
+		if i != ndim -1:
+			new_arr = np.swapaxes(new_arr, i, ndim-1)
+
+		for j in range(ndim - 1):
+			new_arr = new_arr[0]
+
+		if len(new_arr) > 0 and np.array_equal(new_arr, np.full(new_arr.shape, new_arr[0])) == False:
+			data_axis.append(i)
+
+	data_axis = [len(arr.shape) - i - 1 for i in data_axis]
+
+	j = 0
+	for i in data_axis:
+		if i != j:
+			arr = np.swapaxes(arr, len(arr.shape) - i -1, len(arr.shape) - j -1)		
+		j += 1
+
+	for i in range(len(arr.shape) - len(data_axis)):
+		arr = arr[0]
+	return arr, data_axis

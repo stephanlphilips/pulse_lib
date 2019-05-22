@@ -8,7 +8,7 @@ from pulse_lib.segments.segment_IQ import segment_IQ
 from pulse_lib.segments.segment_markers import segment_marker
 
 import pulse_lib.segments.utility.looping as lp
-from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension
+from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension, reduce_arr, upconvert_dimension
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 
 import uuid
@@ -121,13 +121,12 @@ class segment_container():
 		return time
 
 	@property
-	def total_time(self,):
+	def total_time(self):
 		'''
 		get the total time that will be uploaded for this segment to the AWG
 		Returns:
 			times (np.ndarray) : numpy array with the total time (maximum of all the channels), for all the different loops executed.
 		'''
-		self.extend_dim()
 
 		shape = list(getattr(self, self.channels[0]).data.shape)
 		n_channels = len(self.channels)
@@ -135,7 +134,7 @@ class segment_container():
 		time_data = np.empty([n_channels] + shape)
 		
 		for i in range(len(self.channels)):
-			time_data[i] = getattr(self, self.channels[i]).total_time
+			time_data[i] = upconvert_dimension(getattr(self, self.channels[i]).total_time, shape)
 
 		times = np.amax(time_data, axis = 0)
 
@@ -220,14 +219,28 @@ class segment_container():
 		when you now as a new pulse (e.g. at time 0, it will actually occur at 140 ns in both blocks)
 		'''
 		
-		times = self.total_time
+		shape = list(getattr(self, self.channels[0]).data.shape)
+		n_channels = len(self.channels)
+		
+		time_data = np.empty([n_channels] + shape)
+		
+		for i in range(len(self.channels)):
+			time_data[i] = upconvert_dimension(getattr(self, self.channels[i]).total_time, shape)
 
-		loop_obj = lp.loop_obj()
-		loop_obj.add_data(times, list(range(len(times.shape)-1, -1,-1)))
+
+		times = np.amax(time_data, axis = 0)
+		times, axis = reduce_arr(times)
+
+		if len(axis) == 0:
+			loop_obj = times
+		else:
+			loop_obj = lp.loop_obj()
+			loop_obj.add_data(times, axis)
 
 		for i in self.channels:
+			print(times)
 			segment = getattr(self, i)
-			segment.reset_time(loop_obj, extend_only)
+			segment.reset_time(loop_obj, False)
 
 	def get_waveform(self, channel, index = [0], pre_delay=0, post_delay = 0, sample_rate=1e9):
 		'''
@@ -287,7 +300,7 @@ if __name__ == '__main__':
 	b = segment_container(["a", "b"])
 
 	b.a.add_block(0,lp.linspace(50,100,10),100)
-	b.a.reset_time()
+	b.reset_time()
 
 	a.a.add_block(20,lp.linspace(50,100,10, axis = 1, name = "time", unit = "ns"),100)
 
@@ -295,5 +308,5 @@ if __name__ == '__main__':
 
 	b.slice_time(0,lp.linspace(80,100,10, name = "time", unit = "ns"))
 
-	print(b.setpoints)
+	# print(b.setpoints)
 	# print(a.a.data[2,2,2])

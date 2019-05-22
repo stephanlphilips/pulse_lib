@@ -18,6 +18,11 @@ extensions = [
         ["pulse_lib/segments/utility/segments_c_func.pyx"],
         include_dirs=[numpy.get_include()], 
     ),
+    Extension(
+        "pulse_lib.segments.data_classes.data_pulse_core",
+        ["pulse_lib/segments/data_classes/data_pulse_core.pyx"],
+        include_dirs=[numpy.get_include()], 
+    ),
     ]
 if os.name == 'nt':
     extensions += [Extension("pulse_lib.keysight.uploader_core.uploader", 

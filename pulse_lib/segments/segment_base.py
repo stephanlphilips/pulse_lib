@@ -76,7 +76,6 @@ class segment_base():
 		# setpoints of the loops (with labels and units)
 		self._setpoints = setpoint_mgr()
 
-
 	def add_reference_channel(self, channel_name, segment_data, multiplication_factor):
 		'''
 		Add channel reference, this can be done to make by making a pointer to another segment.
@@ -366,7 +365,7 @@ class segment_base():
 
 		y = pulse_data_curr_seg.render(0, 0, sample_rate)
 		x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))
-
+		print(x, y)
 		plt.plot(x,y, label=self.name)
 		plt.xlabel("time (ns)")
 		plt.ylabel("amplitude (mV)")

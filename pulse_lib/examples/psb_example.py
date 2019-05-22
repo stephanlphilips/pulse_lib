@@ -1,36 +1,39 @@
-from pulse_lib.base_pulse import pulselib
-from example_init import return_pulse_lib
-# from loading_HVI_code_fast_single_shot import load_HVI, set_and_compile_HVI, excute_HVI
-# from loading_HVI_code_fast import load_HVI, set_and_compile_HVI, excute_HVI
+# from pulse_lib.base_pulse import pulselib
+# from example_init import return_pulse_lib
+# # from loading_HVI_code_fast_single_shot import load_HVI, set_and_compile_HVI, excute_HVI
+# # from loading_HVI_code_fast import load_HVI, set_and_compile_HVI, excute_HVI
 
-# from loading_HVI_code import load_HVI, set_and_compile_HVI, excute_HVI
-import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG_new_firmware as keysight_dig
+# # from loading_HVI_code import load_HVI, set_and_compile_HVI, excute_HVI
+# import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG_new_firmware as keysight_dig
 
-import numpy as np
+# import numpy as np
 
-dig = keysight_dig.SD_DIG(name ="keysight_digitizer", chassis = 0, slot = 6, channels = 4, triggers=1)
+# dig = keysight_dig.SD_DIG(name ="keysight_digitizer", chassis = 0, slot = 6, channels = 4, triggers=1)
 
-pulse, virtual_gate = return_pulse_lib()
-pulse.cpp_uploader.resegment_memory()
+# pulse, virtual_gate = return_pulse_lib()
+# pulse.cpp_uploader.resegment_memory()
 
-import pulse_lib.segments.utility.looping as lp
 
 import time 
-time1 = time.time()
 
-PSB_pulse  = pulse.mk_segment()
 
-# important points to pulse to
+import pulse_lib.segments.utility.looping as lp
+from pulse_lib.segments.segment_container import segment_container
+import matplotlib.pyplot as plt
+PSB_pulse  = segment_container(["vP4", "vP5"])
+
+# important points to pulse toprep
 P0 = (-150,-100)
 P1 = (-150,100)
 P2 = (-12.5,12.5)
 P3 = (75,-75)
 P4 = (5, 30)
 
-P4_Point_3 = lp.linspace(P2[0],P3[0],125, axis=0, unit = "mV", name = "setpoints AWG")
-P5_Point_3 = lp.linspace(P2[1],P3[1],125, axis=1, unit = "mV", name = "axis 2 sweep")
+P4_Point_3 = 6# lp.linspace(P2[0],P3[0],100, axis=0, unit = "mV", name = "setpoints AWG")
+P5_Point_3 = 6# lp.linspace(P2[1],P3[1],100, axis=1, unit = "mV", name = "axis 2 sweep")
 
-
+import time
+t1 = time.time()
 PSB_pulse.vP4.add_block(0,10000, P0[0])
 PSB_pulse.vP5.add_block(0,10000, P0[1])
 PSB_pulse.reset_time()
@@ -40,18 +43,20 @@ PSB_pulse.reset_time()
 PSB_pulse.vP4.add_ramp_ss(0,100, P1[0], P2[0])
 PSB_pulse.vP5.add_ramp_ss(0,100, P1[1], P2[1])
 PSB_pulse.reset_time()
-#PSB_pulse.vP4.add_ramp_ss(0,100, P2[0], P4_Point_3)
-#PSB_pulse.vP5.add_ramp_ss(0,100, P2[1], P5_Point_3)
-#PSB_pulse.reset_time()
-PSB_pulse.vP4.add_block(0,20000, P4_Point_3)
-PSB_pulse.vP5.add_block(0,20000, P5_Point_3)
+PSB_pulse.vP4.add_ramp_ss(0,100, P2[0], P4_Point_3)
+PSB_pulse.vP5.add_ramp_ss(0,100, P2[1], P5_Point_3)
 PSB_pulse.reset_time()
 PSB_pulse.vP4.add_block(0,1000, P2[0])
 PSB_pulse.vP5.add_block(0,1000, P2[1])
+PSB_pulse.reset_time()
+t2 = time.time()
+print(t2-t1)
+# 3.6 ms generation time --> OK!
 
-time2= time.time()
+PSB_pulse.vP4.plot_segment([0])
+plt.show()
 
-print(time2-time1)
+
 # PSB_pulse.P5.add_ramp_ss(0, 100, P1[0],P2[0])
 # PSB_pulse.B4.add_ramp_ss(0, 100, P1[1],P2[1])
 # PSB_pulse.reset_time()
