@@ -89,7 +89,7 @@ def make_chirp(f_start, f_stop):
         f_stop (stop frequency) : stop frequency (Hz)
     '''
 
-    f_diff = f_stop - f_start
+    f_diff = (f_stop - f_start)/2
         
     def my_chirp(delta_t, sample_rate = 1):
         """
@@ -106,7 +106,7 @@ def make_chirp(f_start, f_stop):
         n_points = int(delta_t*sample_rate + 0.9)
         f = np.linspace(0, f_diff*2*np.pi, n_points)
         t = np.linspace(0, n_points/sample_rate*1e-9, n_points)
-        print("points", n_points)
+
         return f*t
 
     return my_chirp

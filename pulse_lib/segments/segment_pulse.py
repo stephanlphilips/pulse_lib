@@ -3,7 +3,6 @@ Class that is used to make DC pulses.
 """
 
 import numpy as np
-import datetime
 
 from pulse_lib.segments.segment_base import last_edited, segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller
@@ -11,7 +10,21 @@ from pulse_lib.segments.data_classes.data_pulse import pulse_data
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.data_classes.data_pulse_core import base_pulse_element
+from pulse_lib.segments.segment_IQ import segment_IQ
+from dataclasses import dataclass
 import copy
+
+@dataclass
+class IQ_render_info:
+	"""
+	structure to save relevant information about the rendering of the IQ channels (for is in channel object).
+	"""
+	LO : float
+	virtual_channel_name: str
+	virtual_channel_pointer: segment_IQ #TODO fix to segment_IQ data type, needs to be post loaded somehow. 
+	IQ_render_option : str
+	image_render_option : str
+
 
 class segment_pulse(segment_base):
 	'''
@@ -105,6 +118,30 @@ class segment_pulse(segment_base):
 	@loop_controller
 	def add_np(self,start, array):
 		raise NotImplemented
+
+	def add_reference_channel(self, channel_name, segment_data, multiplication_factor):
+		'''
+		Add channel reference, this can be done to make by making a pointer to another segment.
+		Args:
+			Channels_name (str): human readable name of the virtual gate.
+			segment_data (segment_single): pointer so the segment corresponsing the the channel name
+			multiplication_factor (float64): times how much this segment should be added to the current one.
+		'''
+		virtual_segment = {'name': channel_name, 'segment': segment_data, 'multiplication_factor': multiplication_factor}
+		self.reference_channels.append(virtual_segment)
+
+	def add_IQ_channel(self, LO, channel_name, pointer_to_channel, I_or_Q_part, image):
+		'''
+		Add a reference to an IQ channel. Same principle as for the virtual one.
+		Args:
+			LO (float) : frequecy at which MW source runs (needed to calculate final IQ signal.)
+			channel_name (str): human readable name of the virtual channel
+			pointer_to_channel (*segment_single_IQ): pointer to segment_single_IQ object
+			I_or_Q_part (str) : 'I' or 'Q' to indicate that the reference is to the I or Q part of the signal.
+			image (str) : '+' / '-', take the image of the signal (needed for differential inputs)
+		'''
+		self.IQ_ref_channels.append(IQ_render_info(LO, channel_name, pointer_to_channel, I_or_Q_part, image))
+
 
 
 

@@ -15,18 +15,6 @@ import copy
 import matplotlib.pyplot as plt
 
 
-@dataclass
-class IQ_render_info:
-	"""
-	structure to save relevant information about the rendering of the IQ channels (for is in channel object).
-	"""
-	LO : float
-	virtual_channel_name: str
-	virtual_channel_pointer: loop_obj #TODO fix to segment_IQ data type, needs to be post loaded somehow. 
-	IQ_render_option : str
-	image_render_option : str
-
-
 def last_edited(f):
 	'''
 	just a simpe decorater used to say that a certain wavefrom is updaded and therefore a new upload needs to be made to the awg.
@@ -34,9 +22,16 @@ def last_edited(f):
 	def wrapper(*args):
 		if args[0].render_mode == True:
 			ValueError("cannot alter this segment, this segment ({}) in render mode.".format(args[0].name))
-		args[0]._last_edit = datetime.datetime.now()
+		args[0]._last_edit = last_edit.ToRender
 		return f(*args)
 	return wrapper
+
+class last_edit:
+    """
+	spec of what the state is of the pulse.
+    """
+    ToRender = -1
+    Rendered = 0 
 
 class segment_base():
 	'''
@@ -55,8 +50,8 @@ class segment_base():
 		self.type = segment_type
 		self.name = name
 		self.render_mode = False
-		# variable specifing the laetest change to the waveforms
-		self._last_edit = datetime.datetime.now()
+		# variable specifing the laetest change to the waveforms, 
+		self._last_edit = last_edit.ToRender
 		
 		# store data in numpy looking object for easy operator access.
 		self.data = data_container(data_object)
@@ -66,38 +61,16 @@ class segment_base():
 		self.reference_channels = []
 		# reference channels for IQ virtual channels
 		self.IQ_ref_channels = []
+		self.references_markers = []
 		# local copy of self that will be used to count up the virtual gates.
 		self._pulse_data_all = None
 		# data caching variable. Used for looping and so on (with a decorator approach)
 		self.data_tmp = None
 		# variable specifing the lastest time the pulse_data_all is updated
-		self.last_render = datetime.datetime.now() 
 
 		# setpoints of the loops (with labels and units)
 		self._setpoints = setpoint_mgr()
 
-	def add_reference_channel(self, channel_name, segment_data, multiplication_factor):
-		'''
-		Add channel reference, this can be done to make by making a pointer to another segment.
-		Args:
-			Channels_name (str): human readable name of the virtual gate.
-			segment_data (segment_single): pointer so the segment corresponsing the the channel name
-			multiplication_factor (float64): times how much this segment should be added to the current one.
-		'''
-		virtual_segment = {'name': channel_name, 'segment': segment_data, 'multiplication_factor': multiplication_factor}
-		self.reference_channels.append(virtual_segment)
-
-	def add_IQ_channel(self, LO, channel_name, pointer_to_channel, I_or_Q_part, image):
-		'''
-		Add a reference to an IQ channel. Same principle as for the virtual one.
-		Args:
-			LO (float) : frequecy at which MW source runs (needed to calculate final IQ signal.)
-			channel_name (str): human readable name of the virtual channel
-			pointer_to_channel (*segment_single_IQ): pointer to segment_single_IQ object
-			I_or_Q_part (str) : 'I' or 'Q' to indicate that the reference is to the I or Q part of the signal.
-			image (str) : '+' / '-', take the image of the signal (needed for differential inputs)
-		'''
-		self.IQ_ref_channels.append(IQ_render_info(LO, channel_name, pointer_to_channel, I_or_Q_part, image))
 	
 	@last_edited
 	@loop_controller
@@ -305,25 +278,30 @@ class segment_base():
 		'''
 		pulse data object that contains the counted op data of all the reference channels (e.g. IQ and virtual gates).
 		'''
-		if self.last_edit > self.last_render or self._pulse_data_all is None:
+		if self.last_edit == last_edit.ToRender or self._pulse_data_all is None:
 			self._pulse_data_all = copy.copy(self.data)
 			for ref_chan in self.reference_channels:
 				self._pulse_data_all += ref_chan['segment'].data*ref_chan['multiplication_factor']
 			for ref_chan in self.IQ_ref_channels:
-				self._pulse_data_all += ref_chan['segment'].get_IQ_data(ref_chan['I/Q'])
+				self._pulse_data_all += ref_chan.virtual_channel_pointer.get_IQ_data(ref_chan.LO, ref_chan.IQ_render_option, ref_chan.image_render_option)
+			for ref_chan in self.references_markers:
+				self._pulse_data_all += ref_chan.IQ_channel_ptr.get_marker_data(ref_chan.pre_delay, ref_chan.post_delay)
 
-			self.last_render = self.last_edit
+			self._last_edit = last_edit.Rendered
 
 		return self._pulse_data_all
 
 	@property
 	def last_edit(self):
 		for i in self.reference_channels:
-			if self._last_edit < i['segment']._last_edit:
-				self._last_edit = i['segment']._last_edit
+			if i['segment']._last_edit == last_edit.ToRender:
+				self._last_edit = last_edit.ToRender
 		for i in self.IQ_ref_channels:
-			if self._last_edit < i['segment']._last_edit:
-				self._last_edit = i['segment']._last_edit
+			if i.virtual_channel_pointer  == last_edit.ToRender:
+				self._last_edit = last_edit.ToRender
+		for i in self.references_markers:
+			if i.IQ_channel_ptr  == last_edit.ToRender:
+				self._last_edit = last_edit.ToRender
 
 		return self._last_edit
 	
@@ -365,7 +343,7 @@ class segment_base():
 
 		y = pulse_data_curr_seg.render(0, 0, sample_rate)
 		x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))
-		print(x, y)
+		# print(x, y)
 		plt.plot(x,y, label=self.name)
 		plt.xlabel("time (ns)")
 		plt.ylabel("amplitude (mV)")

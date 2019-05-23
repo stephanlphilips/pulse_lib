@@ -18,13 +18,15 @@ As data format we will use a class to store
 TODO : change dicts to keep the data to an object!!
 '''
 import numpy as np
-import datetime
+import copy
 
 from pulse_lib.segments.segment_base import last_edited, segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, update_dimension
 from pulse_lib.segments.data_classes.data_pulse import pulse_data
 from pulse_lib.segments.data_classes.data_IQ import envelope_generator, IQ_data_single, make_chirp
 from pulse_lib.segments.data_classes.data_markers import marker_data
+from pulse_lib.segments.data_classes.data_generic import data_container
+
 
 
 class segment_IQ(segment_base):
@@ -34,10 +36,14 @@ class segment_IQ(segment_base):
 	"""
 	def __init__(self, name):
 		'''
-		Args: frequency of the LO (in Hz). 
+		Args: 
+			name : name of the IQ segment
 		Tip, make on of these segments for each qubit. Then you get a very clean implementation of reference frame changes!
 		'''
 		super().__init__(name, pulse_data() ,segment_type = 'IQ_virtual')
+		
+		# generator to be set for automated phase compenstation in between pulses. @TODO!!
+		self.qubit_freq = 0
 
 	@loop_controller
 	def add_global_phase(self,phase):
@@ -65,7 +71,7 @@ class segment_IQ(segment_base):
 			AM ('str/tuple/function') : function describing an amplitude modulation (see examples in pulse_lib.segments.data_classes.data_IQ)
 			PM ('str/tuple/function') : function describing an phase modulation (see examples in pulse_lib.segments.data_classes.data_IQ)
 		'''
-		MW_data = IQ_data_single(t0, t1, amp, freq, phase, envelope_generator(AM, PM))
+		MW_data = IQ_data_single(t0 + self.data_tmp.start_time, t1 + self.data_tmp.start_time, amp, freq, phase, envelope_generator(AM, PM))
 
 		self.data_tmp.add_MW_data(MW_data)
 
@@ -82,7 +88,7 @@ class segment_IQ(segment_base):
 			amp (float) : amplitude of the pulse.
 		'''
 		PM = make_chirp(f0, f1)
-		MW_data = IQ_data_single(t0, t1, amp, f0, 0, envelope_generator(None, PM))
+		MW_data = IQ_data_single(t0 + self.data_tmp.start_time, t1 + self.data_tmp.start_time, amp, f0, 0, envelope_generator(None, PM))
 		
 		self.data_tmp.add_MW_data(MW_data)
 
@@ -105,12 +111,13 @@ class segment_IQ(segment_base):
 
 		local_data = copy.copy(self.data).flatten()
 		# downconvert the sigal saved in the data object, so later on, in the real MW source, it can be upconverted again.
-		for i in range(len(data)):
+		for i in range(len(local_data)):
+			local_data[i] = copy.copy(self.data.flat[i])
 			local_data[i].shift_MW_phases(phase_shift)
 			local_data[i].shift_MW_frequency(LO)
 		
-		local_data = local_data.reshape(self.local_data.shape)
-		
+		local_data = local_data.reshape(self.data.shape)
+
 		return local_data
 
 	def get_marker_data(self, pre_delay, post_delay):
@@ -118,7 +125,7 @@ class segment_IQ(segment_base):
 		generate markers for the PM of the IQ modulation
 		'''
 		my_marker_data = update_dimension(data_container(marker_data()), self.shape)
-		my_marker_data = my_marker.flatten()
+		my_marker_data = my_marker_data.flatten()
 		
 		# make a flat reference.
 		local_data = self.data.flatten()
@@ -127,7 +134,11 @@ class segment_IQ(segment_base):
 			for MW_pulse_info in local_data[i].MW_pulse_data:
 				my_marker_data[i].add_marker(MW_pulse_info.start - pre_delay, MW_pulse_info.stop + post_delay)
 
+		my_marker_data.reshape(self.shape)
+
 		return my_marker_data
+
+
 
 if __name__ == '__main__':
 	import matplotlib.pyplot as plt
@@ -135,6 +146,6 @@ if __name__ == '__main__':
 	s1 = segment_IQ("test")
 	s1.add_MW_pulse(0,1000,1,1e7,0, "flattop")
 	s1.reset_time()
-	s1.add_chirp(1500,2500,1e6,1e7,1)
-	s1.plot_segment(sample_rate = 1e10)
+	s1.add_chirp(1500,2500,0e7,1e7,1)
+	s1.plot_segment(sample_rate = 1e9)
 	plt.show()

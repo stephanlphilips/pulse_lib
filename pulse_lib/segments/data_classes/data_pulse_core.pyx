@@ -94,6 +94,9 @@ cdef class pulse_data_single_sequence():
 		else:
 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))
 
+		if other._total_time > self._total_time:
+			pulse_data._total_time = other._total_time
+
 		pulse_data.re_render = True
 
 		return pulse_data

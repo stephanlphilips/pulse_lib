@@ -3,9 +3,16 @@ Marker implementation.
 """
 
 from pulse_lib.segments.segment_base import segment_base, last_edited
+from pulse_lib.segments.segment_IQ import segment_IQ
 from pulse_lib.segments.utility.data_handling_functions import loop_controller
 from pulse_lib.segments.data_classes.data_markers import marker_data
+from dataclasses import dataclass
 
+@dataclass
+class reference_marker_4_IQ:
+	IQ_channel_ptr : segment_IQ
+	pre_delay : float
+	post_delay : float
 
 
 class segment_marker(segment_base):
@@ -19,7 +26,6 @@ class segment_marker(segment_base):
 		"""
 		super(segment_marker, self).__init__(name, marker_data(marker_voltage), segment_type = 'render')
 
-
 	@last_edited
 	@loop_controller
 	def add_marker(self, start, stop):
@@ -32,7 +38,7 @@ class segment_marker(segment_base):
 		self.data_tmp.add_marker(start, stop)
 
 	def add_reference_marker_IQ(self, IQ_channel_ptr, pre_delay, post_delay):
-		pass
+		self.references_markers.append(reference_marker_4_IQ(IQ_channel_ptr, pre_delay, post_delay))
 		
 if __name__ == '__main__':
  

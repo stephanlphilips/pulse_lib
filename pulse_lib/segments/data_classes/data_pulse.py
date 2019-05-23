@@ -10,6 +10,8 @@ from pulse_lib.segments.utility.segments_c_func import py_calc_value_point_in_be
 from pulse_lib.segments.data_classes.data_generic import parent_data, data_container
 from pulse_lib.segments.data_classes.data_IQ import envelope_generator
 from pulse_lib.segments.data_classes.data_pulse_core import pulse_data_single_sequence, base_pulse_element
+
+
 class pulse_data(parent_data):
     """
     class defining base (utility) operations for baseband and microwave pulses.
@@ -228,29 +230,6 @@ class pulse_data(parent_data):
             IQ_data_single_object.stop += time_shift
 
 
-    def _add_up_pulse_data(self, new_pulse):
-        '''
-        add a pulse up to the current pulse in the memory.
-        new_pulse --> default format as in the add_pulse function
-        '''
-
-        baseband_pulse_data_copy = self.baseband_pulse_data
-
-        # step 1: make sure both pulses have the same length
-        if self.total_time < new_pulse[-1,0]:
-            to_insert = [[new_pulse[-1,0],baseband_pulse_data_copy[-1,1]]]
-            baseband_pulse_data_copy = self._insert_pulse_arrays(baseband_pulse_data_copy, to_insert, len(baseband_pulse_data_copy)-1)
-        elif self.total_time > new_pulse[-1,0]:
-            to_insert = [[baseband_pulse_data_copy[-1,0],new_pulse[-1,1]]]
-            new_pulse = self._insert_pulse_arrays(new_pulse, to_insert, len(new_pulse)-1)
-
-        baseband_pulse_data_tmp, new_pulse_tmp = seg_func.interpolate_pulses(baseband_pulse_data_copy, new_pulse)
-
-        final_pulse = np.zeros([len(baseband_pulse_data_tmp),2])
-        final_pulse[:,0] = baseband_pulse_data_tmp[:,0]
-        final_pulse[:,1] +=  baseband_pulse_data_tmp[:,1]  + new_pulse_tmp[:,1]
-
-        return final_pulse
 
     @staticmethod
     def _insert_pulse_arrays(src_array, to_insert, insert_position):
@@ -279,9 +258,9 @@ class pulse_data(parent_data):
     '''
     def __copy__(self):
         my_copy = pulse_data()
-        # my_copy.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
-        # my_copy.MW_pulse_data = copy.copy(self.MW_pulse_data)
-        # my_copy.start_time = copy.copy(self.start_time)
+        my_copy.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
+        my_copy.MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
+        my_copy.start_time = copy.copy(self.start_time)
         return my_copy
 
     def __add__(self, other):
@@ -290,12 +269,9 @@ class pulse_data(parent_data):
         '''
         new_data = pulse_data()
         if type(other) is pulse_data:
-            if len(other.baseband_pulse_data) == 1:
-                new_data.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
-            elif len(self.baseband_pulse_data) == 1:
-                new_data.baseband_pulse_data = copy.copy(other.baseband_pulse_data)
-            else:
-                new_data.baseband_pulse_data = self._add_up_pulse_data(other.baseband_pulse_data)
+            # is there a need for copy command  -- investigate is this would start effecting performance.
+            new_data.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
+            new_data.baseband_pulse_data += other.baseband_pulse_data
 
             MW_pulse_data = copy.copy(self.MW_pulse_data)
             MW_pulse_data.extend(other.MW_pulse_data)
@@ -303,9 +279,11 @@ class pulse_data(parent_data):
 
         elif type(other) == int or type(other) == float:
             new_pulse = copy.copy(self.baseband_pulse_data)
-            new_pulse[:,1] += other
+            new_pulse.add_pulse(base_pulse_element(0,-1, other, other))
             new_data.baseband_pulse_data = new_pulse
-            new_data.MW_pulse_data = self.MW_pulse_data
+
+            MW_pulse_data = copy.copy(self.MW_pulse_data)
+            new_data.MW_pulse_data = MW_pulse_data
 
         else:
             raise TypeError("Please add up pulse_data object (or pulse/IQ segment type) type or a number ")

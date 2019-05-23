@@ -33,7 +33,7 @@ class segment_container():
 			channel_names (list<str>) : list with names of physical output channels on the AWG
 			markers (list<str>) : declaration which of these channels are markers
 			virtual_gates_objs (list<virtual_gates_constructor>) : list of object that define virtual gates
-			IQ_channels_objs (list<IQ_channel_constructor>) : list of objects taht define virtual IQ channels.
+			IQ_channels_objs (list<IQ_channel_constructor>) : list of objects that define virtual IQ channels.
 		"""
 		# physical channels
 		self.r_channels = []
@@ -238,7 +238,7 @@ class segment_container():
 			loop_obj.add_data(times, axis)
 
 		for i in self.channels:
-			print(times)
+			print(i)
 			segment = getattr(self, i)
 			segment.reset_time(loop_obj, False)
 
@@ -296,17 +296,46 @@ class segment_container():
 
 if __name__ == '__main__':
 	import pulse_lib.segments.utility.looping as lp
-	a = segment_container(["a", "b"])
-	b = segment_container(["a", "b"])
+	import matplotlib.pyplot as plt
+	from pulse_lib.segments.segment_IQ import segment_IQ
+	from pulse_lib.segments.segment_markers import segment_marker
 
-	b.a.add_block(0,lp.linspace(50,100,10),100)
-	b.reset_time()
+	seg = segment_container(["a", "b",])
+	# b = segment_container(["a", "b"])
+	chan = segment_IQ("q1")
+	setattr(seg, "q1", chan)
 
-	a.a.add_block(20,lp.linspace(50,100,10, axis = 1, name = "time", unit = "ns"),100)
+	chan_M = segment_marker("M1")
+	setattr(seg, "M1", chan_M)
+	seg.channels.append("q1")
+	seg.channels.append("M1")
+	seg.a.add_IQ_channel(1e9, "q1", chan, "I", "0")
+	seg.b.add_IQ_channel(1e9, "q1", chan, "Q", "0")
 
-	b.append(a)
+	seg.M1.add_reference_marker_IQ(chan, 5,10)
 
-	b.slice_time(0,lp.linspace(80,100,10, name = "time", unit = "ns"))
+
+	seg.a.add_block(0,lp.linspace(50,100,10),100)
+	seg.a += 500
+	seg.b += 500
+	# seg.reset_time()
+	# seg.q1.add_MW_pulse(0,100,10,1.015e9)
+	# seg.reset_time()
+	seg.q1.add_chirp(0,1000,1e9,1.1e9, 100)
+	seg.q1.wait(20)
+	seg.q1.reset_time()
+	seg.q1.add_chirp(0,1000,1.1e9,1.e9, 100)
+	# a.a.add_block(20,lp.linspace(50,100,10, axis = 1, name = "time", unit = "ns"),100)
+
+	# b.append(a)
+
+	# a.slice_time(0,lp.linspace(80,100,10, name = "time", unit = "ns"))
 
 	# print(b.setpoints)
 	# print(a.a.data[2,2,2])
+
+	seg.q1.plot_segment([0], sample_rate = 1e10)
+	seg.a.plot_segment([0], sample_rate = 1e10)
+	seg.b.plot_segment([0], sample_rate = 1e10)
+	seg.M1.plot_segment([0])
+	plt.show()

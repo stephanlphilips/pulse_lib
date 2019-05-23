@@ -29,8 +29,8 @@ P2 = (-12.5,12.5)
 P3 = (75,-75)
 P4 = (5, 30)
 
-P4_Point_3 = 6# lp.linspace(P2[0],P3[0],100, axis=0, unit = "mV", name = "setpoints AWG")
-P5_Point_3 = 6# lp.linspace(P2[1],P3[1],100, axis=1, unit = "mV", name = "axis 2 sweep")
+P4_Point_3 = lp.linspace(P2[0],P3[0],100, axis=0, unit = "mV", name = "setpoints AWG")
+P5_Point_3 = lp.linspace(P2[1],P3[1],100, axis=1, unit = "mV", name = "axis 2 sweep")
 
 import time
 t1 = time.time()
@@ -51,10 +51,11 @@ PSB_pulse.vP5.add_block(0,1000, P2[1])
 PSB_pulse.reset_time()
 t2 = time.time()
 print(t2-t1)
-# 3.6 ms generation time --> OK!
+# 3.7 ms generation time --> OK!
 
-PSB_pulse.vP4.plot_segment([0])
-plt.show()
+# PSB_pulse.vP4.plot_segment([0])
+# PSB_pulse.vP4.plot_segment([80])
+# plt.show()
 
 
 # PSB_pulse.P5.add_ramp_ss(0, 100, P1[0],P2[0])
