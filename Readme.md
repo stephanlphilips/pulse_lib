@@ -43,10 +43,11 @@ TODO list:
 * Support for calibarion arguments? -- this should be engineered well.
 * HVI2 integration
 * add DSP module (must also be C++)
-* Add HVI markers in the software --> push varibles to the HVI upload process.
 
 TODO bugs and small things to fix,
 * remove finish init
-* inefficiency in waveform generation for pulsed waveforms (e.g. assume waveform in 100x100 loop) --> crappy performance : 870ms needed for adding a pulse in this loop (10k pulses in total) --> this feels bad. --> target 1M at decent speeds (few/10 ms) --> this is fixable. Time when the snappyness feeling breaks is around 300ms.
 * memory bug : memory is not released automatically after the sequence is done. This should be automated.This can lead to accumulating memory when doing playback and crash the system (badly --> reboot needed).
-* Keysight FPGA pulse correction not there? --> investigation needed.
+* Keysight FPGA pulse correction not there? --> investigation needed. + correction for long time scale pulses
+New functionality (prioritized):
+* TODO : automate phase compensation of microwave pulses. Generate a generalized clock between all the segments.
+* Add HVI markers in the software --> push varibles to the HVI upload process.
