@@ -142,7 +142,15 @@ class segment_pulse(segment_base):
 		'''
 		self.IQ_ref_channels.append(IQ_render_info(LO, channel_name, pointer_to_channel, I_or_Q_part, image))
 
-
+	@last_edited
+	@loop_controller
+	def repeat(self, number):
+		'''
+		repeat a waveform n times.
+		Args:
+			number (int) : number of ties to repeat the waveform
+		'''
+		self.data_tmp.repeat(number)
 
 
 if __name__ == '__main__':

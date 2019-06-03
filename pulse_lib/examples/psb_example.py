@@ -34,7 +34,7 @@ P5_Point_3 = lp.linspace(P2[1],P3[1],100, axis=1, unit = "mV", name = "axis 2 sw
 
 import time
 t1 = time.time()
-PSB_pulse.vP4.add_block(0,10000, P0[0])
+PSB_pulse.vP4.add_block(0,10000, P0[0])b 
 PSB_pulse.vP5.add_block(0,10000, P0[1])
 PSB_pulse.reset_time()
 PSB_pulse.vP4.add_block(0,10000, P1[0])

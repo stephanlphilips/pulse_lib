@@ -320,11 +320,13 @@ if __name__ == '__main__':
 	seg.b += 500
 	# seg.reset_time()
 	# seg.q1.add_MW_pulse(0,100,10,1.015e9)
-	# seg.reset_time()
+	seg.q1.wait(10)
+	seg.reset_time()
 	seg.q1.add_chirp(0,1000,1e9,1.1e9, 100)
 	seg.q1.wait(20)
 	seg.q1.reset_time()
 	seg.q1.add_chirp(0,1000,1.1e9,1.e9, 100)
+	seg.q1.wait(10)
 	# a.a.add_block(20,lp.linspace(50,100,10, axis = 1, name = "time", unit = "ns"),100)
 
 	# b.append(a)

@@ -64,13 +64,30 @@ cdef class pulse_data_single_sequence():
 		append other pulse object to this one
 		"""
 		time_shift = self._total_time
-		other.shift_time(time_shift)
 
+		other.shift_time(time_shift)
 		data = self.__add__(other)
+		other.shift_time(-time_shift)
 
 		self.localdata =  data.localdata
 		self.re_render = True
 		self._total_time = data._total_time
+
+	def repeat(self, n):
+		"""
+		repeat n times the current segment.
+		Args : 
+			n (int) : number of times to repeat the current segment.
+		"""
+
+		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
+		cdef double total_time = self.total_time
+		
+		for i in range(n):
+			pulse_data.shift_time(total_time)
+			self._add_pulse(pulse_data)
+			self._total_time += total_time
+
 
 	def shift_time(self, double time):
 
