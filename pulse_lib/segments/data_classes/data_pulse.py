@@ -88,11 +88,31 @@ class pulse_data(parent_data):
             self.slice_time(0, time)
 
         other._shift_all_time_MW(time)
-        new_MW_pulse_data =  self.MW_pulse_data +  other.MW_pulse_data
-        # this shuold be shifted back -- TODO ... 
+        new_MW_pulse_data =  self.MW_pulse_data +  copy.copy(other.MW_pulse_data)
+        other._shift_all_time_MW(-time)
 
         self.baseband_pulse_data.append(other.baseband_pulse_data)
         self.MW_pulse_data = new_MW_pulse_data
+    
+    def repeat(self, n):
+        """
+        repeat n times
+        Args
+            n (int) : number of times to repeat
+        """
+        time = self.total_time
+        new_MW_pulse_data =  copy.copy(self.MW_pulse_data)
+
+        for i in range(n):
+            self._shift_all_time_MW(time)
+            shifted_MW = copy.deepcopy(self.MW_pulse_data)
+            new_MW_pulse_data +=  shifted_MW
+
+        self._shift_all_time_MW(-n*time)
+        self.MW_pulse_data = new_MW_pulse_data
+
+        self.baseband_pulse_data.repeat(n)
+
 
     def slice_time(self, start, end):
         '''
@@ -221,8 +241,6 @@ class pulse_data(parent_data):
         Args:
             time_shift (double) : shift the time
         '''
-        if time_shift <0 :
-            raise ValueError("when shifting time, you cannot make negative times. Apply a positive shift.")
 
         for IQ_data_single_object in self.MW_pulse_data:
             IQ_data_single_object.start += time_shift
@@ -298,9 +316,8 @@ class pulse_data(parent_data):
         if type(other) is pulse_data:
             raise NotImplemented
         elif type(other) == int or type(other) == float or type(other) == np.float64:
-            new_pulse = copy.copy(self.baseband_pulse_data)
-            new_pulse *= other
-            new_data.baseband_pulse_data = new_pulse
+            new_data.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
+            new_data.baseband_pulse_data *= other
 
             for IQ_data_single_object in self.MW_pulse_data:
                 IQ_data_single_object_cpy = copy.copy(IQ_data_single_object)
@@ -323,12 +340,13 @@ class pulse_data(parent_data):
         sample_time_step = 1/sample_rate
                 
         t_tot = self.total_time
+        print(t_tot)
 
         # get number of points that need to be rendered
         t_tot_pt = get_effective_point_number(t_tot, sample_time_step) + 1
         pre_delay_pt = - get_effective_point_number(pre_delay, sample_time_step)
         post_delay_pt = get_effective_point_number(post_delay, sample_time_step)
-        print(t_tot_pt, pre_delay_pt, post_delay_pt)
+
         my_sequence = np.zeros([int(t_tot_pt + pre_delay_pt + post_delay_pt)])
         # start rendering pulse data
         
@@ -422,7 +440,9 @@ if __name__ == '__main__':
     data.add_MW_data(IQ_data_object2)
     data.reset_time(data.total_time)
     data.add_pulse_data(base_pulse_element(0,140, 1 , 1))
+    data.add_pulse_data(base_pulse_element(200,280, 2 , 1))
 
+    data.repeat(2)
     rendering_data = data.render(0,0,1e9)
     t = np.linspace(0, data.total_time, len(rendering_data))
     plt.plot(t, rendering_data)

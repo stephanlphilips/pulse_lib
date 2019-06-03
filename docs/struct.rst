@@ -20,23 +20,22 @@ A quick overview of the relation between the different structural elements can b
 
 Segments
 --------
-A segment is the collection of data points that forms a single waveform. For example, the set of pulses one would apply on one the gates for the sample to perform the readout.
-Note that a segment only contains the information for one channel.
+A segment are a set of voltages in function of time that make up a single waveform. For example, the voltages you need to appy do your readout on one of the gates.
 
-There are two types of segments:
+There are three types of segments:
    - :ref:`segments_base<segment_base>` : these are segments that should be used for generating block pulses and ramps.
    - segments_IQ : these are segments that are used to work with IQ signals of vector MW sources.
-Both types can be used interchangeably. More details can be found in the later chapters (or if you feel really courageous in the source code).
+   - segment_marker : this are segments that are used to represent markers (on/off signals).
 
 
 .. _seg_con:
 
 Segment containers
 ------------------
-A segment container, as the name already gives away, is a container of channels. For example, this could be the collection of all the channels that are involved in your readout pulse. This object is generated automatically, so no need for you to specify channels each time.
+A segment container, as the name already gives away, is a container of channels. For example, this could be all the output channels of your AWG. This object is generated automatically, so no need for you to specify channels each time.
 
 There are some rules for segment containers though, 
-   - All segments in a segment container must have the same length when rendered
+   - All segments in a segment container must have the same length when rendered. This condition is automatically fullfilled.
    - A segment container contains by default all the AWG channels you have defined in your setup
    - All elements in the segment container must contain times that are :math:`\geq 0`.
 

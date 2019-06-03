@@ -1,23 +1,19 @@
+
 from pulse_lib.base_pulse import pulselib
 from pulse_lib.virtual_channel_constructors import IQ_channel_constructor, virtual_gates_constructor
 
-import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
-import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
+# import qcodes.instrument_drivers.Keysight.SD_common.SD_AWG as keysight_awg
+# import qcodes.instrument_drivers.Keysight.SD_common.SD_DIG as keysight_dig
 import numpy as np
 
 def return_pulse_lib():
 	pulse = pulselib()
 
-	AWG1 = keysight_awg.SD_AWG('my_awg1', chassis = 0, slot= 2, channels = 4, triggers= 8)
-	AWG2 = keysight_awg.SD_AWG('my_awg2', chassis = 0, slot= 3, channels = 4, triggers= 8)
-	AWG3 = keysight_awg.SD_AWG('my_awg3', chassis = 0, slot= 4, channels = 4, triggers= 8)
-	AWG4 = keysight_awg.SD_AWG('my_awg4', chassis = 0, slot= 5, channels = 4, triggers= 8)
-
 	# add to pulse_lib
-	pulse.add_awgs('AWG1',AWG1)
-	pulse.add_awgs('AWG2',AWG2)
-	pulse.add_awgs('AWG3',AWG3)
-	pulse.add_awgs('AWG4',AWG4)
+	pulse.add_awgs('AWG1',None)
+	pulse.add_awgs('AWG2',None)
+	pulse.add_awgs('AWG3',None)
+	pulse.add_awgs('AWG4',None)
 
 	# define channels
 	pulse.define_channel('B3','AWG1', 1)

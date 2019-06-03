@@ -61,10 +61,19 @@ That was it, let's now add some AWG's and define the channel names. In this exam
 		'B1':('AWG1', 3), 'P2':('AWG1', 4),'B2':('AWG2', 1), 
 		'MW_gate_I':('AWG2', 2), 'MW_gate_Q':('AWG2', 3),	
 		'MW_marker':('AWG2', 4)})
-		
-	pulse.define_channels(awg_channels_to_physical_locations)
+	
+	pulse.define_channel('B0','AWG1', 1)
+	pulse.define_channel('P1','AWG1', 2)
+	pulse.define_channel('B1','AWG1', 3)
+	pulse.define_channel('P2','AWG1', 4)
+	pulse.define_channel('B2','AWG2', 1)
+	pulse.define_channel('MW_gate_I','AWG2', 2)
+	pulse.define_channel('MW_gate_Q','AWG2', 3)
+	# define marker here!
+	pulse.define_marker('MW_marker','AWG2', 4)
 
-Note, when not using the Keysight back-end, you can just call ``p.add_awgs('AWG1', None)``. You will have to feed then the library in another uploaded (e.g. qtt virtual AWG).
+
+Note, when not using the Keysight back-end, you can just call ``p.add_awgs('AWG1', None)``. You will have to feed then the library in another uploader (e.g. qtt virtual AWG).
 
 Step 2 : defining the virtual gates
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -72,24 +81,23 @@ Step 2 : defining the virtual gates
 This is a quite straightforward process, just define the channels for the virtual gate and their corresponding real channels in a dictionary.
 
 .. code-block:: python
+	
+	# generate a virtual gate set. You can later on change this object if you want to update the virtual gatre matrix / add more gates.
+	# note that you can make multiple sets if you like (e.g. you could also define one with detuning while keeping this ones).  
+	virtual_gate_set_1 = virtual_gates_constructor(pulse)
+	virtual_gate_set_1.add_real_gates('B0', 'B1', 'B2', 'P1', 'P2')
+	virtual_gate_set_1.add_virtual_gates('vB0', 'vB1', 'vB2', 'vP1', 'vP2')
+	virtual_gate_set_1.add_virtual_gate_matrix(np.eye(5))
 
-	awg_virtual_gates = {
-		'virtual_gates_names_virt' :
-			['vB0', 'vB1', 'vB2', 'vP1', 'vP2'],
-		'virtual_gates_names_real' :
-			['B0', 'B1', 'B2', 'P1', 'P2'],
-		'virtual_gate_matrix' : np.eye(5)
-	}
-	pulse.add_virtual_gates(awg_virtual_gates)
 In this case we just constructed a 1 on 1 map of the virtual gates of real gates (diagonal virtual gate matrix). 
 
 The matrix can be updated at any time with:
 
 .. code-block:: python
+	
+	virtual_gate_set_1.add_virtual_gate_matrix(my_matrix)
 
-	pulse.update_virtual_gate_matrix(my_matrix)
-
-When the matrix is updated, it will automatically also update in all segments that have been created before.
+When the matrix is updated, you will have to regenerate the segment containers that are currently in memory.
 An example how to practically work with virtual gates can be found here [TODO].
 
 Step 3 : defining IQ channels
@@ -97,28 +105,32 @@ Step 3 : defining IQ channels
 
 If you are new to IQ modulation, it is recommended to read the introduction on IQ modulation, here [TODO].
 
-When operating a vector source, you usually have to connect (usually) 3 coax cables:
+When operating a vector source, you usually have to connect (usually) 3/5 coax cables:
 
-   - I channel
-   - Q channel
+   - I channel (and optionally its image, usually named I+ and I-)
+   - Q channel (and optionally its image, usually named Q+ and Q-)
    - marker
-   - ``[opt]`` if you want to go wide-band, you might also need to provide the negative image of the I/Q channel (currently not implemented .., though easy todo).
 
 Most of the time, you will want to make a virtual channel per qubit, as it allows you to keep easy track of the phase of the qubit. An example of this can be found in the mircowave tutorial.
 
 .. code-block:: python
 
-	awg_IQ_channels = {
-			'vIQ_channels' : ['qubit_1','qubit_2'],
-			'rIQ_channels' : [['MW_gate_I','MW_gate_Q'],['MW_gate_I','MW_gate_Q']],
-			'LO_freq' :[MW_source.frequency, 1e9]
-			# do not put the brackets for the MW source
-			# e.g. MW_source.frequency (this should be a qcodes parameter)
-			}
-	
-	pulse.add_IQ_virt_channels(awg_IQ_channels)
+	# make virtual channels for IQ usage (also here, make one one of these object per MW source)
+	IQ_chan_set_1 = IQ_channel_constructor(pulse)
+	# set right association of the real channels with I/Q output (note you can define as many as you likes, also channels copies are allowed).
+	IQ_chan_set_1.add_IQ_chan("MW_gate_I", IQ_comp = "I", image = "+")
+	IQ_chan_set_1.add_IQ_chan("MW_gate_Q", IQ_comp = "Q", image = "+")
+	IQ_chan_set_1.add_marker("MW_marker", pre_delay = -15, post_delay = 15)
 
-At the moment markers are not added automatically, this is something that will be implemented in the next release of this library.
+	# set LO frequency of the MW source. 
+	# This can be changed troughout the experiments, but only newly created segments will hold the latest value.
+	# alternatively you can also enter a qcodes paramter for automated frequency setting.
+	IQ_chan_set_1.set_LO(1e9)
+
+	# name virtual channels to be used.
+	IQ_chan_set_1.add_virtual_IQ_channel("MW_qubit_1")
+	IQ_chan_set_1.add_virtual_IQ_channel("MW_qubit_2")
+
 
 .. _pulse_lib_chan_delay:
 
@@ -135,16 +147,14 @@ Or translated into python code,
 
 .. code-block:: python
 
-	pulse.add_channel_delay({
-		'B0': 20, 
-		'P1': 20,
-		'B1': 20, 
-		'P2': 20,
-		'B2': 20, 
-		'MW_gate_I': 70, 
-		'MW_gate_Q': 70,	
-		'MW_marker': 5
-	})
+	pulse.add_channel_delay('B0', 20)
+	pulse.add_channel_delay('P1', 20)
+	pulse.add_channel_delay('B1', 20)
+	pulse.add_channel_delay('P2', 20)
+	pulse.add_channel_delay('B2', 20)
+	pulse.add_channel_delay('MW_gate_I', 70)
+	pulse.add_channel_delay('MW_gate_Q', 70)
+	pulse.add_channel_delay('MW_marker', 5)
 
 Note, also negative delays are allowed. All units are in ``ns`` by default.
 
@@ -159,9 +169,10 @@ The range indicates the maximal, minimal voltage that can be provided to make su
 
 .. code-block:: python
 
-	pulse.add_channel_compenstation_limits({
-		'B0': (-500,500),'B1': (-500,500),'B2': (-500,500),
-		'P1': (-500,500),'P2': (-500,500),
-		})
+	pulse.add_channel_compenstation_limit('B0', (-1000, 500))
+	pulse.add_channel_compenstation_limit('B1', (-1000, 500))
+	pulse.add_channel_compenstation_limit('B2', (-1000, 500))
+	pulse.add_channel_compenstation_limit('P1', (-1000, 500))
+	pulse.add_channel_compenstation_limit('P2', (-1000, 500))
 
 In this case, no limits were set for the markers and the IQ channels, as these signals go in a 50 ohm matched line (no high pass filtering to compensate for).

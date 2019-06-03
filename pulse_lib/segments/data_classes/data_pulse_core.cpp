@@ -2425,8 +2425,8 @@ int __pyx_module_is_main_pulse_lib__segments__data_classes__data_pulse_core = 0;
 
 /* Implementation of 'pulse_lib.segments.data_classes.data_pulse_core' */
 static PyObject *__pyx_builtin_TypeError;
-static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_range;
+static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_RuntimeError;
 static PyObject *__pyx_builtin_ImportError;
 static PyObject *__pyx_builtin_KeyError;
@@ -2510,6 +2510,7 @@ static const char __pyx_k_index_start[] = "index_start";
 static const char __pyx_k_RuntimeError[] = "RuntimeError";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_stringsource[] = "stringsource";
+static const char __pyx_k_total_time_2[] = "total_time";
 static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
 static const char __pyx_k_return_inverse[] = "return_inverse";
@@ -2688,6 +2689,7 @@ static PyObject *__pyx_kp_s_stringsource;
 static PyObject *__pyx_n_s_struct;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_total_time;
+static PyObject *__pyx_n_s_total_time_2;
 static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_n_s_unique;
@@ -2703,12 +2705,13 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
 static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence___init__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_2add_pulse(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *__pyx_v_pulse); /* proto */
 static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_4append(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6shift_time(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_time); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_8__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_12__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_14slice_time(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_start, double __pyx_v_stop); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_16__copy__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6repeat(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_n); /* proto */
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_8shift_time(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_time); /* proto */
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_12__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_14__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_16slice_time(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_start, double __pyx_v_stop); /* proto */
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_18__copy__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10pulse_data___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10total_time___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_max___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
@@ -2720,8 +2723,8 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
 static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
 static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_2__set__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
 static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_4__del__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_18__reduce_cython__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_20__setstate_cython__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_20__reduce_cython__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_22__setstate_cython__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core___pyx_unpickle_pulse_data_single_sequence(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
@@ -3439,22 +3442,22 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  * 		append other pulse object to this one
  * 		"""
  * 		time_shift = self._total_time             # <<<<<<<<<<<<<<
- * 		other.shift_time(time_shift)
  * 
+ * 		other.shift_time(time_shift)
  */
   __pyx_t_1 = __pyx_v_self->_total_time;
   __pyx_v_time_shift = __pyx_t_1;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":70
- * 		"""
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":71
  * 		time_shift = self._total_time
- * 		other.shift_time(time_shift)             # <<<<<<<<<<<<<<
  * 
+ * 		other.shift_time(time_shift)             # <<<<<<<<<<<<<<
  * 		data = self.__add__(other)
+ * 		other.shift_time(-time_shift)
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_other, __pyx_n_s_shift_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 70, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_other, __pyx_n_s_shift_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_time_shift); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 70, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_time_shift); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -3469,17 +3472,17 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_2 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_5, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 70, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":72
+ * 
  * 		other.shift_time(time_shift)
- * 
  * 		data = self.__add__(other)             # <<<<<<<<<<<<<<
+ * 		other.shift_time(-time_shift)
  * 
- * 		self.localdata =  data.localdata
  */
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_add); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -3501,20 +3504,49 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_v_data = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":74
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":73
+ * 		other.shift_time(time_shift)
  * 		data = self.__add__(other)
+ * 		other.shift_time(-time_shift)             # <<<<<<<<<<<<<<
+ * 
+ * 		self.localdata =  data.localdata
+ */
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_other, __pyx_n_s_shift_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 73, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = PyFloat_FromDouble((-__pyx_v_time_shift)); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 73, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_5 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_3);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+      __Pyx_INCREF(__pyx_t_5);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_3, function);
+    }
+  }
+  __pyx_t_2 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_5, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 73, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":75
+ * 		other.shift_time(-time_shift)
  * 
  * 		self.localdata =  data.localdata             # <<<<<<<<<<<<<<
  * 		self.re_render = True
  * 		self._total_time = data._total_time
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_data, __pyx_n_s_localdata); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 74, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_data, __pyx_n_s_localdata); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = __pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(__pyx_t_2); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 74, __pyx_L1_error)
+  __pyx_t_6 = __pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(__pyx_t_2); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 75, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_self->localdata = __pyx_t_6;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":75
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":76
  * 
  * 		self.localdata =  data.localdata
  * 		self.re_render = True             # <<<<<<<<<<<<<<
@@ -3527,16 +3559,16 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(((PyObject *)__pyx_v_self->re_render));
   __pyx_v_self->re_render = ((PyBoolObject *)Py_True);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":76
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":77
  * 		self.localdata =  data.localdata
  * 		self.re_render = True
  * 		self._total_time = data._total_time             # <<<<<<<<<<<<<<
  * 
- * 	def shift_time(self, double time):
+ * 	def repeat(self, n):
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_data, __pyx_n_s_total_time); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 76, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_data, __pyx_n_s_total_time); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 77, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 76, __pyx_L1_error)
+  __pyx_t_1 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 77, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_self->_total_time = __pyx_t_1;
 
@@ -3565,8 +3597,228 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":78
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":79
  * 		self._total_time = data._total_time
+ * 
+ * 	def repeat(self, n):             # <<<<<<<<<<<<<<
+ * 		"""
+ * 		repeat n times the current segment.
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_7repeat(PyObject *__pyx_v_self, PyObject *__pyx_v_n); /*proto*/
+static char __pyx_doc_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6repeat[] = "\n\t\trepeat n times the current segment.\n\t\tArgs : \n\t\t\tn (int) : number of times to repeat the current segment.\n\t\t";
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_7repeat(PyObject *__pyx_v_self, PyObject *__pyx_v_n) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("repeat (wrapper)", 0);
+  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6repeat(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v_n));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6repeat(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_n) {
+  struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_pulse_data = 0;
+  double __pyx_v_total_time;
+  CYTHON_UNUSED PyObject *__pyx_v_i = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  double __pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  PyObject *(*__pyx_t_6)(PyObject *);
+  PyObject *__pyx_t_7 = NULL;
+  PyObject *__pyx_t_8 = NULL;
+  __Pyx_RefNannySetupContext("repeat", 0);
+
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":86
+ * 		"""
+ * 
+ * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)             # <<<<<<<<<<<<<<
+ * 		cdef double total_time = self.total_time
+ * 
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_copy); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 86, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_copy); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 86, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+      __Pyx_INCREF(__pyx_t_2);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_3, function);
+    }
+  }
+  __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, ((PyObject *)__pyx_v_self)) : __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)__pyx_v_self));
+  __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 86, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence))))) __PYX_ERR(1, 86, __pyx_L1_error)
+  __pyx_v_pulse_data = ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":87
+ * 
+ * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
+ * 		cdef double total_time = self.total_time             # <<<<<<<<<<<<<<
+ * 
+ * 		for i in range(n):
+ */
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_total_time_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 87, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_4 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_4 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 87, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_total_time = __pyx_t_4;
+
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":89
+ * 		cdef double total_time = self.total_time
+ * 
+ * 		for i in range(n):             # <<<<<<<<<<<<<<
+ * 			pulse_data.shift_time(total_time)
+ * 			self._add_pulse(pulse_data)
+ */
+  __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_range, __pyx_v_n); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 89, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
+    __pyx_t_3 = __pyx_t_1; __Pyx_INCREF(__pyx_t_3); __pyx_t_5 = 0;
+    __pyx_t_6 = NULL;
+  } else {
+    __pyx_t_5 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 89, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_6 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(1, 89, __pyx_L1_error)
+  }
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  for (;;) {
+    if (likely(!__pyx_t_6)) {
+      if (likely(PyList_CheckExact(__pyx_t_3))) {
+        if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_3)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_1); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(1, 89, __pyx_L1_error)
+        #else
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 89, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        #endif
+      } else {
+        if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_1); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(1, 89, __pyx_L1_error)
+        #else
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 89, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        #endif
+      }
+    } else {
+      __pyx_t_1 = __pyx_t_6(__pyx_t_3);
+      if (unlikely(!__pyx_t_1)) {
+        PyObject* exc_type = PyErr_Occurred();
+        if (exc_type) {
+          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+          else __PYX_ERR(1, 89, __pyx_L1_error)
+        }
+        break;
+      }
+      __Pyx_GOTREF(__pyx_t_1);
+    }
+    __Pyx_XDECREF_SET(__pyx_v_i, __pyx_t_1);
+    __pyx_t_1 = 0;
+
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":90
+ * 
+ * 		for i in range(n):
+ * 			pulse_data.shift_time(total_time)             # <<<<<<<<<<<<<<
+ * 			self._add_pulse(pulse_data)
+ * 			self._total_time += total_time
+ */
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_pulse_data), __pyx_n_s_shift_time); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 90, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_7 = PyFloat_FromDouble(__pyx_v_total_time); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 90, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_8 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+      __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_8)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+        __Pyx_INCREF(__pyx_t_8);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_2, function);
+      }
+    }
+    __pyx_t_1 = (__pyx_t_8) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_8, __pyx_t_7) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_7);
+    __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 90, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":91
+ * 		for i in range(n):
+ * 			pulse_data.shift_time(total_time)
+ * 			self._add_pulse(pulse_data)             # <<<<<<<<<<<<<<
+ * 			self._total_time += total_time
+ * 
+ */
+    __pyx_t_1 = ((struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self->__pyx_vtab)->_add_pulse(__pyx_v_self, __pyx_v_pulse_data); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 91, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":92
+ * 			pulse_data.shift_time(total_time)
+ * 			self._add_pulse(pulse_data)
+ * 			self._total_time += total_time             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+    __pyx_v_self->_total_time = (__pyx_v_self->_total_time + __pyx_v_total_time);
+
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":89
+ * 		cdef double total_time = self.total_time
+ * 
+ * 		for i in range(n):             # <<<<<<<<<<<<<<
+ * 			pulse_data.shift_time(total_time)
+ * 			self._add_pulse(pulse_data)
+ */
+  }
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":79
+ * 		self._total_time = data._total_time
+ * 
+ * 	def repeat(self, n):             # <<<<<<<<<<<<<<
+ * 		"""
+ * 		repeat n times the current segment.
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.repeat", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF((PyObject *)__pyx_v_pulse_data);
+  __Pyx_XDECREF(__pyx_v_i);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":95
+ * 
  * 
  * 	def shift_time(self, double time):             # <<<<<<<<<<<<<<
  * 
@@ -3574,14 +3826,14 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_7shift_time(PyObject *__pyx_v_self, PyObject *__pyx_arg_time); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_7shift_time(PyObject *__pyx_v_self, PyObject *__pyx_arg_time) {
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9shift_time(PyObject *__pyx_v_self, PyObject *__pyx_arg_time); /*proto*/
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9shift_time(PyObject *__pyx_v_self, PyObject *__pyx_arg_time) {
   double __pyx_v_time;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("shift_time (wrapper)", 0);
   assert(__pyx_arg_time); {
-    __pyx_v_time = __pyx_PyFloat_AsDouble(__pyx_arg_time); if (unlikely((__pyx_v_time == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 78, __pyx_L3_error)
+    __pyx_v_time = __pyx_PyFloat_AsDouble(__pyx_arg_time); if (unlikely((__pyx_v_time == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 95, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -3589,21 +3841,21 @@ static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6shift_time(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((double)__pyx_v_time));
+  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_8shift_time(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((double)__pyx_v_time));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6shift_time(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_time) {
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_8shift_time(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_time) {
   std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info> ::iterator __pyx_v_it_localdata;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("shift_time", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":80
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":97
  * 	def shift_time(self, double time):
  * 
  * 		cdef vector[pulse_info].iterator it_localdata = self.localdata.begin()             # <<<<<<<<<<<<<<
@@ -3612,7 +3864,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   __pyx_v_it_localdata = __pyx_v_self->localdata.begin();
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":81
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":98
  * 
  * 		cdef vector[pulse_info].iterator it_localdata = self.localdata.begin()
  * 		while(it_localdata != self.localdata.end()):             # <<<<<<<<<<<<<<
@@ -3623,7 +3875,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_1 = ((__pyx_v_it_localdata != __pyx_v_self->localdata.end()) != 0);
     if (!__pyx_t_1) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":82
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":99
  * 		cdef vector[pulse_info].iterator it_localdata = self.localdata.begin()
  * 		while(it_localdata != self.localdata.end()):
  * 			dereference(it_localdata).start = dereference(it_localdata).start + time             # <<<<<<<<<<<<<<
@@ -3632,7 +3884,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
     (*__pyx_v_it_localdata).start = ((*__pyx_v_it_localdata).start + __pyx_v_time);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":83
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":100
  * 		while(it_localdata != self.localdata.end()):
  * 			dereference(it_localdata).start = dereference(it_localdata).start + time
  * 			dereference(it_localdata).stop = dereference(it_localdata).stop + time             # <<<<<<<<<<<<<<
@@ -3641,7 +3893,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
     (*__pyx_v_it_localdata).stop = ((*__pyx_v_it_localdata).stop + __pyx_v_time);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":84
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":101
  * 			dereference(it_localdata).start = dereference(it_localdata).start + time
  * 			dereference(it_localdata).stop = dereference(it_localdata).stop + time
  * 			postincrement(it_localdata)             # <<<<<<<<<<<<<<
@@ -3651,7 +3903,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     (void)((__pyx_v_it_localdata++));
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":86
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":103
  * 			postincrement(it_localdata)
  * 
  * 		self._total_time += time             # <<<<<<<<<<<<<<
@@ -3660,7 +3912,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   __pyx_v_self->_total_time = (__pyx_v_self->_total_time + __pyx_v_time);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":87
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":104
  * 
  * 		self._total_time += time
  * 		self.re_render = True             # <<<<<<<<<<<<<<
@@ -3673,8 +3925,8 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(((PyObject *)__pyx_v_self->re_render));
   __pyx_v_self->re_render = ((PyBoolObject *)Py_True);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":78
- * 		self._total_time = data._total_time
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":95
+ * 
  * 
  * 	def shift_time(self, double time):             # <<<<<<<<<<<<<<
  * 
@@ -3688,7 +3940,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":89
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":106
  * 		self.re_render = True
  * 
  * 	def __add__(self, other):             # <<<<<<<<<<<<<<
@@ -3697,19 +3949,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__add__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_8__add__(((PyObject *)__pyx_v_self), ((PyObject *)__pyx_v_other));
+  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10__add__(((PyObject *)__pyx_v_self), ((PyObject *)__pyx_v_other));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_8__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
   struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_pulse_data = 0;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -3721,16 +3973,16 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   double __pyx_t_6;
   __Pyx_RefNannySetupContext("__add__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":90
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":107
  * 
  * 	def __add__(self, other):
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)             # <<<<<<<<<<<<<<
  * 
  * 		if isinstance(other, pulse_data_single_sequence):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_copy); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 90, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_copy); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 107, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_copy); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 90, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_copy); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 107, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -3745,14 +3997,14 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   }
   __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, __pyx_v_self) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_self);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 90, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 107, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence))))) __PYX_ERR(1, 90, __pyx_L1_error)
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence))))) __PYX_ERR(1, 107, __pyx_L1_error)
   __pyx_v_pulse_data = ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":92
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":109
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
  * 
  * 		if isinstance(other, pulse_data_single_sequence):             # <<<<<<<<<<<<<<
@@ -3763,19 +4015,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_5 = (__pyx_t_4 != 0);
   if (__pyx_t_5) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":93
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":110
  * 
  * 		if isinstance(other, pulse_data_single_sequence):
  * 			pulse_data._add_pulse(other)             # <<<<<<<<<<<<<<
  * 
  * 		elif isinstance(other, numbers.Number):
  */
-    if (!(likely(((__pyx_v_other) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_other, __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence))))) __PYX_ERR(1, 93, __pyx_L1_error)
-    __pyx_t_1 = ((struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_pulse_data->__pyx_vtab)->_add_pulse(__pyx_v_pulse_data, ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_other)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 93, __pyx_L1_error)
+    if (!(likely(((__pyx_v_other) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_other, __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence))))) __PYX_ERR(1, 110, __pyx_L1_error)
+    __pyx_t_1 = ((struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_pulse_data->__pyx_vtab)->_add_pulse(__pyx_v_pulse_data, ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_other)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 110, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":92
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":109
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
  * 
  * 		if isinstance(other, pulse_data_single_sequence):             # <<<<<<<<<<<<<<
@@ -3785,31 +4037,31 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     goto __pyx_L3;
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":95
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":112
  * 			pulse_data._add_pulse(other)
  * 
  * 		elif isinstance(other, numbers.Number):             # <<<<<<<<<<<<<<
  * 			pulse_data.localdata.push_back(base_pulse_element(0,-1, other, other).my_pulse_info)
  * 		else:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_numbers); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 95, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_numbers); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 112, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_Number); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 95, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_Number); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 112, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_5 = PyObject_IsInstance(__pyx_v_other, __pyx_t_3); if (unlikely(__pyx_t_5 == ((int)-1))) __PYX_ERR(1, 95, __pyx_L1_error)
+  __pyx_t_5 = PyObject_IsInstance(__pyx_v_other, __pyx_t_3); if (unlikely(__pyx_t_5 == ((int)-1))) __PYX_ERR(1, 112, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_4 = (__pyx_t_5 != 0);
   if (likely(__pyx_t_4)) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":96
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":113
  * 
  * 		elif isinstance(other, numbers.Number):
  * 			pulse_data.localdata.push_back(base_pulse_element(0,-1, other, other).my_pulse_info)             # <<<<<<<<<<<<<<
  * 		else:
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))
  */
-    __pyx_t_3 = PyTuple_New(4); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 96, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(4); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 113, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_INCREF(__pyx_int_0);
     __Pyx_GIVEREF(__pyx_int_0);
@@ -3823,18 +4075,18 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __Pyx_INCREF(__pyx_v_other);
     __Pyx_GIVEREF(__pyx_v_other);
     PyTuple_SET_ITEM(__pyx_t_3, 3, __pyx_v_other);
-    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element), __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 96, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element), __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 113, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     try {
       __pyx_v_pulse_data->localdata.push_back(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *)__pyx_t_1)->my_pulse_info);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(1, 96, __pyx_L1_error)
+      __PYX_ERR(1, 113, __pyx_L1_error)
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":95
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":112
  * 			pulse_data._add_pulse(other)
  * 
  * 		elif isinstance(other, numbers.Number):             # <<<<<<<<<<<<<<
@@ -3844,7 +4096,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     goto __pyx_L3;
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":98
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":115
  * 			pulse_data.localdata.push_back(base_pulse_element(0,-1, other, other).my_pulse_info)
  * 		else:
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))             # <<<<<<<<<<<<<<
@@ -3852,7 +4104,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  * 		if other._total_time > self._total_time:
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_adding_up_segment_failed_data_dy, __pyx_n_s_format); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 98, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_adding_up_segment_failed_data_dy, __pyx_n_s_format); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 115, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_2 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -3866,50 +4118,50 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     }
     __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, ((PyObject *)Py_TYPE(__pyx_v_other))) : __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)Py_TYPE(__pyx_v_other)));
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 98, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 115, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 98, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 115, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(1, 98, __pyx_L1_error)
+    __PYX_ERR(1, 115, __pyx_L1_error)
   }
   __pyx_L3:;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":100
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":117
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))
  * 
  * 		if other._total_time > self._total_time:             # <<<<<<<<<<<<<<
  * 			pulse_data._total_time = other._total_time
  * 
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_other, __pyx_n_s_total_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 100, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_other, __pyx_n_s_total_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 117, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_total_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 100, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_total_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 117, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_3, __pyx_t_1, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 100, __pyx_L1_error)
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_3, __pyx_t_1, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 117, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(1, 100, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(1, 117, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (__pyx_t_4) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":101
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":118
  * 
  * 		if other._total_time > self._total_time:
  * 			pulse_data._total_time = other._total_time             # <<<<<<<<<<<<<<
  * 
  * 		pulse_data.re_render = True
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_other, __pyx_n_s_total_time); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 101, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_other, __pyx_n_s_total_time); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 118, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 101, __pyx_L1_error)
+    __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 118, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_pulse_data->_total_time = __pyx_t_6;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":100
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":117
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))
  * 
  * 		if other._total_time > self._total_time:             # <<<<<<<<<<<<<<
@@ -3918,7 +4170,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":103
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":120
  * 			pulse_data._total_time = other._total_time
  * 
  * 		pulse_data.re_render = True             # <<<<<<<<<<<<<<
@@ -3931,7 +4183,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(((PyObject *)__pyx_v_pulse_data->re_render));
   __pyx_v_pulse_data->re_render = ((PyBoolObject *)Py_True);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":105
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":122
  * 		pulse_data.re_render = True
  * 
  * 		return pulse_data             # <<<<<<<<<<<<<<
@@ -3943,7 +4195,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_r = ((PyObject *)__pyx_v_pulse_data);
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":89
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":106
  * 		self.re_render = True
  * 
  * 	def __add__(self, other):             # <<<<<<<<<<<<<<
@@ -3965,7 +4217,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":107
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":124
  * 		return pulse_data
  * 
  * 	cdef _add_pulse(self, pulse_data_single_sequence other):             # <<<<<<<<<<<<<<
@@ -3982,7 +4234,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info __pyx_t_3;
   __Pyx_RefNannySetupContext("_add_pulse", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":109
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":126
  * 	cdef _add_pulse(self, pulse_data_single_sequence other):
  * 
  * 		for i in other.localdata:             # <<<<<<<<<<<<<<
@@ -3997,7 +4249,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     ++__pyx_t_1;
     __pyx_v_i = __pyx_t_3;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":110
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":127
  * 
  * 		for i in other.localdata:
  * 			self.localdata.push_back(i)             # <<<<<<<<<<<<<<
@@ -4008,10 +4260,10 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
       __pyx_v_self->localdata.push_back(__pyx_v_i);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(1, 110, __pyx_L1_error)
+      __PYX_ERR(1, 127, __pyx_L1_error)
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":109
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":126
  * 	cdef _add_pulse(self, pulse_data_single_sequence other):
  * 
  * 		for i in other.localdata:             # <<<<<<<<<<<<<<
@@ -4020,7 +4272,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":107
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":124
  * 		return pulse_data
  * 
  * 	cdef _add_pulse(self, pulse_data_single_sequence other):             # <<<<<<<<<<<<<<
@@ -4040,7 +4292,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":112
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":129
  * 			self.localdata.push_back(i)
  * 
  * 	def __sub__(self, other):             # <<<<<<<<<<<<<<
@@ -4049,26 +4301,26 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_13__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_13__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__sub__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10__sub__(((PyObject *)__pyx_v_self), ((PyObject *)__pyx_v_other));
+  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_12__sub__(((PyObject *)__pyx_v_self), ((PyObject *)__pyx_v_other));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_12__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__sub__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":113
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":130
  * 
  * 	def __sub__(self, other):
  * 		return self + other*(-1)             # <<<<<<<<<<<<<<
@@ -4076,16 +4328,16 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  * 	def __mul__(self, other):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyNumber_Multiply(__pyx_v_other, __pyx_int_neg_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 113, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_v_other, __pyx_int_neg_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyNumber_Add(__pyx_v_self, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 113, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Add(__pyx_v_self, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":112
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":129
  * 			self.localdata.push_back(i)
  * 
  * 	def __sub__(self, other):             # <<<<<<<<<<<<<<
@@ -4105,7 +4357,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":115
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":132
  * 		return self + other*(-1)
  * 
  * 	def __mul__(self, other):             # <<<<<<<<<<<<<<
@@ -4114,19 +4366,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_13__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_13__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_15__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_15__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__mul__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_12__mul__(((PyObject *)__pyx_v_self), ((PyObject *)__pyx_v_other));
+  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_14__mul__(((PyObject *)__pyx_v_self), ((PyObject *)__pyx_v_other));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_12__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_14__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
   struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_pulse_data = 0;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -4138,16 +4390,16 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   double __pyx_t_6;
   __Pyx_RefNannySetupContext("__mul__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":116
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":133
  * 
  * 	def __mul__(self, other):
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)             # <<<<<<<<<<<<<<
  * 		if isinstance(other,numbers.Number):
  * 			pulse_data._muliply(other)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_copy); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 116, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_copy); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 133, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_copy); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 116, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_copy); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 133, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -4162,43 +4414,43 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   }
   __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, __pyx_v_self) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_self);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 116, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 133, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence))))) __PYX_ERR(1, 116, __pyx_L1_error)
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence))))) __PYX_ERR(1, 133, __pyx_L1_error)
   __pyx_v_pulse_data = ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":117
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":134
  * 	def __mul__(self, other):
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
  * 		if isinstance(other,numbers.Number):             # <<<<<<<<<<<<<<
  * 			pulse_data._muliply(other)
  * 		else:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_numbers); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 117, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_numbers); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 134, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_Number); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 117, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_Number); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 134, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_4 = PyObject_IsInstance(__pyx_v_other, __pyx_t_3); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(1, 117, __pyx_L1_error)
+  __pyx_t_4 = PyObject_IsInstance(__pyx_v_other, __pyx_t_3); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(1, 134, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_5 = (__pyx_t_4 != 0);
   if (likely(__pyx_t_5)) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":118
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":135
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
  * 		if isinstance(other,numbers.Number):
  * 			pulse_data._muliply(other)             # <<<<<<<<<<<<<<
  * 		else:
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))
  */
-    __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_v_other); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 118, __pyx_L1_error)
-    __pyx_t_3 = ((struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_pulse_data->__pyx_vtab)->_muliply(__pyx_v_pulse_data, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 118, __pyx_L1_error)
+    __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_v_other); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 135, __pyx_L1_error)
+    __pyx_t_3 = ((struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_pulse_data->__pyx_vtab)->_muliply(__pyx_v_pulse_data, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 135, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":117
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":134
  * 	def __mul__(self, other):
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
  * 		if isinstance(other,numbers.Number):             # <<<<<<<<<<<<<<
@@ -4208,7 +4460,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     goto __pyx_L3;
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":120
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":137
  * 			pulse_data._muliply(other)
  * 		else:
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))             # <<<<<<<<<<<<<<
@@ -4216,7 +4468,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  * 		return pulse_data
  */
   /*else*/ {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_adding_up_segment_failed_data_dy, __pyx_n_s_format); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 120, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_adding_up_segment_failed_data_dy, __pyx_n_s_format); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 137, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_2 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_1))) {
@@ -4230,19 +4482,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     }
     __pyx_t_3 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_2, ((PyObject *)Py_TYPE(__pyx_v_other))) : __Pyx_PyObject_CallOneArg(__pyx_t_1, ((PyObject *)Py_TYPE(__pyx_v_other)));
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 120, __pyx_L1_error)
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 137, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 120, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_builtin_ValueError, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 137, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(1, 120, __pyx_L1_error)
+    __PYX_ERR(1, 137, __pyx_L1_error)
   }
   __pyx_L3:;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":122
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":139
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))
  * 
  * 		return pulse_data             # <<<<<<<<<<<<<<
@@ -4254,7 +4506,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_r = ((PyObject *)__pyx_v_pulse_data);
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":115
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":132
  * 		return self + other*(-1)
  * 
  * 	def __mul__(self, other):             # <<<<<<<<<<<<<<
@@ -4276,7 +4528,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":124
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":141
  * 		return pulse_data
  * 
  * 	cdef _muliply(self, double other):             # <<<<<<<<<<<<<<
@@ -4291,7 +4543,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("_muliply", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":127
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":144
  * 		cdef vector[pulse_info].iterator it_localdata
  * 
  * 		it_localdata = self.localdata.begin()             # <<<<<<<<<<<<<<
@@ -4300,7 +4552,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_it_localdata = __pyx_v_self->localdata.begin();
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":128
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":145
  * 
  * 		it_localdata = self.localdata.begin()
  * 		while(it_localdata != self.localdata.end()):             # <<<<<<<<<<<<<<
@@ -4311,7 +4563,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_1 = ((__pyx_v_it_localdata != __pyx_v_self->localdata.end()) != 0);
     if (!__pyx_t_1) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":129
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":146
  * 		it_localdata = self.localdata.begin()
  * 		while(it_localdata != self.localdata.end()):
  * 			dereference(it_localdata).v_start = dereference(it_localdata).v_start*other             # <<<<<<<<<<<<<<
@@ -4320,7 +4572,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     (*__pyx_v_it_localdata).v_start = ((*__pyx_v_it_localdata).v_start * __pyx_v_other);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":130
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":147
  * 		while(it_localdata != self.localdata.end()):
  * 			dereference(it_localdata).v_start = dereference(it_localdata).v_start*other
  * 			dereference(it_localdata).v_stop = dereference(it_localdata).v_stop*other             # <<<<<<<<<<<<<<
@@ -4329,7 +4581,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     (*__pyx_v_it_localdata).v_stop = ((*__pyx_v_it_localdata).v_stop * __pyx_v_other);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":131
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":148
  * 			dereference(it_localdata).v_start = dereference(it_localdata).v_start*other
  * 			dereference(it_localdata).v_stop = dereference(it_localdata).v_stop*other
  * 			postincrement(it_localdata)             # <<<<<<<<<<<<<<
@@ -4339,7 +4591,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     (void)((__pyx_v_it_localdata++));
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":133
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":150
  * 			postincrement(it_localdata)
  * 
  * 		self.re_render = True             # <<<<<<<<<<<<<<
@@ -4352,7 +4604,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __Pyx_DECREF(((PyObject *)__pyx_v_self->re_render));
   __pyx_v_self->re_render = ((PyBoolObject *)Py_True);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":124
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":141
  * 		return pulse_data
  * 
  * 	cdef _muliply(self, double other):             # <<<<<<<<<<<<<<
@@ -4367,7 +4619,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":135
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":152
  * 		self.re_render = True
  * 
  * 	cdef __local_render(self):             # <<<<<<<<<<<<<<
@@ -4439,51 +4691,51 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   Py_ssize_t __pyx_t_43;
   __Pyx_RefNannySetupContext("__local_render", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":145
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":162
  * 		cdef longlong[:] index_inverse
  * 		cdef int j
  * 		time_steps = np.empty([self.localdata.size()*4], dtype = np.double)             # <<<<<<<<<<<<<<
  * 		# if putting too low, sometimes not nough
  * 		cdef double t_offset = 1e-6
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 145, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 145, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_FromSize_t((__pyx_v_self->localdata.size() * 4)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 145, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_FromSize_t((__pyx_v_self->localdata.size() * 4)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 145, __pyx_L1_error)
+  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyList_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 145, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 145, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 145, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_double); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 145, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_double); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(1, 145, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(1, 162, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 145, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 162, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_5, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(1, 145, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_5, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(1, 162, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_v_time_steps = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":147
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":164
  * 		time_steps = np.empty([self.localdata.size()*4], dtype = np.double)
  * 		# if putting too low, sometimes not nough
  * 		cdef double t_offset = 1e-6             # <<<<<<<<<<<<<<
@@ -4492,7 +4744,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_t_offset = 1e-6;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":150
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":167
  * 		# not typed, this might slowdown, but performance is good enough atm.
  * 
  * 		j = 0             # <<<<<<<<<<<<<<
@@ -4501,7 +4753,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_j = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":152
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":169
  * 		j = 0
  * 		# 7ms
  * 		cdef vector[pulse_info].iterator it_localdata = self.localdata.begin()             # <<<<<<<<<<<<<<
@@ -4510,7 +4762,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_it_localdata = __pyx_v_self->localdata.begin();
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":154
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":171
  * 		cdef vector[pulse_info].iterator it_localdata = self.localdata.begin()
  * 
  * 		while(it_localdata != self.localdata.end()):             # <<<<<<<<<<<<<<
@@ -4521,7 +4773,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_7 = ((__pyx_v_it_localdata != __pyx_v_self->localdata.end()) != 0);
     if (!__pyx_t_7) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":155
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":172
  * 
  * 		while(it_localdata != self.localdata.end()):
  * 			time_steps[j] = (dereference(it_localdata).start)             # <<<<<<<<<<<<<<
@@ -4532,7 +4784,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_9 = __pyx_v_j;
     *((double *) ( /* dim=0 */ (__pyx_v_time_steps.data + __pyx_t_9 * __pyx_v_time_steps.strides[0]) )) = __pyx_t_8;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":156
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":173
  * 		while(it_localdata != self.localdata.end()):
  * 			time_steps[j] = (dereference(it_localdata).start)
  * 			time_steps[j + 1] = (dereference(it_localdata).start+t_offset)             # <<<<<<<<<<<<<<
@@ -4542,7 +4794,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_10 = (__pyx_v_j + 1);
     *((double *) ( /* dim=0 */ (__pyx_v_time_steps.data + __pyx_t_10 * __pyx_v_time_steps.strides[0]) )) = ((*__pyx_v_it_localdata).start + __pyx_v_t_offset);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":157
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":174
  * 			time_steps[j] = (dereference(it_localdata).start)
  * 			time_steps[j + 1] = (dereference(it_localdata).start+t_offset)
  * 			if dereference(it_localdata).stop == -1.:             # <<<<<<<<<<<<<<
@@ -4552,7 +4804,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_7 = (((*__pyx_v_it_localdata).stop == -1.) != 0);
     if (__pyx_t_7) {
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":158
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":175
  * 			time_steps[j + 1] = (dereference(it_localdata).start+t_offset)
  * 			if dereference(it_localdata).stop == -1.:
  * 				time_steps[j + 2] = self._total_time-t_offset             # <<<<<<<<<<<<<<
@@ -4562,7 +4814,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
       __pyx_t_11 = (__pyx_v_j + 2);
       *((double *) ( /* dim=0 */ (__pyx_v_time_steps.data + __pyx_t_11 * __pyx_v_time_steps.strides[0]) )) = (__pyx_v_self->_total_time - __pyx_v_t_offset);
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":159
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":176
  * 			if dereference(it_localdata).stop == -1.:
  * 				time_steps[j + 2] = self._total_time-t_offset
  * 				time_steps[j + 3] = self._total_time             # <<<<<<<<<<<<<<
@@ -4573,7 +4825,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
       __pyx_t_12 = (__pyx_v_j + 3);
       *((double *) ( /* dim=0 */ (__pyx_v_time_steps.data + __pyx_t_12 * __pyx_v_time_steps.strides[0]) )) = __pyx_t_8;
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":157
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":174
  * 			time_steps[j] = (dereference(it_localdata).start)
  * 			time_steps[j + 1] = (dereference(it_localdata).start+t_offset)
  * 			if dereference(it_localdata).stop == -1.:             # <<<<<<<<<<<<<<
@@ -4583,7 +4835,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
       goto __pyx_L5;
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":161
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":178
  * 				time_steps[j + 3] = self._total_time
  * 			else:
  * 				time_steps[j + 2] = (dereference(it_localdata).stop-t_offset)             # <<<<<<<<<<<<<<
@@ -4594,7 +4846,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
       __pyx_t_13 = (__pyx_v_j + 2);
       *((double *) ( /* dim=0 */ (__pyx_v_time_steps.data + __pyx_t_13 * __pyx_v_time_steps.strides[0]) )) = ((*__pyx_v_it_localdata).stop - __pyx_v_t_offset);
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":162
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":179
  * 			else:
  * 				time_steps[j + 2] = (dereference(it_localdata).stop-t_offset)
  * 				time_steps[j + 3] = (dereference(it_localdata).stop)             # <<<<<<<<<<<<<<
@@ -4607,7 +4859,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     }
     __pyx_L5:;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":163
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":180
  * 				time_steps[j + 2] = (dereference(it_localdata).stop-t_offset)
  * 				time_steps[j + 3] = (dereference(it_localdata).stop)
  * 			j+=4             # <<<<<<<<<<<<<<
@@ -4616,7 +4868,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     __pyx_v_j = (__pyx_v_j + 4);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":165
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":182
  * 			j+=4
  * 
  * 			postincrement(it_localdata)             # <<<<<<<<<<<<<<
@@ -4626,29 +4878,29 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     (void)((__pyx_v_it_localdata++));
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":169
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":186
  * 
  * 		# 130ms
  * 		time_steps_np, index_inverse = np.unique(time_steps, return_inverse=True)             # <<<<<<<<<<<<<<
  * 
  * 		j = 0
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 169, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_unique); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 169, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_unique); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_time_steps, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 169, __pyx_L1_error)
+  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_time_steps, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 169, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 169, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_return_inverse, Py_True) < 0) __PYX_ERR(1, 169, __pyx_L1_error)
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 169, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_return_inverse, Py_True) < 0) __PYX_ERR(1, 186, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -4659,7 +4911,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     if (unlikely(size != 2)) {
       if (size > 2) __Pyx_RaiseTooManyValuesError(2);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(1, 169, __pyx_L1_error)
+      __PYX_ERR(1, 186, __pyx_L1_error)
     }
     #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
     if (likely(PyTuple_CheckExact(sequence))) {
@@ -4672,15 +4924,15 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __Pyx_INCREF(__pyx_t_5);
     __Pyx_INCREF(__pyx_t_1);
     #else
-    __pyx_t_5 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 169, __pyx_L1_error)
+    __pyx_t_5 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 186, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_1 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 169, __pyx_L1_error)
+    __pyx_t_1 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 186, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     #endif
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   } else {
     Py_ssize_t index = -1;
-    __pyx_t_3 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 169, __pyx_L1_error)
+    __pyx_t_3 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 186, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_t_15 = Py_TYPE(__pyx_t_3)->tp_iternext;
@@ -4688,7 +4940,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __Pyx_GOTREF(__pyx_t_5);
     index = 1; __pyx_t_1 = __pyx_t_15(__pyx_t_3); if (unlikely(!__pyx_t_1)) goto __pyx_L6_unpacking_failed;
     __Pyx_GOTREF(__pyx_t_1);
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_15(__pyx_t_3), 2) < 0) __PYX_ERR(1, 169, __pyx_L1_error)
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_15(__pyx_t_3), 2) < 0) __PYX_ERR(1, 186, __pyx_L1_error)
     __pyx_t_15 = NULL;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     goto __pyx_L7_unpacking_done;
@@ -4696,12 +4948,12 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_15 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(1, 169, __pyx_L1_error)
+    __PYX_ERR(1, 186, __pyx_L1_error)
     __pyx_L7_unpacking_done:;
   }
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_5, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(1, 169, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_5, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(1, 186, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_16 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_16.memview)) __PYX_ERR(1, 169, __pyx_L1_error)
+  __pyx_t_16 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_16.memview)) __PYX_ERR(1, 186, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_time_steps_np = __pyx_t_6;
   __pyx_t_6.memview = NULL;
@@ -4710,7 +4962,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_16.memview = NULL;
   __pyx_t_16.data = NULL;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":171
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":188
  * 		time_steps_np, index_inverse = np.unique(time_steps, return_inverse=True)
  * 
  * 		j = 0             # <<<<<<<<<<<<<<
@@ -4719,7 +4971,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_j = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":174
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":191
  * 
  * 		# 5 ms
  * 		it_localdata = self.localdata.begin()             # <<<<<<<<<<<<<<
@@ -4728,7 +4980,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_it_localdata = __pyx_v_self->localdata.begin();
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":176
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":193
  * 		it_localdata = self.localdata.begin()
  * 
  * 		while(it_localdata != self.localdata.end()):             # <<<<<<<<<<<<<<
@@ -4739,7 +4991,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_7 = ((__pyx_v_it_localdata != __pyx_v_self->localdata.end()) != 0);
     if (!__pyx_t_7) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":177
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":194
  * 
  * 		while(it_localdata != self.localdata.end()):
  * 			dereference(it_localdata).index_start = index_inverse[j+1]             # <<<<<<<<<<<<<<
@@ -4749,7 +5001,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_17 = (__pyx_v_j + 1);
     (*__pyx_v_it_localdata).index_start = (*((__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong *) ( /* dim=0 */ (__pyx_v_index_inverse.data + __pyx_t_17 * __pyx_v_index_inverse.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":178
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":195
  * 		while(it_localdata != self.localdata.end()):
  * 			dereference(it_localdata).index_start = index_inverse[j+1]
  * 			dereference(it_localdata).index_stop = index_inverse[j+2]             # <<<<<<<<<<<<<<
@@ -4759,7 +5011,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_18 = (__pyx_v_j + 2);
     (*__pyx_v_it_localdata).index_stop = (*((__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong *) ( /* dim=0 */ (__pyx_v_index_inverse.data + __pyx_t_18 * __pyx_v_index_inverse.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":179
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":196
  * 			dereference(it_localdata).index_start = index_inverse[j+1]
  * 			dereference(it_localdata).index_stop = index_inverse[j+2]
  * 			j += 4             # <<<<<<<<<<<<<<
@@ -4768,7 +5020,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     __pyx_v_j = (__pyx_v_j + 4);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":181
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":198
  * 			j += 4
  * 
  * 			postincrement(it_localdata)             # <<<<<<<<<<<<<<
@@ -4778,22 +5030,22 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     (void)((__pyx_v_it_localdata++));
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":184
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":201
  * 
  * 
  * 		cdef double[:] voltage_data = np.zeros([len(time_steps_np)])             # <<<<<<<<<<<<<<
  * 		cdef double[:] time_step
  * 		cdef double delta_v
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 184, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 201, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 184, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 201, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_19 = __Pyx_MemoryView_Len(__pyx_v_time_steps_np); 
-  __pyx_t_1 = __Pyx_PyInt_FromSize_t(__pyx_t_19); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 184, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_FromSize_t(__pyx_t_19); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 201, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 184, __pyx_L1_error)
+  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 201, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyList_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -4811,16 +5063,16 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_2 = (__pyx_t_1) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_1, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 184, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 201, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(1, 184, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(1, 201, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_voltage_data = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":192
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":209
  * 
  * 		# 20 ms
  * 		it_localdata = self.localdata.begin()             # <<<<<<<<<<<<<<
@@ -4829,7 +5081,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_it_localdata = __pyx_v_self->localdata.begin();
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":194
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":211
  * 		it_localdata = self.localdata.begin()
  * 
  * 		while(it_localdata != self.localdata.end()):             # <<<<<<<<<<<<<<
@@ -4840,7 +5092,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_7 = ((__pyx_v_it_localdata != __pyx_v_self->localdata.end()) != 0);
     if (!__pyx_t_7) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":195
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":212
  * 
  * 		while(it_localdata != self.localdata.end()):
  * 			delta_v = dereference(it_localdata).v_stop-dereference(it_localdata).v_start             # <<<<<<<<<<<<<<
@@ -4849,7 +5101,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     __pyx_v_delta_v = ((*__pyx_v_it_localdata).v_stop - (*__pyx_v_it_localdata).v_start);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":196
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":213
  * 		while(it_localdata != self.localdata.end()):
  * 			delta_v = dereference(it_localdata).v_stop-dereference(it_localdata).v_start
  * 			min_time = time_steps_np[dereference(it_localdata).index_start]             # <<<<<<<<<<<<<<
@@ -4859,7 +5111,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_20 = (*__pyx_v_it_localdata).index_start;
     __pyx_v_min_time = (*((double *) ( /* dim=0 */ (__pyx_v_time_steps_np.data + __pyx_t_20 * __pyx_v_time_steps_np.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":197
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":214
  * 			delta_v = dereference(it_localdata).v_stop-dereference(it_localdata).v_start
  * 			min_time = time_steps_np[dereference(it_localdata).index_start]
  * 			max_time = time_steps_np[dereference(it_localdata).index_stop]             # <<<<<<<<<<<<<<
@@ -4869,7 +5121,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_21 = (*__pyx_v_it_localdata).index_stop;
     __pyx_v_max_time = (*((double *) ( /* dim=0 */ (__pyx_v_time_steps_np.data + __pyx_t_21 * __pyx_v_time_steps_np.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":199
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":216
  * 			max_time = time_steps_np[dereference(it_localdata).index_stop]
  * 
  * 			rescaler = delta_v/(max_time-min_time)             # <<<<<<<<<<<<<<
@@ -4879,11 +5131,11 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_8 = (__pyx_v_max_time - __pyx_v_min_time);
     if (unlikely(__pyx_t_8 == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-      __PYX_ERR(1, 199, __pyx_L1_error)
+      __PYX_ERR(1, 216, __pyx_L1_error)
     }
     __pyx_v_rescaler = (__pyx_v_delta_v / __pyx_t_8);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":201
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":218
  * 			rescaler = delta_v/(max_time-min_time)
  * 
  * 			for j in range(dereference(it_localdata).index_start, dereference(it_localdata).index_stop+1):             # <<<<<<<<<<<<<<
@@ -4895,7 +5147,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     for (__pyx_t_24 = (*__pyx_v_it_localdata).index_start; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
       __pyx_v_j = __pyx_t_24;
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":202
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":219
  * 
  * 			for j in range(dereference(it_localdata).index_start, dereference(it_localdata).index_stop+1):
  * 				voltage_data[j] += dereference(it_localdata).v_start + (time_steps_np[j] - min_time)*rescaler             # <<<<<<<<<<<<<<
@@ -4907,7 +5159,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
       *((double *) ( /* dim=0 */ (__pyx_v_voltage_data.data + __pyx_t_26 * __pyx_v_voltage_data.strides[0]) )) += ((*__pyx_v_it_localdata).v_start + (((*((double *) ( /* dim=0 */ (__pyx_v_time_steps_np.data + __pyx_t_25 * __pyx_v_time_steps_np.strides[0]) ))) - __pyx_v_min_time) * __pyx_v_rescaler));
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":204
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":221
  * 				voltage_data[j] += dereference(it_localdata).v_start + (time_steps_np[j] - min_time)*rescaler
  * 
  * 			postincrement(it_localdata)             # <<<<<<<<<<<<<<
@@ -4917,22 +5169,22 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     (void)((__pyx_v_it_localdata++));
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":208
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":225
  * 
  * 		# # clean up data (few ms)
  * 		cdef double[:] new_data_time = np.empty([len(voltage_data)])             # <<<<<<<<<<<<<<
  * 		cdef double[:] new_data_voltage = np.empty([len(voltage_data)])
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 208, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 225, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_empty); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 208, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_empty); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 225, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_19 = __Pyx_MemoryView_Len(__pyx_v_voltage_data); 
-  __pyx_t_5 = __Pyx_PyInt_FromSize_t(__pyx_t_19); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 208, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_FromSize_t(__pyx_t_19); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 225, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 208, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 225, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_5);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_t_5);
@@ -4950,31 +5202,31 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_2 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_5, __pyx_t_1) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_1);
   __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 208, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 225, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(1, 208, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(1, 225, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_new_data_time = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":209
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":226
  * 		# # clean up data (few ms)
  * 		cdef double[:] new_data_time = np.empty([len(voltage_data)])
  * 		cdef double[:] new_data_voltage = np.empty([len(voltage_data)])             # <<<<<<<<<<<<<<
  * 
  * 		new_data_time[0] = time_steps_np[0]
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 209, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 226, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 209, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 226, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_19 = __Pyx_MemoryView_Len(__pyx_v_voltage_data); 
-  __pyx_t_3 = __Pyx_PyInt_FromSize_t(__pyx_t_19); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 209, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_FromSize_t(__pyx_t_19); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 226, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 209, __pyx_L1_error)
+  __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 226, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_3);
   PyList_SET_ITEM(__pyx_t_5, 0, __pyx_t_3);
@@ -4992,16 +5244,16 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_3, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 209, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 226, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(1, 209, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(1, 226, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_new_data_voltage = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":211
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":228
  * 		cdef double[:] new_data_voltage = np.empty([len(voltage_data)])
  * 
  * 		new_data_time[0] = time_steps_np[0]             # <<<<<<<<<<<<<<
@@ -5012,7 +5264,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_28 = 0;
   *((double *) ( /* dim=0 */ (__pyx_v_new_data_time.data + __pyx_t_28 * __pyx_v_new_data_time.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_time_steps_np.data + __pyx_t_27 * __pyx_v_time_steps_np.strides[0]) )));
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":212
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":229
  * 
  * 		new_data_time[0] = time_steps_np[0]
  * 		new_data_voltage[0] = voltage_data[0]             # <<<<<<<<<<<<<<
@@ -5023,7 +5275,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_30 = 0;
   *((double *) ( /* dim=0 */ (__pyx_v_new_data_voltage.data + __pyx_t_30 * __pyx_v_new_data_voltage.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_voltage_data.data + __pyx_t_29 * __pyx_v_voltage_data.strides[0]) )));
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":214
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":231
  * 		new_data_voltage[0] = voltage_data[0]
  * 
  * 		cdef int len_time_steps = len(time_steps_np)             # <<<<<<<<<<<<<<
@@ -5033,7 +5285,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_19 = __Pyx_MemoryView_Len(__pyx_v_time_steps_np); 
   __pyx_v_len_time_steps = __pyx_t_19;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":215
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":232
  * 
  * 		cdef int len_time_steps = len(time_steps_np)
  * 		cdef double corr_offset = 2*t_offset #needs to be a bit bigger to correct for numberical errors.             # <<<<<<<<<<<<<<
@@ -5042,7 +5294,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_corr_offset = (2.0 * __pyx_v_t_offset);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":216
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":233
  * 		cdef int len_time_steps = len(time_steps_np)
  * 		cdef double corr_offset = 2*t_offset #needs to be a bit bigger to correct for numberical errors.
  * 		j = 1             # <<<<<<<<<<<<<<
@@ -5051,7 +5303,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_j = 1;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":217
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":234
  * 		cdef double corr_offset = 2*t_offset #needs to be a bit bigger to correct for numberical errors.
  * 		j = 1
  * 		cdef int k = 1             # <<<<<<<<<<<<<<
@@ -5060,7 +5312,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_k = 1;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":219
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":236
  * 		cdef int k = 1
  * 
  * 		while( j < len_time_steps-1):             # <<<<<<<<<<<<<<
@@ -5071,7 +5323,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_7 = ((__pyx_v_j < (__pyx_v_len_time_steps - 1)) != 0);
     if (!__pyx_t_7) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":220
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":237
  * 
  * 		while( j < len_time_steps-1):
  * 			if time_steps_np[j+1] - time_steps_np[j] < corr_offset and time_steps_np[j] - time_steps_np[j-1] < corr_offset:             # <<<<<<<<<<<<<<
@@ -5093,7 +5345,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_L17_bool_binop_done:;
     if (__pyx_t_7) {
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":221
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":238
  * 		while( j < len_time_steps-1):
  * 			if time_steps_np[j+1] - time_steps_np[j] < corr_offset and time_steps_np[j] - time_steps_np[j-1] < corr_offset:
  * 				j+=1             # <<<<<<<<<<<<<<
@@ -5102,7 +5354,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
       __pyx_v_j = (__pyx_v_j + 1);
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":220
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":237
  * 
  * 		while( j < len_time_steps-1):
  * 			if time_steps_np[j+1] - time_steps_np[j] < corr_offset and time_steps_np[j] - time_steps_np[j-1] < corr_offset:             # <<<<<<<<<<<<<<
@@ -5111,7 +5363,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":223
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":240
  * 				j+=1
  * 
  * 			new_data_time[k] = time_steps_np[j]             # <<<<<<<<<<<<<<
@@ -5122,7 +5374,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_37 = __pyx_v_k;
     *((double *) ( /* dim=0 */ (__pyx_v_new_data_time.data + __pyx_t_37 * __pyx_v_new_data_time.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_time_steps_np.data + __pyx_t_36 * __pyx_v_time_steps_np.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":224
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":241
  * 
  * 			new_data_time[k] = time_steps_np[j]
  * 			new_data_voltage[k] = voltage_data[j]             # <<<<<<<<<<<<<<
@@ -5133,7 +5385,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_39 = __pyx_v_k;
     *((double *) ( /* dim=0 */ (__pyx_v_new_data_voltage.data + __pyx_t_39 * __pyx_v_new_data_voltage.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_voltage_data.data + __pyx_t_38 * __pyx_v_voltage_data.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":225
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":242
  * 			new_data_time[k] = time_steps_np[j]
  * 			new_data_voltage[k] = voltage_data[j]
  * 			j+= 1             # <<<<<<<<<<<<<<
@@ -5142,7 +5394,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     __pyx_v_j = (__pyx_v_j + 1);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":226
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":243
  * 			new_data_voltage[k] = voltage_data[j]
  * 			j+= 1
  * 			k+= 1             # <<<<<<<<<<<<<<
@@ -5152,7 +5404,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_v_k = (__pyx_v_k + 1);
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":227
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":244
  * 			j+= 1
  * 			k+= 1
  * 		if j < len_time_steps:             # <<<<<<<<<<<<<<
@@ -5162,7 +5414,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_7 = ((__pyx_v_j < __pyx_v_len_time_steps) != 0);
   if (__pyx_t_7) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":228
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":245
  * 			k+= 1
  * 		if j < len_time_steps:
  * 			new_data_time[k] = time_steps_np[j]             # <<<<<<<<<<<<<<
@@ -5173,7 +5425,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_41 = __pyx_v_k;
     *((double *) ( /* dim=0 */ (__pyx_v_new_data_time.data + __pyx_t_41 * __pyx_v_new_data_time.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_time_steps_np.data + __pyx_t_40 * __pyx_v_time_steps_np.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":229
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":246
  * 		if j < len_time_steps:
  * 			new_data_time[k] = time_steps_np[j]
  * 			new_data_voltage[k] = voltage_data[j]             # <<<<<<<<<<<<<<
@@ -5184,7 +5436,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_43 = __pyx_v_k;
     *((double *) ( /* dim=0 */ (__pyx_v_new_data_voltage.data + __pyx_t_43 * __pyx_v_new_data_voltage.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_voltage_data.data + __pyx_t_42 * __pyx_v_voltage_data.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":230
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":247
  * 			new_data_time[k] = time_steps_np[j]
  * 			new_data_voltage[k] = voltage_data[j]
  * 			k+= 1             # <<<<<<<<<<<<<<
@@ -5193,7 +5445,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     __pyx_v_k = (__pyx_v_k + 1);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":227
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":244
  * 			j+= 1
  * 			k+= 1
  * 		if j < len_time_steps:             # <<<<<<<<<<<<<<
@@ -5202,7 +5454,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":232
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":249
  * 			k+= 1
  * 
  * 		return new_data_time[:k], new_data_voltage[:k]             # <<<<<<<<<<<<<<
@@ -5228,10 +5480,10 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     0,
     1) < 0))
 {
-    __PYX_ERR(1, 232, __pyx_L1_error)
+    __PYX_ERR(1, 249, __pyx_L1_error)
 }
 
-__pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 232, __pyx_L1_error)
+__pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 249, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
   __pyx_t_6.memview = NULL;
@@ -5254,15 +5506,15 @@ __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __p
     0,
     1) < 0))
 {
-    __PYX_ERR(1, 232, __pyx_L1_error)
+    __PYX_ERR(1, 249, __pyx_L1_error)
 }
 
-__pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 232, __pyx_L1_error)
+__pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 249, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 232, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 249, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2);
@@ -5274,7 +5526,7 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __p
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":135
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":152
  * 		self.re_render = True
  * 
  * 	cdef __local_render(self):             # <<<<<<<<<<<<<<
@@ -5305,7 +5557,7 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __p
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":234
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":251
  * 		return new_data_time[:k], new_data_voltage[:k]
  * 
  * 	def slice_time(self, double start, double stop):             # <<<<<<<<<<<<<<
@@ -5314,8 +5566,8 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __p
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_15slice_time(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_15slice_time(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_17slice_time(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_17slice_time(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   double __pyx_v_start;
   double __pyx_v_stop;
   PyObject *__pyx_r = 0;
@@ -5344,11 +5596,11 @@ static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_stop)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("slice_time", 1, 2, 2, 1); __PYX_ERR(1, 234, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("slice_time", 1, 2, 2, 1); __PYX_ERR(1, 251, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "slice_time") < 0)) __PYX_ERR(1, 234, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "slice_time") < 0)) __PYX_ERR(1, 251, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -5356,25 +5608,25 @@ static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_start = __pyx_PyFloat_AsDouble(values[0]); if (unlikely((__pyx_v_start == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 234, __pyx_L3_error)
-    __pyx_v_stop = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_stop == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 234, __pyx_L3_error)
+    __pyx_v_start = __pyx_PyFloat_AsDouble(values[0]); if (unlikely((__pyx_v_start == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 251, __pyx_L3_error)
+    __pyx_v_stop = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_stop == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 251, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("slice_time", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 234, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("slice_time", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 251, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.slice_time", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_14slice_time(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), __pyx_v_start, __pyx_v_stop);
+  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_16slice_time(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), __pyx_v_start, __pyx_v_stop);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_14slice_time(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_start, double __pyx_v_stop) {
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_16slice_time(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_start, double __pyx_v_stop) {
   std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info> ::iterator __pyx_v_it_localdata;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -5382,7 +5634,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   double __pyx_t_2;
   __Pyx_RefNannySetupContext("slice_time", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":237
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":254
  * 		cdef vector[pulse_info].iterator it_localdata
  * 
  * 		self._total_time = 0.             # <<<<<<<<<<<<<<
@@ -5391,7 +5643,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   __pyx_v_self->_total_time = 0.;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":238
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":255
  * 
  * 		self._total_time = 0.
  * 		it_localdata = self.localdata.begin()             # <<<<<<<<<<<<<<
@@ -5400,7 +5652,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   __pyx_v_it_localdata = __pyx_v_self->localdata.begin();
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":239
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":256
  * 		self._total_time = 0.
  * 		it_localdata = self.localdata.begin()
  * 		while(it_localdata != self.localdata.end()):             # <<<<<<<<<<<<<<
@@ -5411,7 +5663,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_1 = ((__pyx_v_it_localdata != __pyx_v_self->localdata.end()) != 0);
     if (!__pyx_t_1) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":241
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":258
  * 		while(it_localdata != self.localdata.end()):
  * 
  * 			if dereference(it_localdata).start < start:             # <<<<<<<<<<<<<<
@@ -5421,7 +5673,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_1 = (((*__pyx_v_it_localdata).start < __pyx_v_start) != 0);
     if (__pyx_t_1) {
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":242
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":259
  * 
  * 			if dereference(it_localdata).start < start:
  * 				dereference(it_localdata).start = start             # <<<<<<<<<<<<<<
@@ -5430,7 +5682,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
       (*__pyx_v_it_localdata).start = __pyx_v_start;
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":241
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":258
  * 		while(it_localdata != self.localdata.end()):
  * 
  * 			if dereference(it_localdata).start < start:             # <<<<<<<<<<<<<<
@@ -5439,7 +5691,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":243
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":260
  * 			if dereference(it_localdata).start < start:
  * 				dereference(it_localdata).start = start
  * 			if dereference(it_localdata).stop > stop:             # <<<<<<<<<<<<<<
@@ -5449,7 +5701,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_1 = (((*__pyx_v_it_localdata).stop > __pyx_v_stop) != 0);
     if (__pyx_t_1) {
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":244
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":261
  * 				dereference(it_localdata).start = start
  * 			if dereference(it_localdata).stop > stop:
  * 				dereference(it_localdata).stop = stop             # <<<<<<<<<<<<<<
@@ -5458,7 +5710,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
       (*__pyx_v_it_localdata).stop = __pyx_v_stop;
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":243
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":260
  * 			if dereference(it_localdata).start < start:
  * 				dereference(it_localdata).start = start
  * 			if dereference(it_localdata).stop > stop:             # <<<<<<<<<<<<<<
@@ -5467,7 +5719,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":246
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":263
  * 				dereference(it_localdata).stop = stop
  * 
  * 			if dereference(it_localdata).start < dereference(it_localdata).stop:             # <<<<<<<<<<<<<<
@@ -5477,7 +5729,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_1 = (((*__pyx_v_it_localdata).start < (*__pyx_v_it_localdata).stop) != 0);
     if (__pyx_t_1) {
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":247
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":264
  * 
  * 			if dereference(it_localdata).start < dereference(it_localdata).stop:
  * 				dereference(it_localdata).start = dereference(it_localdata).start - start             # <<<<<<<<<<<<<<
@@ -5486,7 +5738,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
       (*__pyx_v_it_localdata).start = ((*__pyx_v_it_localdata).start - __pyx_v_start);
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":248
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":265
  * 			if dereference(it_localdata).start < dereference(it_localdata).stop:
  * 				dereference(it_localdata).start = dereference(it_localdata).start - start
  * 				dereference(it_localdata).stop = dereference(it_localdata).stop - start             # <<<<<<<<<<<<<<
@@ -5495,7 +5747,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
       (*__pyx_v_it_localdata).stop = ((*__pyx_v_it_localdata).stop - __pyx_v_start);
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":249
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":266
  * 				dereference(it_localdata).start = dereference(it_localdata).start - start
  * 				dereference(it_localdata).stop = dereference(it_localdata).stop - start
  * 				self._total_time = dereference(it_localdata).stop             # <<<<<<<<<<<<<<
@@ -5505,7 +5757,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
       __pyx_t_2 = (*__pyx_v_it_localdata).stop;
       __pyx_v_self->_total_time = __pyx_t_2;
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":250
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":267
  * 				dereference(it_localdata).stop = dereference(it_localdata).stop - start
  * 				self._total_time = dereference(it_localdata).stop
  * 				postincrement(it_localdata)             # <<<<<<<<<<<<<<
@@ -5514,7 +5766,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
       (void)((__pyx_v_it_localdata++));
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":246
+      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":263
  * 				dereference(it_localdata).stop = stop
  * 
  * 			if dereference(it_localdata).start < dereference(it_localdata).stop:             # <<<<<<<<<<<<<<
@@ -5524,7 +5776,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
       goto __pyx_L7;
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":253
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":270
  * 
  * 			else:
  * 				it_localdata = self.localdata.erase(it_localdata)             # <<<<<<<<<<<<<<
@@ -5537,7 +5789,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_L7:;
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":234
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":251
  * 		return new_data_time[:k], new_data_voltage[:k]
  * 
  * 	def slice_time(self, double start, double stop):             # <<<<<<<<<<<<<<
@@ -5552,7 +5804,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":255
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":272
  * 				it_localdata = self.localdata.erase(it_localdata)
  * 
  * 	def __copy__(self):             # <<<<<<<<<<<<<<
@@ -5561,19 +5813,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_17__copy__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_17__copy__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_19__copy__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_19__copy__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__copy__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_16__copy__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_18__copy__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_16__copy__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_18__copy__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
   struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_cpy = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -5582,19 +5834,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  __pyx_t_3;
   __Pyx_RefNannySetupContext("__copy__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":256
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":273
  * 
  * 	def __copy__(self):
  * 		cpy = pulse_data_single_sequence()             # <<<<<<<<<<<<<<
  * 		cpy._total_time = self._total_time
  * 		cpy.localdata = self.localdata
  */
-  __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 256, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 273, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_cpy = ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":257
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":274
  * 	def __copy__(self):
  * 		cpy = pulse_data_single_sequence()
  * 		cpy._total_time = self._total_time             # <<<<<<<<<<<<<<
@@ -5604,7 +5856,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_2 = __pyx_v_self->_total_time;
   __pyx_v_cpy->_total_time = __pyx_t_2;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":258
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":275
  * 		cpy = pulse_data_single_sequence()
  * 		cpy._total_time = self._total_time
  * 		cpy.localdata = self.localdata             # <<<<<<<<<<<<<<
@@ -5614,7 +5866,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_3 = __pyx_v_self->localdata;
   __pyx_v_cpy->localdata = __pyx_t_3;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":260
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":277
  * 		cpy.localdata = self.localdata
  * 
  * 		return cpy             # <<<<<<<<<<<<<<
@@ -5626,7 +5878,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_r = ((PyObject *)__pyx_v_cpy);
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":255
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":272
  * 				it_localdata = self.localdata.erase(it_localdata)
  * 
  * 	def __copy__(self):             # <<<<<<<<<<<<<<
@@ -5646,7 +5898,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":263
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":280
  * 
  * 	@property
  * 	def pulse_data(self):             # <<<<<<<<<<<<<<
@@ -5680,26 +5932,26 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":264
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":281
  * 	@property
  * 	def pulse_data(self):
  * 		if self.re_render == True:             # <<<<<<<<<<<<<<
  * 			self.time_data, self.voltage_data = self.__local_render()
  * 		return (self.time_data, self.voltage_data)
  */
-  __pyx_t_1 = PyObject_RichCompare(((PyObject *)__pyx_v_self->re_render), Py_True, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 264, __pyx_L1_error)
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(1, 264, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(((PyObject *)__pyx_v_self->re_render), Py_True, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 281, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(1, 281, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":265
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":282
  * 	def pulse_data(self):
  * 		if self.re_render == True:
  * 			self.time_data, self.voltage_data = self.__local_render()             # <<<<<<<<<<<<<<
  * 		return (self.time_data, self.voltage_data)
  * 
  */
-    __pyx_t_1 = ((struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self->__pyx_vtab)->__pyx___local_render(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 265, __pyx_L1_error)
+    __pyx_t_1 = ((struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self->__pyx_vtab)->__pyx___local_render(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 282, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if ((likely(PyTuple_CheckExact(__pyx_t_1))) || (PyList_CheckExact(__pyx_t_1))) {
       PyObject* sequence = __pyx_t_1;
@@ -5707,7 +5959,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
       if (unlikely(size != 2)) {
         if (size > 2) __Pyx_RaiseTooManyValuesError(2);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(1, 265, __pyx_L1_error)
+        __PYX_ERR(1, 282, __pyx_L1_error)
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
       if (likely(PyTuple_CheckExact(sequence))) {
@@ -5720,15 +5972,15 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
       __Pyx_INCREF(__pyx_t_3);
       __Pyx_INCREF(__pyx_t_4);
       #else
-      __pyx_t_3 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 265, __pyx_L1_error)
+      __pyx_t_3 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 282, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 265, __pyx_L1_error)
+      __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 282, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       #endif
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     } else {
       Py_ssize_t index = -1;
-      __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 265, __pyx_L1_error)
+      __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 282, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_t_6 = Py_TYPE(__pyx_t_5)->tp_iternext;
@@ -5736,7 +5988,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
       __Pyx_GOTREF(__pyx_t_3);
       index = 1; __pyx_t_4 = __pyx_t_6(__pyx_t_5); if (unlikely(!__pyx_t_4)) goto __pyx_L4_unpacking_failed;
       __Pyx_GOTREF(__pyx_t_4);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 2) < 0) __PYX_ERR(1, 265, __pyx_L1_error)
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_5), 2) < 0) __PYX_ERR(1, 282, __pyx_L1_error)
       __pyx_t_6 = NULL;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       goto __pyx_L5_unpacking_done;
@@ -5744,12 +5996,12 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_t_6 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(1, 265, __pyx_L1_error)
+      __PYX_ERR(1, 282, __pyx_L1_error)
       __pyx_L5_unpacking_done:;
     }
-    __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(1, 265, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(1, 282, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_4, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(1, 265, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_4, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(1, 282, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __PYX_XDEC_MEMVIEW(&__pyx_v_self->time_data, 0);
     __pyx_v_self->time_data = __pyx_t_7;
@@ -5760,7 +6012,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_8.memview = NULL;
     __pyx_t_8.data = NULL;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":264
+    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":281
  * 	@property
  * 	def pulse_data(self):
  * 		if self.re_render == True:             # <<<<<<<<<<<<<<
@@ -5769,7 +6021,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":266
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":283
  * 		if self.re_render == True:
  * 			self.time_data, self.voltage_data = self.__local_render()
  * 		return (self.time_data, self.voltage_data)             # <<<<<<<<<<<<<<
@@ -5777,13 +6029,13 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  * 	@property
  */
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_self->time_data.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 266, __pyx_L1_error)}
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_self->time_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 266, __pyx_L1_error)
+  if (unlikely(!__pyx_v_self->time_data.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 283, __pyx_L1_error)}
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_self->time_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 283, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (unlikely(!__pyx_v_self->voltage_data.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 266, __pyx_L1_error)}
-  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_self->voltage_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 266, __pyx_L1_error)
+  if (unlikely(!__pyx_v_self->voltage_data.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(1, 283, __pyx_L1_error)}
+  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_self->voltage_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 283, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 266, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 283, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -5795,7 +6047,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":263
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":280
  * 
  * 	@property
  * 	def pulse_data(self):             # <<<<<<<<<<<<<<
@@ -5819,7 +6071,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":269
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":286
  * 
  * 	@property
  * 	def total_time(self):             # <<<<<<<<<<<<<<
@@ -5846,7 +6098,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":270
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":287
  * 	@property
  * 	def total_time(self):
  * 		return self._total_time             # <<<<<<<<<<<<<<
@@ -5854,13 +6106,13 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  * 	@property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->_total_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 270, __pyx_L1_error)
+  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->_total_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 287, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":269
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":286
  * 
  * 	@property
  * 	def total_time(self):             # <<<<<<<<<<<<<<
@@ -5879,7 +6131,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":273
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":290
  * 
  * 	@property
  * 	def v_max(self):             # <<<<<<<<<<<<<<
@@ -5909,7 +6161,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":274
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":291
  * 	@property
  * 	def v_max(self):
  * 		return np.max(self.pulse_data[1])             # <<<<<<<<<<<<<<
@@ -5917,14 +6169,14 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  * 	@property
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 274, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 291, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_max); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 274, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_max); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 291, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_pulse_data); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 274, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_pulse_data); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 291, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_2, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 274, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_2, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 291, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -5940,14 +6192,14 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 274, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 291, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":273
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":290
  * 
  * 	@property
  * 	def v_max(self):             # <<<<<<<<<<<<<<
@@ -5969,7 +6221,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":277
+/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":294
  * 
  * 	@property
  * 	def v_min(self):             # <<<<<<<<<<<<<<
@@ -5998,20 +6250,20 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":278
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":295
  * 	@property
  * 	def v_min(self):
  * 		return np.min(self.pulse_data[1])             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 278, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 295, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_min); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 278, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_min); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 295, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_pulse_data); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 278, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_pulse_data); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 295, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_2, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 278, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_2, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 295, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -6027,14 +6279,14 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 278, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 295, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":277
+  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":294
  * 
  * 	@property
  * 	def v_min(self):             # <<<<<<<<<<<<<<
@@ -6319,19 +6571,19 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_19__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_19__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_21__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_21__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_18__reduce_cython__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_20__reduce_cython__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_18__reduce_cython__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_20__reduce_cython__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
   PyObject *__pyx_v_state = 0;
   PyObject *__pyx_v__dict = 0;
   int __pyx_v_use_setstate;
@@ -6577,19 +6829,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_21__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_21__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_23__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_23__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_20__setstate_cython__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_22__setstate_cython__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_20__setstate_cython__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_22__setstate_cython__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -23328,11 +23580,12 @@ static int __pyx_setprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
 static PyMethodDef __pyx_methods_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence[] = {
   {"add_pulse", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_3add_pulse, METH_O, 0},
   {"append", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5append, METH_O, __pyx_doc_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_4append},
-  {"shift_time", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_7shift_time, METH_O, 0},
-  {"slice_time", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_15slice_time, METH_VARARGS|METH_KEYWORDS, 0},
-  {"__copy__", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_17__copy__, METH_NOARGS, 0},
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_19__reduce_cython__, METH_NOARGS, 0},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_21__setstate_cython__, METH_O, 0},
+  {"repeat", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_7repeat, METH_O, __pyx_doc_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6repeat},
+  {"shift_time", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9shift_time, METH_O, 0},
+  {"slice_time", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_17slice_time, METH_VARARGS|METH_KEYWORDS, 0},
+  {"__copy__", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_19__copy__, METH_NOARGS, 0},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_21__reduce_cython__, METH_NOARGS, 0},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_23__setstate_cython__, METH_O, 0},
   {0, 0, 0, 0}
 };
 
@@ -23348,9 +23601,9 @@ static struct PyGetSetDef __pyx_getsets_9pulse_lib_8segments_12data_classes_15da
 };
 
 static PyNumberMethods __pyx_tp_as_number_pulse_data_single_sequence = {
-  __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9__add__, /*nb_add*/
-  __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11__sub__, /*nb_subtract*/
-  __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_13__mul__, /*nb_multiply*/
+  __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11__add__, /*nb_add*/
+  __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_13__sub__, /*nb_subtract*/
+  __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_15__mul__, /*nb_multiply*/
   #if PY_MAJOR_VERSION < 3 || (CYTHON_COMPILING_IN_PYPY && PY_VERSION_HEX < 0x03050000)
   0, /*nb_divide*/
   #endif
@@ -24307,6 +24560,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_struct, __pyx_k_struct, sizeof(__pyx_k_struct), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
   {&__pyx_n_s_total_time, __pyx_k_total_time, sizeof(__pyx_k_total_time), 0, 0, 1, 1},
+  {&__pyx_n_s_total_time_2, __pyx_k_total_time_2, sizeof(__pyx_k_total_time_2), 0, 0, 1, 1},
   {&__pyx_kp_s_unable_to_allocate_array_data, __pyx_k_unable_to_allocate_array_data, sizeof(__pyx_k_unable_to_allocate_array_data), 0, 0, 1, 0},
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
   {&__pyx_n_s_unique, __pyx_k_unique, sizeof(__pyx_k_unique), 0, 0, 1, 1},
@@ -24320,8 +24574,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(0, 2, __pyx_L1_error)
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 98, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(1, 201, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(1, 89, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 115, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(2, 856, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(2, 1038, __pyx_L1_error)
   __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 18, __pyx_L1_error)

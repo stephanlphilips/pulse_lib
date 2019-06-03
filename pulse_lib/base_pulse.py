@@ -49,7 +49,8 @@ class pulselib:
 			awg (object) : qcodes object of the concerning AWG
 		'''
 		self.awg_devices[name] =awg
-		self.cpp_uploader.add_awg_module(name, awg)
+		if awg is not None:
+			self.cpp_uploader.add_awg_module(name, awg)
 
 	def define_channel(self, channel_name, AWG_name, channel_number):
 		'''
