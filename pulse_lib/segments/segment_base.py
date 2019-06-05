@@ -6,10 +6,11 @@ import numpy as np
 from dataclasses import dataclass
 import datetime
 
-from pulse_lib.segments.utility.data_handling_functions import loop_controller, get_union_of_shapes, update_dimension
+from pulse_lib.segments.utility.data_handling_functions import loop_controller, get_union_of_shapes, update_dimension, find_common_dimension
 from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
+
 import copy
 
 import matplotlib.pyplot as plt
@@ -281,8 +282,14 @@ class segment_base():
 		if self.last_edit == last_edit.ToRender or self._pulse_data_all is None:
 			self._pulse_data_all = copy.copy(self.data)
 			for ref_chan in self.reference_channels:
-				self._pulse_data_all += ref_chan['segment'].data*ref_chan['multiplication_factor']
+				# make sure both have the same size.
+				my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.segment.shape)
+				self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape)
+				ref_chan.data = update_dimension(ref_chan.segment.data, my_shape)
+
+				self._pulse_data_all += ref_chan.segment.data*ref_chan.multiplication_factor
 			for ref_chan in self.IQ_ref_channels:
+				# todo -- update dim functions
 				self._pulse_data_all += ref_chan.virtual_channel_pointer.get_IQ_data(ref_chan.LO, ref_chan.IQ_render_option, ref_chan.image_render_option)
 			for ref_chan in self.references_markers:
 				self._pulse_data_all += ref_chan.IQ_channel_ptr.get_marker_data(ref_chan.pre_delay, ref_chan.post_delay)
@@ -294,7 +301,7 @@ class segment_base():
 	@property
 	def last_edit(self):
 		for i in self.reference_channels:
-			if i['segment']._last_edit == last_edit.ToRender:
+			if i.segment._last_edit == last_edit.ToRender:
 				self._last_edit = last_edit.ToRender
 		for i in self.IQ_ref_channels:
 			if i.virtual_channel_pointer  == last_edit.ToRender:

@@ -10,7 +10,7 @@ from pulse_lib.segments.segment_markers import segment_marker
 import pulse_lib.segments.utility.looping as lp
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension, reduce_arr, upconvert_dimension
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
-
+from pulse_lib.virtual_channel_constructors import virtual_pulse_channel_info
 import uuid
 
 import numpy as np
@@ -72,9 +72,10 @@ class segment_container():
 
 				for j in range(virtual_gates.size):
 					if virtual_gates_values[j] != 0:
-						real_channel.add_reference_channel(virtual_gates.virtual_gate_names[j], 
+						virutal_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j], 
 							getattr(self, virtual_gates.virtual_gate_names[j]),
 							virtual_gates_values[j])
+						real_channel.add_reference_channel(virutal_channel_reference_info)
 
 
 		# define virtual IQ channels
@@ -219,11 +220,10 @@ class segment_container():
 		when you now as a new pulse (e.g. at time 0, it will actually occur at 140 ns in both blocks)
 		'''
 		
-		shape = list(getattr(self, self.channels[0]).data.shape)
 		n_channels = len(self.channels)
-		
+		shape = list(self.shape)
 		time_data = np.empty([n_channels] + shape)
-		
+
 		for i in range(len(self.channels)):
 			time_data[i] = upconvert_dimension(getattr(self, self.channels[i]).total_time, shape)
 

@@ -119,16 +119,16 @@ class segment_pulse(segment_base):
 	def add_np(self,start, array):
 		raise NotImplemented
 
-	def add_reference_channel(self, channel_name, segment_data, multiplication_factor):
+	def add_reference_channel(self, virtual_channel_reference_info):
 		'''
 		Add channel reference, this can be done to make by making a pointer to another segment.
 		Args:
-			Channels_name (str): human readable name of the virtual gate.
-			segment_data (segment_single): pointer so the segment corresponsing the the channel name
-			multiplication_factor (float64): times how much this segment should be added to the current one.
+			virutal_channel_reference_info (dataclass): (defined in pulse_lib.virtual_channel_constructor)
+				name (str): human readable name of the virtual gate.
+				segment_data (segment_pulse): pointer so the segment corresponsing the the channel name
+				multiplication_factor (float64): times how much this segment should be added to the current one.
 		'''
-		virtual_segment = {'name': channel_name, 'segment': segment_data, 'multiplication_factor': multiplication_factor}
-		self.reference_channels.append(virtual_segment)
+		self.reference_channels.append(virtual_channel_reference_info)
 
 	def add_IQ_channel(self, LO, channel_name, pointer_to_channel, I_or_Q_part, image):
 		'''

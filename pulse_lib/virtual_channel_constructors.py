@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pulse_lib.segments.segment_pulse import segment_pulse
 # from qcodes.intruments.parameter import Parameter
 
 
@@ -79,6 +80,15 @@ class marker_info:
 	Marker_channel: str
 	pre_delay: float = 0.0
 	post_delay: float = 0.0
+
+@dataclass
+class virtual_pulse_channel_info:
+	"""
+	info that is needed to link a real channel to a virtual channel
+	"""
+	name: str
+	segment: segment_pulse
+	multiplication_factor: float
 
 @dataclass
 class IQ_channel_info:
