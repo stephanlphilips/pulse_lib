@@ -11,6 +11,9 @@ from cython.operator import postincrement, dereference
 import numbers
 import copy
 
+# note on linux is is long ... 
+ctypedef long long longlong
+
 cdef struct s_pulse_info:
 	double start
 	double stop
@@ -18,8 +21,8 @@ cdef struct s_pulse_info:
 	double v_start
 	double v_stop
 
-	long index_start
-	long index_stop
+	longlong index_start
+	longlong index_stop
 
 ctypedef s_pulse_info pulse_info
 
@@ -154,7 +157,7 @@ cdef class pulse_data_single_sequence():
 
 		cdef double[:] time_steps
 		cdef double[:] time_steps_np
-		cdef long[:] index_inverse
+		cdef longlong[:] index_inverse
 		cdef int j
 		time_steps = np.empty([self.localdata.size()*4], dtype = np.double)
 		# if putting too low, sometimes not nough 

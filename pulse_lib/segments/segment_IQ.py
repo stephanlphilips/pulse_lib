@@ -104,7 +104,7 @@ class segment_IQ(segment_base):
 		'''
 
 		phase_shift = 0
-		if I_or_Q == 'Q':
+		if I_or_Q == 'I':
 			phase_shift += np.pi/2
 		if image == '-':
 			phase_shift += np.pi

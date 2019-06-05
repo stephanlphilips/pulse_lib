@@ -32,7 +32,6 @@ class pulse_data(parent_data):
         Args:
             MW_data_object (IQ_data_single) : description MW pulse (see pulse_lib.segments.data_classes.data_IQ)
         """
-        self.reset_time(MW_data_object.stop)
         self.MW_pulse_data.append(MW_data_object)
     
     @property
@@ -91,6 +90,7 @@ class pulse_data(parent_data):
         other._shift_all_time_MW(time)
         new_MW_pulse_data =  self.MW_pulse_data +  copy.copy(other.MW_pulse_data)
         other._shift_all_time_MW(-time)
+
         self.baseband_pulse_data.append(other.baseband_pulse_data)
         self.MW_pulse_data = new_MW_pulse_data
     
@@ -346,6 +346,7 @@ class pulse_data(parent_data):
         t_tot_pt = get_effective_point_number(t_tot, sample_time_step) + 1
         pre_delay_pt = - get_effective_point_number(pre_delay, sample_time_step)
         post_delay_pt = get_effective_point_number(post_delay, sample_time_step)
+
         my_sequence = np.zeros([int(t_tot_pt + pre_delay_pt + post_delay_pt)])
         # start rendering pulse data
         

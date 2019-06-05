@@ -81,7 +81,7 @@ class segment_container():
 		# define virtual IQ channels
 		for IQ_channels_obj in IQ_channels_objs:
 			for virtual_channel_name in IQ_channels_obj.virtual_channel_map:
-				setattr(self, virtual_channel_name.channel_name, segment_IQ(virtual_channel_name.channel_name, virtual_channel_name.reference_frequency))
+				setattr(self, virtual_channel_name.channel_name, segment_IQ(virtual_channel_name.channel_name))
 				self.channels.append(virtual_channel_name.channel_name)
 
 			# set up maping to real IQ channels:
