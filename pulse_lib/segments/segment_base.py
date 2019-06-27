@@ -10,7 +10,7 @@ from pulse_lib.segments.utility.data_handling_functions import loop_controller, 
 from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
-
+from functools import wraps
 import copy
 
 import matplotlib.pyplot as plt
@@ -20,6 +20,7 @@ def last_edited(f):
 	'''
 	just a simpe decorater used to say that a certain wavefrom is updaded and therefore a new upload needs to be made to the awg.
 	'''
+	@wraps(f)
 	def wrapper(*args):
 		if args[0].render_mode == True:
 			ValueError("cannot alter this segment, this segment ({}) in render mode.".format(args[0].name))
@@ -28,11 +29,11 @@ def last_edited(f):
 	return wrapper
 
 class last_edit:
-    """
+	"""
 	spec of what the state is of the pulse.
-    """
-    ToRender = -1
-    Rendered = 0 
+	"""
+	ToRender = -1
+	Rendered = 0 
 
 class segment_base():
 	'''
@@ -41,11 +42,12 @@ class segment_base():
 			
 	For an example, look in the data classes files.
 	'''
-	def __init__(self, name, data_object, segment_type = 'render'):
+	def __init__(self, name, data_object, HVI_variable_data = None ,segment_type = 'render'):
 		'''
 		Args:
 			name (str): name of the segment usually the channel name
 			data_object (object) : class that is used for saving the data type.
+			HVI_variable_data (segment_HVI_variables) : segment used to keep variables that can be used in HVI.
 			segment_type (str) : type of the segment (e.g. 'render' --> to be rendered, 'virtual'--> no not render.)
 		'''
 		self.type = segment_type
@@ -56,7 +58,7 @@ class segment_base():
 		
 		# store data in numpy looking object for easy operator access.
 		self.data = data_container(data_object)
-		
+		self._data_hvi_variable = HVI_variable_data
 
 		# references to other channels (for virtual gates).
 		self.reference_channels = []
@@ -83,6 +85,7 @@ class segment_base():
 			extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms...].
 		'''
 		self.data_tmp.reset_time(time, extend_only)
+		return self.data_tmp
 
 	@last_edited
 	@loop_controller
@@ -93,15 +96,22 @@ class segment_base():
 			time (double) : time in ns to wait
 		'''
 		self.data_tmp.wait(time)
+		return self.data_tmp
 
 	@property
 	def shape(self):
-		return self.data.shape
+		if self.render_mode == False:
+			return self.data.shape
+		else:
+			return self.pulse_data_all.shape
 
 	@property
 	def ndim(self):
-		return self.data.ndim
-
+		if self.render_mode == False:
+			return self.data.ndim
+		else:
+			return self.pulse_data_all.shape
+			
 	@property
 	def setpoints(self):
 		return self._setpoints
@@ -188,6 +198,7 @@ class segment_base():
 	def repeat(self, number):
 		'''
 		repeat a waveform n times.
+
 		Args:
 			number (int) : number of ties to repeat the waveform
 		'''
@@ -195,11 +206,40 @@ class segment_base():
 		data_copy = copy.copy(self.data_tmp)
 		for i in range(number-1):
 			self.data_tmp.append(data_copy)
-			
+
+		return self.data_tmp
+	
+	def add_HVI_marker(self, marker_name, t_off = 0):
+		'''
+		Add a HVI marker that corresponds to the current time of the segment (defined by reset_time). 
+
+		Args:
+			marker_name (str) : name of the marker to add
+			t_off (str) : offset to be given from the marker 
+		'''
+		times = loop_obj()
+		times.add_data(self.data.start_time, axis=list(range(self.data.ndim -1,-1,-1)))
+
+		self.add_HVI_variable(marker_name, times + t_off, True)
+
+	def add_HVI_variable(self, marker_name, value, time=False):
+		"""
+		Add time for the marker.
+
+		Args:
+			name (str) : name of the variable
+
+			value (double) : value to assign to the variable
+
+			time (bool) : if the value is a timestamp (determines behaviour when the variable is used in a sequence) (coresponding to a master clock)
+		"""
+		self._data_hvi_variable._add_HVI_variable(marker_name, value, time)
+
 	@loop_controller
 	def __append(self, other, time):
 		"""
 		Put the other segment behind this one (for single segment data object)
+
 		Args:
 			other (segment_single) : the segment to be appended
 			time (double/loop_obj) : attach at the given time (if None, append at total_time of the segment)
@@ -209,12 +249,14 @@ class segment_base():
 
 
 		self.data_tmp.append(other, time)
+		return self.data_tmp
 
 	@last_edited
 	@loop_controller
 	def slice_time(self, start_time, stop_time):
 		"""
 		Cuts parts out of a segment.
+
 		Args:
 			start_time (double) : effective new start time
 			stop_time (double) : new ending time of the segment
@@ -229,18 +271,31 @@ class segment_base():
 		This function would allow you to do that, e.g. by calling segment.cut_segment(0, lp.linspace(10,100,9))
 		"""
 		self.data_tmp.slice_time(start_time, stop_time)
+		return self.data_tmp
 
 	@property
 	def total_time(self,):
-		return self.data.total_time
+		if self.render_mode == False:
+			return self.data.total_time
+		else:
+			return self.pulse_data_all.total_time
+
+	@property
+	def start_time(self,):
+		if self.render_mode == False:
+			return self.data.start_time
+		else:
+			return self.pulse_data_all.start_time
 
 	def get_segment(self, index, pre_delay = 0, post_delay = 0, sample_rate=1e9):
 		'''
-		input:
+		get the numpy output of as segment
+
+		Args:
 			index of segment (list) : which segment to render (e.g. [0] if dimension is 1 or [2,5,10] if dimension is 3)
-			pre_delay : number of points to push before the sequence
-			post delay: number of points to push after the sequence.
-			sample rate : #/s (number of samples per second)
+			pre_delay (int) : number of points to push before the sequence
+			post_delay (int) : number of points to push after the sequence.
+			sample_rate (float) : #/s (number of samples per second)
 
 		Returns:
 			A numpy array that contains the points for each ns
@@ -260,13 +315,16 @@ class segment_base():
 
 	def integrate(self, index, pre_delay = 0, post_delay = 0, sample_rate = 1e9):
 		'''
-		get integral value of the waveform (e.g. to calculate an automatic compensation)
+		Get integral value of the waveform (e.g. to calculate an automatic compensation)
+
 		Args:
 			index (tuple) : index of the concerning waveform
 			pre_delay (double) : ns to delay before the pulse
 			post_delay (double) : ns to delay after the pulse
 			sample_rate (double) : rate at which to render the pulse
-		returns: intergral value
+
+		Returns: 
+			intergral (float) : integral of the pulse
 		'''
 		flat_index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
 		pulse_data_all_curr_seg = self.pulse_data_all.flat[flat_index]
@@ -280,6 +338,7 @@ class segment_base():
 		pulse data object that contains the counted op data of all the reference channels (e.g. IQ and virtual gates).
 		'''
 		if self.last_edit == last_edit.ToRender or self._pulse_data_all is None:
+			print("redering pulse_data_all")
 			self._pulse_data_all = copy.copy(self.data)
 			for ref_chan in self.reference_channels:
 				# make sure both have the same size.
@@ -314,11 +373,12 @@ class segment_base():
 	
 	def _generate_segment(self, index, pre_delay = 0, post_delay = 0, sample_rate = 1e9):
 		'''
-		generate numpy array of the segment
+		Generate numpy array of the segment
+
 		Args:
 			index (tuple) : index of the segement to generate
-			pre_delay: predelay of the pulse (in ns) (e.g. for compensation of diffent coax length's)
-			post_delay: extend the pulse for x ns
+			pre_delay (int): predelay of the pulse (in ns) (e.g. for compensation of diffent coax length's)
+			post_delay (int): extend the pulse for x ns
 			sample rate (double) : sample rate of the pulse to be rendered at.
 		'''
 

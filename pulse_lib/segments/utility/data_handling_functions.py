@@ -1,6 +1,7 @@
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.setpoint_mgr import setpoint
+from functools import wraps
 import numpy as np
 import copy
 
@@ -163,6 +164,7 @@ def loop_controller(func):
 
 	if no loop, just apply func on all data (easy)
 	'''
+	@wraps(func)
 	def wrapper(*args, **kwargs):
 		import time
 		t0 = time.time()
@@ -232,6 +234,89 @@ def loop_controller(func):
 
 	return wrapper
 
+
+def loop_controller_post_processing(func):
+	'''
+	Checks if there are there are parameters given that are loopable.
+
+	If loop:
+		* then check how many new loop parameters on which axis
+		* extend data format to the right shape (simple python list used).
+		* loop over the data and add called function
+
+	loop controller that works on the pulse_data_all object. This acts just before rendering. When rendering is done, all the actions of this looper are done.
+	'''
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		import time
+		t0 = time.time()
+		obj = args[0]
+
+		loop_info_args = []
+		loop_info_kwargs = []
+		for i in range(1,len(args)):
+			if isinstance(args[i], loop_obj):
+				if len(args[i].axis) == 1 :
+					setpnt = setpoint(args[i].axis[0])
+					setpnt.setpoint = (args[i].data,)
+					setpnt.label = args[i].labels
+					setpnt.unit = args[i].units
+				else:
+					setpnt=None
+					print("detected 2d loop, unit generation not supported at the moment.")
+
+				info = {
+				'nth_arg': i,
+				'shape' : args[i].shape,
+				'len': len(args[i]),
+				'axis': args[i].axis,
+				'data' : args[i].data,
+				'setpnt' : setpnt
+				}
+				loop_info_args.append(info)
+				
+		for key in kwargs.keys():
+			if isinstance(kwargs[key], loop_obj):
+				info = {
+				'nth_arg': key,
+				'shape' : kwargs[key].shape,
+				'len': len(kwargs[key]),
+				'axis': kwargs[key].axis,
+				'data' : kwargs[key].data,
+				'setpnt' : setpnt}
+				loop_info_kwargs.append(info)
+
+				if len(kwargs[key].axis) == 1 :
+					setpnt = setpoint(kwargs[key].axis[0])
+					setpnt.setpoint = (kwargs[key].data,)
+					setpnt.label = kwargs[key].labels
+					setpnt.unit = kwargs[key].units
+
+					obj._setpoints += setpnt
+				else:
+					print("detected 2d loop, unit generation not supported at the moment.")
+
+		for lp in loop_info_args:
+			for i in range(len(lp['axis'])-1,-1,-1):
+				new_dim, axis = get_new_dim_loop(obj.pulse_data_all.shape, lp['axis'][i], lp['shape'][i])
+				lp['axis'][i] = axis
+				obj._pulse_data_all = update_dimension(obj.pulse_data_all, new_dim)
+
+				if lp['setpnt'] is not None and i == 0:
+					lp['setpnt'].axis = axis
+					obj._setpoints += lp['setpnt']
+
+		# todo update : (not used atm, but just to be generaric.)
+		for lp in loop_info_kwargs:
+			new_dim = get_new_dim_loop(obj.pulse_data_all.shape, lp)
+			obj.pulse_data_all = update_dimension(obj.pulse_data_all, new_dim)
+		loop_over_data(func, obj.pulse_data_all, args, loop_info_args, kwargs, loop_info_kwargs)
+
+
+	return wrapper
+
+
+
 def loop_over_data(func, data, args, args_info, kwargs, kwargs_info):
 	'''
 	recursive function to apply the 
@@ -267,7 +352,7 @@ def loop_over_data(func, data, args, args_info, kwargs, kwargs_info):
 		if n_dim == 1:
 			# we are at the lowest level of the loop.
 			args_cpy[0].data_tmp = data[i]
-			func(*args_cpy, **kwargs_cpy)
+			data[i] = func(*args_cpy, **kwargs_cpy)
 		else:
 			# clean up args, kwargs
 			loop_over_data(func, data[i], args_cpy, args_info, kwargs_cpy, kwargs_info)
