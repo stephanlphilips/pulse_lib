@@ -1,9 +1,13 @@
 import pulse_lib.segments.segment_container
-from pulse_lib.segments.utility.data_handling_functions import find_common_dimension
+from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
+from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.keysight.uploader import upload_job,convert_prescaler_to_sample_rate
+from pulse_lib.segments.data_classes.data_HVI_variables import marker_HVI_variable
+from pulse_lib.segments.data_classes.data_generic import data_container
 from si_prefix import si_format
 
+import numpy as np
 import uuid
 
 class sequencer():
@@ -45,6 +49,7 @@ class sequencer():
 		self.n_rep = 1000
 		self.prescaler = 0
 		self._sample_rate = 1e9
+		self._HVI_variables = None
 
 
 	@property
@@ -75,6 +80,12 @@ class sequencer():
 	def setpoints(self):
 		return self.setpoint_data.setpoints
 	
+	@property
+	def HVI_variables(self):
+		"""
+		object that contains variable that can be ported into HVI.
+		"""
+		return self._HVI_variables
 
 	@property
 	def sample_rate(self):
@@ -117,15 +128,29 @@ class sequencer():
 			else:
 				raise ValueError('The provided element in the sequence seems to be of the wrong data type. {} provided, but segment_container or list expected'.format(type(sequence[i])))
 		
-		# update dimensionality of all sequennce objects
+		# update dimensionality of all sequence objects
 		for i in self.sequence:
 			i[0].enter_rendering_mode()
 			self._shape = find_common_dimension(i[0].shape, self._shape)
 
 		self._shape = tuple(self._shape)
+		self._HVI_variables = data_container(marker_HVI_variable())
+		self._HVI_variables = update_dimension(self._HVI_variables, self.shape)
+
+		# enforce master clock for the current segments (affects the IQ channels (translated into a phase shift) and and the marker channels (time shifts))
+		t_start = 0
+		t_tot = np.zeros(self.shape)
 
 		for i in self.sequence:
-			i[0].extend_dim(self._shape, ref=True)
+			segment_container = i[0]
+			segment_container.extend_dim(self._shape, ref=True)
+
+			lp_time = loop_obj()
+			lp_time.add_data(t_tot, axis=list(range(self.ndim -1,-1,-1)))
+			segment_container.add_master_clock(lp_time)
+			self._HVI_variables += segment_container._software_markers.pulse_data_all
+
+			t_tot += segment_container.total_time
 
 	def add_dsp(self, dps_corr):
 		'''
@@ -172,10 +197,9 @@ class sequencer():
 		if self.DSP is not None:
 			upload_object.add_dsp_function(self.DSP)
 		if self.HVI is not None:
-			upload_object.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **self.HVI_kwargs)
+			upload_object.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables})
 
 		self.uploader.add_upload_job(upload_object)
-
 
 
 	def play(self, index):
@@ -207,7 +231,10 @@ if __name__ == '__main__':
 
 	b.a.add_block(0,lp.linspace(30,100,10),100)
 	b.a.reset_time()
+	a.add_HVI_marker("marker_name", 20)
+	b.add_HVI_marker("marker_name2", 50)
 
+	b.add_HVI_variable("my_vatr", 800)
 	a.a.add_block(20,lp.linspace(50,100,10, axis = 1, name = "time", unit = "ns"),100)
 
 	b.slice_time(0,lp.linspace(80,100,10, name = "time", unit = "ns", axis= 2))
@@ -216,7 +243,7 @@ if __name__ == '__main__':
 
 	seq = sequencer(None, dict())
 	seq.add_sequence(my_seq)
-
-	print(seq.labels)
-	print(seq.units)
-	print(seq.setpoints)
+	print(seq.HVI_variables.flat[0].HVI_markers)
+	# print(seq.labels)
+	# print(seq.units)
+	# print(seq.setpoints)

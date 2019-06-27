@@ -12,7 +12,8 @@ class parent_data(ABC):
         makes a template for default functions that are expected in a data object
     """
     start_time = 0
-    waveform_cache = dict() 
+    waveform_cache = dict()
+    software_marker_data = dict()
 
     @abstractmethod
     def append():
@@ -79,6 +80,16 @@ class parent_data(ABC):
         make a full rendering of the waveform at a predetermined sample rate. This should be defined in the child of this class.
         '''
         raise NotImplemented
+
+    def add_software_marker(self, marker_name, time):
+        '''
+        add a marker in software (used as arguments for HVI commands)
+        
+        Args:
+            marker_name (str) : name of the maker
+            time (double) : time in ns where to apply the marker
+        '''
+        self.software_marker_data[marker_name] = time
 
     def render(self, pre_delay = 0, post_delay = 0, sample_rate=1e9, clear_cache_on_exit = False):
         '''
@@ -190,4 +201,17 @@ class data_container(np.ndarray):
         self = self.reshape(shape)
         times = times.reshape(shape)
         return times
-        
+    
+    @property
+    def start_time(self):
+        shape = self.shape
+
+        self = self.flatten()
+        times = np.empty(self.shape)
+
+        for i in range(len(times)):
+            times[i] = self[i].start_time
+
+        self = self.reshape(shape)
+        times = times.reshape(shape)
+        return times

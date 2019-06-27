@@ -30,13 +30,14 @@ class segment_pulse(segment_base):
 	'''
 	Class defining single segments for one sequence.
 	'''
-	def __init__(self, name, segment_type = 'render'):
+	def __init__(self, name, HVI_variable_data = None,segment_type = 'render'):
 		'''
 		Args:
 			name (str): name of the segment usually the channel name
+			HVI_variable_data (segment_HVI_variables) : segment used to keep variables that can be used in HVI.
 			segment_type (str) : type of the segment (e.g. 'render' --> to be rendered, 'virtual'--> no not render.)
 		'''
-		super().__init__(name, pulse_data() ,segment_type)
+		super().__init__(name, pulse_data(), HVI_variable_data,segment_type)
 
 
 	@last_edited
@@ -48,6 +49,7 @@ class segment_pulse(segment_base):
 
 		pulse = base_pulse_element(start + self.data_tmp.start_time,stop + self.data_tmp.start_time, amplitude, amplitude)
 		self.data_tmp.add_pulse_data(pulse)
+		return self.data_tmp
 	
 	@last_edited
 	@loop_controller
@@ -67,6 +69,7 @@ class segment_pulse(segment_base):
 			pulse = base_pulse_element(start + self.data_tmp.start_time,stop + self.data_tmp.start_time, 0, amplitude)
 
 		self.data_tmp.add_pulse_data(pulse)
+		return self.data_tmp
 
 	@last_edited
 	@loop_controller
@@ -85,6 +88,7 @@ class segment_pulse(segment_base):
 			pulse = base_pulse_element(start + self.data_tmp.start_time,stop + self.data_tmp.start_time, start_amplitude, stop_amplitude)
 
 		self.data_tmp.add_pulse_data(pulse)
+		return self.data_tmp
 
 	@last_edited
 	@loop_controller
@@ -98,6 +102,7 @@ class segment_pulse(segment_base):
 
 		pulse = base_pulse_element(t0,wait+t0, 0, 0)
 		self.data_tmp.add_pulse_data(pulse)
+		return self.data_tmp
 
 	@last_edited
 	@loop_controller
@@ -113,6 +118,7 @@ class segment_pulse(segment_base):
 			phase_offset (double) : offset in phase is needed
 		'''
 		self.data_tmp.add_MW_data(IQ_data_single(start + self.data_tmp.start_time, stop + self.data_tmp.start_time, amp, freq, phase_offset))
+		return self.data_tmp
 
 	@last_edited
 	@loop_controller
@@ -151,12 +157,19 @@ class segment_pulse(segment_base):
 			number (int) : number of ties to repeat the waveform
 		'''
 		self.data_tmp.repeat(number)
+		return self.data_tmp
+
+	
+
 
 
 if __name__ == '__main__':
 	import matplotlib.pyplot as plt
 
-	s = segment_pulse("test")
+	from pulse_lib.segments.segment_HVI_variables import segment_HVI_variables
+	test_HVI_marker = segment_HVI_variables("name")
+
+	s = segment_pulse("test", test_HVI_marker)
 	from pulse_lib.segments.utility.looping import linspace
 
 	a = tuple()
@@ -166,14 +179,15 @@ if __name__ == '__main__':
 	t = linspace(1,50, 10000, name = "test", unit = "test", axis= 0)
 	import time
 	# s.data_tmp = s.data[0]
-	s.add_block(0, 50, 100)
+	s.add_block(20, 50, 20)
 	print(s.data[0].total_time)
+	s.add_HVI_marker("test", 15)
 	# s.reset_time()
-	print("test")
 	# s.add_block(20, 30, t)
 	# s.wait(10)
-	s.plot_segment()
-	plt.show()
+	# s.plot_segment()
+	# plt.show()
 	print(s.setpoints)
 	# print(s.loops)
 	# print(s.units)
+	print(test_HVI_marker.data)

@@ -34,13 +34,15 @@ class segment_IQ(segment_base):
 	Standard single segment for IQ purposes
 	todo --> add global phase and time shift in the data class instead of this one (cleaner and more generic).
 	"""
-	def __init__(self, name):
+	def __init__(self, name, HVI_variable_data = None,):
 		'''
 		Args: 
 			name : name of the IQ segment
+			HVI_variable_data (segment_HVI_variables) : segment used to keep variables that can be used in HVI.
+
 		Tip, make on of these segments for each qubit. Then you get a very clean implementation of reference frame changes!
 		'''
-		super().__init__(name, pulse_data() ,segment_type = 'IQ_virtual')
+		super().__init__(name, pulse_data(), HVI_variable_data ,segment_type = 'IQ_virtual')
 		
 		# generator to be set for automated phase compenstation in between pulses. @TODO!!
 		self.qubit_freq = 0
@@ -55,6 +57,7 @@ class segment_IQ(segment_base):
 		Use this function to apply a reference change for the qubit.
 		"""
 		self.data_tmp.global_phase += phase
+		return self.data_tmp
 
 	@last_edited
 	@loop_controller
@@ -74,6 +77,7 @@ class segment_IQ(segment_base):
 		MW_data = IQ_data_single(t0 + self.data_tmp.start_time, t1 + self.data_tmp.start_time, amp, freq, phase, envelope_generator(AM, PM))
 
 		self.data_tmp.add_MW_data(MW_data)
+		return self.data_tmp
 
 	@last_edited
 	@loop_controller
@@ -91,6 +95,7 @@ class segment_IQ(segment_base):
 		MW_data = IQ_data_single(t0 + self.data_tmp.start_time, t1 + self.data_tmp.start_time, amp, f0, 0, envelope_generator(None, PM))
 		
 		self.data_tmp.add_MW_data(MW_data)
+		return self.data_tmp
 
 	def get_IQ_data(self, LO, I_or_Q, image):
 		'''

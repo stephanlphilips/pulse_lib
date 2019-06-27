@@ -6,6 +6,7 @@ This object also allows you to do operations on all segments at the same time.
 from pulse_lib.segments.segment_pulse import segment_pulse
 from pulse_lib.segments.segment_IQ import segment_IQ
 from pulse_lib.segments.segment_markers import segment_marker
+from pulse_lib.segments.segment_HVI_variables import segment_HVI_variables
 
 import pulse_lib.segments.utility.looping as lp
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension, reduce_arr, upconvert_dimension
@@ -42,6 +43,7 @@ class segment_container():
 		self.render_mode = False
 		self.id = uuid.uuid4()
 		self._Vmin_max_data = dict()
+		self._software_markers = segment_HVI_variables("HVI_markers")
 
 		for name in channel_names:
 			self._Vmin_max_data[name] = {"v_min" : None, "v_max" : None}
@@ -52,9 +54,9 @@ class segment_container():
 		# define real channels (+ markers)
 		for name in channel_names:
 			if name in markers:
-				setattr(self, name, segment_marker(name))
+				setattr(self, name, segment_marker(name, self._software_markers))
 			else:
-				setattr(self, name, segment_pulse(name))
+				setattr(self, name, segment_pulse(name, self._software_markers))
 			self.channels.append(name)
 			self.r_channels.append(name)
 
@@ -62,7 +64,7 @@ class segment_container():
 		for virtual_gates in virtual_gates_objs:
 			# make segments for virtual gates.
 			for virtual_gate_name in virtual_gates.virtual_gate_names:
-				setattr(self, virtual_gate_name, segment_pulse(virtual_gate_name, 'virtual_baseband'))
+				setattr(self, virtual_gate_name, segment_pulse(virtual_gate_name, self._software_markers, 'virtual_baseband'))
 				self.channels.append(virtual_gate_name)
 
 			# add reference in real gates.
@@ -80,7 +82,7 @@ class segment_container():
 		# define virtual IQ channels
 		for IQ_channels_obj in IQ_channels_objs:
 			for virtual_channel_name in IQ_channels_obj.virtual_channel_map:
-				setattr(self, virtual_channel_name.channel_name, segment_IQ(virtual_channel_name.channel_name))
+				setattr(self, virtual_channel_name.channel_name, segment_IQ(virtual_channel_name.channel_name, self._software_markers))
 				self.channels.append(virtual_channel_name.channel_name)
 
 			# set up maping to real IQ channels:
@@ -111,7 +113,11 @@ class segment_container():
 			my_shape = find_common_dimension(my_shape, dim)
 
 		return my_shape
-		
+	
+	@property
+	def ndim(self):
+		return len(self.shape)
+	
 	@property
 	def last_mod(self):
 		time = datetime.datetime.utcfromtimestamp(0)
@@ -128,13 +134,33 @@ class segment_container():
 			times (np.ndarray) : numpy array with the total time (maximum of all the channels), for all the different loops executed.
 		'''
 
-		shape = list(getattr(self, self.channels[0]).data.shape)
+		shape = list(getattr(self, self.channels[0]).shape)
 		n_channels = len(self.channels)
 		
 		time_data = np.empty([n_channels] + shape)
 		
 		for i in range(len(self.channels)):
 			time_data[i] = upconvert_dimension(getattr(self, self.channels[i]).total_time, shape)
+
+		times = np.amax(time_data, axis = 0)
+
+		return times
+
+	@property
+	def _start_time(self):
+		'''
+		get the total time that will be uploaded for this segment to the AWG
+		Returns:
+			times (np.ndarray) : numpy array with the total time (maximum of all the channels), for all the different loops executed.
+		'''
+
+		shape = list(getattr(self, self.channels[0]).shape)
+		n_channels = len(self.channels)
+		
+		time_data = np.empty([n_channels] + shape)
+		
+		for i in range(len(self.channels)):
+			time_data[i] = upconvert_dimension(getattr(self, self.channels[i]).start_time, shape)
 
 		times = np.amax(time_data, axis = 0)
 
@@ -237,7 +263,6 @@ class segment_container():
 			loop_obj.add_data(times, axis)
 
 		for i in self.channels:
-			print(i)
 			segment = getattr(self, i)
 			segment.reset_time(loop_obj, False)
 
@@ -265,12 +290,41 @@ class segment_container():
 		if shape is None:
 			shape = self.shape
 
+		
 		for i in self.channels:
 			if self.render_mode == False:
 				getattr(self, i).data = update_dimension(getattr(self, i).data, shape, ref)
-			
+	
 			if getattr(self, i).type == 'render' and self.render_mode == True:
 				getattr(self, i)._pulse_data_all = update_dimension(getattr(self, i)._pulse_data_all, shape, ref)
+
+		if self.render_mode == False:
+			self._software_markers.data = update_dimension(self._software_markers.data, shape, ref)
+		else:
+			self._software_markers._pulse_data_all = update_dimension(self._software_markers.pulse_data_all, shape, ref)
+
+	def add_HVI_marker(self, marker_name, t_off = 0):
+		'''
+		add a HVI marker that corresponds to the current time of the segment (defined by reset_time). 
+
+		Args:
+			marker_name (str) : name of the marker to add
+			t_off (str) : offset to be given from the marker 
+		'''
+		times = lp.loop_obj()
+		times.add_data(self._start_time, axis=list(range(self.ndim -1,-1,-1)))
+
+		self.add_HVI_variable(marker_name, times + t_off, True)
+
+	def add_HVI_variable(self, marker_name, value, time=False):
+		"""
+		add time for the marker.
+		Args:
+			name (str) : name of the variable
+			value (double) : value to assign to the variable
+			time (bool) : if the value is a timestamp (determines behaviour when the variable is used in a sequence) (coresponding to a master clock)
+		"""
+		self._software_markers._add_HVI_variable(marker_name, value, time)
 
 	def enter_rendering_mode(self):
 		'''
@@ -283,6 +337,18 @@ class segment_container():
 			# make a pre-render all all the pulse data (e.g. compose channels, do not render in full).
 			if getattr(self, i).type == 'render':
 				getattr(self, i).pulse_data_all
+
+	def add_master_clock(self, time):
+		'''
+		add a master clock to the segment.
+		
+		Args:
+			time (float) :  effective time that this segment start in the sequence.
+
+		At the moment only correction for the HVI marker, clock for the MW signal needs to be implemented here later.
+		'''
+
+		self._software_markers._add_global_time_shift(time)
 
 	def exit_rendering_mode(self):
 		'''
@@ -317,20 +383,17 @@ if __name__ == '__main__':
 	seg.a.add_block(0,lp.linspace(50,100,10),100)
 	seg.a += 500
 	seg.b += 500
-	# seg.reset_time()
-	# seg.q1.add_MW_pulse(0,100,10,1.015e9)
+	seg.reset_time()
+	seg.q1.add_MW_pulse(0,100,10,1.015e9)
 	seg.q1.wait(10)
 	seg.reset_time()
-	seg.q1.add_chirp(0,1000,1e9,1.1e9, 100)
+	seg.q1.add_chirp(0,100,1e7,1.1e8, 100)
 	seg.q1.wait(20)
 	seg.q1.reset_time()
-	seg.q1.add_chirp(0,1000,1.1e9,1.e9, 100)
+	seg.q1.add_chirp(0,100,1.1e9,1.e9, 100)
 	seg.q1.wait(10)
-	# a.a.add_block(20,lp.linspace(50,100,10, axis = 1, name = "time", unit = "ns"),100)
-
-	# b.append(a)
-
-	# a.slice_time(0,lp.linspace(80,100,10, name = "time", unit = "ns"))
+	seg.add_HVI_marker("my_test")
+	print(seg._software_markers.data)
 
 	# print(b.setpoints)
 	# print(a.a.data[2,2,2])

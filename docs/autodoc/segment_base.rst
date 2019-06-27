@@ -1,10 +1,10 @@
 .. _segment_base:
 
-Segment base class desription
+Segment baseband pulses class desription
 =============================
 
 
-.. autoclass:: segments.segments_base.segment_single
+.. automodule:: pulse_lib.segments.segment_base
 	:members:
 	:undoc-members:
 	:show-inheritance:

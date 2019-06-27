@@ -21,6 +21,7 @@ class pulse_data(parent_data):
         self.MW_pulse_data = list()
 
         self.start_time = 0
+        self.MW_end_time = 0
 
     def add_pulse_data(self, my_input):
         self.baseband_pulse_data.add_pulse(my_input)
@@ -33,15 +34,19 @@ class pulse_data(parent_data):
             MW_data_object (IQ_data_single) : description MW pulse (see pulse_lib.segments.data_classes.data_IQ)
         """
         self.MW_pulse_data.append(MW_data_object)
+        if self.MW_end_time < MW_data_object.stop:
+            self.MW_end_time = MW_data_object.stop 
     
     @property
-    def total_time(self,):
+    def total_time(self):
         '''
         total time of the current segment
 
         Returns:
             total_time (float) : total time of the segment.
         '''
+        if self.baseband_pulse_data.total_time < self.MW_end_time:
+            return self.MW_end_time
 
         return self.baseband_pulse_data.total_time
 
@@ -278,6 +283,7 @@ class pulse_data(parent_data):
         my_copy.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
         my_copy.MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
         my_copy.start_time = copy.copy(self.start_time)
+        my_copy.software_marker_data = copy.copy(self.software_marker_data)
         return my_copy
 
     def __add__(self, other):
@@ -340,7 +346,6 @@ class pulse_data(parent_data):
         sample_time_step = 1/sample_rate
                 
         t_tot = self.total_time
-        print(t_tot)
 
         # get number of points that need to be rendered
         t_tot_pt = get_effective_point_number(t_tot, sample_time_step) + 1
@@ -408,8 +413,7 @@ class pulse_data(parent_data):
             # add up the sin pulse.
             my_sequence[start_pt:stop_pt] += amp*amp_envelope*np.sin(
                     np.linspace(0, n_pt/sample_rate*1e-9, n_pt)*freq*2*np.pi
-                    + phase + phase_envelope
-                )
+                    + phase + phase_envelope )
 
         return my_sequence  
 

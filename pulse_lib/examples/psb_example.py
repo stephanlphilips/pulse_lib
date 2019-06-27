@@ -55,62 +55,8 @@ PSB_pulse.reset_time()
 PSB_pulse.vP4.add_block(0,1000, P0[0])
 PSB_pulse.vP5.add_block(0,1000, P0[1])
 
-PSB_pulse.P4.plot_segment([1], render_full=True)
-PSB_pulse.P5.plot_segment([1,0], render_full=True)
-plt.show()
+# PSB_pulse.P4.plot_segment([1], render_full=True)
+# PSB_pulse.P5.plot_segment([1,0], render_full=True)
+# plt.show()
 
-# def construct_ct(gate1, gate2, marker, t_step, vpp, n_pt):
-# 	"""
-# 	construct a the pulses needed for a charge stability diagram
-
-# 	Args:
-# 		gate1 (str) : gate in x direction to sweep
-# 		gate2 (str) : gate in x direction to sweep
-# 		marker (str) : marker which will be placed at each gate step
-# 		t_step (float) : time step for a single point in the charge stability diagram (unit ns)
-# 		vpp: (float) : peak to peak voltage 
-# 		n_pt (int) : number of point along x/y (both are assumed to have the same number of points.)
-# 	"""
-# 	charge_st  = pulse.mk_segment()
-
-# 	for  voltage in np.linspace(-vpp,vpp,n_pt):
-# 	    getattr(charge_st, gate1).add_block(0, t_step, voltage)
-# 	    getattr(charge_st, gate1).reset_time()
-# 	getattr(charge_st, gate1).repeat(n_pt)
-
-
-# 	for  voltage in np.linspace(-vpp,vpp,n_pt):
-# 	    getattr(charge_st,gate2).add_block(0, t_step*n_pt, voltage)
-# 	    getattr(charge_st,gate2).reset_time()
-
-# 	# getattr(charge_st,marker).add_marker(0,t_step/2)
-# 	# getattr(charge_st,marker).wait(t_step-t_step/2)
-# 	# getattr(charge_st,marker).repeat(n_pt)
-# 	# getattr(charge_st,marker).repeat(n_pt)
-
-# 	return charge_st
-
-# sequence = [PSB_pulse]
-# # sequence = [PSB_pulse, construct_ct("A6", "A2", "A4",1000 ,1000, 30)]
-# my_seq = pulse.mk_sequence(sequence)
-# my_seq.add_HVI(load_HVI, set_and_compile_HVI, excute_HVI, digitizer = dig, dig_wait = 100)
-# my_seq.n_rep = 1000000000
-
-
-# import time
-# my_seq.neutralize = False
-
-# my_seq.upload([0])
-# my_seq.play([0])
-
-# # # for j in range(50):
-# # # 	for i in range(50):
-# # # 		my_seq.upload([i, j])
-# # # 		my_seq.play([i, j])
-# # # 		print(i,j)
-# # # e = time.time()
-
-# # # print("placback of 2500 waveforms (1000 repeat)",e-s, "seconds")
-# # # print("average number of uploads per second", 2500/(e-s))
-# pulse.uploader.wait_until_AWG_idle()
-# pulse.uploader.release_memory()
+print(PSB_pulse.B3.pulse_data_all.shape)

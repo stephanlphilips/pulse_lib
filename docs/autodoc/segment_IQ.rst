@@ -1,3 +1,3 @@
 
-.. automodule:: segments.segments_IQ
+.. automodule:: pulse_lib.segments.segment_IQ
 	:members:
