@@ -86,6 +86,7 @@ class loop_obj():
 		cpy = copy.copy(self)
 		cpy.data += other
 		return cpy
+		
 	def __mul__(self, other):
 		cpy = copy.copy(self)
 		cpy.data *= other

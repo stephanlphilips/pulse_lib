@@ -73,8 +73,7 @@ class segment_container():
 				for j in range(virtual_gates.size):
 					if virtual_gates_values[j] != 0:
 						virutal_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j], 
-							getattr(self, virtual_gates.virtual_gate_names[j]),
-							virtual_gates_values[j])
+							getattr(self, virtual_gates.virtual_gate_names[j]), 	virtual_gates_values[j])
 						real_channel.add_reference_channel(virutal_channel_reference_info)
 
 

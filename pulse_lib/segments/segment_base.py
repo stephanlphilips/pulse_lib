@@ -153,15 +153,8 @@ class segment_base():
 		Args:
 			*key (int/slice object) : key of the element -- just use numpy style accessing (slicing supported)
 		'''
-		item = segment_single(self.name)
-		item.type = self.type
-
-		item.render_mode = self.render_mode 
-		item._last_edit = self._last_edit
+		item = copy.copy(self)
 		item.data = self.data[key[0]]
-
-		item.reference_channels = self.reference_channels 
-		item.IQ_ref_channels = self.IQ_ref_channels
 
 		return item
 
@@ -288,6 +281,7 @@ class segment_base():
 				ref_chan.data = update_dimension(ref_chan.segment.data, my_shape)
 
 				self._pulse_data_all += ref_chan.segment.data*ref_chan.multiplication_factor
+				ref_chan.segment._last_edit = last_edit.Rendered
 			for ref_chan in self.IQ_ref_channels:
 				# todo -- update dim functions
 				self._pulse_data_all += ref_chan.virtual_channel_pointer.get_IQ_data(ref_chan.LO, ref_chan.IQ_render_option, ref_chan.image_render_option)
