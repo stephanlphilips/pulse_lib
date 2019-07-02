@@ -81,6 +81,10 @@ class segment_container():
 
 	def __copy__(self):
 		new = segment_container([])
+		
+		new._virtual_gates_objs = self._virtual_gates_objs
+		new._IQ_channel_objs = self._IQ_channel_objs
+
 		new.channels = copy.copy(self.channels)
 
 		for chan_name in self.channels:

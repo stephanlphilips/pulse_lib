@@ -45,13 +45,17 @@ def construct_ct(gate1, gate2, marker, t_step, vpp, n_pt):
 if __name__ == '__main__':
 	pulse, _ = return_pulse_lib()
 	pulse.cpp_uploader.resegment_memory()
-	t = construct_ct("P4", "P5", "M2",1000 ,1000, 200)
+	t = construct_ct("vP4", "vP5", "M2",1000 ,1000, 10)
 	import copy
 	t2 = copy.copy(t)
-	print(t)
-	print(t2)
-	print(t.P4.data)
-	print(t2.P4.data)
+	t3 = copy.copy(t2)
+
+
+	print(t3.vP4)
+	print(t3.P4.reference_channels)
+
+	getattr(t3,"vP4").plot_segment(sample_rate = 1e6)
+	getattr(t3,"P4").plot_segment(sample_rate = 1e6)
 
 	import numpy as np
 	# data_test = copy.deepcopy(t.P4.data)
