@@ -218,7 +218,7 @@ class data_container(np.ndarray):
         return times
 
     def __copy__(self):
-        cpy = np.empty(shape=self.shape, dtype=self.dtype)
+        cpy = data_container(shape = self.shape)
         
         for i in range(self.size):
             cpy.flat[i] = copy.copy(self.flat[i])
