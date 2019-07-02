@@ -5,6 +5,7 @@ Generic data class where all others should be derived from.
 from abc import ABC, abstractmethod
 import numpy as np
 from pulse_lib.segments.utility.segments_c_func import get_effective_point_number
+import copy
 
 class parent_data(ABC):
     """
@@ -215,3 +216,11 @@ class data_container(np.ndarray):
         self = self.reshape(shape)
         times = times.reshape(shape)
         return times
+
+    def __copy__(self):
+        cpy = np.empty(shape=self.shape, dtype=self.dtype)
+        
+        for i in range(self.size):
+            cpy.flat[i] = copy.copy(self.flat[i])
+        
+        return cpy
