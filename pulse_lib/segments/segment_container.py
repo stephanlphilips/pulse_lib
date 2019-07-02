@@ -169,8 +169,9 @@ class segment_container():
 	@property
 	def setpoint_data(self):
 		comb_setpoints = copy.copy(self._setpoints)
-
+		print(id(self))
 		for i in self.channels:
+			print(i)
 			segment = getattr(self, i)
 			comb_setpoints += segment.setpoints
 
@@ -395,7 +396,7 @@ if __name__ == '__main__':
 	seg.add_HVI_marker("my_test")
 	print(seg._software_markers.data)
 
-	# print(b.setpoints)
+	print(seg.setpoint_data)
 	# print(a.a.data[2,2,2])
 
 	seg.q1.plot_segment([0], sample_rate = 1e10)
