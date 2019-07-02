@@ -97,6 +97,16 @@ class segment_container():
 		add_reference_channels(new, self._virtual_gates_objs, self._IQ_channel_objs)
 
 		return new
+	
+	@property
+	def software_markers(self):
+		return self._software_markers
+	
+	@software_markers.setter
+	def software_markers(self, new_marker):
+		self._software_markers = new_marker
+		add_reference_channels(self, self._virtual_gates_objs, self._IQ_channel_objs)
+
 	@property
 	def shape(self):
 		'''

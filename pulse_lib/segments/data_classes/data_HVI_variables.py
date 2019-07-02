@@ -28,6 +28,18 @@ class marker_HVI_variable(parent_data):
 	def HVI_markers(self):
 		return {**self.my_time_data, **self.my_amp_data}
 	
+	def __getitem__(self, *item):
+		try:
+			return self.my_time_data[item[0]]
+		except:
+			pass
+		try:
+			return self.my_amp_data[item[0]]
+		except:
+			pass
+
+		raise ValueError("Asking for HVI variable {}. But this variable is not present in the current data set.".format(item[0]))
+
 	def add_HVI_marker(self, name, amplitude, time):
 		"""
 		add a marker

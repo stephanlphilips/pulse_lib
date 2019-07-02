@@ -7,7 +7,7 @@ from pulse_lib.segments.segment_IQ import segment_IQ
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, loop_controller_post_processing
 from pulse_lib.segments.data_classes.data_HVI_variables import marker_HVI_variable
 from dataclasses import dataclass
-
+import numpy as np
 
 class segment_HVI_variables(segment_base):
 	"""docstring for segment_HVI_variables"""
@@ -44,6 +44,25 @@ class segment_HVI_variables(segment_base):
 		'''
 		return self.data_tmp._shift_all_time(time)
 
+	def __getitem__(self, item):
+		'''
+		Get item variable of the HVI varible sequence.
+		
+		Args:
+			item (str) : string name of the HVI variable you want to fetch
+
+		Returns:
+			np.ndarray <double> : array with the same shape as the current object with all the variables.
+		'''
+		if isinstance(item, str):
+			out = np.empty(self.shape, np.double)
+
+			for i in range(out.size):
+				out.flat[i] = self.data.flat[i][item]
+			return out
+		else:
+			return super().__getitem__(item)
+
 	def __copy__(self):
 		cpy = segment_HVI_variables(self.name)
 		return self._copy(cpy)
@@ -59,9 +78,9 @@ if __name__ == '__main__':
 	s1._add_global_time_shift(100)
 	# s3 = s1+s2
 	# s3.name = "marker_3"
-	
-	print(s1.data[0])
-	print(s1.pulse_data_all[0])	
+	print(s1['test2'])
+	# print(s1.data[0])
+	# print(s1.pulse_data_all[0])	
 	s1.append(s2)
 	# print(s1.data[0])
 
