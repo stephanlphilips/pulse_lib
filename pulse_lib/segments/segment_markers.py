@@ -37,6 +37,7 @@ class segment_marker(segment_base):
 			stop (double) : stop time of the marker
 		"""
 		self.data_tmp.add_marker(start, stop)
+		return self.data_tmp
 
 	def add_reference_marker_IQ(self, IQ_channel_ptr, pre_delay, post_delay):
 		self.references_markers.append(reference_marker_4_IQ(IQ_channel_ptr, pre_delay, post_delay))
