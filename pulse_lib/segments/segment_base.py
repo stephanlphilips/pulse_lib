@@ -74,7 +74,22 @@ class segment_base():
 		# setpoints of the loops (with labels and units)
 		self._setpoints = setpoint_mgr()
 
-	
+	def _copy(self, cpy):
+		cpy.type = copy.copy(self.type) 
+		cpy.data = copy.copy(self.data)
+		# not full sure if this should be copied. Depends a bit on the usage scenario. 
+		cpy._data_hvi_variable = copy.copy(self._data_hvi_variable) 
+
+		# note that the container objecet needs to take care of these. By default it will refer to the old references.
+		cpy.reference_channels = copy.copy(self.reference_channels) 
+		cpy.IQ_ref_channels = copy.copy(self.IQ_ref_channels) 
+		cpy.references_markers = copy.copy(self.references_markers) 
+
+		# setpoints of the loops (with labels and units)
+		cpy._setpoints = copy.copy(self._setpoints)
+
+		return cpy
+
 	@last_edited
 	@loop_controller
 	def reset_time(self, time=None, extend_only = False):

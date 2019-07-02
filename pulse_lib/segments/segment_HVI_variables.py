@@ -44,6 +44,10 @@ class segment_HVI_variables(segment_base):
 		'''
 		return self.data_tmp._shift_all_time(time)
 
+	def __copy__(self):
+		cpy = segment_HVI_variables(self.name)
+		return self._copy(cpy)
+		
 if __name__ == '__main__':
  
 	import matplotlib.pyplot as plt

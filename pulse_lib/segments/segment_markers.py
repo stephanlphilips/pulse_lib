@@ -41,6 +41,10 @@ class segment_marker(segment_base):
 
 	def add_reference_marker_IQ(self, IQ_channel_ptr, pre_delay, post_delay):
 		self.references_markers.append(reference_marker_4_IQ(IQ_channel_ptr, pre_delay, post_delay))
+	
+	def __copy__(self):
+		cpy = segment_marker(self.name)
+		return self._copy(cpy)
 		
 if __name__ == '__main__':
  

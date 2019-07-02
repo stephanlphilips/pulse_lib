@@ -45,7 +45,7 @@ class envelope_generator():
         n_points = delta_t*sample_rate 
         if n_points < 1: #skip
             return np.asarray([0])
-        print(n_points, delta_t, sample_rate)
+
         if self.AM_envelope_function is None:
             envelope = np.ones([int(n_points)]) #assume rectangular envelope
         elif isinstance(self.AM_envelope_function, tuple) or isinstance(self.AM_envelope_function, str):

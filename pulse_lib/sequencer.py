@@ -197,7 +197,7 @@ class sequencer():
 		if self.DSP is not None:
 			upload_object.add_dsp_function(self.DSP)
 		if self.HVI is not None:
-			upload_object.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables.item(index).HVI_markers})
+			upload_object.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables.item(tuple(index)).HVI_markers})
 
 		self.uploader.add_upload_job(upload_object)
 

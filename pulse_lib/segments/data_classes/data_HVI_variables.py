@@ -8,7 +8,7 @@ import numpy as np
 import copy
 
 class marker_HVI_variable(parent_data):
-	def __init__(self, pulse_amplitude = 1000):
+	def __init__(self):
 		"""
 		init marker object
 		Args:
@@ -18,7 +18,12 @@ class marker_HVI_variable(parent_data):
 		self.my_amp_data = dict()
 
 		self.end_time = 0
-
+	def __copy__(self):
+		cpy = marker_HVI_variable()
+		cpy.my_time_data = copy.copy(self.my_time_data)
+		cpy.my_amp_data = copy.copy(self.my_amp_data)
+		cpy.end_time = self.end_time
+		return cpy
 	@property
 	def HVI_markers(self):
 		return {**self.my_time_data, **self.my_amp_data}

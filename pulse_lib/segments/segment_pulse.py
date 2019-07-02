@@ -159,6 +159,9 @@ class segment_pulse(segment_base):
 		self.data_tmp.repeat(number)
 		return self.data_tmp
 
+	def __copy__(self):
+		cpy = segment_pulse(self.name)
+		return self._copy(cpy)
 	
 
 
