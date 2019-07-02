@@ -331,7 +331,6 @@ class segment_base():
 		pulse data object that contains the counted op data of all the reference channels (e.g. IQ and virtual gates).
 		'''
 		if self.last_edit == last_edit.ToRender or self._pulse_data_all is None:
-			print("redering pulse_data_all")
 			self._pulse_data_all = copy.copy(self.data)
 			for ref_chan in self.reference_channels:
 				# make sure both have the same size.

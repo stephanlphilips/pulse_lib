@@ -340,7 +340,7 @@ def loop_over_data(func, data, args, args_info, kwargs, kwargs_info):
 	# copy the input --> we will fill in the arrays
 	args_cpy = list(copy.copy(args))
 	kwargs_cpy = copy.copy(kwargs)
-	print(data)
+
 	for i in range(shape[0]):
 		for arg in args_info:
 			if n_dim-1 in arg['axis']:
