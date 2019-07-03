@@ -120,6 +120,7 @@ def cpy_numpy_shallow(data, use_ref):
 		data : data element
 		use_ref (bool) : use reference to copy
 	'''
+
 	if use_ref == True:
 		if type(data) != data_container:
 			return data
@@ -135,7 +136,7 @@ def cpy_numpy_shallow(data, use_ref):
 			new_arr[i] = data_flat[i]
 
 		new_arr = new_arr.reshape(shape)
-
+		
 	else:
 		if type(data) != data_container:
 			return copy(data)

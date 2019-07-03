@@ -177,12 +177,14 @@ class segment_container():
 
 	@property
 	def setpoint_data(self):
-		comb_setpoints = copy.copy(self._setpoints)
+
+		comb_setpoints = copy.deepcopy(self._setpoints)
 
 		for i in self.channels:
 			segment = getattr(self, i)
 			comb_setpoints += segment.setpoints
-
+		print("ori",self._setpoints)
+		print("new",comb_setpoints)
 		return comb_setpoints
 	
 

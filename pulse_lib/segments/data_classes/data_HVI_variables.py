@@ -11,6 +11,7 @@ class marker_HVI_variable(parent_data):
 	def __init__(self):
 		"""
 		init marker object
+
 		Args:
 			pulse_amplitude(double) : pulse amplitude in mV
 		"""
@@ -43,8 +44,9 @@ class marker_HVI_variable(parent_data):
 	def add_HVI_marker(self, name, amplitude, time):
 		"""
 		add a marker
+
 		Args:
-			name (str) : varaible name for the HVI marker 
+			name (str) : variable name for the HVI marker 
 			amplitude (float) : amplitude of the marker (in case of a time, unit is in ns, else mV)
 			time (bool) : True is marker needs to be interpreted as a time.
 		"""
@@ -56,6 +58,7 @@ class marker_HVI_variable(parent_data):
 	def reset_time(self, time = None, extend_only = False):
 		"""
 		reset the effective start time. See online manual in pulse building instructions to understand this command.
+
 		Args:
 			time (double) : new time that will become time zero
 		"""
@@ -85,6 +88,7 @@ class marker_HVI_variable(parent_data):
 	def slice_time(self, start, end):
 		"""
 		apply slice operation on this marker.
+
 		Args:
 			start (double) : start time of the marker
 			stop (double) : stop time of the marker
@@ -100,13 +104,14 @@ class marker_HVI_variable(parent_data):
 
 	def integrate_waveform(self, pre_delay, post_delay, sample_rate):
 		"""
-		as markers are connected to mateched inputs, we do not need to compenstate, hence no interagration of waveforms is needed.
+		as markers are connected to matched inputs, we do not need to compensate, hence no integration of waveforms is needed.
 		"""
 		return 0
 
 	def append(self, other, time = None):
 		'''
 		Append two segments to each other, where the other segment is places after the first segment. Time is the total time of the first segment.
+
 		Args:
 			other (marker_HVI_variable) : other pulse data object to be appended
 			time (double/None) : length that the first segment should be.
@@ -157,6 +162,7 @@ class marker_HVI_variable(parent_data):
 	def __add__(self, other):
 		"""
 		add other maker to this one
+		
 		Args:
 			other (marker_HVI_variable) : other marker object you want to add
 		"""
@@ -183,7 +189,7 @@ class marker_HVI_variable(parent_data):
 
 	def _render(self, sample_rate, pre_delay = 0.0, post_delay = 0.0):
 		'''
-		make a full rendering of the waveform at a predermined sample rate.
+		make a full rendering of the waveform at a predetermined sample rate.
 		'''
 		raise ValueError("Rendering of HVI marker is currently not supported.")
 

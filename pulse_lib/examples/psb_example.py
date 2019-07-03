@@ -33,8 +33,8 @@ P3 = (-5,-5)
 P4 = (25, 25)
 
 import pulse_lib.segments.utility.looping as lp
-P4_Point_3 = lp.linspace(P2[0],P3[0],125, axis=0, unit = "mV", name = "vP4")
-P5_Point_3 = lp.linspace(P2[1],P3[1],125, axis=1, unit = "mV", name = "vP5")
+P4_Point_3 = lp.linspace(P2[0],P3[0],5, axis=0, unit = "mV", name = "vP4")
+P5_Point_3 = lp.linspace(P2[1],P3[1],5, axis=1, unit = "mV", name = "vP5")
 
 
 PSB_pulse.vP4.add_block(0,10000, P0[0])
@@ -58,5 +58,7 @@ PSB_pulse.vP5.add_block(0,1000, P0[1])
 # PSB_pulse.P4.plot_segment([1], render_full=True)
 # PSB_pulse.P5.plot_segment([1,0], render_full=True)
 # plt.show()
+import copy
+my_seq = [PSB_pulse, copy.copy(PSB_pulse)] #,copy.copy(PSB_pulse),copy.copy(PSB_pulse),copy.copy(PSB_pulse),copy.copy(PSB_pulse)]
+seq = pulse.mk_sequence(my_seq)
 
-print(PSB_pulse.B3.pulse_data_all.shape)

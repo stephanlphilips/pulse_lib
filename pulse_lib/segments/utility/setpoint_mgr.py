@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+import copy
 """
 file that constains a few classes that do automatric unit management.
 The idea of these modules is to provide the units that qcodes needs for plotting.
@@ -22,19 +22,23 @@ class setpoint_mgr():
 		Returns:
 			self (setpoint_mgr)
 		"""
+
+		output = setpoint_mgr()
+		output._setpoints = copy.copy(self._setpoints)
+
 		if isinstance(other, setpoint):
 			if other.axis in self._setpoints.keys():
-				self._setpoints[other.axis] += other
+				output._setpoints[other.axis] += other
 			else:
-				self._setpoints.update({other.axis : other})
+				output._setpoints.update({other.axis : other})
 
 		elif isinstance(other, self.__class__):
 			for setpnt in other:
-				self += setpnt
+				output += setpnt
 		else:
 			raise ValueError("setpoint_mgr does not support counting up of the type {}. Please use the setpoint_mgr or setpoint type".format(type(other)))
 
-		return self
+		return output
 
 	def __str__(self):
 		content = "\rSetpoint_mgr class. Contained data:\r\r"
@@ -111,17 +115,18 @@ class setpoint():
 		if self.axis != other.axis:
 			raise ValueError("Counting of two setpoint variables on two axis. This is not allowed.")
 
+		my_sum = setpoint(self.axis)
 		# prioritize setpoints of variables where units/labels are defined.
 		if len(other.label) == 1 or len(other.unit) == 1:
-			self.setpoint = other.setpoint + self.setpoint
-			self.label = other.label + self.label
-			self.unit = other.unit + self.unit
+			my_sum.setpoint = other.setpoint + self.setpoint
+			my_sum.label = other.label + self.label
+			my_sum.unit = other.unit + self.unit
 		else:
-			self.setpoint = self.setpoint + other.setpoint
-			self.label = self.label + other.label
-			self.unit = self.unit + other.unit
+			my_sum.setpoint = self.setpoint + other.setpoint
+			my_sum.label = self.label + other.label
+			my_sum.unit = self.unit + other.unit
 
-		return self
+		return my_sum
 
 if __name__ == '__main__':
 	b = setpoint(1)
