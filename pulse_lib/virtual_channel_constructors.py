@@ -1,3 +1,6 @@
+import warnings
+import numpy as np
+
 from dataclasses import dataclass
 from pulse_lib.segments.segment_pulse import segment_pulse
 # from qcodes.intruments.parameter import Parameter
@@ -18,13 +21,17 @@ class virtual_gates_constructor(object):
 		self.real_gate_names = []
 		self.virtual_gate_names = []
 		self._virtual_gate_matrix = None
+		self.valid_indices = None
 	
 	@property
 	def virtual_gate_matrix(self):
 		if self._virtual_gate_matrix is None:
 			raise ValueError("Cannot fetch virutal gate matrix, please define (see docs).")
 
-		return self._virtual_gate_matrix
+		self.virtual_gate_matrix_tmp = np.asarray(self._virtual_gate_matrix)
+		self.virtual_gate_matrix_tmp = self.virtual_gate_matrix_tmp[self.valid_indices]
+		self.virtual_gate_matrix_tmp = self.virtual_gate_matrix_tmp[:,self.valid_indices]
+		return self.virtual_gate_matrix_tmp
 	
 	@property
 	def size(self):
@@ -33,6 +40,29 @@ class virtual_gates_constructor(object):
 		"""
 		return self.virtual_gate_matrix.shape[0]
 	
+	def load_via_harware(self, virtual_gate_set):
+		'''
+		load in a virtual gate set by the hardware file.
+		This has as advantage that when the matrix get updated for the dac, the same happens for the AWG channels. 
+
+		Args:
+			virtual_gate_set (virtual_gate) : virtual_gate object
+		'''
+		# fetch gates that are also present on the AWG.
+		idx_of_valid_gates = []
+		for i in range(len(virtual_gate_set)):
+			if virtual_gate_set.real_gate_names[i] in self.pulse_lib_obj.awg_channels:
+				idx_of_valid_gates.append(i)
+
+		if len(idx_of_valid_gates) == 0:
+			warnings.warn("No valid gates found of the AWG for the virtual gate set {}. This virtual gate entry will be neglected.".format(virtual_gate_set.name))
+			return
+
+		self.valid_indices = np.array(idx_of_valid_gates, dtype=np.int)
+		self._virtual_gate_matrix = virtual_gate_set.virtual_gate_matrix
+		self.real_gate_names = np.asarray(virtual_gate_set.real_gate_names)[idx_of_valid_gates]
+		self.virtual_gate_names = np.asarray(virtual_gate_set.virtual_gate_names)[idx_of_valid_gates]
+
 	def add_real_gates(self, *args):
 		"""
 		specify list of real gate names where to map on in the virtual gate matrix (from left to the right in the matrix)
@@ -69,7 +99,8 @@ class virtual_gates_constructor(object):
 		if n != len(self.virtual_gate_names):
 			raise ValueError("size virtual gate matrix ({}) not matching the given amount of virutal gates names({})".format(n, len(self.virtual_gate_names)))
 
-		self._virtual_gate_matrix = virtual_gate_matrix
+		self.valid_indices = np.arange(n, dtype=np.int)
+		self._virtual_gate_matrix = virtual_gate_matrix.data
 
 
 @dataclass
