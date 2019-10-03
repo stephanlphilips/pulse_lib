@@ -168,16 +168,23 @@ class sequencer():
 		'''
 		self.neutralize = compenstate
 
-	def add_HVI(self, HVI_to_load, compile_function, start_function, **kwargs):
+	def add_HVI(self, HVI_ID ,HVI_to_load, compile_function, start_function, **kwargs):
 		'''
 		Add HVI code to the AWG.
 		Args:
+			HVI_ID (str) : string that gives an ID to the HVI that is currently loaded.
 			HVI_to_load (function) : function that returns a HVI file.
 			compile_function (function) : function that compiles the HVI code. Default arguments that will be provided are (HVI, npt, n_rep) = (HVI object, number of points of the sequence, number of repetitions wanted)
 			start_function (function) : function to be executed to start the HVI (this can also be None)
 			kwargs : keyword arguments for the HVI script (see usage in the examples (e.g. when you want to provide your digitzer card))
 		'''
-		self.HVI = HVI_to_load(self.uploader.AWGs, self.uploader.channel_map, **kwargs)
+		if self.uploader.current_HVI_ID != HVI_ID :
+			self.HVI = HVI_to_load(self.uploader.AWGs, self.uploader.channel_map, **kwargs)
+			self.uploader.current_HVI_ID = HVI_ID
+			self.uploader.current_HVI = self.HVI
+		else: 
+			self.HVI = self.uploader.current_HVI
+
 		self.HVI_compile_function = compile_function
 		self.HVI_start_function = start_function
 		self.HVI_kwargs = kwargs
@@ -202,15 +209,16 @@ class sequencer():
 		self.uploader.add_upload_job(upload_object)
 
 
-	def play(self, index):
+	def play(self, index, release= True):
 		'''
 		Playback a certain index, assuming the index is provided.
 		Args:
 			index (tuple) : index if wich you wannt to upload. This index should fit into the shape of the sequence being played.
+			release (bool) : release memory on the AWG after the element has been played.
 
 		Note that the playback will not start until you have uploaded the waveforms.
 		'''
-		self.uploader.play(self.id, index)
+		self.uploader.play(self.id, index, release)
 		
 	def release_memory(self, index):
 		'''

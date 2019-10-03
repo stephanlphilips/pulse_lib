@@ -31,7 +31,9 @@ class keysight_uploader():
 		self.memory_allocation = dict()
 		# TODO reinit memory on start-up
 		self.AWGs = AWGs
-		self.cpp_uploader =cpp_uploader
+		self.current_HVI = None
+		self.current_HVI_ID = None
+		self.cpp_uploader = cpp_uploader
 		self.channel_names = channel_names
 		self.channel_map = channel_locations
 		self.channel_delays = channel_delays
@@ -133,10 +135,13 @@ class keysight_uploader():
 		else:
 			job.HVI_start_function(job.HVI, self.AWGs, self.channel_map, job.playback_time, job.n_rep, **job.HVI_kwargs)
 		
+		# determine if the current waveform needs to be reused.
 		if release == True:
 			self.release_memory()
+			self.upload_done.append(job)
+		else:
+			self.upload_ready_to_start.append(job)
 
-		self.upload_done.append(job)
 
 
 	def release_memory(self):

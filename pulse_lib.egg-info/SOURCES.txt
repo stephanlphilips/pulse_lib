@@ -20,6 +20,7 @@ pulse_lib/keysight/uploader_core/keysight_awg_post_processing_and_upload.cpp
 pulse_lib/keysight/uploader_core/mem_ctrl.cpp
 pulse_lib/keysight/uploader_core/uploader.cpp
 pulse_lib/segments/__init__.py
+pulse_lib/segments/segment_HVI_variables.py
 pulse_lib/segments/segment_IQ.py
 pulse_lib/segments/segment_base.py
 pulse_lib/segments/segment_container.py
@@ -27,6 +28,7 @@ pulse_lib/segments/segment_markers.py
 pulse_lib/segments/segment_pulse.py
 pulse_lib/segments/test.py
 pulse_lib/segments/data_classes/__init__.py
+pulse_lib/segments/data_classes/data_HVI_variables.py
 pulse_lib/segments/data_classes/data_IQ.py
 pulse_lib/segments/data_classes/data_generic.py
 pulse_lib/segments/data_classes/data_markers.py

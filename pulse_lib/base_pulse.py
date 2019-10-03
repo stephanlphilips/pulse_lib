@@ -7,6 +7,8 @@ from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
 
 from dataclasses import dataclass
 # from qcodes.intruments.parameter import Parameter
+import copy
+
 import uuid
 
 class pulselib:
@@ -41,6 +43,13 @@ class pulselib:
 		self.segments_bin = None
 		self.sequencer = None
 
+	@property
+	def channels(self):
+		channels = copy.copy(self.awg_channels) 
+		for i in self.virtual_channels:
+			channels += i.virtual_gate_names
+		return channels
+	
 	def add_awgs(self, name, awg):
 		'''
 		add a awg to the library
@@ -264,7 +273,7 @@ if __name__ == '__main__':
 	IQ_chan_set_1.add_virtual_IQ_channel("MW_qubit_1")
 	IQ_chan_set_1.add_virtual_IQ_channel("MW_qubit_2")
 
-
+	print(p.channels)
 	# p.finish_init()
 
 	seg  = p.mk_segment()
