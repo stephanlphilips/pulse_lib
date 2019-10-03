@@ -4,7 +4,7 @@ from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
 from pulse_lib.keysight.uploader import keysight_uploader
 from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
-
+from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 from dataclasses import dataclass
 # from qcodes.intruments.parameter import Parameter
 import copy
@@ -33,6 +33,7 @@ class pulselib:
 		self.channel_delays_computed = dict()
 		self.channel_compenstation_limits = dict()
 		self.channels_to_physical_locations = dict()
+		self.AWG_to_dac_ratio = dict()
 
 
 		self.delays = []
@@ -72,12 +73,14 @@ class pulselib:
 		self._check_uniqueness_of_channel_name(channel_name)
 
 		self.awg_channels.append(channel_name)
+		self.AWG_to_dac_ratio[channel_name] = 1
 
 		# initialize basic properties of the channel
 		self.channel_delays[channel_name] = 0
 		self.channel_delays_computed[channel_name] = (0,0)
 		self.channel_compenstation_limits[channel_name] = (0,0)
 		self.channels_to_physical_locations[channel_name] = (AWG_name, channel_number)
+		self.voltage_rescaler = dict()
 
 	def define_marker(self, marker_name, AWG_name, channel_number):
 		'''
@@ -129,7 +132,6 @@ class pulselib:
 	def finish_init(self):
 		# function that finishes the initialisation
 		# TODO rewrite, so this function is embedded in the other ones.
-		print(self.channels_to_physical_locations)
 		self.uploader = keysight_uploader(self.awg_devices, self.cpp_uploader, self.awg_channels, self.channels_to_physical_locations , self.channel_delays_computed, self.channel_compenstation_limits)
 
 	def mk_segment(self):
@@ -149,6 +151,27 @@ class pulselib:
 		seq_obj = sequencer(self.uploader, self.voltage_limits_correction)
 		seq_obj.add_sequence(seq)
 		return seq_obj
+
+	def load_hardware(self, hardware):
+		'''
+		load virtual gates and attenuation via the harware class (used in qtt)
+		
+		Args:
+			hardware (harware_parent) : harware class.
+		'''
+		for virtual_gate_set in hardware.virtual_gates:
+			vgc = virtual_gates_constructor(self)
+			vgc.load_via_harware(virtual_gate_set)
+
+		# set output ratio's of the channels from the harware file.
+		print(self.AWG_to_dac_ratio.keys())
+		print( hardware.AWG_to_dac_conversion.keys())
+		if self.AWG_to_dac_ratio.keys() == hardware.AWG_to_dac_conversion.keys():
+			self.AWG_to_dac_ratio = hardware.AWG_to_dac_conversion
+			print('test')
+		else:
+			hardware.AWG_to_dac_conversion = self.AWG_to_dac_ratio
+			hardware.sync_data()
 
 	def __process_channel_delays(self):
 		'''
@@ -221,13 +244,13 @@ if __name__ == '__main__':
 	AWG4 = AWG("AWG4")
 		
 	# add to pulse_lib
-	p.add_awgs('AWG1',AWG1)
-	p.add_awgs('AWG2',AWG2)
-	p.add_awgs('AWG3',AWG3)
-	p.add_awgs('AWG4',AWG4)
+	# p.add_awgs('AWG1',AWG1)
+	# p.add_awgs('AWG2',AWG2)
+	# p.add_awgs('AWG3',AWG3)
+	# p.add_awgs('AWG4',AWG4)
 
 	# define channels
-	p.define_channel('B0','AWG1', 1)
+	# p.define_channel('B0','AWG1', 1)
 	p.define_channel('P1','AWG1', 2)
 	p.define_channel('B1','AWG1', 3)
 	p.define_channel('P2','AWG1', 4)
@@ -252,13 +275,21 @@ if __name__ == '__main__':
 	p.add_channel_delay('M2',-25)
 
 	# add limits on voltages for DC channel compenstation (if no limit is specified, no compensation is performed).
-	p.add_channel_compenstation_limit('B0', (-100, 500))
+	# p.add_channel_compenstation_limit('B0', (-100, 500))
 
-	# set a virtual gate matrix (note that you are not limited to one matrix if you would which so)
-	virtual_gate_set_1 = virtual_gates_constructor(p)
-	virtual_gate_set_1.add_real_gates('P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5')
-	virtual_gate_set_1.add_virtual_gates('vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5')
-	virtual_gate_set_1.add_virtual_gate_matrix(np.eye(11))
+	try:
+		from V2_software.drivers.virtual_gates.harware import hardware_example
+		hw =  hardware_example("hw")
+		p.load_hardware(hw)
+		print(p.virtual_channels[1].virtual_gate_names)
+		print(p.virtual_channels[1].virtual_gate_matrix)
+		print("virtual AWG loaded")
+	except:
+		# set a virtual gate matrix (note that you are not limited to one matrix if you would which so)
+		virtual_gate_set_1 = virtual_gates_constructor(p)
+		virtual_gate_set_1.add_real_gates('P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5')
+		virtual_gate_set_1.add_virtual_gates('vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5')
+		virtual_gate_set_1.add_virtual_gate_matrix(np.eye(11))
 
 	#make virtual channels for IQ usage (also here, make one one of these object per MW source)
 	IQ_chan_set_1 = IQ_channel_constructor(p)
