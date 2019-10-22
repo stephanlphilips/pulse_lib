@@ -164,11 +164,8 @@ class pulselib:
 			vgc.load_via_harware(virtual_gate_set)
 
 		# set output ratio's of the channels from the harware file.
-		print(self.AWG_to_dac_ratio.keys())
-		print( hardware.AWG_to_dac_conversion.keys())
 		if self.AWG_to_dac_ratio.keys() == hardware.AWG_to_dac_conversion.keys():
 			self.AWG_to_dac_ratio = hardware.AWG_to_dac_conversion
-			print('test')
 		else:
 			hardware.AWG_to_dac_conversion = self.AWG_to_dac_ratio
 			hardware.sync_data()
@@ -281,9 +278,7 @@ if __name__ == '__main__':
 		from V2_software.drivers.virtual_gates.harware import hardware_example
 		hw =  hardware_example("hw")
 		p.load_hardware(hw)
-		print(p.virtual_channels[1].virtual_gate_names)
-		print(p.virtual_channels[1].virtual_gate_matrix)
-		print("virtual AWG loaded")
+
 	except:
 		# set a virtual gate matrix (note that you are not limited to one matrix if you would which so)
 		virtual_gate_set_1 = virtual_gates_constructor(p)
