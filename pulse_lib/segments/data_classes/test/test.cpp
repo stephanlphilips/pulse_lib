@@ -3,20 +3,14 @@
 /* BEGIN: Cython Metadata
 {
     "distutils": {
-        "depends": [
-            "/usr/lib/python3.7/site-packages/numpy/core/include/numpy/arrayobject.h",
-            "/usr/lib/python3.7/site-packages/numpy/core/include/numpy/ufuncobject.h"
-        ],
-        "include_dirs": [
-            "/usr/lib/python3.7/site-packages/numpy/core/include"
-        ],
+        "depends": [],
         "language": "c++",
-        "name": "pulse_lib.segments.data_classes.data_pulse_core",
+        "name": "test",
         "sources": [
-            "pulse_lib/segments/data_classes/data_pulse_core.pyx"
+            "test.pyx"
         ]
     },
-    "module_name": "pulse_lib.segments.data_classes.data_pulse_core"
+    "module_name": "test"
 }
 END: Cython Metadata */
 
@@ -624,8 +618,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__pulse_lib__segments__data_classes__data_pulse_core
-#define __PYX_HAVE_API__pulse_lib__segments__data_classes__data_pulse_core
+#define __PYX_HAVE__test
+#define __PYX_HAVE_API__test
 /* Early includes */
 #include <string.h>
 #include <stdio.h>
@@ -870,7 +864,7 @@ static const char *__pyx_filename;
 
 static const char *__pyx_f[] = {
   "stringsource",
-  "pulse_lib/segments/data_classes/data_pulse_core.pyx",
+  "test.pyx",
   "__init__.pxd",
   "type.pxd",
   "bool.pxd",
@@ -985,7 +979,7 @@ typedef struct {
 } __Pyx_BufFmt_Context;
 
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":776
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":776
  * # in Cython to enable them only on the right systems.
  * 
  * ctypedef npy_int8       int8_t             # <<<<<<<<<<<<<<
@@ -994,7 +988,7 @@ typedef struct {
  */
 typedef npy_int8 __pyx_t_5numpy_int8_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":777
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":777
  * 
  * ctypedef npy_int8       int8_t
  * ctypedef npy_int16      int16_t             # <<<<<<<<<<<<<<
@@ -1003,7 +997,7 @@ typedef npy_int8 __pyx_t_5numpy_int8_t;
  */
 typedef npy_int16 __pyx_t_5numpy_int16_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":778
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":778
  * ctypedef npy_int8       int8_t
  * ctypedef npy_int16      int16_t
  * ctypedef npy_int32      int32_t             # <<<<<<<<<<<<<<
@@ -1012,7 +1006,7 @@ typedef npy_int16 __pyx_t_5numpy_int16_t;
  */
 typedef npy_int32 __pyx_t_5numpy_int32_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":779
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":779
  * ctypedef npy_int16      int16_t
  * ctypedef npy_int32      int32_t
  * ctypedef npy_int64      int64_t             # <<<<<<<<<<<<<<
@@ -1021,7 +1015,7 @@ typedef npy_int32 __pyx_t_5numpy_int32_t;
  */
 typedef npy_int64 __pyx_t_5numpy_int64_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":783
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":783
  * #ctypedef npy_int128     int128_t
  * 
  * ctypedef npy_uint8      uint8_t             # <<<<<<<<<<<<<<
@@ -1030,7 +1024,7 @@ typedef npy_int64 __pyx_t_5numpy_int64_t;
  */
 typedef npy_uint8 __pyx_t_5numpy_uint8_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":784
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":784
  * 
  * ctypedef npy_uint8      uint8_t
  * ctypedef npy_uint16     uint16_t             # <<<<<<<<<<<<<<
@@ -1039,7 +1033,7 @@ typedef npy_uint8 __pyx_t_5numpy_uint8_t;
  */
 typedef npy_uint16 __pyx_t_5numpy_uint16_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":785
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":785
  * ctypedef npy_uint8      uint8_t
  * ctypedef npy_uint16     uint16_t
  * ctypedef npy_uint32     uint32_t             # <<<<<<<<<<<<<<
@@ -1048,7 +1042,7 @@ typedef npy_uint16 __pyx_t_5numpy_uint16_t;
  */
 typedef npy_uint32 __pyx_t_5numpy_uint32_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":786
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":786
  * ctypedef npy_uint16     uint16_t
  * ctypedef npy_uint32     uint32_t
  * ctypedef npy_uint64     uint64_t             # <<<<<<<<<<<<<<
@@ -1057,7 +1051,7 @@ typedef npy_uint32 __pyx_t_5numpy_uint32_t;
  */
 typedef npy_uint64 __pyx_t_5numpy_uint64_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":790
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":790
  * #ctypedef npy_uint128    uint128_t
  * 
  * ctypedef npy_float32    float32_t             # <<<<<<<<<<<<<<
@@ -1066,7 +1060,7 @@ typedef npy_uint64 __pyx_t_5numpy_uint64_t;
  */
 typedef npy_float32 __pyx_t_5numpy_float32_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":791
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":791
  * 
  * ctypedef npy_float32    float32_t
  * ctypedef npy_float64    float64_t             # <<<<<<<<<<<<<<
@@ -1075,7 +1069,7 @@ typedef npy_float32 __pyx_t_5numpy_float32_t;
  */
 typedef npy_float64 __pyx_t_5numpy_float64_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":800
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":800
  * # The int types are mapped a bit surprising --
  * # numpy.int corresponds to 'l' and numpy.long to 'q'
  * ctypedef npy_long       int_t             # <<<<<<<<<<<<<<
@@ -1084,7 +1078,7 @@ typedef npy_float64 __pyx_t_5numpy_float64_t;
  */
 typedef npy_long __pyx_t_5numpy_int_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":801
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":801
  * # numpy.int corresponds to 'l' and numpy.long to 'q'
  * ctypedef npy_long       int_t
  * ctypedef npy_longlong   long_t             # <<<<<<<<<<<<<<
@@ -1093,7 +1087,7 @@ typedef npy_long __pyx_t_5numpy_int_t;
  */
 typedef npy_longlong __pyx_t_5numpy_long_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":802
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":802
  * ctypedef npy_long       int_t
  * ctypedef npy_longlong   long_t
  * ctypedef npy_longlong   longlong_t             # <<<<<<<<<<<<<<
@@ -1102,7 +1096,7 @@ typedef npy_longlong __pyx_t_5numpy_long_t;
  */
 typedef npy_longlong __pyx_t_5numpy_longlong_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":804
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":804
  * ctypedef npy_longlong   longlong_t
  * 
  * ctypedef npy_ulong      uint_t             # <<<<<<<<<<<<<<
@@ -1111,7 +1105,7 @@ typedef npy_longlong __pyx_t_5numpy_longlong_t;
  */
 typedef npy_ulong __pyx_t_5numpy_uint_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":805
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":805
  * 
  * ctypedef npy_ulong      uint_t
  * ctypedef npy_ulonglong  ulong_t             # <<<<<<<<<<<<<<
@@ -1120,7 +1114,7 @@ typedef npy_ulong __pyx_t_5numpy_uint_t;
  */
 typedef npy_ulonglong __pyx_t_5numpy_ulong_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":806
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":806
  * ctypedef npy_ulong      uint_t
  * ctypedef npy_ulonglong  ulong_t
  * ctypedef npy_ulonglong  ulonglong_t             # <<<<<<<<<<<<<<
@@ -1129,7 +1123,7 @@ typedef npy_ulonglong __pyx_t_5numpy_ulong_t;
  */
 typedef npy_ulonglong __pyx_t_5numpy_ulonglong_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":808
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":808
  * ctypedef npy_ulonglong  ulonglong_t
  * 
  * ctypedef npy_intp       intp_t             # <<<<<<<<<<<<<<
@@ -1138,7 +1132,7 @@ typedef npy_ulonglong __pyx_t_5numpy_ulonglong_t;
  */
 typedef npy_intp __pyx_t_5numpy_intp_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":809
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":809
  * 
  * ctypedef npy_intp       intp_t
  * ctypedef npy_uintp      uintp_t             # <<<<<<<<<<<<<<
@@ -1147,7 +1141,7 @@ typedef npy_intp __pyx_t_5numpy_intp_t;
  */
 typedef npy_uintp __pyx_t_5numpy_uintp_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":811
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":811
  * ctypedef npy_uintp      uintp_t
  * 
  * ctypedef npy_double     float_t             # <<<<<<<<<<<<<<
@@ -1156,7 +1150,7 @@ typedef npy_uintp __pyx_t_5numpy_uintp_t;
  */
 typedef npy_double __pyx_t_5numpy_float_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":812
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":812
  * 
  * ctypedef npy_double     float_t
  * ctypedef npy_double     double_t             # <<<<<<<<<<<<<<
@@ -1165,7 +1159,7 @@ typedef npy_double __pyx_t_5numpy_float_t;
  */
 typedef npy_double __pyx_t_5numpy_double_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":813
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":813
  * ctypedef npy_double     float_t
  * ctypedef npy_double     double_t
  * ctypedef npy_longdouble longdouble_t             # <<<<<<<<<<<<<<
@@ -1174,14 +1168,14 @@ typedef npy_double __pyx_t_5numpy_double_t;
  */
 typedef npy_longdouble __pyx_t_5numpy_longdouble_t;
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":15
+/* "test.pyx":15
  * 
  * # note on linux is is long ...
  * ctypedef long long longlong             # <<<<<<<<<<<<<<
  * 
  * cdef struct s_pulse_info:
  */
-typedef PY_LONG_LONG __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong;
+typedef PY_LONG_LONG __pyx_t_4test_longlong;
 /* Declarations.proto */
 #if CYTHON_CCOMPLEX
   #ifdef __cplusplus
@@ -1208,14 +1202,14 @@ static CYTHON_INLINE __pyx_t_double_complex __pyx_t_double_complex_from_parts(do
 
 
 /*--- Type declarations ---*/
-struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element;
-struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence;
+struct __pyx_obj_4test_base_pulse_element;
+struct __pyx_obj_4test_pulse_data_single_sequence;
 struct __pyx_array_obj;
 struct __pyx_MemviewEnum_obj;
 struct __pyx_memoryview_obj;
 struct __pyx_memoryviewslice_obj;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":815
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":815
  * ctypedef npy_longdouble longdouble_t
  * 
  * ctypedef npy_cfloat      cfloat_t             # <<<<<<<<<<<<<<
@@ -1224,7 +1218,7 @@ struct __pyx_memoryviewslice_obj;
  */
 typedef npy_cfloat __pyx_t_5numpy_cfloat_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":816
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":816
  * 
  * ctypedef npy_cfloat      cfloat_t
  * ctypedef npy_cdouble     cdouble_t             # <<<<<<<<<<<<<<
@@ -1233,7 +1227,7 @@ typedef npy_cfloat __pyx_t_5numpy_cfloat_t;
  */
 typedef npy_cdouble __pyx_t_5numpy_cdouble_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":817
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":817
  * ctypedef npy_cfloat      cfloat_t
  * ctypedef npy_cdouble     cdouble_t
  * ctypedef npy_clongdouble clongdouble_t             # <<<<<<<<<<<<<<
@@ -1242,7 +1236,7 @@ typedef npy_cdouble __pyx_t_5numpy_cdouble_t;
  */
 typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":819
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":819
  * ctypedef npy_clongdouble clongdouble_t
  * 
  * ctypedef npy_cdouble     complex_t             # <<<<<<<<<<<<<<
@@ -1250,58 +1244,58 @@ typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
  * cdef inline object PyArray_MultiIterNew1(a):
  */
 typedef npy_cdouble __pyx_t_5numpy_complex_t;
-struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info;
+struct __pyx_t_4test_s_pulse_info;
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":17
+/* "test.pyx":17
  * ctypedef long long longlong
  * 
  * cdef struct s_pulse_info:             # <<<<<<<<<<<<<<
  * 	double start
  * 	double stop
  */
-struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info {
+struct __pyx_t_4test_s_pulse_info {
   double start;
   double stop;
   double v_start;
   double v_stop;
-  __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong index_start;
-  __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong index_stop;
+  __pyx_t_4test_longlong index_start;
+  __pyx_t_4test_longlong index_stop;
 };
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":27
+/* "test.pyx":27
  * 	longlong index_stop
  * 
  * ctypedef s_pulse_info pulse_info             # <<<<<<<<<<<<<<
  * 
  * cdef class base_pulse_element:
  */
-typedef struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info;
+typedef struct __pyx_t_4test_s_pulse_info __pyx_t_4test_pulse_info;
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":29
+/* "test.pyx":29
  * ctypedef s_pulse_info pulse_info
  * 
  * cdef class base_pulse_element:             # <<<<<<<<<<<<<<
  * 	cdef pulse_info my_pulse_info
  * 
  */
-struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element {
+struct __pyx_obj_4test_base_pulse_element {
   PyObject_HEAD
-  __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info my_pulse_info;
+  __pyx_t_4test_pulse_info my_pulse_info;
 };
 
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":41
+/* "test.pyx":41
  * @cython.boundscheck(False) # turn off bounds-checking for entire function
  * @cython.wraparound(False)  # turn off negative index wrapping for entire function
  * cdef class pulse_data_single_sequence():             # <<<<<<<<<<<<<<
  * 	cdef public double _total_time
  * 	cdef public vector[pulse_info] localdata
  */
-struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence {
+struct __pyx_obj_4test_pulse_data_single_sequence {
   PyObject_HEAD
-  struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_vtab;
+  struct __pyx_vtabstruct_4test_pulse_data_single_sequence *__pyx_vtab;
   double _total_time;
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  localdata;
+  std::vector<__pyx_t_4test_pulse_info>  localdata;
   PyBoolObject *re_render;
   __Pyx_memviewslice voltage_data;
   __Pyx_memviewslice time_data;
@@ -1386,7 +1380,7 @@ struct __pyx_memoryviewslice_obj {
 
 
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":41
+/* "test.pyx":41
  * @cython.boundscheck(False) # turn off bounds-checking for entire function
  * @cython.wraparound(False)  # turn off negative index wrapping for entire function
  * cdef class pulse_data_single_sequence():             # <<<<<<<<<<<<<<
@@ -1394,12 +1388,12 @@ struct __pyx_memoryviewslice_obj {
  * 	cdef public vector[pulse_info] localdata
  */
 
-struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence {
-  PyObject *(*_add_pulse)(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *, struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *);
-  PyObject *(*_muliply)(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *, double);
-  PyObject *(*__pyx___local_render)(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *);
+struct __pyx_vtabstruct_4test_pulse_data_single_sequence {
+  PyObject *(*_add_pulse)(struct __pyx_obj_4test_pulse_data_single_sequence *, struct __pyx_obj_4test_pulse_data_single_sequence *);
+  PyObject *(*_muliply)(struct __pyx_obj_4test_pulse_data_single_sequence *, double);
+  PyObject *(*__pyx___local_render)(struct __pyx_obj_4test_pulse_data_single_sequence *);
 };
-static struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_vtabptr_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence;
+static struct __pyx_vtabstruct_4test_pulse_data_single_sequence *__pyx_vtabptr_4test_pulse_data_single_sequence;
 
 
 /* "View.MemoryView":105
@@ -2046,8 +2040,8 @@ static CYTHON_INLINE PyObject *__pyx_capsule_create(void *p, const char *sig);
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_PY_LONG_LONG(PY_LONG_LONG value);
 
-struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info;
-static PyObject* __pyx_convert__to_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info(struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info s);
+struct __pyx_t_4test_s_pulse_info;
+static PyObject* __pyx_convert__to_py_struct____pyx_t_4test_s_pulse_info(struct __pyx_t_4test_s_pulse_info s);
 /* MemviewDtypeToObject.proto */
 static CYTHON_INLINE PyObject *__pyx_memview_get_double(const char *itemp);
 static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *obj);
@@ -2250,7 +2244,7 @@ static CYTHON_INLINE size_t __Pyx_PyInt_As_size_t(PyObject *);
 static CYTHON_INLINE char __Pyx_PyInt_As_char(PyObject *);
 
 /* ObjectToMemviewSlice.proto */
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong(PyObject *, int writable_flag);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_4test_longlong(PyObject *, int writable_flag);
 
 /* CheckBinaryVersion.proto */
 static int __Pyx_check_binary_version(void);
@@ -2258,9 +2252,9 @@ static int __Pyx_check_binary_version(void);
 /* InitStrings.proto */
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
-static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence__add_pulse(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_other); /* proto*/
-static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence__muliply(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_other); /* proto*/
-static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence___local_render(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto*/
+static PyObject *__pyx_f_4test_26pulse_data_single_sequence__add_pulse(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_other); /* proto*/
+static PyObject *__pyx_f_4test_26pulse_data_single_sequence__muliply(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_other); /* proto*/
+static PyObject *__pyx_f_4test_26pulse_data_single_sequence___local_render(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self); /* proto*/
 static PyObject *__pyx_array_get_memview(struct __pyx_array_obj *__pyx_v_self); /* proto*/
 static char *__pyx_memoryview_get_item_pointer(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_index); /* proto*/
 static PyObject *__pyx_memoryview_is_slice(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_obj); /* proto*/
@@ -2371,9 +2365,9 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *, cha
 
 /* Module declarations from 'libcpp.vector' */
 
-/* Module declarations from 'pulse_lib.segments.data_classes.data_pulse_core' */
-static PyTypeObject *__pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element = 0;
-static PyTypeObject *__pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence = 0;
+/* Module declarations from 'test' */
+static PyTypeObject *__pyx_ptype_4test_base_pulse_element = 0;
+static PyTypeObject *__pyx_ptype_4test_pulse_data_single_sequence = 0;
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
@@ -2385,10 +2379,10 @@ static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
-static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core___pyx_unpickle_pulse_data_single_sequence__set_state(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *, PyObject *); /*proto*/
-static PyObject *__pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(const std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  &); /*proto*/
-static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info __pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info(PyObject *); /*proto*/
-static std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  __pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(PyObject *); /*proto*/
+static PyObject *__pyx_f_4test___pyx_unpickle_pulse_data_single_sequence__set_state(struct __pyx_obj_4test_pulse_data_single_sequence *, PyObject *); /*proto*/
+static PyObject *__pyx_convert_vector_to_py___pyx_t_4test_pulse_info(const std::vector<__pyx_t_4test_pulse_info>  &); /*proto*/
+static struct __pyx_t_4test_s_pulse_info __pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info(PyObject *); /*proto*/
+static std::vector<__pyx_t_4test_pulse_info>  __pyx_convert_vector_from_py___pyx_t_4test_pulse_info(PyObject *); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -2423,12 +2417,12 @@ static void __pyx_memoryview_slice_assign_scalar(__Pyx_memviewslice *, int, size
 static void __pyx_memoryview__slice_assign_scalar(char *, Py_ssize_t *, Py_ssize_t *, int, size_t, void *); /*proto*/
 static PyObject *__pyx_unpickle_Enum__set_state(struct __pyx_MemviewEnum_obj *, PyObject *); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_double = { "double", NULL, sizeof(double), { 0 }, 0, 'R', 0, 0 };
-static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong = { "longlong", NULL, sizeof(__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong), { 0 }, 0, IS_UNSIGNED(__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong) ? 'U' : 'I', IS_UNSIGNED(__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong), 0 };
-#define __Pyx_MODULE_NAME "pulse_lib.segments.data_classes.data_pulse_core"
-extern int __pyx_module_is_main_pulse_lib__segments__data_classes__data_pulse_core;
-int __pyx_module_is_main_pulse_lib__segments__data_classes__data_pulse_core = 0;
+static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_4test_longlong = { "longlong", NULL, sizeof(__pyx_t_4test_longlong), { 0 }, 0, IS_UNSIGNED(__pyx_t_4test_longlong) ? 'U' : 'I', IS_UNSIGNED(__pyx_t_4test_longlong), 0 };
+#define __Pyx_MODULE_NAME "test"
+extern int __pyx_module_is_main_test;
+int __pyx_module_is_main_test = 0;
 
-/* Implementation of 'pulse_lib.segments.data_classes.data_pulse_core' */
+/* Implementation of 'test' */
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_ValueError;
@@ -2460,7 +2454,7 @@ static const char __pyx_k_pack[] = "pack";
 static const char __pyx_k_size[] = "size";
 static const char __pyx_k_step[] = "step";
 static const char __pyx_k_stop[] = "stop";
-static const char __pyx_k_test[] = "__test__";
+static const char __pyx_k_test[] = "test";
 static const char __pyx_k_ASCII[] = "ASCII";
 static const char __pyx_k_class[] = "__class__";
 static const char __pyx_k_dtype[] = "dtype";
@@ -2481,6 +2475,7 @@ static const char __pyx_k_name_2[] = "__name__";
 static const char __pyx_k_pickle[] = "pickle";
 static const char __pyx_k_reduce[] = "__reduce__";
 static const char __pyx_k_struct[] = "struct";
+static const char __pyx_k_test_2[] = "__test__";
 static const char __pyx_k_unique[] = "unique";
 static const char __pyx_k_unpack[] = "unpack";
 static const char __pyx_k_update[] = "update";
@@ -2543,7 +2538,6 @@ static const char __pyx_k_pyx_unpickle_pulse_data_single[] = "__pyx_unpickle_pul
 static const char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
 static const char __pyx_k_Pickling_of_struct_members_such[] = "Pickling of struct members such as self.my_pulse_info must be explicitly requested with @auto_pickle(True)";
 static const char __pyx_k_numpy_core_multiarray_failed_to[] = "numpy.core.multiarray failed to import";
-static const char __pyx_k_pulse_lib_segments_data_classes[] = "pulse_lib.segments.data_classes.data_pulse_core";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
 static const char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
 static const char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buffer that is contiguous in memory.";
@@ -2664,7 +2658,6 @@ static PyObject *__pyx_n_s_pack;
 static PyObject *__pyx_n_s_pickle;
 static PyObject *__pyx_n_s_pulse_data;
 static PyObject *__pyx_n_s_pulse_data_single_sequence;
-static PyObject *__pyx_n_s_pulse_lib_segments_data_classes;
 static PyObject *__pyx_n_s_pyx_PickleError;
 static PyObject *__pyx_n_s_pyx_checksum;
 static PyObject *__pyx_n_s_pyx_getbuffer;
@@ -2693,6 +2686,7 @@ static PyObject *__pyx_kp_s_strided_and_indirect;
 static PyObject *__pyx_kp_s_stringsource;
 static PyObject *__pyx_n_s_struct;
 static PyObject *__pyx_n_s_test;
+static PyObject *__pyx_n_s_test_2;
 static PyObject *__pyx_n_s_total_time;
 static PyObject *__pyx_n_s_total_time_2;
 static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
@@ -2704,33 +2698,33 @@ static PyObject *__pyx_n_s_update;
 static PyObject *__pyx_n_s_v_start;
 static PyObject *__pyx_n_s_v_stop;
 static PyObject *__pyx_n_s_zeros;
-static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element___init__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_stop, PyObject *__pyx_v_v_start, PyObject *__pyx_v_v_stop); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_2__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_4__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
-static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence___init__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_2add_pulse(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *__pyx_v_pulse); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_4append(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6repeat(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_n); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_8shift_time(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_time); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_12__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_14__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_16slice_time(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_start, double __pyx_v_stop); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_18__copy__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10pulse_data___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10total_time___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_max___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_min___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11_total_time___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11_total_time_2__set__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9localdata___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9localdata_2__set__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_2__set__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
-static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_4__del__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_20__reduce_cython__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_22__setstate_cython__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core___pyx_unpickle_pulse_data_single_sequence(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
+static int __pyx_pf_4test_18base_pulse_element___init__(struct __pyx_obj_4test_base_pulse_element *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_stop, PyObject *__pyx_v_v_start, PyObject *__pyx_v_v_stop); /* proto */
+static PyObject *__pyx_pf_4test_18base_pulse_element_2__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_4test_base_pulse_element *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4test_18base_pulse_element_4__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_4test_base_pulse_element *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
+static int __pyx_pf_4test_26pulse_data_single_sequence___init__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_2add_pulse(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, struct __pyx_obj_4test_base_pulse_element *__pyx_v_pulse); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_4append(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_6repeat(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_n); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_8shift_time(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_time); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_10__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_12__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_14__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_16slice_time(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_start, double __pyx_v_stop); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_18__copy__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_10pulse_data___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_10total_time___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_5v_max___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_5v_min___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_11_total_time___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static int __pyx_pf_4test_26pulse_data_single_sequence_11_total_time_2__set__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_9localdata___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static int __pyx_pf_4test_26pulse_data_single_sequence_9localdata_2__set__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_9re_render___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static int __pyx_pf_4test_26pulse_data_single_sequence_9re_render_2__set__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
+static int __pyx_pf_4test_26pulse_data_single_sequence_9re_render_4__del__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_20__reduce_cython__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_22__setstate_cython__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_4test___pyx_unpickle_pulse_data_single_sequence(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -2775,8 +2769,8 @@ static PyObject *__pyx_pf_15View_dot_MemoryView_16_memoryviewslice_4base___get__
 static PyObject *__pyx_pf___pyx_memoryviewslice___reduce_cython__(CYTHON_UNUSED struct __pyx_memoryviewslice_obj *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf___pyx_memoryviewslice_2__setstate_cython__(CYTHON_UNUSED struct __pyx_memoryviewslice_obj *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_15View_dot_MemoryView___pyx_unpickle_Enum(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
-static PyObject *__pyx_tp_new_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
-static PyObject *__pyx_tp_new_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_tp_new_4test_base_pulse_element(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_tp_new_4test_pulse_data_single_sequence(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_array(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_Enum(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_memoryview(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
@@ -2833,7 +2827,7 @@ static PyObject *__pyx_codeobj__36;
 static PyObject *__pyx_codeobj__43;
 /* Late includes */
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":32
+/* "test.pyx":32
  * 	cdef pulse_info my_pulse_info
  * 
  * 	def __init__(self, start, stop, v_start, v_stop):             # <<<<<<<<<<<<<<
@@ -2842,8 +2836,8 @@ static PyObject *__pyx_codeobj__43;
  */
 
 /* Python wrapper */
-static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static int __pyx_pw_4test_18base_pulse_element_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_4test_18base_pulse_element_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_start = 0;
   PyObject *__pyx_v_stop = 0;
   PyObject *__pyx_v_v_start = 0;
@@ -2913,24 +2907,24 @@ static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__init__", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 32, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.base_pulse_element.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.base_pulse_element.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element___init__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *)__pyx_v_self), __pyx_v_start, __pyx_v_stop, __pyx_v_v_start, __pyx_v_v_stop);
+  __pyx_r = __pyx_pf_4test_18base_pulse_element___init__(((struct __pyx_obj_4test_base_pulse_element *)__pyx_v_self), __pyx_v_start, __pyx_v_stop, __pyx_v_v_start, __pyx_v_v_stop);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element___init__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_stop, PyObject *__pyx_v_v_start, PyObject *__pyx_v_v_stop) {
+static int __pyx_pf_4test_18base_pulse_element___init__(struct __pyx_obj_4test_base_pulse_element *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_stop, PyObject *__pyx_v_v_start, PyObject *__pyx_v_v_stop) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   double __pyx_t_1;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":33
+  /* "test.pyx":33
  * 
  * 	def __init__(self, start, stop, v_start, v_stop):
  * 		self.my_pulse_info.start = start             # <<<<<<<<<<<<<<
@@ -2940,7 +2934,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base
   __pyx_t_1 = __pyx_PyFloat_AsDouble(__pyx_v_start); if (unlikely((__pyx_t_1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 33, __pyx_L1_error)
   __pyx_v_self->my_pulse_info.start = __pyx_t_1;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":34
+  /* "test.pyx":34
  * 	def __init__(self, start, stop, v_start, v_stop):
  * 		self.my_pulse_info.start = start
  * 		self.my_pulse_info.stop = stop             # <<<<<<<<<<<<<<
@@ -2950,7 +2944,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base
   __pyx_t_1 = __pyx_PyFloat_AsDouble(__pyx_v_stop); if (unlikely((__pyx_t_1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 34, __pyx_L1_error)
   __pyx_v_self->my_pulse_info.stop = __pyx_t_1;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":35
+  /* "test.pyx":35
  * 		self.my_pulse_info.start = start
  * 		self.my_pulse_info.stop = stop
  * 		self.my_pulse_info.v_start = v_start             # <<<<<<<<<<<<<<
@@ -2960,7 +2954,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base
   __pyx_t_1 = __pyx_PyFloat_AsDouble(__pyx_v_v_start); if (unlikely((__pyx_t_1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 35, __pyx_L1_error)
   __pyx_v_self->my_pulse_info.v_start = __pyx_t_1;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":36
+  /* "test.pyx":36
  * 		self.my_pulse_info.stop = stop
  * 		self.my_pulse_info.v_start = v_start
  * 		self.my_pulse_info.v_stop = v_stop             # <<<<<<<<<<<<<<
@@ -2970,7 +2964,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base
   __pyx_t_1 = __pyx_PyFloat_AsDouble(__pyx_v_v_stop); if (unlikely((__pyx_t_1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 36, __pyx_L1_error)
   __pyx_v_self->my_pulse_info.v_stop = __pyx_t_1;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":32
+  /* "test.pyx":32
  * 	cdef pulse_info my_pulse_info
  * 
  * 	def __init__(self, start, stop, v_start, v_stop):             # <<<<<<<<<<<<<<
@@ -2982,7 +2976,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base
   __pyx_r = 0;
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.base_pulse_element.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.base_pulse_element.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -2996,19 +2990,19 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_3__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_3__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_4test_18base_pulse_element_3__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_4test_18base_pulse_element_3__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_2__reduce_cython__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_18base_pulse_element_2__reduce_cython__(((struct __pyx_obj_4test_base_pulse_element *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_2__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *__pyx_v_self) {
+static PyObject *__pyx_pf_4test_18base_pulse_element_2__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_4test_base_pulse_element *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3035,7 +3029,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.base_pulse_element.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.base_pulse_element.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
@@ -3050,19 +3044,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_5__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_5__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pw_4test_18base_pulse_element_5__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static PyObject *__pyx_pw_4test_18base_pulse_element_5__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_4__setstate_cython__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+  __pyx_r = __pyx_pf_4test_18base_pulse_element_4__setstate_cython__(((struct __pyx_obj_4test_base_pulse_element *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_4__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_4test_18base_pulse_element_4__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_4test_base_pulse_element *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3089,14 +3083,14 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.base_pulse_element.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.base_pulse_element.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":47
+/* "test.pyx":47
  * 	cdef double[:] voltage_data
  * 	cdef double[:] time_data
  * 	def __init__(self):             # <<<<<<<<<<<<<<
@@ -3105,46 +3099,46 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static int __pyx_pw_4test_26pulse_data_single_sequence_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_4test_26pulse_data_single_sequence_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__ (wrapper)", 0);
   if (unlikely(PyTuple_GET_SIZE(__pyx_args) > 0)) {
     __Pyx_RaiseArgtupleInvalid("__init__", 1, 0, 0, PyTuple_GET_SIZE(__pyx_args)); return -1;}
   if (unlikely(__pyx_kwds) && unlikely(PyDict_Size(__pyx_kwds) > 0) && unlikely(!__Pyx_CheckKeywordStrings(__pyx_kwds, "__init__", 0))) return -1;
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence___init__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence___init__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence___init__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
-  struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *__pyx_v_pulse_init = NULL;
+static int __pyx_pf_4test_26pulse_data_single_sequence___init__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self) {
+  struct __pyx_obj_4test_base_pulse_element *__pyx_v_pulse_init = NULL;
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  __pyx_t_2;
+  std::vector<__pyx_t_4test_pulse_info>  __pyx_t_2;
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
   __Pyx_memviewslice __pyx_t_6 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":49
+  /* "test.pyx":49
  * 	def __init__(self):
  * 		# add empty pulse around 0 to make sure the pulse starts at that point
  * 		pulse_init = base_pulse_element(0,3e-6,0,0)             # <<<<<<<<<<<<<<
  * 		self.localdata = vector[pulse_info]()
  * 		self.localdata.push_back(pulse_init.my_pulse_info)
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element), __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 49, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_4test_base_pulse_element), __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 49, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_v_pulse_init = ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *)__pyx_t_1);
+  __pyx_v_pulse_init = ((struct __pyx_obj_4test_base_pulse_element *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":50
+  /* "test.pyx":50
  * 		# add empty pulse around 0 to make sure the pulse starts at that point
  * 		pulse_init = base_pulse_element(0,3e-6,0,0)
  * 		self.localdata = vector[pulse_info]()             # <<<<<<<<<<<<<<
@@ -3152,14 +3146,14 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
  * 		self._total_time = 0
  */
   try {
-    __pyx_t_2 = std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info> ();
+    __pyx_t_2 = std::vector<__pyx_t_4test_pulse_info> ();
   } catch(...) {
     __Pyx_CppExn2PyErr();
     __PYX_ERR(1, 50, __pyx_L1_error)
   }
   __pyx_v_self->localdata = __pyx_t_2;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":51
+  /* "test.pyx":51
  * 		pulse_init = base_pulse_element(0,3e-6,0,0)
  * 		self.localdata = vector[pulse_info]()
  * 		self.localdata.push_back(pulse_init.my_pulse_info)             # <<<<<<<<<<<<<<
@@ -3173,7 +3167,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
     __PYX_ERR(1, 51, __pyx_L1_error)
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":52
+  /* "test.pyx":52
  * 		self.localdata = vector[pulse_info]()
  * 		self.localdata.push_back(pulse_init.my_pulse_info)
  * 		self._total_time = 0             # <<<<<<<<<<<<<<
@@ -3182,7 +3176,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
  */
   __pyx_v_self->_total_time = 0.0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":53
+  /* "test.pyx":53
  * 		self.localdata.push_back(pulse_init.my_pulse_info)
  * 		self._total_time = 0
  * 		self.re_render = True             # <<<<<<<<<<<<<<
@@ -3195,7 +3189,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
   __Pyx_DECREF(((PyObject *)__pyx_v_self->re_render));
   __pyx_v_self->re_render = ((PyBoolObject *)Py_True);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":54
+  /* "test.pyx":54
  * 		self._total_time = 0
  * 		self.re_render = True
  * 		self.voltage_data = np.empty([0])             # <<<<<<<<<<<<<<
@@ -3235,7 +3229,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":55
+  /* "test.pyx":55
  * 		self.re_render = True
  * 		self.voltage_data = np.empty([0])
  * 		self.time_data = np.empty([0])             # <<<<<<<<<<<<<<
@@ -3275,7 +3269,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":47
+  /* "test.pyx":47
  * 	cdef double[:] voltage_data
  * 	cdef double[:] time_data
  * 	def __init__(self):             # <<<<<<<<<<<<<<
@@ -3292,7 +3286,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_XDECREF((PyObject *)__pyx_v_pulse_init);
@@ -3300,7 +3294,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":57
+/* "test.pyx":57
  * 		self.time_data = np.empty([0])
  * 
  * 	def add_pulse(self, base_pulse_element pulse):             # <<<<<<<<<<<<<<
@@ -3309,13 +3303,13 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_3add_pulse(PyObject *__pyx_v_self, PyObject *__pyx_v_pulse); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_3add_pulse(PyObject *__pyx_v_self, PyObject *__pyx_v_pulse) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_3add_pulse(PyObject *__pyx_v_self, PyObject *__pyx_v_pulse); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_3add_pulse(PyObject *__pyx_v_self, PyObject *__pyx_v_pulse) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("add_pulse (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_pulse), __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element, 1, "pulse", 0))) __PYX_ERR(1, 57, __pyx_L1_error)
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_2add_pulse(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *)__pyx_v_pulse));
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_pulse), __pyx_ptype_4test_base_pulse_element, 1, "pulse", 0))) __PYX_ERR(1, 57, __pyx_L1_error)
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_2add_pulse(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self), ((struct __pyx_obj_4test_base_pulse_element *)__pyx_v_pulse));
 
   /* function exit code */
   goto __pyx_L0;
@@ -3326,14 +3320,14 @@ static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_2add_pulse(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *__pyx_v_pulse) {
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_2add_pulse(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, struct __pyx_obj_4test_base_pulse_element *__pyx_v_pulse) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   double __pyx_t_2;
   __Pyx_RefNannySetupContext("add_pulse", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":58
+  /* "test.pyx":58
  * 
  * 	def add_pulse(self, base_pulse_element pulse):
  * 		self.localdata.push_back(pulse.my_pulse_info)             # <<<<<<<<<<<<<<
@@ -3347,7 +3341,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __PYX_ERR(1, 58, __pyx_L1_error)
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":60
+  /* "test.pyx":60
  * 		self.localdata.push_back(pulse.my_pulse_info)
  * 
  * 		if self._total_time < pulse.my_pulse_info.stop:             # <<<<<<<<<<<<<<
@@ -3357,7 +3351,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_1 = ((__pyx_v_self->_total_time < __pyx_v_pulse->my_pulse_info.stop) != 0);
   if (__pyx_t_1) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":61
+    /* "test.pyx":61
  * 
  * 		if self._total_time < pulse.my_pulse_info.stop:
  * 			self._total_time = pulse.my_pulse_info.stop             # <<<<<<<<<<<<<<
@@ -3367,7 +3361,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_2 = __pyx_v_pulse->my_pulse_info.stop;
     __pyx_v_self->_total_time = __pyx_t_2;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":60
+    /* "test.pyx":60
  * 		self.localdata.push_back(pulse.my_pulse_info)
  * 
  * 		if self._total_time < pulse.my_pulse_info.stop:             # <<<<<<<<<<<<<<
@@ -3376,7 +3370,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":63
+  /* "test.pyx":63
  * 			self._total_time = pulse.my_pulse_info.stop
  * 
  * 		self.re_render = True             # <<<<<<<<<<<<<<
@@ -3389,7 +3383,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(((PyObject *)__pyx_v_self->re_render));
   __pyx_v_self->re_render = ((PyBoolObject *)Py_True);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":57
+  /* "test.pyx":57
  * 		self.time_data = np.empty([0])
  * 
  * 	def add_pulse(self, base_pulse_element pulse):             # <<<<<<<<<<<<<<
@@ -3401,7 +3395,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.add_pulse", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.add_pulse", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3409,7 +3403,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":65
+/* "test.pyx":65
  * 		self.re_render = True
  * 
  * 	def append(self, other):             # <<<<<<<<<<<<<<
@@ -3418,20 +3412,20 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5append(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
-static char __pyx_doc_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_4append[] = "\n\t\tappend other pulse object to this one\n\t\t";
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5append(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_5append(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
+static char __pyx_doc_4test_26pulse_data_single_sequence_4append[] = "\n\t\tappend other pulse object to this one\n\t\t";
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_5append(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("append (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_4append(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v_other));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_4append(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v_other));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_4append(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_other) {
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_4append(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_other) {
   double __pyx_v_time_shift;
   PyObject *__pyx_v_data = NULL;
   PyObject *__pyx_r = NULL;
@@ -3441,10 +3435,10 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  __pyx_t_6;
+  std::vector<__pyx_t_4test_pulse_info>  __pyx_t_6;
   __Pyx_RefNannySetupContext("append", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":69
+  /* "test.pyx":69
  * 		append other pulse object to this one
  * 		"""
  * 		time_shift = self._total_time             # <<<<<<<<<<<<<<
@@ -3454,7 +3448,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_1 = __pyx_v_self->_total_time;
   __pyx_v_time_shift = __pyx_t_1;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":71
+  /* "test.pyx":71
  * 		time_shift = self._total_time
  * 
  * 		other.shift_time(time_shift)             # <<<<<<<<<<<<<<
@@ -3483,7 +3477,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":72
+  /* "test.pyx":72
  * 
  * 		other.shift_time(time_shift)
  * 		data = self.__add__(other)             # <<<<<<<<<<<<<<
@@ -3510,7 +3504,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_v_data = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":73
+  /* "test.pyx":73
  * 		other.shift_time(time_shift)
  * 		data = self.__add__(other)
  * 		other.shift_time(-time_shift)             # <<<<<<<<<<<<<<
@@ -3539,7 +3533,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":75
+  /* "test.pyx":75
  * 		other.shift_time(-time_shift)
  * 
  * 		self.localdata =  data.localdata             # <<<<<<<<<<<<<<
@@ -3548,11 +3542,11 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_data, __pyx_n_s_localdata); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = __pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(__pyx_t_2); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 75, __pyx_L1_error)
+  __pyx_t_6 = __pyx_convert_vector_from_py___pyx_t_4test_pulse_info(__pyx_t_2); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 75, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_self->localdata = __pyx_t_6;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":76
+  /* "test.pyx":76
  * 
  * 		self.localdata =  data.localdata
  * 		self.re_render = True             # <<<<<<<<<<<<<<
@@ -3565,7 +3559,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(((PyObject *)__pyx_v_self->re_render));
   __pyx_v_self->re_render = ((PyBoolObject *)Py_True);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":77
+  /* "test.pyx":77
  * 		self.localdata =  data.localdata
  * 		self.re_render = True
  * 		self._total_time = data._total_time             # <<<<<<<<<<<<<<
@@ -3578,7 +3572,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_self->_total_time = __pyx_t_1;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":65
+  /* "test.pyx":65
  * 		self.re_render = True
  * 
  * 	def append(self, other):             # <<<<<<<<<<<<<<
@@ -3594,7 +3588,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.append", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.append", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_data);
@@ -3603,7 +3597,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":79
+/* "test.pyx":79
  * 		self._total_time = data._total_time
  * 
  * 	def repeat(self, n):             # <<<<<<<<<<<<<<
@@ -3612,21 +3606,21 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_7repeat(PyObject *__pyx_v_self, PyObject *__pyx_v_n); /*proto*/
-static char __pyx_doc_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6repeat[] = "\n\t\trepeat n times the current segment.\n\t\tArgs : \n\t\t\tn (int) : number of times to repeat the current segment.\n\t\t";
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_7repeat(PyObject *__pyx_v_self, PyObject *__pyx_v_n) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_7repeat(PyObject *__pyx_v_self, PyObject *__pyx_v_n); /*proto*/
+static char __pyx_doc_4test_26pulse_data_single_sequence_6repeat[] = "\n\t\trepeat n times the current segment.\n\t\tArgs : \n\t\t\tn (int) : number of times to repeat the current segment.\n\t\t";
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_7repeat(PyObject *__pyx_v_self, PyObject *__pyx_v_n) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("repeat (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6repeat(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v_n));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_6repeat(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v_n));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6repeat(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_n) {
-  struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_pulse_data = 0;
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_6repeat(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_n) {
+  struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_pulse_data = 0;
   double __pyx_v_total_time;
   CYTHON_UNUSED PyObject *__pyx_v_i = NULL;
   PyObject *__pyx_r = NULL;
@@ -3641,7 +3635,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("repeat", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":86
+  /* "test.pyx":86
  * 		"""
  * 
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)             # <<<<<<<<<<<<<<
@@ -3668,11 +3662,11 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 86, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence))))) __PYX_ERR(1, 86, __pyx_L1_error)
-  __pyx_v_pulse_data = ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_t_1);
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_4test_pulse_data_single_sequence))))) __PYX_ERR(1, 86, __pyx_L1_error)
+  __pyx_v_pulse_data = ((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":87
+  /* "test.pyx":87
  * 
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
  * 		cdef double total_time = self.total_time             # <<<<<<<<<<<<<<
@@ -3685,7 +3679,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_total_time = __pyx_t_4;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":89
+  /* "test.pyx":89
  * 		cdef double total_time = self.total_time
  * 
  * 		for i in range(n):             # <<<<<<<<<<<<<<
@@ -3737,7 +3731,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __Pyx_XDECREF_SET(__pyx_v_i, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":90
+    /* "test.pyx":90
  * 
  * 		for i in range(n):
  * 			pulse_data.shift_time(total_time)             # <<<<<<<<<<<<<<
@@ -3766,18 +3760,18 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":91
+    /* "test.pyx":91
  * 		for i in range(n):
  * 			pulse_data.shift_time(total_time)
  * 			self._add_pulse(pulse_data)             # <<<<<<<<<<<<<<
  * 			self._total_time += total_time
  * 
  */
-    __pyx_t_1 = ((struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self->__pyx_vtab)->_add_pulse(__pyx_v_self, __pyx_v_pulse_data); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 91, __pyx_L1_error)
+    __pyx_t_1 = ((struct __pyx_vtabstruct_4test_pulse_data_single_sequence *)__pyx_v_self->__pyx_vtab)->_add_pulse(__pyx_v_self, __pyx_v_pulse_data); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 91, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":92
+    /* "test.pyx":92
  * 			pulse_data.shift_time(total_time)
  * 			self._add_pulse(pulse_data)
  * 			self._total_time += total_time             # <<<<<<<<<<<<<<
@@ -3786,7 +3780,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
     __pyx_v_self->_total_time = (__pyx_v_self->_total_time + __pyx_v_total_time);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":89
+    /* "test.pyx":89
  * 		cdef double total_time = self.total_time
  * 
  * 		for i in range(n):             # <<<<<<<<<<<<<<
@@ -3796,7 +3790,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":79
+  /* "test.pyx":79
  * 		self._total_time = data._total_time
  * 
  * 	def repeat(self, n):             # <<<<<<<<<<<<<<
@@ -3813,7 +3807,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.repeat", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.repeat", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF((PyObject *)__pyx_v_pulse_data);
@@ -3823,7 +3817,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":95
+/* "test.pyx":95
  * 
  * 
  * 	def shift_time(self, double time):             # <<<<<<<<<<<<<<
@@ -3832,8 +3826,8 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9shift_time(PyObject *__pyx_v_self, PyObject *__pyx_arg_time); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9shift_time(PyObject *__pyx_v_self, PyObject *__pyx_arg_time) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_9shift_time(PyObject *__pyx_v_self, PyObject *__pyx_arg_time); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_9shift_time(PyObject *__pyx_v_self, PyObject *__pyx_arg_time) {
   double __pyx_v_time;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
@@ -3843,25 +3837,25 @@ static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.shift_time", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.shift_time", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_8shift_time(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((double)__pyx_v_time));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_8shift_time(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self), ((double)__pyx_v_time));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_8shift_time(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_time) {
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info> ::iterator __pyx_v_it_localdata;
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_8shift_time(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_time) {
+  std::vector<__pyx_t_4test_pulse_info> ::iterator __pyx_v_it_localdata;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("shift_time", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":97
+  /* "test.pyx":97
  * 	def shift_time(self, double time):
  * 
  * 		cdef vector[pulse_info].iterator it_localdata = self.localdata.begin()             # <<<<<<<<<<<<<<
@@ -3870,7 +3864,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   __pyx_v_it_localdata = __pyx_v_self->localdata.begin();
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":98
+  /* "test.pyx":98
  * 
  * 		cdef vector[pulse_info].iterator it_localdata = self.localdata.begin()
  * 		while(it_localdata != self.localdata.end()):             # <<<<<<<<<<<<<<
@@ -3881,7 +3875,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_1 = ((__pyx_v_it_localdata != __pyx_v_self->localdata.end()) != 0);
     if (!__pyx_t_1) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":99
+    /* "test.pyx":99
  * 		cdef vector[pulse_info].iterator it_localdata = self.localdata.begin()
  * 		while(it_localdata != self.localdata.end()):
  * 			dereference(it_localdata).start = dereference(it_localdata).start + time             # <<<<<<<<<<<<<<
@@ -3890,7 +3884,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
     (*__pyx_v_it_localdata).start = ((*__pyx_v_it_localdata).start + __pyx_v_time);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":101
+    /* "test.pyx":101
  * 			dereference(it_localdata).start = dereference(it_localdata).start + time
  * 
  * 			if dereference(it_localdata).stop != -1.:             # <<<<<<<<<<<<<<
@@ -3900,7 +3894,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_1 = (((*__pyx_v_it_localdata).stop != -1.) != 0);
     if (__pyx_t_1) {
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":102
+      /* "test.pyx":102
  * 
  * 			if dereference(it_localdata).stop != -1.:
  * 				dereference(it_localdata).stop = dereference(it_localdata).stop + time             # <<<<<<<<<<<<<<
@@ -3909,7 +3903,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
       (*__pyx_v_it_localdata).stop = ((*__pyx_v_it_localdata).stop + __pyx_v_time);
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":101
+      /* "test.pyx":101
  * 			dereference(it_localdata).start = dereference(it_localdata).start + time
  * 
  * 			if dereference(it_localdata).stop != -1.:             # <<<<<<<<<<<<<<
@@ -3918,7 +3912,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":104
+    /* "test.pyx":104
  * 				dereference(it_localdata).stop = dereference(it_localdata).stop + time
  * 
  * 			postincrement(it_localdata)             # <<<<<<<<<<<<<<
@@ -3928,7 +3922,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     (void)((__pyx_v_it_localdata++));
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":106
+  /* "test.pyx":106
  * 			postincrement(it_localdata)
  * 
  * 		self._total_time += time             # <<<<<<<<<<<<<<
@@ -3937,7 +3931,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   __pyx_v_self->_total_time = (__pyx_v_self->_total_time + __pyx_v_time);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":107
+  /* "test.pyx":107
  * 
  * 		self._total_time += time
  * 		self.re_render = True             # <<<<<<<<<<<<<<
@@ -3950,7 +3944,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(((PyObject *)__pyx_v_self->re_render));
   __pyx_v_self->re_render = ((PyBoolObject *)Py_True);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":95
+  /* "test.pyx":95
  * 
  * 
  * 	def shift_time(self, double time):             # <<<<<<<<<<<<<<
@@ -3965,7 +3959,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":109
+/* "test.pyx":109
  * 		self.re_render = True
  * 
  * 	def __add__(self, other):             # <<<<<<<<<<<<<<
@@ -3974,20 +3968,20 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_11__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_11__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__add__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10__add__(((PyObject *)__pyx_v_self), ((PyObject *)__pyx_v_other));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_10__add__(((PyObject *)__pyx_v_self), ((PyObject *)__pyx_v_other));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
-  struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_pulse_data = 0;
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_10__add__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+  struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_pulse_data = 0;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3998,7 +3992,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   double __pyx_t_6;
   __Pyx_RefNannySetupContext("__add__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":110
+  /* "test.pyx":110
  * 
  * 	def __add__(self, other):
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)             # <<<<<<<<<<<<<<
@@ -4025,34 +4019,34 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence))))) __PYX_ERR(1, 110, __pyx_L1_error)
-  __pyx_v_pulse_data = ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_t_1);
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_4test_pulse_data_single_sequence))))) __PYX_ERR(1, 110, __pyx_L1_error)
+  __pyx_v_pulse_data = ((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":112
+  /* "test.pyx":112
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
  * 
  * 		if isinstance(other, pulse_data_single_sequence):             # <<<<<<<<<<<<<<
  * 			pulse_data._add_pulse(other)
  * 
  */
-  __pyx_t_4 = __Pyx_TypeCheck(__pyx_v_other, __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence); 
+  __pyx_t_4 = __Pyx_TypeCheck(__pyx_v_other, __pyx_ptype_4test_pulse_data_single_sequence); 
   __pyx_t_5 = (__pyx_t_4 != 0);
   if (__pyx_t_5) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":113
+    /* "test.pyx":113
  * 
  * 		if isinstance(other, pulse_data_single_sequence):
  * 			pulse_data._add_pulse(other)             # <<<<<<<<<<<<<<
  * 
  * 		elif isinstance(other, numbers.Number):
  */
-    if (!(likely(((__pyx_v_other) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_other, __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence))))) __PYX_ERR(1, 113, __pyx_L1_error)
-    __pyx_t_1 = ((struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_pulse_data->__pyx_vtab)->_add_pulse(__pyx_v_pulse_data, ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_other)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 113, __pyx_L1_error)
+    if (!(likely(((__pyx_v_other) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_other, __pyx_ptype_4test_pulse_data_single_sequence))))) __PYX_ERR(1, 113, __pyx_L1_error)
+    __pyx_t_1 = ((struct __pyx_vtabstruct_4test_pulse_data_single_sequence *)__pyx_v_pulse_data->__pyx_vtab)->_add_pulse(__pyx_v_pulse_data, ((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_other)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 113, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":112
+    /* "test.pyx":112
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
  * 
  * 		if isinstance(other, pulse_data_single_sequence):             # <<<<<<<<<<<<<<
@@ -4062,7 +4056,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     goto __pyx_L3;
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":115
+  /* "test.pyx":115
  * 			pulse_data._add_pulse(other)
  * 
  * 		elif isinstance(other, numbers.Number):             # <<<<<<<<<<<<<<
@@ -4079,7 +4073,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_4 = (__pyx_t_5 != 0);
   if (likely(__pyx_t_4)) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":116
+    /* "test.pyx":116
  * 
  * 		elif isinstance(other, numbers.Number):
  * 			pulse_data.localdata.push_back(base_pulse_element(0,-1., other, other).my_pulse_info)             # <<<<<<<<<<<<<<
@@ -4100,18 +4094,18 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __Pyx_INCREF(__pyx_v_other);
     __Pyx_GIVEREF(__pyx_v_other);
     PyTuple_SET_ITEM(__pyx_t_3, 3, __pyx_v_other);
-    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element), __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 116, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_4test_base_pulse_element), __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 116, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     try {
-      __pyx_v_pulse_data->localdata.push_back(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element *)__pyx_t_1)->my_pulse_info);
+      __pyx_v_pulse_data->localdata.push_back(((struct __pyx_obj_4test_base_pulse_element *)__pyx_t_1)->my_pulse_info);
     } catch(...) {
       __Pyx_CppExn2PyErr();
       __PYX_ERR(1, 116, __pyx_L1_error)
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":115
+    /* "test.pyx":115
  * 			pulse_data._add_pulse(other)
  * 
  * 		elif isinstance(other, numbers.Number):             # <<<<<<<<<<<<<<
@@ -4121,7 +4115,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     goto __pyx_L3;
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":118
+  /* "test.pyx":118
  * 			pulse_data.localdata.push_back(base_pulse_element(0,-1., other, other).my_pulse_info)
  * 		else:
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))             # <<<<<<<<<<<<<<
@@ -4155,7 +4149,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   }
   __pyx_L3:;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":120
+  /* "test.pyx":120
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))
  * 
  * 		if other._total_time > self._total_time:             # <<<<<<<<<<<<<<
@@ -4173,7 +4167,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (__pyx_t_4) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":121
+    /* "test.pyx":121
  * 
  * 		if other._total_time > self._total_time:
  * 			pulse_data._total_time = other._total_time             # <<<<<<<<<<<<<<
@@ -4186,7 +4180,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_pulse_data->_total_time = __pyx_t_6;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":120
+    /* "test.pyx":120
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))
  * 
  * 		if other._total_time > self._total_time:             # <<<<<<<<<<<<<<
@@ -4195,7 +4189,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":123
+  /* "test.pyx":123
  * 			pulse_data._total_time = other._total_time
  * 
  * 		pulse_data.re_render = True             # <<<<<<<<<<<<<<
@@ -4208,7 +4202,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(((PyObject *)__pyx_v_pulse_data->re_render));
   __pyx_v_pulse_data->re_render = ((PyBoolObject *)Py_True);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":125
+  /* "test.pyx":125
  * 		pulse_data.re_render = True
  * 
  * 		return pulse_data             # <<<<<<<<<<<<<<
@@ -4220,7 +4214,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_r = ((PyObject *)__pyx_v_pulse_data);
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":109
+  /* "test.pyx":109
  * 		self.re_render = True
  * 
  * 	def __add__(self, other):             # <<<<<<<<<<<<<<
@@ -4233,7 +4227,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.__add__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.__add__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF((PyObject *)__pyx_v_pulse_data);
@@ -4242,7 +4236,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":127
+/* "test.pyx":127
  * 		return pulse_data
  * 
  * 	cdef _add_pulse(self, pulse_data_single_sequence other):             # <<<<<<<<<<<<<<
@@ -4250,16 +4244,16 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  * 		for i in other.localdata:
  */
 
-static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence__add_pulse(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_other) {
-  __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info __pyx_v_i;
+static PyObject *__pyx_f_4test_26pulse_data_single_sequence__add_pulse(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_other) {
+  __pyx_t_4test_pulse_info __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info> ::iterator __pyx_t_1;
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  *__pyx_t_2;
-  __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info __pyx_t_3;
+  std::vector<__pyx_t_4test_pulse_info> ::iterator __pyx_t_1;
+  std::vector<__pyx_t_4test_pulse_info>  *__pyx_t_2;
+  __pyx_t_4test_pulse_info __pyx_t_3;
   __Pyx_RefNannySetupContext("_add_pulse", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":129
+  /* "test.pyx":129
  * 	cdef _add_pulse(self, pulse_data_single_sequence other):
  * 
  * 		for i in other.localdata:             # <<<<<<<<<<<<<<
@@ -4274,7 +4268,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     ++__pyx_t_1;
     __pyx_v_i = __pyx_t_3;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":130
+    /* "test.pyx":130
  * 
  * 		for i in other.localdata:
  * 			self.localdata.push_back(i)             # <<<<<<<<<<<<<<
@@ -4288,7 +4282,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
       __PYX_ERR(1, 130, __pyx_L1_error)
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":129
+    /* "test.pyx":129
  * 	cdef _add_pulse(self, pulse_data_single_sequence other):
  * 
  * 		for i in other.localdata:             # <<<<<<<<<<<<<<
@@ -4297,7 +4291,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":127
+  /* "test.pyx":127
  * 		return pulse_data
  * 
  * 	cdef _add_pulse(self, pulse_data_single_sequence other):             # <<<<<<<<<<<<<<
@@ -4309,7 +4303,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence._add_pulse", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence._add_pulse", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4317,7 +4311,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":132
+/* "test.pyx":132
  * 			self.localdata.push_back(i)
  * 
  * 	def __sub__(self, other):             # <<<<<<<<<<<<<<
@@ -4326,26 +4320,26 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_13__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_13__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_13__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_13__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__sub__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_12__sub__(((PyObject *)__pyx_v_self), ((PyObject *)__pyx_v_other));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_12__sub__(((PyObject *)__pyx_v_self), ((PyObject *)__pyx_v_other));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_12__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_12__sub__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__sub__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":133
+  /* "test.pyx":133
  * 
  * 	def __sub__(self, other):
  * 		return self + other*(-1)             # <<<<<<<<<<<<<<
@@ -4362,7 +4356,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":132
+  /* "test.pyx":132
  * 			self.localdata.push_back(i)
  * 
  * 	def __sub__(self, other):             # <<<<<<<<<<<<<<
@@ -4374,7 +4368,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.__sub__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.__sub__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4382,7 +4376,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":135
+/* "test.pyx":135
  * 		return self + other*(-1)
  * 
  * 	def __mul__(self, other):             # <<<<<<<<<<<<<<
@@ -4391,20 +4385,20 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_15__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_15__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_15__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_15__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__mul__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_14__mul__(((PyObject *)__pyx_v_self), ((PyObject *)__pyx_v_other));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_14__mul__(((PyObject *)__pyx_v_self), ((PyObject *)__pyx_v_other));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_14__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
-  struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_pulse_data = 0;
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_14__mul__(PyObject *__pyx_v_self, PyObject *__pyx_v_other) {
+  struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_pulse_data = 0;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4415,7 +4409,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   double __pyx_t_6;
   __Pyx_RefNannySetupContext("__mul__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":136
+  /* "test.pyx":136
  * 
  * 	def __mul__(self, other):
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)             # <<<<<<<<<<<<<<
@@ -4442,11 +4436,11 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 136, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence))))) __PYX_ERR(1, 136, __pyx_L1_error)
-  __pyx_v_pulse_data = ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_t_1);
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_4test_pulse_data_single_sequence))))) __PYX_ERR(1, 136, __pyx_L1_error)
+  __pyx_v_pulse_data = ((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":137
+  /* "test.pyx":137
  * 	def __mul__(self, other):
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
  * 		if isinstance(other,numbers.Number):             # <<<<<<<<<<<<<<
@@ -4463,7 +4457,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_5 = (__pyx_t_4 != 0);
   if (likely(__pyx_t_5)) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":138
+    /* "test.pyx":138
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
  * 		if isinstance(other,numbers.Number):
  * 			pulse_data._muliply(other)             # <<<<<<<<<<<<<<
@@ -4471,11 +4465,11 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))
  */
     __pyx_t_6 = __pyx_PyFloat_AsDouble(__pyx_v_other); if (unlikely((__pyx_t_6 == (double)-1) && PyErr_Occurred())) __PYX_ERR(1, 138, __pyx_L1_error)
-    __pyx_t_3 = ((struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_pulse_data->__pyx_vtab)->_muliply(__pyx_v_pulse_data, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 138, __pyx_L1_error)
+    __pyx_t_3 = ((struct __pyx_vtabstruct_4test_pulse_data_single_sequence *)__pyx_v_pulse_data->__pyx_vtab)->_muliply(__pyx_v_pulse_data, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 138, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":137
+    /* "test.pyx":137
  * 	def __mul__(self, other):
  * 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
  * 		if isinstance(other,numbers.Number):             # <<<<<<<<<<<<<<
@@ -4485,7 +4479,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     goto __pyx_L3;
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":140
+  /* "test.pyx":140
  * 			pulse_data._muliply(other)
  * 		else:
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))             # <<<<<<<<<<<<<<
@@ -4519,7 +4513,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   }
   __pyx_L3:;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":142
+  /* "test.pyx":142
  * 			raise ValueError("adding up segment failed, data dype not recognize ({})".format(type(other)))
  * 
  * 		return pulse_data             # <<<<<<<<<<<<<<
@@ -4531,7 +4525,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_r = ((PyObject *)__pyx_v_pulse_data);
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":135
+  /* "test.pyx":135
  * 		return self + other*(-1)
  * 
  * 	def __mul__(self, other):             # <<<<<<<<<<<<<<
@@ -4544,7 +4538,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.__mul__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.__mul__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF((PyObject *)__pyx_v_pulse_data);
@@ -4553,7 +4547,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":144
+/* "test.pyx":144
  * 		return pulse_data
  * 
  * 	cdef _muliply(self, double other):             # <<<<<<<<<<<<<<
@@ -4561,14 +4555,14 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  * 
  */
 
-static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence__muliply(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_other) {
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info> ::iterator __pyx_v_it_localdata;
+static PyObject *__pyx_f_4test_26pulse_data_single_sequence__muliply(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_other) {
+  std::vector<__pyx_t_4test_pulse_info> ::iterator __pyx_v_it_localdata;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("_muliply", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":147
+  /* "test.pyx":147
  * 		cdef vector[pulse_info].iterator it_localdata
  * 
  * 		it_localdata = self.localdata.begin()             # <<<<<<<<<<<<<<
@@ -4577,7 +4571,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_it_localdata = __pyx_v_self->localdata.begin();
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":148
+  /* "test.pyx":148
  * 
  * 		it_localdata = self.localdata.begin()
  * 		while(it_localdata != self.localdata.end()):             # <<<<<<<<<<<<<<
@@ -4588,7 +4582,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_1 = ((__pyx_v_it_localdata != __pyx_v_self->localdata.end()) != 0);
     if (!__pyx_t_1) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":149
+    /* "test.pyx":149
  * 		it_localdata = self.localdata.begin()
  * 		while(it_localdata != self.localdata.end()):
  * 			dereference(it_localdata).v_start = dereference(it_localdata).v_start*other             # <<<<<<<<<<<<<<
@@ -4597,7 +4591,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     (*__pyx_v_it_localdata).v_start = ((*__pyx_v_it_localdata).v_start * __pyx_v_other);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":150
+    /* "test.pyx":150
  * 		while(it_localdata != self.localdata.end()):
  * 			dereference(it_localdata).v_start = dereference(it_localdata).v_start*other
  * 			dereference(it_localdata).v_stop = dereference(it_localdata).v_stop*other             # <<<<<<<<<<<<<<
@@ -4606,7 +4600,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     (*__pyx_v_it_localdata).v_stop = ((*__pyx_v_it_localdata).v_stop * __pyx_v_other);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":151
+    /* "test.pyx":151
  * 			dereference(it_localdata).v_start = dereference(it_localdata).v_start*other
  * 			dereference(it_localdata).v_stop = dereference(it_localdata).v_stop*other
  * 			postincrement(it_localdata)             # <<<<<<<<<<<<<<
@@ -4616,7 +4610,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     (void)((__pyx_v_it_localdata++));
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":153
+  /* "test.pyx":153
  * 			postincrement(it_localdata)
  * 
  * 		self.re_render = True             # <<<<<<<<<<<<<<
@@ -4629,7 +4623,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __Pyx_DECREF(((PyObject *)__pyx_v_self->re_render));
   __pyx_v_self->re_render = ((PyBoolObject *)Py_True);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":144
+  /* "test.pyx":144
  * 		return pulse_data
  * 
  * 	cdef _muliply(self, double other):             # <<<<<<<<<<<<<<
@@ -4644,7 +4638,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":155
+/* "test.pyx":155
  * 		self.re_render = True
  * 
  * 	cdef __local_render(self):             # <<<<<<<<<<<<<<
@@ -4652,13 +4646,13 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  * 		# tested for 1M pulses elements
  */
 
-static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence___local_render(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
+static PyObject *__pyx_f_4test_26pulse_data_single_sequence___local_render(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self) {
   __Pyx_memviewslice __pyx_v_time_steps = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_time_steps_np = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_index_inverse = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_j;
   double __pyx_v_t_offset;
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info> ::iterator __pyx_v_it_localdata;
+  std::vector<__pyx_t_4test_pulse_info> ::iterator __pyx_v_it_localdata;
   __Pyx_memviewslice __pyx_v_voltage_data = { 0, 0, { 0 }, { 0 }, { 0 } };
   double __pyx_v_delta_v;
   double __pyx_v_min_time;
@@ -4690,10 +4684,10 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   Py_ssize_t __pyx_t_17;
   Py_ssize_t __pyx_t_18;
   size_t __pyx_t_19;
-  __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong __pyx_t_20;
-  __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong __pyx_t_21;
-  __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong __pyx_t_22;
-  __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong __pyx_t_23;
+  __pyx_t_4test_longlong __pyx_t_20;
+  __pyx_t_4test_longlong __pyx_t_21;
+  __pyx_t_4test_longlong __pyx_t_22;
+  __pyx_t_4test_longlong __pyx_t_23;
   int __pyx_t_24;
   Py_ssize_t __pyx_t_25;
   Py_ssize_t __pyx_t_26;
@@ -4716,7 +4710,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   Py_ssize_t __pyx_t_43;
   __Pyx_RefNannySetupContext("__local_render", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":165
+  /* "test.pyx":165
  * 		cdef longlong[:] index_inverse
  * 		cdef int j
  * 		time_steps = np.empty([self.localdata.size()*4], dtype = np.double)             # <<<<<<<<<<<<<<
@@ -4760,7 +4754,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":167
+  /* "test.pyx":167
  * 		time_steps = np.empty([self.localdata.size()*4], dtype = np.double)
  * 		# if putting too low, sometimes not nough
  * 		cdef double t_offset = 1e-6             # <<<<<<<<<<<<<<
@@ -4769,7 +4763,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_t_offset = 1e-6;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":170
+  /* "test.pyx":170
  * 		# not typed, this might slowdown, but performance is good enough atm.
  * 
  * 		j = 0             # <<<<<<<<<<<<<<
@@ -4778,7 +4772,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_j = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":172
+  /* "test.pyx":172
  * 		j = 0
  * 		# 7ms
  * 		cdef vector[pulse_info].iterator it_localdata = self.localdata.begin()             # <<<<<<<<<<<<<<
@@ -4787,7 +4781,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_it_localdata = __pyx_v_self->localdata.begin();
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":174
+  /* "test.pyx":174
  * 		cdef vector[pulse_info].iterator it_localdata = self.localdata.begin()
  * 
  * 		while(it_localdata != self.localdata.end()):             # <<<<<<<<<<<<<<
@@ -4798,7 +4792,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_7 = ((__pyx_v_it_localdata != __pyx_v_self->localdata.end()) != 0);
     if (!__pyx_t_7) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":175
+    /* "test.pyx":175
  * 
  * 		while(it_localdata != self.localdata.end()):
  * 			time_steps[j] = (dereference(it_localdata).start)             # <<<<<<<<<<<<<<
@@ -4809,7 +4803,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_9 = __pyx_v_j;
     *((double *) ( /* dim=0 */ (__pyx_v_time_steps.data + __pyx_t_9 * __pyx_v_time_steps.strides[0]) )) = __pyx_t_8;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":176
+    /* "test.pyx":176
  * 		while(it_localdata != self.localdata.end()):
  * 			time_steps[j] = (dereference(it_localdata).start)
  * 			time_steps[j + 1] = (dereference(it_localdata).start+t_offset)             # <<<<<<<<<<<<<<
@@ -4819,7 +4813,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_10 = (__pyx_v_j + 1);
     *((double *) ( /* dim=0 */ (__pyx_v_time_steps.data + __pyx_t_10 * __pyx_v_time_steps.strides[0]) )) = ((*__pyx_v_it_localdata).start + __pyx_v_t_offset);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":177
+    /* "test.pyx":177
  * 			time_steps[j] = (dereference(it_localdata).start)
  * 			time_steps[j + 1] = (dereference(it_localdata).start+t_offset)
  * 			if dereference(it_localdata).stop == -1.:             # <<<<<<<<<<<<<<
@@ -4829,7 +4823,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_7 = (((*__pyx_v_it_localdata).stop == -1.) != 0);
     if (__pyx_t_7) {
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":178
+      /* "test.pyx":178
  * 			time_steps[j + 1] = (dereference(it_localdata).start+t_offset)
  * 			if dereference(it_localdata).stop == -1.:
  * 				time_steps[j + 2] = self._total_time-t_offset             # <<<<<<<<<<<<<<
@@ -4839,7 +4833,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
       __pyx_t_11 = (__pyx_v_j + 2);
       *((double *) ( /* dim=0 */ (__pyx_v_time_steps.data + __pyx_t_11 * __pyx_v_time_steps.strides[0]) )) = (__pyx_v_self->_total_time - __pyx_v_t_offset);
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":179
+      /* "test.pyx":179
  * 			if dereference(it_localdata).stop == -1.:
  * 				time_steps[j + 2] = self._total_time-t_offset
  * 				time_steps[j + 3] = self._total_time             # <<<<<<<<<<<<<<
@@ -4850,7 +4844,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
       __pyx_t_12 = (__pyx_v_j + 3);
       *((double *) ( /* dim=0 */ (__pyx_v_time_steps.data + __pyx_t_12 * __pyx_v_time_steps.strides[0]) )) = __pyx_t_8;
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":177
+      /* "test.pyx":177
  * 			time_steps[j] = (dereference(it_localdata).start)
  * 			time_steps[j + 1] = (dereference(it_localdata).start+t_offset)
  * 			if dereference(it_localdata).stop == -1.:             # <<<<<<<<<<<<<<
@@ -4860,7 +4854,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
       goto __pyx_L5;
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":181
+    /* "test.pyx":181
  * 				time_steps[j + 3] = self._total_time
  * 			else:
  * 				time_steps[j + 2] = (dereference(it_localdata).stop-t_offset)             # <<<<<<<<<<<<<<
@@ -4871,7 +4865,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
       __pyx_t_13 = (__pyx_v_j + 2);
       *((double *) ( /* dim=0 */ (__pyx_v_time_steps.data + __pyx_t_13 * __pyx_v_time_steps.strides[0]) )) = ((*__pyx_v_it_localdata).stop - __pyx_v_t_offset);
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":182
+      /* "test.pyx":182
  * 			else:
  * 				time_steps[j + 2] = (dereference(it_localdata).stop-t_offset)
  * 				time_steps[j + 3] = (dereference(it_localdata).stop)             # <<<<<<<<<<<<<<
@@ -4884,7 +4878,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     }
     __pyx_L5:;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":183
+    /* "test.pyx":183
  * 				time_steps[j + 2] = (dereference(it_localdata).stop-t_offset)
  * 				time_steps[j + 3] = (dereference(it_localdata).stop)
  * 			j+=4             # <<<<<<<<<<<<<<
@@ -4893,7 +4887,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     __pyx_v_j = (__pyx_v_j + 4);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":185
+    /* "test.pyx":185
  * 			j+=4
  * 
  * 			postincrement(it_localdata)             # <<<<<<<<<<<<<<
@@ -4903,7 +4897,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     (void)((__pyx_v_it_localdata++));
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":189
+  /* "test.pyx":189
  * 
  * 		# 130ms
  * 		time_steps_np, index_inverse = np.unique(time_steps, return_inverse=True)             # <<<<<<<<<<<<<<
@@ -4978,7 +4972,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   }
   __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_5, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(1, 189, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_16 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_16.memview)) __PYX_ERR(1, 189, __pyx_L1_error)
+  __pyx_t_16 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_4test_longlong(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_16.memview)) __PYX_ERR(1, 189, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_time_steps_np = __pyx_t_6;
   __pyx_t_6.memview = NULL;
@@ -4987,7 +4981,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_16.memview = NULL;
   __pyx_t_16.data = NULL;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":191
+  /* "test.pyx":191
  * 		time_steps_np, index_inverse = np.unique(time_steps, return_inverse=True)
  * 
  * 		j = 0             # <<<<<<<<<<<<<<
@@ -4996,7 +4990,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_j = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":194
+  /* "test.pyx":194
  * 
  * 		# 5 ms
  * 		it_localdata = self.localdata.begin()             # <<<<<<<<<<<<<<
@@ -5005,7 +4999,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_it_localdata = __pyx_v_self->localdata.begin();
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":196
+  /* "test.pyx":196
  * 		it_localdata = self.localdata.begin()
  * 
  * 		while(it_localdata != self.localdata.end()):             # <<<<<<<<<<<<<<
@@ -5016,7 +5010,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_7 = ((__pyx_v_it_localdata != __pyx_v_self->localdata.end()) != 0);
     if (!__pyx_t_7) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":197
+    /* "test.pyx":197
  * 
  * 		while(it_localdata != self.localdata.end()):
  * 			dereference(it_localdata).index_start = index_inverse[j+1]             # <<<<<<<<<<<<<<
@@ -5024,9 +5018,9 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  * 			j += 4
  */
     __pyx_t_17 = (__pyx_v_j + 1);
-    (*__pyx_v_it_localdata).index_start = (*((__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong *) ( /* dim=0 */ (__pyx_v_index_inverse.data + __pyx_t_17 * __pyx_v_index_inverse.strides[0]) )));
+    (*__pyx_v_it_localdata).index_start = (*((__pyx_t_4test_longlong *) ( /* dim=0 */ (__pyx_v_index_inverse.data + __pyx_t_17 * __pyx_v_index_inverse.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":198
+    /* "test.pyx":198
  * 		while(it_localdata != self.localdata.end()):
  * 			dereference(it_localdata).index_start = index_inverse[j+1]
  * 			dereference(it_localdata).index_stop = index_inverse[j+2]             # <<<<<<<<<<<<<<
@@ -5034,9 +5028,9 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  * 
  */
     __pyx_t_18 = (__pyx_v_j + 2);
-    (*__pyx_v_it_localdata).index_stop = (*((__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong *) ( /* dim=0 */ (__pyx_v_index_inverse.data + __pyx_t_18 * __pyx_v_index_inverse.strides[0]) )));
+    (*__pyx_v_it_localdata).index_stop = (*((__pyx_t_4test_longlong *) ( /* dim=0 */ (__pyx_v_index_inverse.data + __pyx_t_18 * __pyx_v_index_inverse.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":199
+    /* "test.pyx":199
  * 			dereference(it_localdata).index_start = index_inverse[j+1]
  * 			dereference(it_localdata).index_stop = index_inverse[j+2]
  * 			j += 4             # <<<<<<<<<<<<<<
@@ -5045,7 +5039,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     __pyx_v_j = (__pyx_v_j + 4);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":201
+    /* "test.pyx":201
  * 			j += 4
  * 
  * 			postincrement(it_localdata)             # <<<<<<<<<<<<<<
@@ -5055,7 +5049,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     (void)((__pyx_v_it_localdata++));
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":204
+  /* "test.pyx":204
  * 
  * 
  * 		cdef double[:] voltage_data = np.zeros([len(time_steps_np)])             # <<<<<<<<<<<<<<
@@ -5097,7 +5091,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":212
+  /* "test.pyx":212
  * 
  * 		# 20 ms
  * 		it_localdata = self.localdata.begin()             # <<<<<<<<<<<<<<
@@ -5106,7 +5100,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_it_localdata = __pyx_v_self->localdata.begin();
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":214
+  /* "test.pyx":214
  * 		it_localdata = self.localdata.begin()
  * 
  * 		while(it_localdata != self.localdata.end()):             # <<<<<<<<<<<<<<
@@ -5117,7 +5111,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_7 = ((__pyx_v_it_localdata != __pyx_v_self->localdata.end()) != 0);
     if (!__pyx_t_7) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":215
+    /* "test.pyx":215
  * 
  * 		while(it_localdata != self.localdata.end()):
  * 			delta_v = dereference(it_localdata).v_stop-dereference(it_localdata).v_start             # <<<<<<<<<<<<<<
@@ -5126,7 +5120,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     __pyx_v_delta_v = ((*__pyx_v_it_localdata).v_stop - (*__pyx_v_it_localdata).v_start);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":216
+    /* "test.pyx":216
  * 		while(it_localdata != self.localdata.end()):
  * 			delta_v = dereference(it_localdata).v_stop-dereference(it_localdata).v_start
  * 			min_time = time_steps_np[dereference(it_localdata).index_start]             # <<<<<<<<<<<<<<
@@ -5136,7 +5130,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_20 = (*__pyx_v_it_localdata).index_start;
     __pyx_v_min_time = (*((double *) ( /* dim=0 */ (__pyx_v_time_steps_np.data + __pyx_t_20 * __pyx_v_time_steps_np.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":217
+    /* "test.pyx":217
  * 			delta_v = dereference(it_localdata).v_stop-dereference(it_localdata).v_start
  * 			min_time = time_steps_np[dereference(it_localdata).index_start]
  * 			max_time = time_steps_np[dereference(it_localdata).index_stop]             # <<<<<<<<<<<<<<
@@ -5146,7 +5140,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_21 = (*__pyx_v_it_localdata).index_stop;
     __pyx_v_max_time = (*((double *) ( /* dim=0 */ (__pyx_v_time_steps_np.data + __pyx_t_21 * __pyx_v_time_steps_np.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":219
+    /* "test.pyx":219
  * 			max_time = time_steps_np[dereference(it_localdata).index_stop]
  * 
  * 			rescaler = delta_v/(max_time-min_time)             # <<<<<<<<<<<<<<
@@ -5160,7 +5154,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     }
     __pyx_v_rescaler = (__pyx_v_delta_v / __pyx_t_8);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":221
+    /* "test.pyx":221
  * 			rescaler = delta_v/(max_time-min_time)
  * 
  * 			for j in range(dereference(it_localdata).index_start, dereference(it_localdata).index_stop+1):             # <<<<<<<<<<<<<<
@@ -5172,7 +5166,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     for (__pyx_t_24 = (*__pyx_v_it_localdata).index_start; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
       __pyx_v_j = __pyx_t_24;
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":222
+      /* "test.pyx":222
  * 
  * 			for j in range(dereference(it_localdata).index_start, dereference(it_localdata).index_stop+1):
  * 				voltage_data[j] += dereference(it_localdata).v_start + (time_steps_np[j] - min_time)*rescaler             # <<<<<<<<<<<<<<
@@ -5184,7 +5178,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
       *((double *) ( /* dim=0 */ (__pyx_v_voltage_data.data + __pyx_t_26 * __pyx_v_voltage_data.strides[0]) )) += ((*__pyx_v_it_localdata).v_start + (((*((double *) ( /* dim=0 */ (__pyx_v_time_steps_np.data + __pyx_t_25 * __pyx_v_time_steps_np.strides[0]) ))) - __pyx_v_min_time) * __pyx_v_rescaler));
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":224
+    /* "test.pyx":224
  * 				voltage_data[j] += dereference(it_localdata).v_start + (time_steps_np[j] - min_time)*rescaler
  * 
  * 			postincrement(it_localdata)             # <<<<<<<<<<<<<<
@@ -5194,7 +5188,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     (void)((__pyx_v_it_localdata++));
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":228
+  /* "test.pyx":228
  * 
  * 		# # clean up data (few ms)
  * 		cdef double[:] new_data_time = np.empty([len(voltage_data)])             # <<<<<<<<<<<<<<
@@ -5236,7 +5230,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":229
+  /* "test.pyx":229
  * 		# # clean up data (few ms)
  * 		cdef double[:] new_data_time = np.empty([len(voltage_data)])
  * 		cdef double[:] new_data_voltage = np.empty([len(voltage_data)])             # <<<<<<<<<<<<<<
@@ -5278,7 +5272,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":231
+  /* "test.pyx":231
  * 		cdef double[:] new_data_voltage = np.empty([len(voltage_data)])
  * 
  * 		new_data_time[0] = time_steps_np[0]             # <<<<<<<<<<<<<<
@@ -5289,7 +5283,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_28 = 0;
   *((double *) ( /* dim=0 */ (__pyx_v_new_data_time.data + __pyx_t_28 * __pyx_v_new_data_time.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_time_steps_np.data + __pyx_t_27 * __pyx_v_time_steps_np.strides[0]) )));
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":232
+  /* "test.pyx":232
  * 
  * 		new_data_time[0] = time_steps_np[0]
  * 		new_data_voltage[0] = voltage_data[0]             # <<<<<<<<<<<<<<
@@ -5300,7 +5294,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_30 = 0;
   *((double *) ( /* dim=0 */ (__pyx_v_new_data_voltage.data + __pyx_t_30 * __pyx_v_new_data_voltage.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_voltage_data.data + __pyx_t_29 * __pyx_v_voltage_data.strides[0]) )));
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":234
+  /* "test.pyx":234
  * 		new_data_voltage[0] = voltage_data[0]
  * 
  * 		cdef int len_time_steps = len(time_steps_np)             # <<<<<<<<<<<<<<
@@ -5310,7 +5304,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_19 = __Pyx_MemoryView_Len(__pyx_v_time_steps_np); 
   __pyx_v_len_time_steps = __pyx_t_19;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":235
+  /* "test.pyx":235
  * 
  * 		cdef int len_time_steps = len(time_steps_np)
  * 		cdef double corr_offset = 2*t_offset #needs to be a bit bigger to correct for numberical errors.             # <<<<<<<<<<<<<<
@@ -5319,7 +5313,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_corr_offset = (2.0 * __pyx_v_t_offset);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":236
+  /* "test.pyx":236
  * 		cdef int len_time_steps = len(time_steps_np)
  * 		cdef double corr_offset = 2*t_offset #needs to be a bit bigger to correct for numberical errors.
  * 		j = 1             # <<<<<<<<<<<<<<
@@ -5328,7 +5322,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_j = 1;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":237
+  /* "test.pyx":237
  * 		cdef double corr_offset = 2*t_offset #needs to be a bit bigger to correct for numberical errors.
  * 		j = 1
  * 		cdef int k = 1             # <<<<<<<<<<<<<<
@@ -5337,7 +5331,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   __pyx_v_k = 1;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":239
+  /* "test.pyx":239
  * 		cdef int k = 1
  * 
  * 		while( j < len_time_steps-1):             # <<<<<<<<<<<<<<
@@ -5348,7 +5342,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_7 = ((__pyx_v_j < (__pyx_v_len_time_steps - 1)) != 0);
     if (!__pyx_t_7) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":240
+    /* "test.pyx":240
  * 
  * 		while( j < len_time_steps-1):
  * 			if time_steps_np[j+1] - time_steps_np[j] < corr_offset and time_steps_np[j] - time_steps_np[j-1] < corr_offset:             # <<<<<<<<<<<<<<
@@ -5370,7 +5364,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_L17_bool_binop_done:;
     if (__pyx_t_7) {
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":241
+      /* "test.pyx":241
  * 		while( j < len_time_steps-1):
  * 			if time_steps_np[j+1] - time_steps_np[j] < corr_offset and time_steps_np[j] - time_steps_np[j-1] < corr_offset:
  * 				j+=1             # <<<<<<<<<<<<<<
@@ -5379,7 +5373,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
       __pyx_v_j = (__pyx_v_j + 1);
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":240
+      /* "test.pyx":240
  * 
  * 		while( j < len_time_steps-1):
  * 			if time_steps_np[j+1] - time_steps_np[j] < corr_offset and time_steps_np[j] - time_steps_np[j-1] < corr_offset:             # <<<<<<<<<<<<<<
@@ -5388,7 +5382,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":243
+    /* "test.pyx":243
  * 				j+=1
  * 
  * 			new_data_time[k] = time_steps_np[j]             # <<<<<<<<<<<<<<
@@ -5399,7 +5393,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_37 = __pyx_v_k;
     *((double *) ( /* dim=0 */ (__pyx_v_new_data_time.data + __pyx_t_37 * __pyx_v_new_data_time.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_time_steps_np.data + __pyx_t_36 * __pyx_v_time_steps_np.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":244
+    /* "test.pyx":244
  * 
  * 			new_data_time[k] = time_steps_np[j]
  * 			new_data_voltage[k] = voltage_data[j]             # <<<<<<<<<<<<<<
@@ -5410,7 +5404,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_39 = __pyx_v_k;
     *((double *) ( /* dim=0 */ (__pyx_v_new_data_voltage.data + __pyx_t_39 * __pyx_v_new_data_voltage.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_voltage_data.data + __pyx_t_38 * __pyx_v_voltage_data.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":245
+    /* "test.pyx":245
  * 			new_data_time[k] = time_steps_np[j]
  * 			new_data_voltage[k] = voltage_data[j]
  * 			j+= 1             # <<<<<<<<<<<<<<
@@ -5419,7 +5413,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     __pyx_v_j = (__pyx_v_j + 1);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":246
+    /* "test.pyx":246
  * 			new_data_voltage[k] = voltage_data[j]
  * 			j+= 1
  * 			k+= 1             # <<<<<<<<<<<<<<
@@ -5429,7 +5423,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_v_k = (__pyx_v_k + 1);
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":247
+  /* "test.pyx":247
  * 			j+= 1
  * 			k+= 1
  * 		if j < len_time_steps:             # <<<<<<<<<<<<<<
@@ -5439,7 +5433,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   __pyx_t_7 = ((__pyx_v_j < __pyx_v_len_time_steps) != 0);
   if (__pyx_t_7) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":248
+    /* "test.pyx":248
  * 			k+= 1
  * 		if j < len_time_steps:
  * 			new_data_time[k] = time_steps_np[j]             # <<<<<<<<<<<<<<
@@ -5450,7 +5444,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_41 = __pyx_v_k;
     *((double *) ( /* dim=0 */ (__pyx_v_new_data_time.data + __pyx_t_41 * __pyx_v_new_data_time.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_time_steps_np.data + __pyx_t_40 * __pyx_v_time_steps_np.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":249
+    /* "test.pyx":249
  * 		if j < len_time_steps:
  * 			new_data_time[k] = time_steps_np[j]
  * 			new_data_voltage[k] = voltage_data[j]             # <<<<<<<<<<<<<<
@@ -5461,7 +5455,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
     __pyx_t_43 = __pyx_v_k;
     *((double *) ( /* dim=0 */ (__pyx_v_new_data_voltage.data + __pyx_t_43 * __pyx_v_new_data_voltage.strides[0]) )) = (*((double *) ( /* dim=0 */ (__pyx_v_voltage_data.data + __pyx_t_42 * __pyx_v_voltage_data.strides[0]) )));
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":250
+    /* "test.pyx":250
  * 			new_data_time[k] = time_steps_np[j]
  * 			new_data_voltage[k] = voltage_data[j]
  * 			k+= 1             # <<<<<<<<<<<<<<
@@ -5470,7 +5464,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
     __pyx_v_k = (__pyx_v_k + 1);
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":247
+    /* "test.pyx":247
  * 			j+= 1
  * 			k+= 1
  * 		if j < len_time_steps:             # <<<<<<<<<<<<<<
@@ -5479,7 +5473,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
  */
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":252
+  /* "test.pyx":252
  * 			k+= 1
  * 
  * 		return new_data_time[:k], new_data_voltage[:k]             # <<<<<<<<<<<<<<
@@ -5551,7 +5545,7 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __p
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":155
+  /* "test.pyx":155
  * 		self.re_render = True
  * 
  * 	cdef __local_render(self):             # <<<<<<<<<<<<<<
@@ -5568,7 +5562,7 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __p
   __Pyx_XDECREF(__pyx_t_5);
   __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_16, 1);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.__local_render", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.__local_render", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_time_steps, 1);
@@ -5582,7 +5576,7 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __p
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":254
+/* "test.pyx":254
  * 		return new_data_time[:k], new_data_voltage[:k]
  * 
  * 	def slice_time(self, double start, double stop):             # <<<<<<<<<<<<<<
@@ -5591,8 +5585,8 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_6, 1, (PyObject *(*)(char *)) __p
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_17slice_time(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_17slice_time(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_17slice_time(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_17slice_time(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   double __pyx_v_start;
   double __pyx_v_stop;
   PyObject *__pyx_r = 0;
@@ -5640,26 +5634,26 @@ static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("slice_time", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 254, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.slice_time", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.slice_time", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_16slice_time(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), __pyx_v_start, __pyx_v_stop);
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_16slice_time(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self), __pyx_v_start, __pyx_v_stop);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_16slice_time(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_start, double __pyx_v_stop) {
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info> ::iterator __pyx_v_it_localdata;
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_16slice_time(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, double __pyx_v_start, double __pyx_v_stop) {
+  std::vector<__pyx_t_4test_pulse_info> ::iterator __pyx_v_it_localdata;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   double __pyx_t_2;
   __Pyx_RefNannySetupContext("slice_time", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":257
+  /* "test.pyx":257
  * 		cdef vector[pulse_info].iterator it_localdata
  * 
  * 		self._total_time = 0.             # <<<<<<<<<<<<<<
@@ -5668,7 +5662,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   __pyx_v_self->_total_time = 0.;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":258
+  /* "test.pyx":258
  * 
  * 		self._total_time = 0.
  * 		it_localdata = self.localdata.begin()             # <<<<<<<<<<<<<<
@@ -5677,7 +5671,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   __pyx_v_it_localdata = __pyx_v_self->localdata.begin();
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":259
+  /* "test.pyx":259
  * 		self._total_time = 0.
  * 		it_localdata = self.localdata.begin()
  * 		while(it_localdata != self.localdata.end()):             # <<<<<<<<<<<<<<
@@ -5688,7 +5682,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_1 = ((__pyx_v_it_localdata != __pyx_v_self->localdata.end()) != 0);
     if (!__pyx_t_1) break;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":261
+    /* "test.pyx":261
  * 		while(it_localdata != self.localdata.end()):
  * 
  * 			if dereference(it_localdata).start < start:             # <<<<<<<<<<<<<<
@@ -5698,7 +5692,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_1 = (((*__pyx_v_it_localdata).start < __pyx_v_start) != 0);
     if (__pyx_t_1) {
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":262
+      /* "test.pyx":262
  * 
  * 			if dereference(it_localdata).start < start:
  * 				dereference(it_localdata).start = start             # <<<<<<<<<<<<<<
@@ -5707,7 +5701,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
       (*__pyx_v_it_localdata).start = __pyx_v_start;
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":261
+      /* "test.pyx":261
  * 		while(it_localdata != self.localdata.end()):
  * 
  * 			if dereference(it_localdata).start < start:             # <<<<<<<<<<<<<<
@@ -5716,7 +5710,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":263
+    /* "test.pyx":263
  * 			if dereference(it_localdata).start < start:
  * 				dereference(it_localdata).start = start
  * 			if dereference(it_localdata).stop > stop:             # <<<<<<<<<<<<<<
@@ -5726,7 +5720,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_1 = (((*__pyx_v_it_localdata).stop > __pyx_v_stop) != 0);
     if (__pyx_t_1) {
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":264
+      /* "test.pyx":264
  * 				dereference(it_localdata).start = start
  * 			if dereference(it_localdata).stop > stop:
  * 				dereference(it_localdata).stop = stop             # <<<<<<<<<<<<<<
@@ -5735,7 +5729,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
       (*__pyx_v_it_localdata).stop = __pyx_v_stop;
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":263
+      /* "test.pyx":263
  * 			if dereference(it_localdata).start < start:
  * 				dereference(it_localdata).start = start
  * 			if dereference(it_localdata).stop > stop:             # <<<<<<<<<<<<<<
@@ -5744,7 +5738,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":266
+    /* "test.pyx":266
  * 				dereference(it_localdata).stop = stop
  * 
  * 			if dereference(it_localdata).start < dereference(it_localdata).stop:             # <<<<<<<<<<<<<<
@@ -5754,7 +5748,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_1 = (((*__pyx_v_it_localdata).start < (*__pyx_v_it_localdata).stop) != 0);
     if (__pyx_t_1) {
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":267
+      /* "test.pyx":267
  * 
  * 			if dereference(it_localdata).start < dereference(it_localdata).stop:
  * 				dereference(it_localdata).start = dereference(it_localdata).start - start             # <<<<<<<<<<<<<<
@@ -5763,7 +5757,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
       (*__pyx_v_it_localdata).start = ((*__pyx_v_it_localdata).start - __pyx_v_start);
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":268
+      /* "test.pyx":268
  * 			if dereference(it_localdata).start < dereference(it_localdata).stop:
  * 				dereference(it_localdata).start = dereference(it_localdata).start - start
  * 				dereference(it_localdata).stop = dereference(it_localdata).stop - start             # <<<<<<<<<<<<<<
@@ -5772,7 +5766,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
       (*__pyx_v_it_localdata).stop = ((*__pyx_v_it_localdata).stop - __pyx_v_start);
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":269
+      /* "test.pyx":269
  * 				dereference(it_localdata).start = dereference(it_localdata).start - start
  * 				dereference(it_localdata).stop = dereference(it_localdata).stop - start
  * 				self._total_time = dereference(it_localdata).stop             # <<<<<<<<<<<<<<
@@ -5782,7 +5776,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
       __pyx_t_2 = (*__pyx_v_it_localdata).stop;
       __pyx_v_self->_total_time = __pyx_t_2;
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":270
+      /* "test.pyx":270
  * 				dereference(it_localdata).stop = dereference(it_localdata).stop - start
  * 				self._total_time = dereference(it_localdata).stop
  * 				postincrement(it_localdata)             # <<<<<<<<<<<<<<
@@ -5791,7 +5785,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
       (void)((__pyx_v_it_localdata++));
 
-      /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":266
+      /* "test.pyx":266
  * 				dereference(it_localdata).stop = stop
  * 
  * 			if dereference(it_localdata).start < dereference(it_localdata).stop:             # <<<<<<<<<<<<<<
@@ -5801,7 +5795,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
       goto __pyx_L7;
     }
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":273
+    /* "test.pyx":273
  * 
  * 			else:
  * 				it_localdata = self.localdata.erase(it_localdata)             # <<<<<<<<<<<<<<
@@ -5814,7 +5808,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_L7:;
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":254
+  /* "test.pyx":254
  * 		return new_data_time[:k], new_data_voltage[:k]
  * 
  * 	def slice_time(self, double start, double stop):             # <<<<<<<<<<<<<<
@@ -5829,7 +5823,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":275
+/* "test.pyx":275
  * 				it_localdata = self.localdata.erase(it_localdata)
  * 
  * 	def __copy__(self):             # <<<<<<<<<<<<<<
@@ -5838,40 +5832,40 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_19__copy__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_19__copy__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_19__copy__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_19__copy__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__copy__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_18__copy__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_18__copy__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_18__copy__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
-  struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_cpy = NULL;
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_18__copy__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self) {
+  struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_cpy = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   double __pyx_t_2;
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  __pyx_t_3;
+  std::vector<__pyx_t_4test_pulse_info>  __pyx_t_3;
   __Pyx_RefNannySetupContext("__copy__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":276
+  /* "test.pyx":276
  * 
  * 	def __copy__(self):
  * 		cpy = pulse_data_single_sequence()             # <<<<<<<<<<<<<<
  * 		cpy._total_time = self._total_time
  * 		cpy.localdata = self.localdata
  */
-  __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 276, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallNoArg(((PyObject *)__pyx_ptype_4test_pulse_data_single_sequence)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 276, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_v_cpy = ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_t_1);
+  __pyx_v_cpy = ((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":277
+  /* "test.pyx":277
  * 	def __copy__(self):
  * 		cpy = pulse_data_single_sequence()
  * 		cpy._total_time = self._total_time             # <<<<<<<<<<<<<<
@@ -5881,7 +5875,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_2 = __pyx_v_self->_total_time;
   __pyx_v_cpy->_total_time = __pyx_t_2;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":278
+  /* "test.pyx":278
  * 		cpy = pulse_data_single_sequence()
  * 		cpy._total_time = self._total_time
  * 		cpy.localdata = self.localdata             # <<<<<<<<<<<<<<
@@ -5891,7 +5885,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_3 = __pyx_v_self->localdata;
   __pyx_v_cpy->localdata = __pyx_t_3;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":280
+  /* "test.pyx":280
  * 		cpy.localdata = self.localdata
  * 
  * 		return cpy             # <<<<<<<<<<<<<<
@@ -5903,7 +5897,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_r = ((PyObject *)__pyx_v_cpy);
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":275
+  /* "test.pyx":275
  * 				it_localdata = self.localdata.erase(it_localdata)
  * 
  * 	def __copy__(self):             # <<<<<<<<<<<<<<
@@ -5914,7 +5908,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.__copy__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.__copy__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF((PyObject *)__pyx_v_cpy);
@@ -5923,7 +5917,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":283
+/* "test.pyx":283
  * 
  * 	@property
  * 	def pulse_data(self):             # <<<<<<<<<<<<<<
@@ -5932,19 +5926,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10pulse_data_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10pulse_data_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_10pulse_data_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_10pulse_data_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10pulse_data___get__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_10pulse_data___get__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10pulse_data___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_10pulse_data___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -5957,7 +5951,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":284
+  /* "test.pyx":284
  * 	@property
  * 	def pulse_data(self):
  * 		if self.re_render == True:             # <<<<<<<<<<<<<<
@@ -5969,14 +5963,14 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":285
+    /* "test.pyx":285
  * 	def pulse_data(self):
  * 		if self.re_render == True:
  * 			self.time_data, self.voltage_data = self.__local_render()             # <<<<<<<<<<<<<<
  * 		return (self.time_data, self.voltage_data)
  * 
  */
-    __pyx_t_1 = ((struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self->__pyx_vtab)->__pyx___local_render(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 285, __pyx_L1_error)
+    __pyx_t_1 = ((struct __pyx_vtabstruct_4test_pulse_data_single_sequence *)__pyx_v_self->__pyx_vtab)->__pyx___local_render(__pyx_v_self); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 285, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     if ((likely(PyTuple_CheckExact(__pyx_t_1))) || (PyList_CheckExact(__pyx_t_1))) {
       PyObject* sequence = __pyx_t_1;
@@ -6037,7 +6031,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
     __pyx_t_8.memview = NULL;
     __pyx_t_8.data = NULL;
 
-    /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":284
+    /* "test.pyx":284
  * 	@property
  * 	def pulse_data(self):
  * 		if self.re_render == True:             # <<<<<<<<<<<<<<
@@ -6046,7 +6040,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   }
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":286
+  /* "test.pyx":286
  * 		if self.re_render == True:
  * 			self.time_data, self.voltage_data = self.__local_render()
  * 		return (self.time_data, self.voltage_data)             # <<<<<<<<<<<<<<
@@ -6072,7 +6066,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":283
+  /* "test.pyx":283
  * 
  * 	@property
  * 	def pulse_data(self):             # <<<<<<<<<<<<<<
@@ -6088,7 +6082,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_XDECREF(__pyx_t_5);
   __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.pulse_data.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.pulse_data.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -6096,7 +6090,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":289
+/* "test.pyx":289
  * 
  * 	@property
  * 	def total_time(self):             # <<<<<<<<<<<<<<
@@ -6105,25 +6099,25 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10total_time_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10total_time_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_10total_time_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_10total_time_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10total_time___get__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_10total_time___get__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10total_time___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_10total_time___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":290
+  /* "test.pyx":290
  * 	@property
  * 	def total_time(self):
  * 		return self._total_time             # <<<<<<<<<<<<<<
@@ -6137,7 +6131,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":289
+  /* "test.pyx":289
  * 
  * 	@property
  * 	def total_time(self):             # <<<<<<<<<<<<<<
@@ -6148,7 +6142,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.total_time.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.total_time.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -6156,7 +6150,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":293
+/* "test.pyx":293
  * 
  * 	@property
  * 	def v_max(self):             # <<<<<<<<<<<<<<
@@ -6165,19 +6159,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_max_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_max_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_5v_max_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_5v_max_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_max___get__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_5v_max___get__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_max___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_5v_max___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -6186,7 +6180,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":294
+  /* "test.pyx":294
  * 	@property
  * 	def v_max(self):
  * 		return np.max(self.pulse_data[1])             # <<<<<<<<<<<<<<
@@ -6224,7 +6218,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":293
+  /* "test.pyx":293
  * 
  * 	@property
  * 	def v_max(self):             # <<<<<<<<<<<<<<
@@ -6238,7 +6232,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.v_max.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.v_max.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -6246,7 +6240,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":297
+/* "test.pyx":297
  * 
  * 	@property
  * 	def v_min(self):             # <<<<<<<<<<<<<<
@@ -6254,19 +6248,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_min_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_min_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_5v_min_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_5v_min_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_min___get__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_5v_min___get__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_min___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_5v_min___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -6275,7 +6269,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":298
+  /* "test.pyx":298
  * 	@property
  * 	def v_min(self):
  * 		return np.min(self.pulse_data[1])             # <<<<<<<<<<<<<<
@@ -6311,7 +6305,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":297
+  /* "test.pyx":297
  * 
  * 	@property
  * 	def v_min(self):             # <<<<<<<<<<<<<<
@@ -6324,7 +6318,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.v_min.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.v_min.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -6332,7 +6326,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":42
+/* "test.pyx":42
  * @cython.wraparound(False)  # turn off negative index wrapping for entire function
  * cdef class pulse_data_single_sequence():
  * 	cdef public double _total_time             # <<<<<<<<<<<<<<
@@ -6341,19 +6335,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11_total_time_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11_total_time_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_11_total_time_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_11_total_time_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11_total_time___get__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_11_total_time___get__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11_total_time___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_11_total_time___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -6368,7 +6362,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence._total_time.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence._total_time.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -6377,19 +6371,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
 }
 
 /* Python wrapper */
-static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11_total_time_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
-static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11_total_time_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pw_4test_26pulse_data_single_sequence_11_total_time_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_4test_26pulse_data_single_sequence_11_total_time_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11_total_time_2__set__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v_value));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_11_total_time_2__set__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v_value));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11_total_time_2__set__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pf_4test_26pulse_data_single_sequence_11_total_time_2__set__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   double __pyx_t_1;
@@ -6401,14 +6395,14 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
   __pyx_r = 0;
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence._total_time.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence._total_time.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":43
+/* "test.pyx":43
  * cdef class pulse_data_single_sequence():
  * 	cdef public double _total_time
  * 	cdef public vector[pulse_info] localdata             # <<<<<<<<<<<<<<
@@ -6417,25 +6411,25 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9localdata_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9localdata_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_9localdata_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_9localdata_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9localdata___get__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_9localdata___get__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9localdata___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_9localdata___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__get__", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(__pyx_v_self->localdata); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 43, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_vector_to_py___pyx_t_4test_pulse_info(__pyx_v_self->localdata); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -6444,7 +6438,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.localdata.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.localdata.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -6453,38 +6447,38 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
 }
 
 /* Python wrapper */
-static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9localdata_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
-static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9localdata_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pw_4test_26pulse_data_single_sequence_9localdata_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_4test_26pulse_data_single_sequence_9localdata_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9localdata_2__set__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v_value));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_9localdata_2__set__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v_value));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9localdata_2__set__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pf_4test_26pulse_data_single_sequence_9localdata_2__set__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  __pyx_t_1;
+  std::vector<__pyx_t_4test_pulse_info>  __pyx_t_1;
   __Pyx_RefNannySetupContext("__set__", 0);
-  __pyx_t_1 = __pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(__pyx_v_value); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 43, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert_vector_from_py___pyx_t_4test_pulse_info(__pyx_v_value); if (unlikely(PyErr_Occurred())) __PYX_ERR(1, 43, __pyx_L1_error)
   __pyx_v_self->localdata = __pyx_t_1;
 
   /* function exit code */
   __pyx_r = 0;
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.localdata.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.localdata.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "pulse_lib/segments/data_classes/data_pulse_core.pyx":44
+/* "test.pyx":44
  * 	cdef public double _total_time
  * 	cdef public vector[pulse_info] localdata
  * 	cdef public bool re_render             # <<<<<<<<<<<<<<
@@ -6493,19 +6487,19 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_9re_render_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_9re_render_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render___get__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_9re_render___get__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render___get__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_9re_render___get__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
@@ -6522,19 +6516,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
 }
 
 /* Python wrapper */
-static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
-static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pw_4test_26pulse_data_single_sequence_9re_render_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_4test_26pulse_data_single_sequence_9re_render_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_2__set__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v_value));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_9re_render_2__set__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v_value));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_2__set__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value) {
+static int __pyx_pf_4test_26pulse_data_single_sequence_9re_render_2__set__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v_value) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -6553,7 +6547,7 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.re_render.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.re_render.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -6561,19 +6555,19 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
 }
 
 /* Python wrapper */
-static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_5__del__(PyObject *__pyx_v_self); /*proto*/
-static int __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_5__del__(PyObject *__pyx_v_self) {
+static int __pyx_pw_4test_26pulse_data_single_sequence_9re_render_5__del__(PyObject *__pyx_v_self); /*proto*/
+static int __pyx_pw_4test_26pulse_data_single_sequence_9re_render_5__del__(PyObject *__pyx_v_self) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__del__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_4__del__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_9re_render_4__del__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_4__del__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
+static int __pyx_pf_4test_26pulse_data_single_sequence_9re_render_4__del__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__del__", 0);
@@ -6596,19 +6590,19 @@ static int __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26puls
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_21__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_21__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_21__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_21__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_20__reduce_cython__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_20__reduce_cython__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_20__reduce_cython__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self) {
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_20__reduce_cython__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self) {
   PyObject *__pyx_v_state = 0;
   PyObject *__pyx_v__dict = 0;
   int __pyx_v_use_setstate;
@@ -6632,7 +6626,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
   __pyx_t_1 = PyFloat_FromDouble(__pyx_v_self->_total_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(__pyx_v_self->localdata); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __pyx_t_2 = __pyx_convert_vector_to_py___pyx_t_4test_pulse_info(__pyx_v_self->localdata); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   if (unlikely(!__pyx_v_self->time_data.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 5, __pyx_L1_error)}
   __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_self->time_data, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5, __pyx_L1_error)
@@ -6836,7 +6830,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_state);
@@ -6854,19 +6848,19 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_23__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_23__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_23__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static PyObject *__pyx_pw_4test_26pulse_data_single_sequence_23__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_22__setstate_cython__(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+  __pyx_r = __pyx_pf_4test_26pulse_data_single_sequence_22__setstate_cython__(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_22__setstate_cython__(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_4test_26pulse_data_single_sequence_22__setstate_cython__(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -6878,7 +6872,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  *     __pyx_unpickle_pulse_data_single_sequence__set_state(self, __pyx_state)             # <<<<<<<<<<<<<<
  */
   if (!(likely(PyTuple_CheckExact(__pyx_v___pyx_state))||((__pyx_v___pyx_state) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "tuple", Py_TYPE(__pyx_v___pyx_state)->tp_name), 0))) __PYX_ERR(0, 17, __pyx_L1_error)
-  __pyx_t_1 = __pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core___pyx_unpickle_pulse_data_single_sequence__set_state(__pyx_v_self, ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_4test___pyx_unpickle_pulse_data_single_sequence__set_state(__pyx_v_self, ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
@@ -6894,7 +6888,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.pulse_data_single_sequence.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -6909,9 +6903,9 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_1__pyx_unpickle_pulse_data_single_sequence(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_9pulse_lib_8segments_12data_classes_15data_pulse_core_1__pyx_unpickle_pulse_data_single_sequence = {"__pyx_unpickle_pulse_data_single_sequence", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_1__pyx_unpickle_pulse_data_single_sequence, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_1__pyx_unpickle_pulse_data_single_sequence(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4test_1__pyx_unpickle_pulse_data_single_sequence(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_4test_1__pyx_unpickle_pulse_data_single_sequence = {"__pyx_unpickle_pulse_data_single_sequence", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_4test_1__pyx_unpickle_pulse_data_single_sequence, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_4test_1__pyx_unpickle_pulse_data_single_sequence(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v___pyx_type = 0;
   long __pyx_v___pyx_checksum;
   PyObject *__pyx_v___pyx_state = 0;
@@ -6970,18 +6964,18 @@ static PyObject *__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_pulse_data_single_sequence", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.__pyx_unpickle_pulse_data_single_sequence", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.__pyx_unpickle_pulse_data_single_sequence", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core___pyx_unpickle_pulse_data_single_sequence(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
+  __pyx_r = __pyx_pf_4test___pyx_unpickle_pulse_data_single_sequence(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core___pyx_unpickle_pulse_data_single_sequence(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_4test___pyx_unpickle_pulse_data_single_sequence(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_v___pyx_PickleError = 0;
   PyObject *__pyx_v___pyx_result = 0;
   PyObject *__pyx_r = NULL;
@@ -7075,7 +7069,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  *     if __pyx_state is not None:
  *         __pyx_unpickle_pulse_data_single_sequence__set_state(<pulse_data_single_sequence> __pyx_result, __pyx_state)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence), __pyx_n_s_new); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 7, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_ptype_4test_pulse_data_single_sequence), __pyx_n_s_new); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -7114,7 +7108,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  * cdef __pyx_unpickle_pulse_data_single_sequence__set_state(pulse_data_single_sequence __pyx_result, tuple __pyx_state):
  */
     if (!(likely(PyTuple_CheckExact(__pyx_v___pyx_state))||((__pyx_v___pyx_state) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "tuple", Py_TYPE(__pyx_v___pyx_state)->tp_name), 0))) __PYX_ERR(0, 9, __pyx_L1_error)
-    __pyx_t_3 = __pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core___pyx_unpickle_pulse_data_single_sequence__set_state(((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)__pyx_v___pyx_result), ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 9, __pyx_L1_error)
+    __pyx_t_3 = __pyx_f_4test___pyx_unpickle_pulse_data_single_sequence__set_state(((struct __pyx_obj_4test_pulse_data_single_sequence *)__pyx_v___pyx_result), ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 9, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
@@ -7151,7 +7145,7 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.__pyx_unpickle_pulse_data_single_sequence", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.__pyx_unpickle_pulse_data_single_sequence", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v___pyx_PickleError);
@@ -7169,12 +7163,12 @@ static PyObject *__pyx_pf_9pulse_lib_8segments_12data_classes_15data_pulse_core_
  *     if len(__pyx_state) > 5 and hasattr(__pyx_result, '__dict__'):
  */
 
-static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core___pyx_unpickle_pulse_data_single_sequence__set_state(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *__pyx_v___pyx_result, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_f_4test___pyx_unpickle_pulse_data_single_sequence__set_state(struct __pyx_obj_4test_pulse_data_single_sequence *__pyx_v___pyx_result, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   double __pyx_t_2;
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  __pyx_t_3;
+  std::vector<__pyx_t_4test_pulse_info>  __pyx_t_3;
   __Pyx_memviewslice __pyx_t_4 = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_t_5;
   Py_ssize_t __pyx_t_6;
@@ -7207,7 +7201,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core__
   }
   __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(__pyx_t_1); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 12, __pyx_L1_error)
+  __pyx_t_3 = __pyx_convert_vector_from_py___pyx_t_4test_pulse_info(__pyx_t_1); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v___pyx_result->localdata = __pyx_t_3;
   if (unlikely(__pyx_v___pyx_state == Py_None)) {
@@ -7329,7 +7323,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core__
   __Pyx_XDECREF(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_10);
   __Pyx_XDECREF(__pyx_t_11);
-  __Pyx_AddTraceback("pulse_lib.segments.data_classes.data_pulse_core.__pyx_unpickle_pulse_data_single_sequence__set_state", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("test.__pyx_unpickle_pulse_data_single_sequence__set_state", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -7337,7 +7331,7 @@ static PyObject *__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core__
   return __pyx_r;
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":258
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":258
  *         # experimental exception made for __getbuffer__ and __releasebuffer__
  *         # -- the details of this may change.
  *         def __getbuffer__(ndarray self, Py_buffer* info, int flags):             # <<<<<<<<<<<<<<
@@ -7386,7 +7380,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_v_info->obj = Py_None; __Pyx_INCREF(Py_None);
   __Pyx_GIVEREF(__pyx_v_info->obj);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":265
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":265
  * 
  *             cdef int i, ndim
  *             cdef int endian_detector = 1             # <<<<<<<<<<<<<<
@@ -7395,7 +7389,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_endian_detector = 1;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":266
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":266
  *             cdef int i, ndim
  *             cdef int endian_detector = 1
  *             cdef bint little_endian = ((<char*>&endian_detector)[0] != 0)             # <<<<<<<<<<<<<<
@@ -7404,7 +7398,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_little_endian = ((((char *)(&__pyx_v_endian_detector))[0]) != 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":268
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":268
  *             cdef bint little_endian = ((<char*>&endian_detector)[0] != 0)
  * 
  *             ndim = PyArray_NDIM(self)             # <<<<<<<<<<<<<<
@@ -7413,7 +7407,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_ndim = PyArray_NDIM(__pyx_v_self);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":270
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":270
  *             ndim = PyArray_NDIM(self)
  * 
  *             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)             # <<<<<<<<<<<<<<
@@ -7427,7 +7421,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     goto __pyx_L4_bool_binop_done;
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":271
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":271
  * 
  *             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)
  *                 and not PyArray_CHKFLAGS(self, NPY_ARRAY_C_CONTIGUOUS)):             # <<<<<<<<<<<<<<
@@ -7438,7 +7432,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_t_1 = __pyx_t_2;
   __pyx_L4_bool_binop_done:;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":270
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":270
  *             ndim = PyArray_NDIM(self)
  * 
  *             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)             # <<<<<<<<<<<<<<
@@ -7447,7 +7441,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   if (unlikely(__pyx_t_1)) {
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":272
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":272
  *             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)
  *                 and not PyArray_CHKFLAGS(self, NPY_ARRAY_C_CONTIGUOUS)):
  *                 raise ValueError(u"ndarray is not C contiguous")             # <<<<<<<<<<<<<<
@@ -7460,7 +7454,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __PYX_ERR(2, 272, __pyx_L1_error)
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":270
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":270
  *             ndim = PyArray_NDIM(self)
  * 
  *             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)             # <<<<<<<<<<<<<<
@@ -7469,7 +7463,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":274
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":274
  *                 raise ValueError(u"ndarray is not C contiguous")
  * 
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)             # <<<<<<<<<<<<<<
@@ -7483,7 +7477,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     goto __pyx_L7_bool_binop_done;
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":275
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":275
  * 
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)
  *                 and not PyArray_CHKFLAGS(self, NPY_ARRAY_F_CONTIGUOUS)):             # <<<<<<<<<<<<<<
@@ -7494,7 +7488,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_t_1 = __pyx_t_2;
   __pyx_L7_bool_binop_done:;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":274
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":274
  *                 raise ValueError(u"ndarray is not C contiguous")
  * 
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)             # <<<<<<<<<<<<<<
@@ -7503,7 +7497,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   if (unlikely(__pyx_t_1)) {
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":276
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":276
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)
  *                 and not PyArray_CHKFLAGS(self, NPY_ARRAY_F_CONTIGUOUS)):
  *                 raise ValueError(u"ndarray is not Fortran contiguous")             # <<<<<<<<<<<<<<
@@ -7516,7 +7510,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __PYX_ERR(2, 276, __pyx_L1_error)
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":274
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":274
  *                 raise ValueError(u"ndarray is not C contiguous")
  * 
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)             # <<<<<<<<<<<<<<
@@ -7525,7 +7519,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":278
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":278
  *                 raise ValueError(u"ndarray is not Fortran contiguous")
  * 
  *             info.buf = PyArray_DATA(self)             # <<<<<<<<<<<<<<
@@ -7534,7 +7528,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_info->buf = PyArray_DATA(__pyx_v_self);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":279
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":279
  * 
  *             info.buf = PyArray_DATA(self)
  *             info.ndim = ndim             # <<<<<<<<<<<<<<
@@ -7543,7 +7537,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_info->ndim = __pyx_v_ndim;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":280
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":280
  *             info.buf = PyArray_DATA(self)
  *             info.ndim = ndim
  *             if sizeof(npy_intp) != sizeof(Py_ssize_t):             # <<<<<<<<<<<<<<
@@ -7553,7 +7547,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_t_1 = (((sizeof(npy_intp)) != (sizeof(Py_ssize_t))) != 0);
   if (__pyx_t_1) {
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":283
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":283
  *                 # Allocate new buffer for strides and shape info.
  *                 # This is allocated as one block, strides first.
  *                 info.strides = <Py_ssize_t*>PyObject_Malloc(sizeof(Py_ssize_t) * 2 * <size_t>ndim)             # <<<<<<<<<<<<<<
@@ -7562,7 +7556,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     __pyx_v_info->strides = ((Py_ssize_t *)PyObject_Malloc((((sizeof(Py_ssize_t)) * 2) * ((size_t)__pyx_v_ndim))));
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":284
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":284
  *                 # This is allocated as one block, strides first.
  *                 info.strides = <Py_ssize_t*>PyObject_Malloc(sizeof(Py_ssize_t) * 2 * <size_t>ndim)
  *                 info.shape = info.strides + ndim             # <<<<<<<<<<<<<<
@@ -7571,7 +7565,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     __pyx_v_info->shape = (__pyx_v_info->strides + __pyx_v_ndim);
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":285
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":285
  *                 info.strides = <Py_ssize_t*>PyObject_Malloc(sizeof(Py_ssize_t) * 2 * <size_t>ndim)
  *                 info.shape = info.strides + ndim
  *                 for i in range(ndim):             # <<<<<<<<<<<<<<
@@ -7583,7 +7577,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
       __pyx_v_i = __pyx_t_6;
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":286
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":286
  *                 info.shape = info.strides + ndim
  *                 for i in range(ndim):
  *                     info.strides[i] = PyArray_STRIDES(self)[i]             # <<<<<<<<<<<<<<
@@ -7592,7 +7586,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
       (__pyx_v_info->strides[__pyx_v_i]) = (PyArray_STRIDES(__pyx_v_self)[__pyx_v_i]);
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":287
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":287
  *                 for i in range(ndim):
  *                     info.strides[i] = PyArray_STRIDES(self)[i]
  *                     info.shape[i] = PyArray_DIMS(self)[i]             # <<<<<<<<<<<<<<
@@ -7602,7 +7596,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       (__pyx_v_info->shape[__pyx_v_i]) = (PyArray_DIMS(__pyx_v_self)[__pyx_v_i]);
     }
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":280
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":280
  *             info.buf = PyArray_DATA(self)
  *             info.ndim = ndim
  *             if sizeof(npy_intp) != sizeof(Py_ssize_t):             # <<<<<<<<<<<<<<
@@ -7612,7 +7606,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     goto __pyx_L9;
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":289
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":289
  *                     info.shape[i] = PyArray_DIMS(self)[i]
  *             else:
  *                 info.strides = <Py_ssize_t*>PyArray_STRIDES(self)             # <<<<<<<<<<<<<<
@@ -7622,7 +7616,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   /*else*/ {
     __pyx_v_info->strides = ((Py_ssize_t *)PyArray_STRIDES(__pyx_v_self));
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":290
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":290
  *             else:
  *                 info.strides = <Py_ssize_t*>PyArray_STRIDES(self)
  *                 info.shape = <Py_ssize_t*>PyArray_DIMS(self)             # <<<<<<<<<<<<<<
@@ -7633,7 +7627,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   }
   __pyx_L9:;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":291
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":291
  *                 info.strides = <Py_ssize_t*>PyArray_STRIDES(self)
  *                 info.shape = <Py_ssize_t*>PyArray_DIMS(self)
  *             info.suboffsets = NULL             # <<<<<<<<<<<<<<
@@ -7642,7 +7636,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_info->suboffsets = NULL;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":292
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":292
  *                 info.shape = <Py_ssize_t*>PyArray_DIMS(self)
  *             info.suboffsets = NULL
  *             info.itemsize = PyArray_ITEMSIZE(self)             # <<<<<<<<<<<<<<
@@ -7651,7 +7645,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_info->itemsize = PyArray_ITEMSIZE(__pyx_v_self);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":293
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":293
  *             info.suboffsets = NULL
  *             info.itemsize = PyArray_ITEMSIZE(self)
  *             info.readonly = not PyArray_ISWRITEABLE(self)             # <<<<<<<<<<<<<<
@@ -7660,7 +7654,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_info->readonly = (!(PyArray_ISWRITEABLE(__pyx_v_self) != 0));
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":296
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":296
  * 
  *             cdef int t
  *             cdef char* f = NULL             # <<<<<<<<<<<<<<
@@ -7669,7 +7663,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   __pyx_v_f = NULL;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":297
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":297
  *             cdef int t
  *             cdef char* f = NULL
  *             cdef dtype descr = <dtype>PyArray_DESCR(self)             # <<<<<<<<<<<<<<
@@ -7682,7 +7676,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_v_descr = ((PyArray_Descr *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":300
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":300
  *             cdef int offset
  * 
  *             info.obj = self             # <<<<<<<<<<<<<<
@@ -7695,7 +7689,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __Pyx_DECREF(__pyx_v_info->obj);
   __pyx_v_info->obj = ((PyObject *)__pyx_v_self);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":302
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":302
  *             info.obj = self
  * 
  *             if not PyDataType_HASFIELDS(descr):             # <<<<<<<<<<<<<<
@@ -7705,7 +7699,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   __pyx_t_1 = ((!(PyDataType_HASFIELDS(__pyx_v_descr) != 0)) != 0);
   if (__pyx_t_1) {
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":303
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":303
  * 
  *             if not PyDataType_HASFIELDS(descr):
  *                 t = descr.type_num             # <<<<<<<<<<<<<<
@@ -7715,7 +7709,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     __pyx_t_4 = __pyx_v_descr->type_num;
     __pyx_v_t = __pyx_t_4;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":304
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":304
  *             if not PyDataType_HASFIELDS(descr):
  *                 t = descr.type_num
  *                 if ((descr.byteorder == c'>' and little_endian) or             # <<<<<<<<<<<<<<
@@ -7735,7 +7729,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     }
     __pyx_L15_next_or:;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":305
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":305
  *                 t = descr.type_num
  *                 if ((descr.byteorder == c'>' and little_endian) or
  *                     (descr.byteorder == c'<' and not little_endian)):             # <<<<<<<<<<<<<<
@@ -7752,7 +7746,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     __pyx_t_1 = __pyx_t_2;
     __pyx_L14_bool_binop_done:;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":304
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":304
  *             if not PyDataType_HASFIELDS(descr):
  *                 t = descr.type_num
  *                 if ((descr.byteorder == c'>' and little_endian) or             # <<<<<<<<<<<<<<
@@ -7761,7 +7755,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     if (unlikely(__pyx_t_1)) {
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":306
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":306
  *                 if ((descr.byteorder == c'>' and little_endian) or
  *                     (descr.byteorder == c'<' and not little_endian)):
  *                     raise ValueError(u"Non-native byte order not supported")             # <<<<<<<<<<<<<<
@@ -7774,7 +7768,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __PYX_ERR(2, 306, __pyx_L1_error)
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":304
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":304
  *             if not PyDataType_HASFIELDS(descr):
  *                 t = descr.type_num
  *                 if ((descr.byteorder == c'>' and little_endian) or             # <<<<<<<<<<<<<<
@@ -7783,7 +7777,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     }
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":307
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":307
  *                     (descr.byteorder == c'<' and not little_endian)):
  *                     raise ValueError(u"Non-native byte order not supported")
  *                 if   t == NPY_BYTE:        f = "b"             # <<<<<<<<<<<<<<
@@ -7796,7 +7790,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_UBYTE:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":308
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":308
  *                     raise ValueError(u"Non-native byte order not supported")
  *                 if   t == NPY_BYTE:        f = "b"
  *                 elif t == NPY_UBYTE:       f = "B"             # <<<<<<<<<<<<<<
@@ -7807,7 +7801,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_SHORT:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":309
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":309
  *                 if   t == NPY_BYTE:        f = "b"
  *                 elif t == NPY_UBYTE:       f = "B"
  *                 elif t == NPY_SHORT:       f = "h"             # <<<<<<<<<<<<<<
@@ -7818,7 +7812,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_USHORT:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":310
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":310
  *                 elif t == NPY_UBYTE:       f = "B"
  *                 elif t == NPY_SHORT:       f = "h"
  *                 elif t == NPY_USHORT:      f = "H"             # <<<<<<<<<<<<<<
@@ -7829,7 +7823,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_INT:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":311
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":311
  *                 elif t == NPY_SHORT:       f = "h"
  *                 elif t == NPY_USHORT:      f = "H"
  *                 elif t == NPY_INT:         f = "i"             # <<<<<<<<<<<<<<
@@ -7840,7 +7834,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_UINT:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":312
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":312
  *                 elif t == NPY_USHORT:      f = "H"
  *                 elif t == NPY_INT:         f = "i"
  *                 elif t == NPY_UINT:        f = "I"             # <<<<<<<<<<<<<<
@@ -7851,7 +7845,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_LONG:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":313
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":313
  *                 elif t == NPY_INT:         f = "i"
  *                 elif t == NPY_UINT:        f = "I"
  *                 elif t == NPY_LONG:        f = "l"             # <<<<<<<<<<<<<<
@@ -7862,7 +7856,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_ULONG:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":314
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":314
  *                 elif t == NPY_UINT:        f = "I"
  *                 elif t == NPY_LONG:        f = "l"
  *                 elif t == NPY_ULONG:       f = "L"             # <<<<<<<<<<<<<<
@@ -7873,7 +7867,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_LONGLONG:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":315
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":315
  *                 elif t == NPY_LONG:        f = "l"
  *                 elif t == NPY_ULONG:       f = "L"
  *                 elif t == NPY_LONGLONG:    f = "q"             # <<<<<<<<<<<<<<
@@ -7884,7 +7878,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_ULONGLONG:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":316
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":316
  *                 elif t == NPY_ULONG:       f = "L"
  *                 elif t == NPY_LONGLONG:    f = "q"
  *                 elif t == NPY_ULONGLONG:   f = "Q"             # <<<<<<<<<<<<<<
@@ -7895,7 +7889,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_FLOAT:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":317
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":317
  *                 elif t == NPY_LONGLONG:    f = "q"
  *                 elif t == NPY_ULONGLONG:   f = "Q"
  *                 elif t == NPY_FLOAT:       f = "f"             # <<<<<<<<<<<<<<
@@ -7906,7 +7900,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_DOUBLE:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":318
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":318
  *                 elif t == NPY_ULONGLONG:   f = "Q"
  *                 elif t == NPY_FLOAT:       f = "f"
  *                 elif t == NPY_DOUBLE:      f = "d"             # <<<<<<<<<<<<<<
@@ -7917,7 +7911,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_LONGDOUBLE:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":319
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":319
  *                 elif t == NPY_FLOAT:       f = "f"
  *                 elif t == NPY_DOUBLE:      f = "d"
  *                 elif t == NPY_LONGDOUBLE:  f = "g"             # <<<<<<<<<<<<<<
@@ -7928,7 +7922,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_CFLOAT:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":320
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":320
  *                 elif t == NPY_DOUBLE:      f = "d"
  *                 elif t == NPY_LONGDOUBLE:  f = "g"
  *                 elif t == NPY_CFLOAT:      f = "Zf"             # <<<<<<<<<<<<<<
@@ -7939,7 +7933,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_CDOUBLE:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":321
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":321
  *                 elif t == NPY_LONGDOUBLE:  f = "g"
  *                 elif t == NPY_CFLOAT:      f = "Zf"
  *                 elif t == NPY_CDOUBLE:     f = "Zd"             # <<<<<<<<<<<<<<
@@ -7950,7 +7944,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_CLONGDOUBLE:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":322
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":322
  *                 elif t == NPY_CFLOAT:      f = "Zf"
  *                 elif t == NPY_CDOUBLE:     f = "Zd"
  *                 elif t == NPY_CLONGDOUBLE: f = "Zg"             # <<<<<<<<<<<<<<
@@ -7961,7 +7955,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       case NPY_OBJECT:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":323
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":323
  *                 elif t == NPY_CDOUBLE:     f = "Zd"
  *                 elif t == NPY_CLONGDOUBLE: f = "Zg"
  *                 elif t == NPY_OBJECT:      f = "O"             # <<<<<<<<<<<<<<
@@ -7972,7 +7966,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
       default:
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":325
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":325
  *                 elif t == NPY_OBJECT:      f = "O"
  *                 else:
  *                     raise ValueError(u"unknown dtype code in numpy.pxd (%d)" % t)             # <<<<<<<<<<<<<<
@@ -7993,7 +7987,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
       break;
     }
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":326
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":326
  *                 else:
  *                     raise ValueError(u"unknown dtype code in numpy.pxd (%d)" % t)
  *                 info.format = f             # <<<<<<<<<<<<<<
@@ -8002,7 +7996,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     __pyx_v_info->format = __pyx_v_f;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":327
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":327
  *                     raise ValueError(u"unknown dtype code in numpy.pxd (%d)" % t)
  *                 info.format = f
  *                 return             # <<<<<<<<<<<<<<
@@ -8012,7 +8006,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     __pyx_r = 0;
     goto __pyx_L0;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":302
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":302
  *             info.obj = self
  * 
  *             if not PyDataType_HASFIELDS(descr):             # <<<<<<<<<<<<<<
@@ -8021,7 +8015,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":329
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":329
  *                 return
  *             else:
  *                 info.format = <char*>PyObject_Malloc(_buffer_format_string_len)             # <<<<<<<<<<<<<<
@@ -8031,7 +8025,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   /*else*/ {
     __pyx_v_info->format = ((char *)PyObject_Malloc(0xFF));
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":330
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":330
  *             else:
  *                 info.format = <char*>PyObject_Malloc(_buffer_format_string_len)
  *                 info.format[0] = c'^' # Native data types, manual alignment             # <<<<<<<<<<<<<<
@@ -8040,7 +8034,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     (__pyx_v_info->format[0]) = '^';
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":331
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":331
  *                 info.format = <char*>PyObject_Malloc(_buffer_format_string_len)
  *                 info.format[0] = c'^' # Native data types, manual alignment
  *                 offset = 0             # <<<<<<<<<<<<<<
@@ -8049,7 +8043,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  */
     __pyx_v_offset = 0;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":332
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":332
  *                 info.format[0] = c'^' # Native data types, manual alignment
  *                 offset = 0
  *                 f = _util_dtypestring(descr, info.format + 1,             # <<<<<<<<<<<<<<
@@ -8059,7 +8053,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     __pyx_t_9 = __pyx_f_5numpy__util_dtypestring(__pyx_v_descr, (__pyx_v_info->format + 1), (__pyx_v_info->format + 0xFF), (&__pyx_v_offset)); if (unlikely(__pyx_t_9 == ((char *)NULL))) __PYX_ERR(2, 332, __pyx_L1_error)
     __pyx_v_f = __pyx_t_9;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":335
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":335
  *                                       info.format + _buffer_format_string_len,
  *                                       &offset)
  *                 f[0] = c'\0' # Terminate format string             # <<<<<<<<<<<<<<
@@ -8069,7 +8063,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
     (__pyx_v_f[0]) = '\x00';
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":258
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":258
  *         # experimental exception made for __getbuffer__ and __releasebuffer__
  *         # -- the details of this may change.
  *         def __getbuffer__(ndarray self, Py_buffer* info, int flags):             # <<<<<<<<<<<<<<
@@ -8101,7 +8095,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
   return __pyx_r;
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":337
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":337
  *                 f[0] = c'\0' # Terminate format string
  * 
  *         def __releasebuffer__(ndarray self, Py_buffer* info):             # <<<<<<<<<<<<<<
@@ -8125,7 +8119,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("__releasebuffer__", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":338
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":338
  * 
  *         def __releasebuffer__(ndarray self, Py_buffer* info):
  *             if PyArray_HASFIELDS(self):             # <<<<<<<<<<<<<<
@@ -8135,7 +8129,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
   __pyx_t_1 = (PyArray_HASFIELDS(__pyx_v_self) != 0);
   if (__pyx_t_1) {
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":339
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":339
  *         def __releasebuffer__(ndarray self, Py_buffer* info):
  *             if PyArray_HASFIELDS(self):
  *                 PyObject_Free(info.format)             # <<<<<<<<<<<<<<
@@ -8144,7 +8138,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
  */
     PyObject_Free(__pyx_v_info->format);
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":338
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":338
  * 
  *         def __releasebuffer__(ndarray self, Py_buffer* info):
  *             if PyArray_HASFIELDS(self):             # <<<<<<<<<<<<<<
@@ -8153,7 +8147,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
  */
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":340
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":340
  *             if PyArray_HASFIELDS(self):
  *                 PyObject_Free(info.format)
  *             if sizeof(npy_intp) != sizeof(Py_ssize_t):             # <<<<<<<<<<<<<<
@@ -8163,7 +8157,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
   __pyx_t_1 = (((sizeof(npy_intp)) != (sizeof(Py_ssize_t))) != 0);
   if (__pyx_t_1) {
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":341
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":341
  *                 PyObject_Free(info.format)
  *             if sizeof(npy_intp) != sizeof(Py_ssize_t):
  *                 PyObject_Free(info.strides)             # <<<<<<<<<<<<<<
@@ -8172,7 +8166,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
  */
     PyObject_Free(__pyx_v_info->strides);
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":340
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":340
  *             if PyArray_HASFIELDS(self):
  *                 PyObject_Free(info.format)
  *             if sizeof(npy_intp) != sizeof(Py_ssize_t):             # <<<<<<<<<<<<<<
@@ -8181,7 +8175,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
  */
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":337
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":337
  *                 f[0] = c'\0' # Terminate format string
  * 
  *         def __releasebuffer__(ndarray self, Py_buffer* info):             # <<<<<<<<<<<<<<
@@ -8193,7 +8187,7 @@ static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_s
   __Pyx_RefNannyFinishContext();
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":821
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":821
  * ctypedef npy_cdouble     complex_t
  * 
  * cdef inline object PyArray_MultiIterNew1(a):             # <<<<<<<<<<<<<<
@@ -8207,7 +8201,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew1", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":822
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":822
  * 
  * cdef inline object PyArray_MultiIterNew1(a):
  *     return PyArray_MultiIterNew(1, <void*>a)             # <<<<<<<<<<<<<<
@@ -8221,7 +8215,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":821
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":821
  * ctypedef npy_cdouble     complex_t
  * 
  * cdef inline object PyArray_MultiIterNew1(a):             # <<<<<<<<<<<<<<
@@ -8240,7 +8234,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__
   return __pyx_r;
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":824
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":824
  *     return PyArray_MultiIterNew(1, <void*>a)
  * 
  * cdef inline object PyArray_MultiIterNew2(a, b):             # <<<<<<<<<<<<<<
@@ -8254,7 +8248,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew2(PyObject *__
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew2", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":825
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":825
  * 
  * cdef inline object PyArray_MultiIterNew2(a, b):
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)             # <<<<<<<<<<<<<<
@@ -8268,7 +8262,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew2(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":824
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":824
  *     return PyArray_MultiIterNew(1, <void*>a)
  * 
  * cdef inline object PyArray_MultiIterNew2(a, b):             # <<<<<<<<<<<<<<
@@ -8287,7 +8281,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew2(PyObject *__
   return __pyx_r;
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":827
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":827
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)
  * 
  * cdef inline object PyArray_MultiIterNew3(a, b, c):             # <<<<<<<<<<<<<<
@@ -8301,7 +8295,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew3", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":828
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":828
  * 
  * cdef inline object PyArray_MultiIterNew3(a, b, c):
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)             # <<<<<<<<<<<<<<
@@ -8315,7 +8309,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":827
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":827
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)
  * 
  * cdef inline object PyArray_MultiIterNew3(a, b, c):             # <<<<<<<<<<<<<<
@@ -8334,7 +8328,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__
   return __pyx_r;
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":830
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":830
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)
  * 
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):             # <<<<<<<<<<<<<<
@@ -8348,7 +8342,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew4(PyObject *__
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew4", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":831
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":831
  * 
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)             # <<<<<<<<<<<<<<
@@ -8362,7 +8356,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew4(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":830
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":830
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)
  * 
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):             # <<<<<<<<<<<<<<
@@ -8381,7 +8375,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew4(PyObject *__
   return __pyx_r;
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":833
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":833
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)
  * 
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):             # <<<<<<<<<<<<<<
@@ -8395,7 +8389,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew5", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":834
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":834
  * 
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)             # <<<<<<<<<<<<<<
@@ -8409,7 +8403,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":833
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":833
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)
  * 
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):             # <<<<<<<<<<<<<<
@@ -8428,7 +8422,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__
   return __pyx_r;
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":836
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":836
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
  * 
  * cdef inline tuple PyDataType_SHAPE(dtype d):             # <<<<<<<<<<<<<<
@@ -8442,7 +8436,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("PyDataType_SHAPE", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":837
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":837
  * 
  * cdef inline tuple PyDataType_SHAPE(dtype d):
  *     if PyDataType_HASSUBARRAY(d):             # <<<<<<<<<<<<<<
@@ -8452,7 +8446,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
   __pyx_t_1 = (PyDataType_HASSUBARRAY(__pyx_v_d) != 0);
   if (__pyx_t_1) {
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":838
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":838
  * cdef inline tuple PyDataType_SHAPE(dtype d):
  *     if PyDataType_HASSUBARRAY(d):
  *         return <tuple>d.subarray.shape             # <<<<<<<<<<<<<<
@@ -8464,7 +8458,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
     __pyx_r = ((PyObject*)__pyx_v_d->subarray->shape);
     goto __pyx_L0;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":837
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":837
  * 
  * cdef inline tuple PyDataType_SHAPE(dtype d):
  *     if PyDataType_HASSUBARRAY(d):             # <<<<<<<<<<<<<<
@@ -8473,7 +8467,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
  */
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":840
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":840
  *         return <tuple>d.subarray.shape
  *     else:
  *         return ()             # <<<<<<<<<<<<<<
@@ -8487,7 +8481,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
     goto __pyx_L0;
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":836
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":836
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
  * 
  * cdef inline tuple PyDataType_SHAPE(dtype d):             # <<<<<<<<<<<<<<
@@ -8502,7 +8496,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
   return __pyx_r;
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":842
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":842
  *         return ()
  * 
  * cdef inline char* _util_dtypestring(dtype descr, char* f, char* end, int* offset) except NULL:             # <<<<<<<<<<<<<<
@@ -8531,7 +8525,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
   char *__pyx_t_9;
   __Pyx_RefNannySetupContext("_util_dtypestring", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":847
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":847
  * 
  *     cdef dtype child
  *     cdef int endian_detector = 1             # <<<<<<<<<<<<<<
@@ -8540,7 +8534,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
   __pyx_v_endian_detector = 1;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":848
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":848
  *     cdef dtype child
  *     cdef int endian_detector = 1
  *     cdef bint little_endian = ((<char*>&endian_detector)[0] != 0)             # <<<<<<<<<<<<<<
@@ -8549,7 +8543,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
   __pyx_v_little_endian = ((((char *)(&__pyx_v_endian_detector))[0]) != 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":851
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":851
  *     cdef tuple fields
  * 
  *     for childname in descr.names:             # <<<<<<<<<<<<<<
@@ -8572,7 +8566,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __Pyx_XDECREF_SET(__pyx_v_childname, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":852
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":852
  * 
  *     for childname in descr.names:
  *         fields = descr.fields[childname]             # <<<<<<<<<<<<<<
@@ -8589,7 +8583,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __Pyx_XDECREF_SET(__pyx_v_fields, ((PyObject*)__pyx_t_3));
     __pyx_t_3 = 0;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":853
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":853
  *     for childname in descr.names:
  *         fields = descr.fields[childname]
  *         child, new_offset = fields             # <<<<<<<<<<<<<<
@@ -8624,7 +8618,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __Pyx_XDECREF_SET(__pyx_v_new_offset, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":855
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":855
  *         child, new_offset = fields
  * 
  *         if (end - f) - <int>(new_offset - offset[0]) < 15:             # <<<<<<<<<<<<<<
@@ -8641,7 +8635,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __pyx_t_6 = ((((__pyx_v_end - __pyx_v_f) - ((int)__pyx_t_5)) < 15) != 0);
     if (unlikely(__pyx_t_6)) {
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":856
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":856
  * 
  *         if (end - f) - <int>(new_offset - offset[0]) < 15:
  *             raise RuntimeError(u"Format string allocated too short, see comment in numpy.pxd")             # <<<<<<<<<<<<<<
@@ -8654,7 +8648,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __PYX_ERR(2, 856, __pyx_L1_error)
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":855
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":855
  *         child, new_offset = fields
  * 
  *         if (end - f) - <int>(new_offset - offset[0]) < 15:             # <<<<<<<<<<<<<<
@@ -8663,7 +8657,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
     }
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":858
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":858
  *             raise RuntimeError(u"Format string allocated too short, see comment in numpy.pxd")
  * 
  *         if ((child.byteorder == c'>' and little_endian) or             # <<<<<<<<<<<<<<
@@ -8683,7 +8677,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     }
     __pyx_L8_next_or:;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":859
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":859
  * 
  *         if ((child.byteorder == c'>' and little_endian) or
  *             (child.byteorder == c'<' and not little_endian)):             # <<<<<<<<<<<<<<
@@ -8700,7 +8694,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __pyx_t_6 = __pyx_t_7;
     __pyx_L7_bool_binop_done:;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":858
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":858
  *             raise RuntimeError(u"Format string allocated too short, see comment in numpy.pxd")
  * 
  *         if ((child.byteorder == c'>' and little_endian) or             # <<<<<<<<<<<<<<
@@ -8709,7 +8703,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
     if (unlikely(__pyx_t_6)) {
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":860
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":860
  *         if ((child.byteorder == c'>' and little_endian) or
  *             (child.byteorder == c'<' and not little_endian)):
  *             raise ValueError(u"Non-native byte order not supported")             # <<<<<<<<<<<<<<
@@ -8722,7 +8716,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __PYX_ERR(2, 860, __pyx_L1_error)
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":858
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":858
  *             raise RuntimeError(u"Format string allocated too short, see comment in numpy.pxd")
  * 
  *         if ((child.byteorder == c'>' and little_endian) or             # <<<<<<<<<<<<<<
@@ -8731,7 +8725,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
     }
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":870
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":870
  * 
  *         # Output padding bytes
  *         while offset[0] < new_offset:             # <<<<<<<<<<<<<<
@@ -8747,7 +8741,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       if (!__pyx_t_6) break;
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":871
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":871
  *         # Output padding bytes
  *         while offset[0] < new_offset:
  *             f[0] = 120 # "x"; pad byte             # <<<<<<<<<<<<<<
@@ -8756,7 +8750,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
       (__pyx_v_f[0]) = 0x78;
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":872
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":872
  *         while offset[0] < new_offset:
  *             f[0] = 120 # "x"; pad byte
  *             f += 1             # <<<<<<<<<<<<<<
@@ -8765,7 +8759,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
       __pyx_v_f = (__pyx_v_f + 1);
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":873
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":873
  *             f[0] = 120 # "x"; pad byte
  *             f += 1
  *             offset[0] += 1             # <<<<<<<<<<<<<<
@@ -8776,7 +8770,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       (__pyx_v_offset[__pyx_t_8]) = ((__pyx_v_offset[__pyx_t_8]) + 1);
     }
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":875
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":875
  *             offset[0] += 1
  * 
  *         offset[0] += child.itemsize             # <<<<<<<<<<<<<<
@@ -8786,7 +8780,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __pyx_t_8 = 0;
     (__pyx_v_offset[__pyx_t_8]) = ((__pyx_v_offset[__pyx_t_8]) + __pyx_v_child->elsize);
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":877
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":877
  *         offset[0] += child.itemsize
  * 
  *         if not PyDataType_HASFIELDS(child):             # <<<<<<<<<<<<<<
@@ -8796,7 +8790,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     __pyx_t_6 = ((!(PyDataType_HASFIELDS(__pyx_v_child) != 0)) != 0);
     if (__pyx_t_6) {
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":878
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":878
  * 
  *         if not PyDataType_HASFIELDS(child):
  *             t = child.type_num             # <<<<<<<<<<<<<<
@@ -8808,7 +8802,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       __Pyx_XDECREF_SET(__pyx_v_t, __pyx_t_4);
       __pyx_t_4 = 0;
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":879
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":879
  *         if not PyDataType_HASFIELDS(child):
  *             t = child.type_num
  *             if end - f < 5:             # <<<<<<<<<<<<<<
@@ -8818,7 +8812,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       __pyx_t_6 = (((__pyx_v_end - __pyx_v_f) < 5) != 0);
       if (unlikely(__pyx_t_6)) {
 
-        /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":880
+        /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":880
  *             t = child.type_num
  *             if end - f < 5:
  *                 raise RuntimeError(u"Format string allocated too short.")             # <<<<<<<<<<<<<<
@@ -8831,7 +8825,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __PYX_ERR(2, 880, __pyx_L1_error)
 
-        /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":879
+        /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":879
  *         if not PyDataType_HASFIELDS(child):
  *             t = child.type_num
  *             if end - f < 5:             # <<<<<<<<<<<<<<
@@ -8840,7 +8834,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":883
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":883
  * 
  *             # Until ticket #99 is fixed, use integers to avoid warnings
  *             if   t == NPY_BYTE:        f[0] =  98 #"b"             # <<<<<<<<<<<<<<
@@ -8858,7 +8852,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":884
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":884
  *             # Until ticket #99 is fixed, use integers to avoid warnings
  *             if   t == NPY_BYTE:        f[0] =  98 #"b"
  *             elif t == NPY_UBYTE:       f[0] =  66 #"B"             # <<<<<<<<<<<<<<
@@ -8876,7 +8870,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":885
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":885
  *             if   t == NPY_BYTE:        f[0] =  98 #"b"
  *             elif t == NPY_UBYTE:       f[0] =  66 #"B"
  *             elif t == NPY_SHORT:       f[0] = 104 #"h"             # <<<<<<<<<<<<<<
@@ -8894,7 +8888,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":886
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":886
  *             elif t == NPY_UBYTE:       f[0] =  66 #"B"
  *             elif t == NPY_SHORT:       f[0] = 104 #"h"
  *             elif t == NPY_USHORT:      f[0] =  72 #"H"             # <<<<<<<<<<<<<<
@@ -8912,7 +8906,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":887
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":887
  *             elif t == NPY_SHORT:       f[0] = 104 #"h"
  *             elif t == NPY_USHORT:      f[0] =  72 #"H"
  *             elif t == NPY_INT:         f[0] = 105 #"i"             # <<<<<<<<<<<<<<
@@ -8930,7 +8924,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":888
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":888
  *             elif t == NPY_USHORT:      f[0] =  72 #"H"
  *             elif t == NPY_INT:         f[0] = 105 #"i"
  *             elif t == NPY_UINT:        f[0] =  73 #"I"             # <<<<<<<<<<<<<<
@@ -8948,7 +8942,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":889
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":889
  *             elif t == NPY_INT:         f[0] = 105 #"i"
  *             elif t == NPY_UINT:        f[0] =  73 #"I"
  *             elif t == NPY_LONG:        f[0] = 108 #"l"             # <<<<<<<<<<<<<<
@@ -8966,7 +8960,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":890
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":890
  *             elif t == NPY_UINT:        f[0] =  73 #"I"
  *             elif t == NPY_LONG:        f[0] = 108 #"l"
  *             elif t == NPY_ULONG:       f[0] = 76  #"L"             # <<<<<<<<<<<<<<
@@ -8984,7 +8978,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":891
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":891
  *             elif t == NPY_LONG:        f[0] = 108 #"l"
  *             elif t == NPY_ULONG:       f[0] = 76  #"L"
  *             elif t == NPY_LONGLONG:    f[0] = 113 #"q"             # <<<<<<<<<<<<<<
@@ -9002,7 +8996,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":892
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":892
  *             elif t == NPY_ULONG:       f[0] = 76  #"L"
  *             elif t == NPY_LONGLONG:    f[0] = 113 #"q"
  *             elif t == NPY_ULONGLONG:   f[0] = 81  #"Q"             # <<<<<<<<<<<<<<
@@ -9020,7 +9014,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":893
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":893
  *             elif t == NPY_LONGLONG:    f[0] = 113 #"q"
  *             elif t == NPY_ULONGLONG:   f[0] = 81  #"Q"
  *             elif t == NPY_FLOAT:       f[0] = 102 #"f"             # <<<<<<<<<<<<<<
@@ -9038,7 +9032,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":894
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":894
  *             elif t == NPY_ULONGLONG:   f[0] = 81  #"Q"
  *             elif t == NPY_FLOAT:       f[0] = 102 #"f"
  *             elif t == NPY_DOUBLE:      f[0] = 100 #"d"             # <<<<<<<<<<<<<<
@@ -9056,7 +9050,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":895
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":895
  *             elif t == NPY_FLOAT:       f[0] = 102 #"f"
  *             elif t == NPY_DOUBLE:      f[0] = 100 #"d"
  *             elif t == NPY_LONGDOUBLE:  f[0] = 103 #"g"             # <<<<<<<<<<<<<<
@@ -9074,7 +9068,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":896
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":896
  *             elif t == NPY_DOUBLE:      f[0] = 100 #"d"
  *             elif t == NPY_LONGDOUBLE:  f[0] = 103 #"g"
  *             elif t == NPY_CFLOAT:      f[0] = 90; f[1] = 102; f += 1 # Zf             # <<<<<<<<<<<<<<
@@ -9094,7 +9088,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":897
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":897
  *             elif t == NPY_LONGDOUBLE:  f[0] = 103 #"g"
  *             elif t == NPY_CFLOAT:      f[0] = 90; f[1] = 102; f += 1 # Zf
  *             elif t == NPY_CDOUBLE:     f[0] = 90; f[1] = 100; f += 1 # Zd             # <<<<<<<<<<<<<<
@@ -9114,7 +9108,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":898
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":898
  *             elif t == NPY_CFLOAT:      f[0] = 90; f[1] = 102; f += 1 # Zf
  *             elif t == NPY_CDOUBLE:     f[0] = 90; f[1] = 100; f += 1 # Zd
  *             elif t == NPY_CLONGDOUBLE: f[0] = 90; f[1] = 103; f += 1 # Zg             # <<<<<<<<<<<<<<
@@ -9134,7 +9128,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":899
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":899
  *             elif t == NPY_CDOUBLE:     f[0] = 90; f[1] = 100; f += 1 # Zd
  *             elif t == NPY_CLONGDOUBLE: f[0] = 90; f[1] = 103; f += 1 # Zg
  *             elif t == NPY_OBJECT:      f[0] = 79 #"O"             # <<<<<<<<<<<<<<
@@ -9152,7 +9146,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
         goto __pyx_L15;
       }
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":901
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":901
  *             elif t == NPY_OBJECT:      f[0] = 79 #"O"
  *             else:
  *                 raise ValueError(u"unknown dtype code in numpy.pxd (%d)" % t)             # <<<<<<<<<<<<<<
@@ -9171,7 +9165,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       }
       __pyx_L15:;
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":902
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":902
  *             else:
  *                 raise ValueError(u"unknown dtype code in numpy.pxd (%d)" % t)
  *             f += 1             # <<<<<<<<<<<<<<
@@ -9180,7 +9174,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  */
       __pyx_v_f = (__pyx_v_f + 1);
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":877
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":877
  *         offset[0] += child.itemsize
  * 
  *         if not PyDataType_HASFIELDS(child):             # <<<<<<<<<<<<<<
@@ -9190,7 +9184,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
       goto __pyx_L13;
     }
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":906
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":906
  *             # Cython ignores struct boundary information ("T{...}"),
  *             # so don't output it
  *             f = _util_dtypestring(child, f, end, offset)             # <<<<<<<<<<<<<<
@@ -9203,7 +9197,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
     }
     __pyx_L13:;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":851
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":851
  *     cdef tuple fields
  * 
  *     for childname in descr.names:             # <<<<<<<<<<<<<<
@@ -9213,7 +9207,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":907
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":907
  *             # so don't output it
  *             f = _util_dtypestring(child, f, end, offset)
  *     return f             # <<<<<<<<<<<<<<
@@ -9223,7 +9217,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
   __pyx_r = __pyx_v_f;
   goto __pyx_L0;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":842
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":842
  *         return ()
  * 
  * cdef inline char* _util_dtypestring(dtype descr, char* f, char* end, int* offset) except NULL:             # <<<<<<<<<<<<<<
@@ -9248,7 +9242,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
   return __pyx_r;
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1022
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1022
  *     int _import_umath() except -1
  * 
  * cdef inline void set_array_base(ndarray arr, object base):             # <<<<<<<<<<<<<<
@@ -9260,7 +9254,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("set_array_base", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1023
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1023
  * 
  * cdef inline void set_array_base(ndarray arr, object base):
  *     Py_INCREF(base) # important to do this before stealing the reference below!             # <<<<<<<<<<<<<<
@@ -9269,7 +9263,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
  */
   Py_INCREF(__pyx_v_base);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1024
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1024
  * cdef inline void set_array_base(ndarray arr, object base):
  *     Py_INCREF(base) # important to do this before stealing the reference below!
  *     PyArray_SetBaseObject(arr, base)             # <<<<<<<<<<<<<<
@@ -9278,7 +9272,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
  */
   (void)(PyArray_SetBaseObject(__pyx_v_arr, __pyx_v_base));
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1022
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1022
  *     int _import_umath() except -1
  * 
  * cdef inline void set_array_base(ndarray arr, object base):             # <<<<<<<<<<<<<<
@@ -9290,7 +9284,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
   __Pyx_RefNannyFinishContext();
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1026
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1026
  *     PyArray_SetBaseObject(arr, base)
  * 
  * cdef inline object get_array_base(ndarray arr):             # <<<<<<<<<<<<<<
@@ -9305,7 +9299,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("get_array_base", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1027
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1027
  * 
  * cdef inline object get_array_base(ndarray arr):
  *     base = PyArray_BASE(arr)             # <<<<<<<<<<<<<<
@@ -9314,7 +9308,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
  */
   __pyx_v_base = PyArray_BASE(__pyx_v_arr);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1028
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1028
  * cdef inline object get_array_base(ndarray arr):
  *     base = PyArray_BASE(arr)
  *     if base is NULL:             # <<<<<<<<<<<<<<
@@ -9324,7 +9318,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   __pyx_t_1 = ((__pyx_v_base == NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1029
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1029
  *     base = PyArray_BASE(arr)
  *     if base is NULL:
  *         return None             # <<<<<<<<<<<<<<
@@ -9335,7 +9329,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1028
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1028
  * cdef inline object get_array_base(ndarray arr):
  *     base = PyArray_BASE(arr)
  *     if base is NULL:             # <<<<<<<<<<<<<<
@@ -9344,7 +9338,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
  */
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1030
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1030
  *     if base is NULL:
  *         return None
  *     return <object>base             # <<<<<<<<<<<<<<
@@ -9356,7 +9350,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   __pyx_r = ((PyObject *)__pyx_v_base);
   goto __pyx_L0;
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1026
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1026
  *     PyArray_SetBaseObject(arr, base)
  * 
  * cdef inline object get_array_base(ndarray arr):             # <<<<<<<<<<<<<<
@@ -9371,7 +9365,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   return __pyx_r;
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1034
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1034
  * # Versions of the import_* functions which are more suitable for
  * # Cython code.
  * cdef inline int import_array() except -1:             # <<<<<<<<<<<<<<
@@ -9392,7 +9386,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("import_array", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1035
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1035
  * # Cython code.
  * cdef inline int import_array() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9408,7 +9402,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1036
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1036
  * cdef inline int import_array() except -1:
  *     try:
  *         _import_array()             # <<<<<<<<<<<<<<
@@ -9417,7 +9411,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
  */
       __pyx_t_4 = _import_array(); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(2, 1036, __pyx_L3_error)
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1035
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1035
  * # Cython code.
  * cdef inline int import_array() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9431,7 +9425,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
     goto __pyx_L8_try_end;
     __pyx_L3_error:;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1037
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1037
  *     try:
  *         _import_array()
  *     except Exception:             # <<<<<<<<<<<<<<
@@ -9446,7 +9440,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_GOTREF(__pyx_t_7);
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1038
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1038
  *         _import_array()
  *     except Exception:
  *         raise ImportError("numpy.core.multiarray failed to import")             # <<<<<<<<<<<<<<
@@ -9462,7 +9456,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
     goto __pyx_L5_except_error;
     __pyx_L5_except_error:;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1035
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1035
  * # Cython code.
  * cdef inline int import_array() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9477,7 +9471,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
     __pyx_L8_try_end:;
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1034
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1034
  * # Versions of the import_* functions which are more suitable for
  * # Cython code.
  * cdef inline int import_array() except -1:             # <<<<<<<<<<<<<<
@@ -9500,7 +9494,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
   return __pyx_r;
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1040
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1040
  *         raise ImportError("numpy.core.multiarray failed to import")
  * 
  * cdef inline int import_umath() except -1:             # <<<<<<<<<<<<<<
@@ -9521,7 +9515,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("import_umath", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1041
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1041
  * 
  * cdef inline int import_umath() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9537,7 +9531,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1042
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1042
  * cdef inline int import_umath() except -1:
  *     try:
  *         _import_umath()             # <<<<<<<<<<<<<<
@@ -9546,7 +9540,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
  */
       __pyx_t_4 = _import_umath(); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(2, 1042, __pyx_L3_error)
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1041
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1041
  * 
  * cdef inline int import_umath() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9560,7 +9554,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
     goto __pyx_L8_try_end;
     __pyx_L3_error:;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1043
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1043
  *     try:
  *         _import_umath()
  *     except Exception:             # <<<<<<<<<<<<<<
@@ -9575,7 +9569,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_GOTREF(__pyx_t_7);
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1044
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1044
  *         _import_umath()
  *     except Exception:
  *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
@@ -9591,7 +9585,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
     goto __pyx_L5_except_error;
     __pyx_L5_except_error:;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1041
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1041
  * 
  * cdef inline int import_umath() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9606,7 +9600,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
     __pyx_L8_try_end:;
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1040
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1040
  *         raise ImportError("numpy.core.multiarray failed to import")
  * 
  * cdef inline int import_umath() except -1:             # <<<<<<<<<<<<<<
@@ -9629,7 +9623,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
   return __pyx_r;
 }
 
-/* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1046
+/* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1046
  *         raise ImportError("numpy.core.umath failed to import")
  * 
  * cdef inline int import_ufunc() except -1:             # <<<<<<<<<<<<<<
@@ -9650,7 +9644,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("import_ufunc", 0);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1047
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1047
  * 
  * cdef inline int import_ufunc() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9666,7 +9660,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1048
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1048
  * cdef inline int import_ufunc() except -1:
  *     try:
  *         _import_umath()             # <<<<<<<<<<<<<<
@@ -9675,7 +9669,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
  */
       __pyx_t_4 = _import_umath(); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(2, 1048, __pyx_L3_error)
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1047
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1047
  * 
  * cdef inline int import_ufunc() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9689,7 +9683,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
     goto __pyx_L8_try_end;
     __pyx_L3_error:;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1049
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1049
  *     try:
  *         _import_umath()
  *     except Exception:             # <<<<<<<<<<<<<<
@@ -9703,7 +9697,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_GOTREF(__pyx_t_7);
 
-      /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1050
+      /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1050
  *         _import_umath()
  *     except Exception:
  *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
@@ -9717,7 +9711,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
     goto __pyx_L5_except_error;
     __pyx_L5_except_error:;
 
-    /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1047
+    /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1047
  * 
  * cdef inline int import_ufunc() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9732,7 +9726,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
     __pyx_L8_try_end:;
   }
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1046
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1046
  *         raise ImportError("numpy.core.umath failed to import")
  * 
  * cdef inline int import_ufunc() except -1:             # <<<<<<<<<<<<<<
@@ -9757,13 +9751,13 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
 
 /* "vector.to_py":60
  * 
- * @cname("__pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info")
- * cdef object __pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(vector[X]& v):             # <<<<<<<<<<<<<<
+ * @cname("__pyx_convert_vector_to_py___pyx_t_4test_pulse_info")
+ * cdef object __pyx_convert_vector_to_py___pyx_t_4test_pulse_info(vector[X]& v):             # <<<<<<<<<<<<<<
  *     return [v[i] for i in range(v.size())]
  * 
  */
 
-static PyObject *__pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(const std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  &__pyx_v_v) {
+static PyObject *__pyx_convert_vector_to_py___pyx_t_4test_pulse_info(const std::vector<__pyx_t_4test_pulse_info>  &__pyx_v_v) {
   size_t __pyx_v_i;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -9772,11 +9766,11 @@ static PyObject *__pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_
   size_t __pyx_t_3;
   size_t __pyx_t_4;
   PyObject *__pyx_t_5 = NULL;
-  __Pyx_RefNannySetupContext("__pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info", 0);
+  __Pyx_RefNannySetupContext("__pyx_convert_vector_to_py___pyx_t_4test_pulse_info", 0);
 
   /* "vector.to_py":61
- * @cname("__pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info")
- * cdef object __pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(vector[X]& v):
+ * @cname("__pyx_convert_vector_to_py___pyx_t_4test_pulse_info")
+ * cdef object __pyx_convert_vector_to_py___pyx_t_4test_pulse_info(vector[X]& v):
  *     return [v[i] for i in range(v.size())]             # <<<<<<<<<<<<<<
  * 
  * 
@@ -9788,7 +9782,7 @@ static PyObject *__pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_
   __pyx_t_3 = __pyx_t_2;
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_i = __pyx_t_4;
-    __pyx_t_5 = __pyx_convert__to_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info((__pyx_v_v[__pyx_v_i])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 61, __pyx_L1_error)
+    __pyx_t_5 = __pyx_convert__to_py_struct____pyx_t_4test_s_pulse_info((__pyx_v_v[__pyx_v_i])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 61, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_5))) __PYX_ERR(0, 61, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -9799,8 +9793,8 @@ static PyObject *__pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_
 
   /* "vector.to_py":60
  * 
- * @cname("__pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info")
- * cdef object __pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(vector[X]& v):             # <<<<<<<<<<<<<<
+ * @cname("__pyx_convert_vector_to_py___pyx_t_4test_pulse_info")
+ * cdef object __pyx_convert_vector_to_py___pyx_t_4test_pulse_info(vector[X]& v):             # <<<<<<<<<<<<<<
  *     return [v[i] for i in range(v.size())]
  * 
  */
@@ -9809,7 +9803,7 @@ static PyObject *__pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("vector.to_py.__pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("vector.to_py.__pyx_convert_vector_to_py___pyx_t_4test_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -9819,16 +9813,16 @@ static PyObject *__pyx_convert_vector_to_py___pyx_t_9pulse_lib_8segments_12data_
 
 /* "FromPyStructUtility":11
  * 
- * @cname("__pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info")
- * cdef struct_type __pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info(obj) except *:             # <<<<<<<<<<<<<<
+ * @cname("__pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info")
+ * cdef struct_type __pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info(obj) except *:             # <<<<<<<<<<<<<<
  *     cdef struct_type result
  *     if not PyMapping_Check(obj):
  */
 
-static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info __pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info(PyObject *__pyx_v_obj) {
-  struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info __pyx_v_result;
+static struct __pyx_t_4test_s_pulse_info __pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info(PyObject *__pyx_v_obj) {
+  struct __pyx_t_4test_s_pulse_info __pyx_v_result;
   PyObject *__pyx_v_value = NULL;
-  struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info __pyx_r;
+  struct __pyx_t_4test_s_pulse_info __pyx_r;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
@@ -9840,11 +9834,11 @@ static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pu
   PyObject *__pyx_t_8 = NULL;
   PyObject *__pyx_t_9 = NULL;
   double __pyx_t_10;
-  __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong __pyx_t_11;
-  __Pyx_RefNannySetupContext("__pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info", 0);
+  __pyx_t_4test_longlong __pyx_t_11;
+  __Pyx_RefNannySetupContext("__pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info", 0);
 
   /* "FromPyStructUtility":13
- * cdef struct_type __pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info(obj) except *:
+ * cdef struct_type __pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info(obj) except *:
  *     cdef struct_type result
  *     if not PyMapping_Check(obj):             # <<<<<<<<<<<<<<
  *         PyErr_Format(TypeError, b"Expected %.16s, got %.200s", b"a mapping", Py_TYPE(obj).tp_name)
@@ -9865,7 +9859,7 @@ static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pu
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
     /* "FromPyStructUtility":13
- * cdef struct_type __pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info(obj) except *:
+ * cdef struct_type __pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info(obj) except *:
  *     cdef struct_type result
  *     if not PyMapping_Check(obj):             # <<<<<<<<<<<<<<
  *         PyErr_Format(TypeError, b"Expected %.16s, got %.200s", b"a mapping", Py_TYPE(obj).tp_name)
@@ -9925,7 +9919,7 @@ static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pu
  */
     __pyx_t_6 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
     if (__pyx_t_6) {
-      __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
       if (__Pyx_GetException(&__pyx_t_2, &__pyx_t_7, &__pyx_t_8) < 0) __PYX_ERR(0, 18, __pyx_L6_except_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_GOTREF(__pyx_t_7);
@@ -10027,7 +10021,7 @@ static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pu
  */
     __pyx_t_6 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
     if (__pyx_t_6) {
-      __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
       if (__Pyx_GetException(&__pyx_t_8, &__pyx_t_7, &__pyx_t_2) < 0) __PYX_ERR(0, 23, __pyx_L14_except_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_GOTREF(__pyx_t_7);
@@ -10129,7 +10123,7 @@ static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pu
  */
     __pyx_t_6 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
     if (__pyx_t_6) {
-      __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
       if (__Pyx_GetException(&__pyx_t_2, &__pyx_t_7, &__pyx_t_8) < 0) __PYX_ERR(0, 28, __pyx_L22_except_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_GOTREF(__pyx_t_7);
@@ -10231,7 +10225,7 @@ static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pu
  */
     __pyx_t_6 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
     if (__pyx_t_6) {
-      __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
       if (__Pyx_GetException(&__pyx_t_8, &__pyx_t_7, &__pyx_t_2) < 0) __PYX_ERR(0, 33, __pyx_L30_except_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_GOTREF(__pyx_t_7);
@@ -10333,7 +10327,7 @@ static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pu
  */
     __pyx_t_6 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
     if (__pyx_t_6) {
-      __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
       if (__Pyx_GetException(&__pyx_t_2, &__pyx_t_7, &__pyx_t_8) < 0) __PYX_ERR(0, 38, __pyx_L38_except_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_GOTREF(__pyx_t_7);
@@ -10435,7 +10429,7 @@ static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pu
  */
     __pyx_t_6 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
     if (__pyx_t_6) {
-      __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
       if (__Pyx_GetException(&__pyx_t_8, &__pyx_t_7, &__pyx_t_2) < 0) __PYX_ERR(0, 43, __pyx_L46_except_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_GOTREF(__pyx_t_7);
@@ -10494,8 +10488,8 @@ static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pu
 
   /* "FromPyStructUtility":11
  * 
- * @cname("__pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info")
- * cdef struct_type __pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info(obj) except *:             # <<<<<<<<<<<<<<
+ * @cname("__pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info")
+ * cdef struct_type __pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info(obj) except *:             # <<<<<<<<<<<<<<
  *     cdef struct_type result
  *     if not PyMapping_Check(obj):
  */
@@ -10506,7 +10500,7 @@ static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pu
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_8);
   __Pyx_XDECREF(__pyx_t_9);
-  __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_pretend_to_initialize(&__pyx_r);
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_value);
@@ -10516,26 +10510,26 @@ static struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pu
 
 /* "vector.from_py":45
  * 
- * @cname("__pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info")
- * cdef vector[X] __pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(object o) except *:             # <<<<<<<<<<<<<<
+ * @cname("__pyx_convert_vector_from_py___pyx_t_4test_pulse_info")
+ * cdef vector[X] __pyx_convert_vector_from_py___pyx_t_4test_pulse_info(object o) except *:             # <<<<<<<<<<<<<<
  *     cdef vector[X] v
  *     for item in o:
  */
 
-static std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  __pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(PyObject *__pyx_v_o) {
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  __pyx_v_v;
+static std::vector<__pyx_t_4test_pulse_info>  __pyx_convert_vector_from_py___pyx_t_4test_pulse_info(PyObject *__pyx_v_o) {
+  std::vector<__pyx_t_4test_pulse_info>  __pyx_v_v;
   PyObject *__pyx_v_item = NULL;
-  std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info>  __pyx_r;
+  std::vector<__pyx_t_4test_pulse_info>  __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   Py_ssize_t __pyx_t_2;
   PyObject *(*__pyx_t_3)(PyObject *);
   PyObject *__pyx_t_4 = NULL;
-  __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info __pyx_t_5;
-  __Pyx_RefNannySetupContext("__pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info", 0);
+  __pyx_t_4test_pulse_info __pyx_t_5;
+  __Pyx_RefNannySetupContext("__pyx_convert_vector_from_py___pyx_t_4test_pulse_info", 0);
 
   /* "vector.from_py":47
- * cdef vector[X] __pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(object o) except *:
+ * cdef vector[X] __pyx_convert_vector_from_py___pyx_t_4test_pulse_info(object o) except *:
  *     cdef vector[X] v
  *     for item in o:             # <<<<<<<<<<<<<<
  *         v.push_back(<X>item)
@@ -10590,11 +10584,11 @@ static std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core
  *     return v
  * 
  */
-    __pyx_t_5 = __pyx_convert__from_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info(__pyx_v_item); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 48, __pyx_L1_error)
-    __pyx_v_v.push_back(((__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info)__pyx_t_5));
+    __pyx_t_5 = __pyx_convert__from_py_struct____pyx_t_4test_s_pulse_info(__pyx_v_item); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 48, __pyx_L1_error)
+    __pyx_v_v.push_back(((__pyx_t_4test_pulse_info)__pyx_t_5));
 
     /* "vector.from_py":47
- * cdef vector[X] __pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(object o) except *:
+ * cdef vector[X] __pyx_convert_vector_from_py___pyx_t_4test_pulse_info(object o) except *:
  *     cdef vector[X] v
  *     for item in o:             # <<<<<<<<<<<<<<
  *         v.push_back(<X>item)
@@ -10615,8 +10609,8 @@ static std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core
 
   /* "vector.from_py":45
  * 
- * @cname("__pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info")
- * cdef vector[X] __pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info(object o) except *:             # <<<<<<<<<<<<<<
+ * @cname("__pyx_convert_vector_from_py___pyx_t_4test_pulse_info")
+ * cdef vector[X] __pyx_convert_vector_from_py___pyx_t_4test_pulse_info(object o) except *:             # <<<<<<<<<<<<<<
  *     cdef vector[X] v
  *     for item in o:
  */
@@ -10625,7 +10619,7 @@ static std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("vector.from_py.__pyx_convert_vector_from_py___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("vector.from_py.__pyx_convert_vector_from_py___pyx_t_4test_pulse_info", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_pretend_to_initialize(&__pyx_r);
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_item);
@@ -23446,7 +23440,7 @@ static PyObject *__pyx_unpickle_Enum__set_state(struct __pyx_MemviewEnum_obj *__
   return __pyx_r;
 }
 
-static PyObject *__pyx_tp_new_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
+static PyObject *__pyx_tp_new_4test_base_pulse_element(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
   PyObject *o;
   if (likely((t->tp_flags & Py_TPFLAGS_IS_ABSTRACT) == 0)) {
     o = (*t->tp_alloc)(t, 0);
@@ -23457,7 +23451,7 @@ static PyObject *__pyx_tp_new_9pulse_lib_8segments_12data_classes_15data_pulse_c
   return o;
 }
 
-static void __pyx_tp_dealloc_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element(PyObject *o) {
+static void __pyx_tp_dealloc_4test_base_pulse_element(PyObject *o) {
   #if CYTHON_USE_TP_FINALIZE
   if (unlikely(PyType_HasFeature(Py_TYPE(o), Py_TPFLAGS_HAVE_FINALIZE) && Py_TYPE(o)->tp_finalize) && (!PyType_IS_GC(Py_TYPE(o)) || !_PyGC_FINALIZED(o))) {
     if (PyObject_CallFinalizerFromDealloc(o)) return;
@@ -23466,18 +23460,18 @@ static void __pyx_tp_dealloc_9pulse_lib_8segments_12data_classes_15data_pulse_co
   (*Py_TYPE(o)->tp_free)(o);
 }
 
-static PyMethodDef __pyx_methods_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element[] = {
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_3__reduce_cython__, METH_NOARGS, 0},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_5__setstate_cython__, METH_O, 0},
+static PyMethodDef __pyx_methods_4test_base_pulse_element[] = {
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_4test_18base_pulse_element_3__reduce_cython__, METH_NOARGS, 0},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_4test_18base_pulse_element_5__setstate_cython__, METH_O, 0},
   {0, 0, 0, 0}
 };
 
-static PyTypeObject __pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element = {
+static PyTypeObject __pyx_type_4test_base_pulse_element = {
   PyVarObject_HEAD_INIT(0, 0)
-  "pulse_lib.segments.data_classes.data_pulse_core.base_pulse_element", /*tp_name*/
-  sizeof(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element), /*tp_basicsize*/
+  "test.base_pulse_element", /*tp_name*/
+  sizeof(struct __pyx_obj_4test_base_pulse_element), /*tp_basicsize*/
   0, /*tp_itemsize*/
-  __pyx_tp_dealloc_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element, /*tp_dealloc*/
+  __pyx_tp_dealloc_4test_base_pulse_element, /*tp_dealloc*/
   0, /*tp_print*/
   0, /*tp_getattr*/
   0, /*tp_setattr*/
@@ -23505,7 +23499,7 @@ static PyTypeObject __pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_
   0, /*tp_weaklistoffset*/
   0, /*tp_iter*/
   0, /*tp_iternext*/
-  __pyx_methods_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element, /*tp_methods*/
+  __pyx_methods_4test_base_pulse_element, /*tp_methods*/
   0, /*tp_members*/
   0, /*tp_getset*/
   0, /*tp_base*/
@@ -23513,9 +23507,9 @@ static PyTypeObject __pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_
   0, /*tp_descr_get*/
   0, /*tp_descr_set*/
   0, /*tp_dictoffset*/
-  __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_18base_pulse_element_1__init__, /*tp_init*/
+  __pyx_pw_4test_18base_pulse_element_1__init__, /*tp_init*/
   0, /*tp_alloc*/
-  __pyx_tp_new_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element, /*tp_new*/
+  __pyx_tp_new_4test_base_pulse_element, /*tp_new*/
   0, /*tp_free*/
   0, /*tp_is_gc*/
   0, /*tp_bases*/
@@ -23532,10 +23526,10 @@ static PyTypeObject __pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_
   0, /*tp_vectorcall*/
   #endif
 };
-static struct __pyx_vtabstruct_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence __pyx_vtable_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence;
+static struct __pyx_vtabstruct_4test_pulse_data_single_sequence __pyx_vtable_4test_pulse_data_single_sequence;
 
-static PyObject *__pyx_tp_new_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
-  struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *p;
+static PyObject *__pyx_tp_new_4test_pulse_data_single_sequence(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
+  struct __pyx_obj_4test_pulse_data_single_sequence *p;
   PyObject *o;
   if (likely((t->tp_flags & Py_TPFLAGS_IS_ABSTRACT) == 0)) {
     o = (*t->tp_alloc)(t, 0);
@@ -23543,9 +23537,9 @@ static PyObject *__pyx_tp_new_9pulse_lib_8segments_12data_classes_15data_pulse_c
     o = (PyObject *) PyBaseObject_Type.tp_new(t, __pyx_empty_tuple, 0);
   }
   if (unlikely(!o)) return 0;
-  p = ((struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)o);
-  p->__pyx_vtab = __pyx_vtabptr_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence;
-  new((void*)&(p->localdata)) std::vector<__pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_info> ();
+  p = ((struct __pyx_obj_4test_pulse_data_single_sequence *)o);
+  p->__pyx_vtab = __pyx_vtabptr_4test_pulse_data_single_sequence;
+  new((void*)&(p->localdata)) std::vector<__pyx_t_4test_pulse_info> ();
   p->re_render = ((PyBoolObject *)Py_None); Py_INCREF(Py_None);
   p->voltage_data.data = NULL;
   p->voltage_data.memview = NULL;
@@ -23554,8 +23548,8 @@ static PyObject *__pyx_tp_new_9pulse_lib_8segments_12data_classes_15data_pulse_c
   return o;
 }
 
-static void __pyx_tp_dealloc_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence(PyObject *o) {
-  struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *p = (struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)o;
+static void __pyx_tp_dealloc_4test_pulse_data_single_sequence(PyObject *o) {
+  struct __pyx_obj_4test_pulse_data_single_sequence *p = (struct __pyx_obj_4test_pulse_data_single_sequence *)o;
   #if CYTHON_USE_TP_FINALIZE
   if (unlikely(PyType_HasFeature(Py_TYPE(o), Py_TPFLAGS_HAVE_FINALIZE) && Py_TYPE(o)->tp_finalize) && !_PyGC_FINALIZED(o)) {
     if (PyObject_CallFinalizerFromDealloc(o)) return;
@@ -23569,47 +23563,47 @@ static void __pyx_tp_dealloc_9pulse_lib_8segments_12data_classes_15data_pulse_co
   (*Py_TYPE(o)->tp_free)(o);
 }
 
-static int __pyx_tp_traverse_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence(PyObject *o, visitproc v, void *a) {
+static int __pyx_tp_traverse_4test_pulse_data_single_sequence(PyObject *o, visitproc v, void *a) {
   int e;
-  struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *p = (struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)o;
+  struct __pyx_obj_4test_pulse_data_single_sequence *p = (struct __pyx_obj_4test_pulse_data_single_sequence *)o;
   if (p->re_render) {
     e = (*v)(((PyObject *)p->re_render), a); if (e) return e;
   }
   return 0;
 }
 
-static int __pyx_tp_clear_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence(PyObject *o) {
+static int __pyx_tp_clear_4test_pulse_data_single_sequence(PyObject *o) {
   PyObject* tmp;
-  struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *p = (struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *)o;
+  struct __pyx_obj_4test_pulse_data_single_sequence *p = (struct __pyx_obj_4test_pulse_data_single_sequence *)o;
   tmp = ((PyObject*)p->re_render);
   p->re_render = ((PyBoolObject *)Py_None); Py_INCREF(Py_None);
   Py_XDECREF(tmp);
   return 0;
 }
 
-static PyObject *__pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_pulse_data(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10pulse_data_1__get__(o);
+static PyObject *__pyx_getprop_4test_26pulse_data_single_sequence_pulse_data(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_4test_26pulse_data_single_sequence_10pulse_data_1__get__(o);
 }
 
-static PyObject *__pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_total_time(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_10total_time_1__get__(o);
+static PyObject *__pyx_getprop_4test_26pulse_data_single_sequence_total_time(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_4test_26pulse_data_single_sequence_10total_time_1__get__(o);
 }
 
-static PyObject *__pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_v_max(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_max_1__get__(o);
+static PyObject *__pyx_getprop_4test_26pulse_data_single_sequence_v_max(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_4test_26pulse_data_single_sequence_5v_max_1__get__(o);
 }
 
-static PyObject *__pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_v_min(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5v_min_1__get__(o);
+static PyObject *__pyx_getprop_4test_26pulse_data_single_sequence_v_min(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_4test_26pulse_data_single_sequence_5v_min_1__get__(o);
 }
 
-static PyObject *__pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence__total_time(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11_total_time_1__get__(o);
+static PyObject *__pyx_getprop_4test_26pulse_data_single_sequence__total_time(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_4test_26pulse_data_single_sequence_11_total_time_1__get__(o);
 }
 
-static int __pyx_setprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence__total_time(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+static int __pyx_setprop_4test_26pulse_data_single_sequence__total_time(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
   if (v) {
-    return __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11_total_time_3__set__(o, v);
+    return __pyx_pw_4test_26pulse_data_single_sequence_11_total_time_3__set__(o, v);
   }
   else {
     PyErr_SetString(PyExc_NotImplementedError, "__del__");
@@ -23617,13 +23611,13 @@ static int __pyx_setprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   }
 }
 
-static PyObject *__pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_localdata(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9localdata_1__get__(o);
+static PyObject *__pyx_getprop_4test_26pulse_data_single_sequence_localdata(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_4test_26pulse_data_single_sequence_9localdata_1__get__(o);
 }
 
-static int __pyx_setprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_localdata(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+static int __pyx_setprop_4test_26pulse_data_single_sequence_localdata(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
   if (v) {
-    return __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9localdata_3__set__(o, v);
+    return __pyx_pw_4test_26pulse_data_single_sequence_9localdata_3__set__(o, v);
   }
   else {
     PyErr_SetString(PyExc_NotImplementedError, "__del__");
@@ -23631,46 +23625,46 @@ static int __pyx_setprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_2
   }
 }
 
-static PyObject *__pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_re_render(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_1__get__(o);
+static PyObject *__pyx_getprop_4test_26pulse_data_single_sequence_re_render(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_4test_26pulse_data_single_sequence_9re_render_1__get__(o);
 }
 
-static int __pyx_setprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_re_render(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+static int __pyx_setprop_4test_26pulse_data_single_sequence_re_render(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
   if (v) {
-    return __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_3__set__(o, v);
+    return __pyx_pw_4test_26pulse_data_single_sequence_9re_render_3__set__(o, v);
   }
   else {
-    return __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9re_render_5__del__(o);
+    return __pyx_pw_4test_26pulse_data_single_sequence_9re_render_5__del__(o);
   }
 }
 
-static PyMethodDef __pyx_methods_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence[] = {
-  {"add_pulse", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_3add_pulse, METH_O, 0},
-  {"append", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_5append, METH_O, __pyx_doc_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_4append},
-  {"repeat", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_7repeat, METH_O, __pyx_doc_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_6repeat},
-  {"shift_time", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_9shift_time, METH_O, 0},
-  {"slice_time", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_17slice_time, METH_VARARGS|METH_KEYWORDS, 0},
-  {"__copy__", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_19__copy__, METH_NOARGS, 0},
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_21__reduce_cython__, METH_NOARGS, 0},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_23__setstate_cython__, METH_O, 0},
+static PyMethodDef __pyx_methods_4test_pulse_data_single_sequence[] = {
+  {"add_pulse", (PyCFunction)__pyx_pw_4test_26pulse_data_single_sequence_3add_pulse, METH_O, 0},
+  {"append", (PyCFunction)__pyx_pw_4test_26pulse_data_single_sequence_5append, METH_O, __pyx_doc_4test_26pulse_data_single_sequence_4append},
+  {"repeat", (PyCFunction)__pyx_pw_4test_26pulse_data_single_sequence_7repeat, METH_O, __pyx_doc_4test_26pulse_data_single_sequence_6repeat},
+  {"shift_time", (PyCFunction)__pyx_pw_4test_26pulse_data_single_sequence_9shift_time, METH_O, 0},
+  {"slice_time", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_4test_26pulse_data_single_sequence_17slice_time, METH_VARARGS|METH_KEYWORDS, 0},
+  {"__copy__", (PyCFunction)__pyx_pw_4test_26pulse_data_single_sequence_19__copy__, METH_NOARGS, 0},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_4test_26pulse_data_single_sequence_21__reduce_cython__, METH_NOARGS, 0},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_4test_26pulse_data_single_sequence_23__setstate_cython__, METH_O, 0},
   {0, 0, 0, 0}
 };
 
-static struct PyGetSetDef __pyx_getsets_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence[] = {
-  {(char *)"pulse_data", __pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_pulse_data, 0, (char *)0, 0},
-  {(char *)"total_time", __pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_total_time, 0, (char *)0, 0},
-  {(char *)"v_max", __pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_v_max, 0, (char *)0, 0},
-  {(char *)"v_min", __pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_v_min, 0, (char *)0, 0},
-  {(char *)"_total_time", __pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence__total_time, __pyx_setprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence__total_time, (char *)0, 0},
-  {(char *)"localdata", __pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_localdata, __pyx_setprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_localdata, (char *)0, 0},
-  {(char *)"re_render", __pyx_getprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_re_render, __pyx_setprop_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_re_render, (char *)0, 0},
+static struct PyGetSetDef __pyx_getsets_4test_pulse_data_single_sequence[] = {
+  {(char *)"pulse_data", __pyx_getprop_4test_26pulse_data_single_sequence_pulse_data, 0, (char *)0, 0},
+  {(char *)"total_time", __pyx_getprop_4test_26pulse_data_single_sequence_total_time, 0, (char *)0, 0},
+  {(char *)"v_max", __pyx_getprop_4test_26pulse_data_single_sequence_v_max, 0, (char *)0, 0},
+  {(char *)"v_min", __pyx_getprop_4test_26pulse_data_single_sequence_v_min, 0, (char *)0, 0},
+  {(char *)"_total_time", __pyx_getprop_4test_26pulse_data_single_sequence__total_time, __pyx_setprop_4test_26pulse_data_single_sequence__total_time, (char *)0, 0},
+  {(char *)"localdata", __pyx_getprop_4test_26pulse_data_single_sequence_localdata, __pyx_setprop_4test_26pulse_data_single_sequence_localdata, (char *)0, 0},
+  {(char *)"re_render", __pyx_getprop_4test_26pulse_data_single_sequence_re_render, __pyx_setprop_4test_26pulse_data_single_sequence_re_render, (char *)0, 0},
   {0, 0, 0, 0, 0}
 };
 
 static PyNumberMethods __pyx_tp_as_number_pulse_data_single_sequence = {
-  __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_11__add__, /*nb_add*/
-  __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_13__sub__, /*nb_subtract*/
-  __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_15__mul__, /*nb_multiply*/
+  __pyx_pw_4test_26pulse_data_single_sequence_11__add__, /*nb_add*/
+  __pyx_pw_4test_26pulse_data_single_sequence_13__sub__, /*nb_subtract*/
+  __pyx_pw_4test_26pulse_data_single_sequence_15__mul__, /*nb_multiply*/
   #if PY_MAJOR_VERSION < 3 || (CYTHON_COMPILING_IN_PYPY && PY_VERSION_HEX < 0x03050000)
   0, /*nb_divide*/
   #endif
@@ -23729,12 +23723,12 @@ static PyNumberMethods __pyx_tp_as_number_pulse_data_single_sequence = {
   #endif
 };
 
-static PyTypeObject __pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence = {
+static PyTypeObject __pyx_type_4test_pulse_data_single_sequence = {
   PyVarObject_HEAD_INIT(0, 0)
-  "pulse_lib.segments.data_classes.data_pulse_core.pulse_data_single_sequence", /*tp_name*/
-  sizeof(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence), /*tp_basicsize*/
+  "test.pulse_data_single_sequence", /*tp_name*/
+  sizeof(struct __pyx_obj_4test_pulse_data_single_sequence), /*tp_basicsize*/
   0, /*tp_itemsize*/
-  __pyx_tp_dealloc_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence, /*tp_dealloc*/
+  __pyx_tp_dealloc_4test_pulse_data_single_sequence, /*tp_dealloc*/
   0, /*tp_print*/
   0, /*tp_getattr*/
   0, /*tp_setattr*/
@@ -23756,23 +23750,23 @@ static PyTypeObject __pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_
   0, /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
   0, /*tp_doc*/
-  __pyx_tp_traverse_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence, /*tp_traverse*/
-  __pyx_tp_clear_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence, /*tp_clear*/
+  __pyx_tp_traverse_4test_pulse_data_single_sequence, /*tp_traverse*/
+  __pyx_tp_clear_4test_pulse_data_single_sequence, /*tp_clear*/
   0, /*tp_richcompare*/
   0, /*tp_weaklistoffset*/
   0, /*tp_iter*/
   0, /*tp_iternext*/
-  __pyx_methods_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence, /*tp_methods*/
+  __pyx_methods_4test_pulse_data_single_sequence, /*tp_methods*/
   0, /*tp_members*/
-  __pyx_getsets_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence, /*tp_getset*/
+  __pyx_getsets_4test_pulse_data_single_sequence, /*tp_getset*/
   0, /*tp_base*/
   0, /*tp_dict*/
   0, /*tp_descr_get*/
   0, /*tp_descr_set*/
   0, /*tp_dictoffset*/
-  __pyx_pw_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence_1__init__, /*tp_init*/
+  __pyx_pw_4test_26pulse_data_single_sequence_1__init__, /*tp_init*/
   0, /*tp_alloc*/
-  __pyx_tp_new_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence, /*tp_new*/
+  __pyx_tp_new_4test_pulse_data_single_sequence, /*tp_new*/
   0, /*tp_free*/
   0, /*tp_is_gc*/
   0, /*tp_bases*/
@@ -23912,7 +23906,7 @@ static PyBufferProcs __pyx_tp_as_buffer_array = {
 
 static PyTypeObject __pyx_type___pyx_array = {
   PyVarObject_HEAD_INIT(0, 0)
-  "pulse_lib.segments.data_classes.data_pulse_core.array", /*tp_name*/
+  "test.array", /*tp_name*/
   sizeof(struct __pyx_array_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_array, /*tp_dealloc*/
@@ -24023,7 +24017,7 @@ static PyMethodDef __pyx_methods_Enum[] = {
 
 static PyTypeObject __pyx_type___pyx_MemviewEnum = {
   PyVarObject_HEAD_INIT(0, 0)
-  "pulse_lib.segments.data_classes.data_pulse_core.Enum", /*tp_name*/
+  "test.Enum", /*tp_name*/
   sizeof(struct __pyx_MemviewEnum_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_Enum, /*tp_dealloc*/
@@ -24276,7 +24270,7 @@ static PyBufferProcs __pyx_tp_as_buffer_memoryview = {
 
 static PyTypeObject __pyx_type___pyx_memoryview = {
   PyVarObject_HEAD_INIT(0, 0)
-  "pulse_lib.segments.data_classes.data_pulse_core.memoryview", /*tp_name*/
+  "test.memoryview", /*tp_name*/
   sizeof(struct __pyx_memoryview_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_memoryview, /*tp_dealloc*/
@@ -24406,7 +24400,7 @@ static struct PyGetSetDef __pyx_getsets__memoryviewslice[] = {
 
 static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   PyVarObject_HEAD_INIT(0, 0)
-  "pulse_lib.segments.data_classes.data_pulse_core._memoryviewslice", /*tp_name*/
+  "test._memoryviewslice", /*tp_name*/
   sizeof(struct __pyx_memoryviewslice_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc__memoryviewslice, /*tp_dealloc*/
@@ -24480,17 +24474,17 @@ static PyMethodDef __pyx_methods[] = {
 #if PY_MAJOR_VERSION >= 3
 #if CYTHON_PEP489_MULTI_PHASE_INIT
 static PyObject* __pyx_pymod_create(PyObject *spec, PyModuleDef *def); /*proto*/
-static int __pyx_pymod_exec_data_pulse_core(PyObject* module); /*proto*/
+static int __pyx_pymod_exec_test(PyObject* module); /*proto*/
 static PyModuleDef_Slot __pyx_moduledef_slots[] = {
   {Py_mod_create, (void*)__pyx_pymod_create},
-  {Py_mod_exec, (void*)__pyx_pymod_exec_data_pulse_core},
+  {Py_mod_exec, (void*)__pyx_pymod_exec_test},
   {0, NULL}
 };
 #endif
 
 static struct PyModuleDef __pyx_moduledef = {
     PyModuleDef_HEAD_INIT,
-    "data_pulse_core",
+    "test",
     0, /* m_doc */
   #if CYTHON_PEP489_MULTI_PHASE_INIT
     0, /* m_size */
@@ -24612,7 +24606,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_pickle, __pyx_k_pickle, sizeof(__pyx_k_pickle), 0, 0, 1, 1},
   {&__pyx_n_s_pulse_data, __pyx_k_pulse_data, sizeof(__pyx_k_pulse_data), 0, 0, 1, 1},
   {&__pyx_n_s_pulse_data_single_sequence, __pyx_k_pulse_data_single_sequence, sizeof(__pyx_k_pulse_data_single_sequence), 0, 0, 1, 1},
-  {&__pyx_n_s_pulse_lib_segments_data_classes, __pyx_k_pulse_lib_segments_data_classes, sizeof(__pyx_k_pulse_lib_segments_data_classes), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_PickleError, __pyx_k_pyx_PickleError, sizeof(__pyx_k_pyx_PickleError), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_checksum, __pyx_k_pyx_checksum, sizeof(__pyx_k_pyx_checksum), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_getbuffer, __pyx_k_pyx_getbuffer, sizeof(__pyx_k_pyx_getbuffer), 0, 0, 1, 1},
@@ -24641,6 +24634,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_stringsource, __pyx_k_stringsource, sizeof(__pyx_k_stringsource), 0, 0, 1, 0},
   {&__pyx_n_s_struct, __pyx_k_struct, sizeof(__pyx_k_struct), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
+  {&__pyx_n_s_test_2, __pyx_k_test_2, sizeof(__pyx_k_test_2), 0, 0, 1, 1},
   {&__pyx_n_s_total_time, __pyx_k_total_time, sizeof(__pyx_k_total_time), 0, 0, 1, 1},
   {&__pyx_n_s_total_time_2, __pyx_k_total_time_2, sizeof(__pyx_k_total_time_2), 0, 0, 1, 1},
   {&__pyx_kp_s_unable_to_allocate_array_data, __pyx_k_unable_to_allocate_array_data, sizeof(__pyx_k_unable_to_allocate_array_data), 0, 0, 1, 0},
@@ -24694,7 +24688,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":49
+  /* "test.pyx":49
  * 	def __init__(self):
  * 		# add empty pulse around 0 to make sure the pulse starts at that point
  * 		pulse_init = base_pulse_element(0,3e-6,0,0)             # <<<<<<<<<<<<<<
@@ -24705,7 +24699,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":272
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":272
  *             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)
  *                 and not PyArray_CHKFLAGS(self, NPY_ARRAY_C_CONTIGUOUS)):
  *                 raise ValueError(u"ndarray is not C contiguous")             # <<<<<<<<<<<<<<
@@ -24716,7 +24710,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":276
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":276
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)
  *                 and not PyArray_CHKFLAGS(self, NPY_ARRAY_F_CONTIGUOUS)):
  *                 raise ValueError(u"ndarray is not Fortran contiguous")             # <<<<<<<<<<<<<<
@@ -24727,7 +24721,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":306
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":306
  *                 if ((descr.byteorder == c'>' and little_endian) or
  *                     (descr.byteorder == c'<' and not little_endian)):
  *                     raise ValueError(u"Non-native byte order not supported")             # <<<<<<<<<<<<<<
@@ -24738,7 +24732,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":856
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":856
  * 
  *         if (end - f) - <int>(new_offset - offset[0]) < 15:
  *             raise RuntimeError(u"Format string allocated too short, see comment in numpy.pxd")             # <<<<<<<<<<<<<<
@@ -24749,7 +24743,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":880
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":880
  *             t = child.type_num
  *             if end - f < 5:
  *                 raise RuntimeError(u"Format string allocated too short.")             # <<<<<<<<<<<<<<
@@ -24760,7 +24754,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1038
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1038
  *         _import_array()
  *     except Exception:
  *         raise ImportError("numpy.core.multiarray failed to import")             # <<<<<<<<<<<<<<
@@ -24771,7 +24765,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
 
-  /* "../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1044
+  /* "../../../../../../../../../usr/lib/python3.7/site-packages/Cython/Includes/numpy/__init__.pxd":1044
  *         _import_umath()
  *     except Exception:
  *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
@@ -25176,31 +25170,31 @@ static int __Pyx_modinit_type_init_code(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_modinit_type_init_code", 0);
   /*--- Type init code ---*/
-  if (PyType_Ready(&__pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element) < 0) __PYX_ERR(1, 29, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_4test_base_pulse_element) < 0) __PYX_ERR(1, 29, __pyx_L1_error)
   #if PY_VERSION_HEX < 0x030800B1
-  __pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element.tp_print = 0;
+  __pyx_type_4test_base_pulse_element.tp_print = 0;
   #endif
-  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element.tp_dictoffset && __pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element.tp_getattro == PyObject_GenericGetAttr)) {
-    __pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element.tp_getattro = __Pyx_PyObject_GenericGetAttr;
+  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_4test_base_pulse_element.tp_dictoffset && __pyx_type_4test_base_pulse_element.tp_getattro == PyObject_GenericGetAttr)) {
+    __pyx_type_4test_base_pulse_element.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_base_pulse_element, (PyObject *)&__pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element) < 0) __PYX_ERR(1, 29, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element) < 0) __PYX_ERR(1, 29, __pyx_L1_error)
-  __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element = &__pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_base_pulse_element;
-  __pyx_vtabptr_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence = &__pyx_vtable_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence;
-  __pyx_vtable_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence._add_pulse = (PyObject *(*)(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *, struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *))__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence__add_pulse;
-  __pyx_vtable_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence._muliply = (PyObject *(*)(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *, double))__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence__muliply;
-  __pyx_vtable_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence.__pyx___local_render = (PyObject *(*)(struct __pyx_obj_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence *))__pyx_f_9pulse_lib_8segments_12data_classes_15data_pulse_core_26pulse_data_single_sequence___local_render;
-  if (PyType_Ready(&__pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence) < 0) __PYX_ERR(1, 41, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_base_pulse_element, (PyObject *)&__pyx_type_4test_base_pulse_element) < 0) __PYX_ERR(1, 29, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_4test_base_pulse_element) < 0) __PYX_ERR(1, 29, __pyx_L1_error)
+  __pyx_ptype_4test_base_pulse_element = &__pyx_type_4test_base_pulse_element;
+  __pyx_vtabptr_4test_pulse_data_single_sequence = &__pyx_vtable_4test_pulse_data_single_sequence;
+  __pyx_vtable_4test_pulse_data_single_sequence._add_pulse = (PyObject *(*)(struct __pyx_obj_4test_pulse_data_single_sequence *, struct __pyx_obj_4test_pulse_data_single_sequence *))__pyx_f_4test_26pulse_data_single_sequence__add_pulse;
+  __pyx_vtable_4test_pulse_data_single_sequence._muliply = (PyObject *(*)(struct __pyx_obj_4test_pulse_data_single_sequence *, double))__pyx_f_4test_26pulse_data_single_sequence__muliply;
+  __pyx_vtable_4test_pulse_data_single_sequence.__pyx___local_render = (PyObject *(*)(struct __pyx_obj_4test_pulse_data_single_sequence *))__pyx_f_4test_26pulse_data_single_sequence___local_render;
+  if (PyType_Ready(&__pyx_type_4test_pulse_data_single_sequence) < 0) __PYX_ERR(1, 41, __pyx_L1_error)
   #if PY_VERSION_HEX < 0x030800B1
-  __pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence.tp_print = 0;
+  __pyx_type_4test_pulse_data_single_sequence.tp_print = 0;
   #endif
-  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence.tp_dictoffset && __pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence.tp_getattro == PyObject_GenericGetAttr)) {
-    __pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence.tp_getattro = __Pyx_PyObject_GenericGetAttr;
+  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_4test_pulse_data_single_sequence.tp_dictoffset && __pyx_type_4test_pulse_data_single_sequence.tp_getattro == PyObject_GenericGetAttr)) {
+    __pyx_type_4test_pulse_data_single_sequence.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence.tp_dict, __pyx_vtabptr_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence) < 0) __PYX_ERR(1, 41, __pyx_L1_error)
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_pulse_data_single_sequence, (PyObject *)&__pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence) < 0) __PYX_ERR(1, 41, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence) < 0) __PYX_ERR(1, 41, __pyx_L1_error)
-  __pyx_ptype_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence = &__pyx_type_9pulse_lib_8segments_12data_classes_15data_pulse_core_pulse_data_single_sequence;
+  if (__Pyx_SetVtable(__pyx_type_4test_pulse_data_single_sequence.tp_dict, __pyx_vtabptr_4test_pulse_data_single_sequence) < 0) __PYX_ERR(1, 41, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_pulse_data_single_sequence, (PyObject *)&__pyx_type_4test_pulse_data_single_sequence) < 0) __PYX_ERR(1, 41, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_4test_pulse_data_single_sequence) < 0) __PYX_ERR(1, 41, __pyx_L1_error)
+  __pyx_ptype_4test_pulse_data_single_sequence = &__pyx_type_4test_pulse_data_single_sequence;
   __pyx_vtabptr_array = &__pyx_vtable_array;
   __pyx_vtable_array.get_memview = (PyObject *(*)(struct __pyx_array_obj *))__pyx_array_get_memview;
   if (PyType_Ready(&__pyx_type___pyx_array) < 0) __PYX_ERR(0, 105, __pyx_L1_error)
@@ -25339,11 +25333,11 @@ static int __Pyx_modinit_function_import_code(void) {
 
 
 #if PY_MAJOR_VERSION < 3
-__Pyx_PyMODINIT_FUNC initdata_pulse_core(void) CYTHON_SMALL_CODE; /*proto*/
-__Pyx_PyMODINIT_FUNC initdata_pulse_core(void)
+__Pyx_PyMODINIT_FUNC inittest(void) CYTHON_SMALL_CODE; /*proto*/
+__Pyx_PyMODINIT_FUNC inittest(void)
 #else
-__Pyx_PyMODINIT_FUNC PyInit_data_pulse_core(void) CYTHON_SMALL_CODE; /*proto*/
-__Pyx_PyMODINIT_FUNC PyInit_data_pulse_core(void)
+__Pyx_PyMODINIT_FUNC PyInit_test(void) CYTHON_SMALL_CODE; /*proto*/
+__Pyx_PyMODINIT_FUNC PyInit_test(void)
 #if CYTHON_PEP489_MULTI_PHASE_INIT
 {
   return PyModuleDef_Init(&__pyx_moduledef);
@@ -25410,7 +25404,7 @@ bad:
 }
 
 
-static CYTHON_SMALL_CODE int __pyx_pymod_exec_data_pulse_core(PyObject *__pyx_pyinit_module)
+static CYTHON_SMALL_CODE int __pyx_pymod_exec_test(PyObject *__pyx_pyinit_module)
 #endif
 #endif
 {
@@ -25420,7 +25414,7 @@ static CYTHON_SMALL_CODE int __pyx_pymod_exec_data_pulse_core(PyObject *__pyx_py
   #if CYTHON_PEP489_MULTI_PHASE_INIT
   if (__pyx_m) {
     if (__pyx_m == __pyx_pyinit_module) return 0;
-    PyErr_SetString(PyExc_RuntimeError, "Module 'data_pulse_core' has already been imported. Re-initialisation is not supported.");
+    PyErr_SetString(PyExc_RuntimeError, "Module 'test' has already been imported. Re-initialisation is not supported.");
     return -1;
   }
   #elif PY_MAJOR_VERSION >= 3
@@ -25435,7 +25429,7 @@ if (!__Pyx_RefNanny) {
       Py_FatalError("failed to import 'refnanny' module");
 }
 #endif
-  __Pyx_RefNannySetupContext("__Pyx_PyMODINIT_FUNC PyInit_data_pulse_core(void)", 0);
+  __Pyx_RefNannySetupContext("__Pyx_PyMODINIT_FUNC PyInit_test(void)", 0);
   if (__Pyx_check_binary_version() < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   #ifdef __Pxy_PyFrame_Initialize_Offsets
   __Pxy_PyFrame_Initialize_Offsets();
@@ -25474,7 +25468,7 @@ if (!__Pyx_RefNanny) {
   Py_INCREF(__pyx_m);
   #else
   #if PY_MAJOR_VERSION < 3
-  __pyx_m = Py_InitModule4("data_pulse_core", __pyx_methods, 0, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
+  __pyx_m = Py_InitModule4("test", __pyx_methods, 0, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
   #else
   __pyx_m = PyModule_Create(&__pyx_moduledef);
   #endif
@@ -25492,14 +25486,14 @@ if (!__Pyx_RefNanny) {
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_pulse_lib__segments__data_classes__data_pulse_core) {
+  if (__pyx_module_is_main_test) {
     if (PyObject_SetAttr(__pyx_m, __pyx_n_s_name_2, __pyx_n_s_main) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(1, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "pulse_lib.segments.data_classes.data_pulse_core")) {
-      if (unlikely(PyDict_SetItemString(modules, "pulse_lib.segments.data_classes.data_pulse_core", __pyx_m) < 0)) __PYX_ERR(1, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "test")) {
+      if (unlikely(PyDict_SetItemString(modules, "test", __pyx_m) < 0)) __PYX_ERR(1, 1, __pyx_L1_error)
     }
   }
   #endif
@@ -25520,7 +25514,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   #endif
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":6
+  /* "test.pyx":6
  * from cpython cimport bool
  * 
  * import numpy as np             # <<<<<<<<<<<<<<
@@ -25532,7 +25526,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(1, 6, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":11
+  /* "test.pyx":11
  * from cython.operator import postincrement, dereference
  * 
  * import numbers             # <<<<<<<<<<<<<<
@@ -25544,7 +25538,7 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_numbers, __pyx_t_1) < 0) __PYX_ERR(1, 11, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":12
+  /* "test.pyx":12
  * 
  * import numbers
  * import copy             # <<<<<<<<<<<<<<
@@ -25561,19 +25555,19 @@ if (!__Pyx_RefNanny) {
  *     cdef object __pyx_PickleError
  *     cdef object __pyx_result
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9pulse_lib_8segments_12data_classes_15data_pulse_core_1__pyx_unpickle_pulse_data_single_sequence, NULL, __pyx_n_s_pulse_lib_segments_data_classes); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4test_1__pyx_unpickle_pulse_data_single_sequence, NULL, __pyx_n_s_test); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_pulse_data_single, __pyx_t_1) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pulse_lib/segments/data_classes/data_pulse_core.pyx":1
+  /* "test.pyx":1
  * # distutils: language = c++             # <<<<<<<<<<<<<<
  * 
  * cimport cython
  */
   __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test_2, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "View.MemoryView":209
@@ -25736,11 +25730,11 @@ if (!__Pyx_RefNanny) {
   __Pyx_XDECREF(__pyx_t_1);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init pulse_lib.segments.data_classes.data_pulse_core", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init test", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_CLEAR(__pyx_m);
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init pulse_lib.segments.data_classes.data_pulse_core");
+    PyErr_SetString(PyExc_ImportError, "init test");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -28193,7 +28187,7 @@ static CYTHON_INLINE PyObject* __Pyx_PyInt_From_PY_LONG_LONG(PY_LONG_LONG value)
     }
 }
 
-static PyObject* __pyx_convert__to_py_struct____pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info(struct __pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_s_pulse_info s) {
+static PyObject* __pyx_convert__to_py_struct____pyx_t_4test_s_pulse_info(struct __pyx_t_4test_s_pulse_info s) {
   PyObject* res;
   PyObject* member;
   res = __Pyx_PyDict_NewPresized(6); if (unlikely(!res)) return NULL;
@@ -30430,7 +30424,7 @@ raise_neg_overflow:
 }
 
 /* ObjectToMemviewSlice */
-  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong(PyObject *obj, int writable_flag) {
+  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_4test_longlong(PyObject *obj, int writable_flag) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
     int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
@@ -30441,7 +30435,7 @@ raise_neg_overflow:
     }
     retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
                                                  PyBUF_RECORDS_RO | writable_flag, 1,
-                                                 &__Pyx_TypeInfo_nn___pyx_t_9pulse_lib_8segments_12data_classes_15data_pulse_core_longlong, stack,
+                                                 &__Pyx_TypeInfo_nn___pyx_t_4test_longlong, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
         goto __pyx_fail;
