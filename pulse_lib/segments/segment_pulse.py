@@ -64,7 +64,7 @@ class segment_pulse(segment_base):
 		'''
 		
 		if keep_amplitude == True:
-			pulse = base_pulse_element(start + self.data_tmp.start_time,-1, 0, amplitude)
+			pulse = base_pulse_element(start + self.data_tmp.start_time,-1., 0., amplitude)
 		else:
 			pulse = base_pulse_element(start + self.data_tmp.start_time,stop + self.data_tmp.start_time, 0, amplitude)
 
