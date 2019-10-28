@@ -183,8 +183,7 @@ class segment_container():
 		for i in self.channels:
 			segment = getattr(self, i)
 			comb_setpoints += segment.setpoints
-		print("ori",self._setpoints)
-		print("new",comb_setpoints)
+		
 		return comb_setpoints
 	
 

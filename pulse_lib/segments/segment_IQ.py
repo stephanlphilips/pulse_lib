@@ -139,7 +139,7 @@ class segment_IQ(segment_base):
 			for MW_pulse_info in local_data[i].MW_pulse_data:
 				my_marker_data[i].add_marker(MW_pulse_info.start - pre_delay, MW_pulse_info.stop + post_delay)
 
-		my_marker_data.reshape(self.shape)
+		my_marker_data = my_marker_data.reshape(self.shape)
 
 		return my_marker_data
 
