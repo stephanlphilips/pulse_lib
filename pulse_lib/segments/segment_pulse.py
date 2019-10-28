@@ -46,8 +46,10 @@ class segment_pulse(segment_base):
 		'''
 		add a block pulse on top of the existing pulse.
 		'''
-
 		pulse = base_pulse_element(start + self.data_tmp.start_time,stop + self.data_tmp.start_time, amplitude, amplitude)
+		if stop == -1:
+			pulse = base_pulse_element(start + self.data_tmp.start_time,stop , amplitude, amplitude)
+		
 		self.data_tmp.add_pulse_data(pulse)
 		return self.data_tmp
 	
@@ -63,12 +65,12 @@ class segment_pulse(segment_base):
 			keep_amplitude : when pulse is done, keep reached amplitude for time infinity
 		'''
 		
-		if keep_amplitude == True:
-			pulse = base_pulse_element(start + self.data_tmp.start_time,-1., 0., amplitude)
-		else:
-			pulse = base_pulse_element(start + self.data_tmp.start_time,stop + self.data_tmp.start_time, 0, amplitude)
-
+		pulse = base_pulse_element(start + self.data_tmp.start_time,stop + self.data_tmp.start_time, 0, amplitude)
 		self.data_tmp.add_pulse_data(pulse)
+
+		if keep_amplitude == True:
+			pulse = base_pulse_element(stop + self.data_tmp.start_time,-1., amplitude, amplitude)
+			self.data_tmp.add_pulse_data(pulse)
 		return self.data_tmp
 
 	@last_edited

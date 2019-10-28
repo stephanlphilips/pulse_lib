@@ -22,6 +22,7 @@ class pulse_data(parent_data):
 
         self.start_time = 0
         self.MW_end_time = 0
+        self.global_phase = 0
 
     def add_pulse_data(self, my_input):
         self.baseband_pulse_data.add_pulse(my_input)

@@ -57,8 +57,13 @@ cdef class pulse_data_single_sequence():
 	def add_pulse(self, base_pulse_element pulse):
 		self.localdata.push_back(pulse.my_pulse_info)
 		
+		# extra check if workin with -1 times
+		if self._total_time < pulse.my_pulse_info.start:
+			self._total_time = pulse.my_pulse_info.start
+
 		if self._total_time < pulse.my_pulse_info.stop:
 			self._total_time = pulse.my_pulse_info.stop
+
 
 		self.re_render = True
 	
@@ -180,6 +185,7 @@ cdef class pulse_data_single_sequence():
 			else:
 				time_steps[j + 2] = (dereference(it_localdata).stop-t_offset)
 				time_steps[j + 3] = (dereference(it_localdata).stop)
+			print(time_steps[j], time_steps[j+1] ,time_steps[j+2],time_steps[j+3])
 			j+=4
 
 			postincrement(it_localdata)
