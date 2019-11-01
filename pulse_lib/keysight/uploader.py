@@ -16,7 +16,7 @@ class keysight_uploader():
 	"""
 	Object responsible for uploading waveforms to the keysight AWG in a timely fashion.
 	"""
-	def __init__(self, AWGs, cpp_uploader,channel_names, channel_locations, channel_delays, channel_compenstation_limits):
+	def __init__(self, AWGs, cpp_uploader,channel_names, channel_locations, channel_delays, channel_compenstation_limits, AWG_to_dac_ratio):
 		'''
 		Initialize the keysight uploader. 
 		Args:
@@ -38,6 +38,7 @@ class keysight_uploader():
 		self.channel_map = channel_locations
 		self.channel_delays = channel_delays
 		self.channel_compenstation_limits = channel_compenstation_limits
+		self.AWG_to_dac_ratio = AWG_to_dac_ratio
 		self.upload_queue = []
 		self.upload_ready_to_start = []
 		self.upload_done = []
@@ -206,7 +207,12 @@ class keysight_uploader():
 
 				vmin = getattr(seg, channel).v_min(job.index, sample_rate)
 				vmax = getattr(seg, channel).v_max(job.index, sample_rate)
-				waveform_cache[channel].add_data(wvf, (vmin, vmax), integral)
+				if channel in self.AWG_to_dac_ratio.keys(): #start Luca modification
+					ratio = self.AWG_to_dac_ratio[channel]
+				else:
+					ratio = 1 #end Luca modification
+
+				waveform_cache[channel].add_data(wvf/ratio, (vmin/ratio, vmax/ratio), integral/ratio)
 
 				pre_delay = 0
 				post_delay = 0

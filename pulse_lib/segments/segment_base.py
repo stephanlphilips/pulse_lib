@@ -357,8 +357,12 @@ class segment_base():
 				ref_chan.segment._last_edit = last_edit.Rendered
 			for ref_chan in self.IQ_ref_channels:
 				# todo -- update dim functions
+				my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.virtual_channel_pointer.shape)# Luca modification
+				self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape) # Luca modification
 				self._pulse_data_all += ref_chan.virtual_channel_pointer.get_IQ_data(ref_chan.LO, ref_chan.IQ_render_option, ref_chan.image_render_option)
 			for ref_chan in self.references_markers:
+				my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.IQ_channel_ptr.shape)# Luca modification
+				self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape) # Luca modification
 				self._pulse_data_all += ref_chan.IQ_channel_ptr.get_marker_data(ref_chan.pre_delay, ref_chan.post_delay)
 
 			self._last_edit = last_edit.Rendered
