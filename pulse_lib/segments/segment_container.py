@@ -389,12 +389,12 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
 		# add reference in real gates.
 		for i in range(virtual_gates.size):
 			real_channel = getattr(segment_container_obj, virtual_gates.real_gate_names[i])
-			virtual_gates_values = virtual_gates.virtual_gate_matrix[i,:]
+			virtual_gates_values = virtual_gates.virtual_gate_matrix_inv[i,:]
 
 			for j in range(virtual_gates.size):
 				if virtual_gates_values[j] != 0:
 					virutal_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j], 
-						getattr(segment_container_obj, virtual_gates.virtual_gate_names[j]), 	virtual_gates_values[j])
+						getattr(segment_container_obj, virtual_gates.virtual_gate_names[j]), virtual_gates_values[j])
 					real_channel.add_reference_channel(virutal_channel_reference_info)
 
 

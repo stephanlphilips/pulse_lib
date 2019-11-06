@@ -32,6 +32,11 @@ class virtual_gates_constructor(object):
 		self.virtual_gate_matrix_tmp = self.virtual_gate_matrix_tmp[self.valid_indices]
 		self.virtual_gate_matrix_tmp = self.virtual_gate_matrix_tmp[:,self.valid_indices]
 		return self.virtual_gate_matrix_tmp
+
+	@property
+	def virtual_gate_matrix_inv(self):
+		return np.linalg.inv(self.virtual_gate_matrix)
+	
 	
 	@property
 	def size(self):
@@ -60,8 +65,8 @@ class virtual_gates_constructor(object):
 
 		self.valid_indices = np.array(idx_of_valid_gates, dtype=np.int)
 		self._virtual_gate_matrix = virtual_gate_set.virtual_gate_matrix
-		self.real_gate_names = np.asarray(virtual_gate_set.real_gate_names)[idx_of_valid_gates]
-		self.virtual_gate_names = np.asarray(virtual_gate_set.virtual_gate_names)[idx_of_valid_gates]
+		self.real_gate_names = list(np.asarray(virtual_gate_set.real_gate_names)[idx_of_valid_gates])
+		self.virtual_gate_names =list( np.asarray(virtual_gate_set.virtual_gate_names)[idx_of_valid_gates])
 
 	def add_real_gates(self, *args):
 		"""
