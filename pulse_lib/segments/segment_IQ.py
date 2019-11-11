@@ -75,7 +75,6 @@ class segment_IQ(segment_base):
 			PM ('str/tuple/function') : function describing an phase modulation (see examples in pulse_lib.segments.data_classes.data_IQ)
 		'''
 		MW_data = IQ_data_single(t0 + self.data_tmp.start_time, t1 + self.data_tmp.start_time, amp, freq, phase + self.data_tmp.global_phase, envelope_generator(AM, PM))
-
 		self.data_tmp.add_MW_data(MW_data)
 		return self.data_tmp
 

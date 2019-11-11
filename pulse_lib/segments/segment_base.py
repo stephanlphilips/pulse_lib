@@ -179,7 +179,7 @@ class segment_base():
 			*key (int/slice object) : key of the element -- just use numpy style accessing (slicing supported)
 		'''
 		item = copy.copy(self)
-		item.data = self.data[key[0]]
+		item.data = data_container(self.data[key[0]])
 
 		return item
 
