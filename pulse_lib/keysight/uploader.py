@@ -207,6 +207,7 @@ class keysight_uploader():
 
 				vmin = getattr(seg, channel).v_min(job.index, sample_rate)
 				vmax = getattr(seg, channel).v_max(job.index, sample_rate)
+				
 				if channel in self.AWG_to_dac_ratio.keys(): #start Luca modification
 					ratio = self.AWG_to_dac_ratio[channel]
 				else:

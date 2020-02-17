@@ -33,7 +33,7 @@ class loop_obj():
 			self.axis = axis
 		
 		if labels is None:
-			self.labels = tuple()
+			self.labels = tuple(['no label']*self.ndim)
 		elif type(labels) == str:
 			self.labels = (labels, )
 		else:
@@ -42,7 +42,7 @@ class loop_obj():
 			self.labels = labels
 
 		if units is None:
-			self.units = tuple()
+			self.units = tuple(['no label']*self.ndim)
 		elif type(units) == str:
 			self.units = (units, )
 		else:
@@ -51,12 +51,31 @@ class loop_obj():
 			self.units = units
 
 		if setvals is None:
-			self.setvals = self.data
+			if len(data.shape) == 1:
+				self.setvals = (self.data, )
+			elif len(data.shape) == 2:
+				self.setvals = (self.data[0], self.data[:][0])
+			else: 
+				raise ValueError ('3D unit generation not supported atm ..')
 		else:
-			setvals = np.asarray(setvals)
-			if self.shape != setvals.shape:
-				raise ValueError("setvals should have the same dimensions as the data dimensions.")
-			self.setvals = setvals
+			self.setvals = tuple()
+			if len(data.shape) == 1:
+				setvals = np.asarray(setvals)
+
+				if self.shape != setvals.shape:
+					raise ValueError("setvals should have the same dimensions as the data dimensions.")
+				setvals = (setvals, )
+			else:
+				setvals = list(setvals)
+				for setval_idx in range(len(setvals)):
+					setvals[setval_idx] = np.asarray(setvals[setval_idx])
+
+					if self.shape[setval_idx] != len(setvals[setval_idx]):
+						raise ValueError("setvals should have the same dimensions as the data dimensions.")
+
+				setvals = tuple(setvals)
+
+			self.setvals += setvals
 			self.setvals_set = True
 
 	def __len__(self):
@@ -104,6 +123,8 @@ class loop_obj():
 	def __copy__(self):
 		cpy = loop_obj()
 		cpy.labels = copy.copy(self.labels)
+		cpy.setvals = copy.copy(self.setvals)
+		cpy.setvals_set = copy.copy(self.setvals_set)
 		cpy.units = copy.copy(self.units)
 		cpy.axis = copy.copy(self.axis)
 		cpy.dtype = copy.copy(self.dtype)
@@ -119,3 +140,26 @@ class linspace(loop_obj):
 		super().__init__()
 		super().add_data(np.linspace(start, stop, n_steps), axis = axis, labels = name, units = unit, setvals= setvals)
 
+
+if __name__ == '__main__':
+	lp = loop_obj()
+	lp.add_data(np.array([1]), axis=0)
+	print(lp.labels)
+
+	data = np.linspace(0,5,10)
+	lp = loop_obj()
+	lp.add_data(data, axis=0, labels = "gate_name", units = 'mV')
+	print(lp.data)
+	print(lp.axis)
+	print(lp.labels)
+	print(lp.units)
+	print(lp.setvals)
+
+	data = np.zeros([4,4])
+	lp = loop_obj()
+	lp.add_data(data, axis=[0,1], labels = ("gate_name_1", "gate_name_2"), units = ('mV', 'mV'))#, setvals=([0,0,0,0],[1,2,3,4]))
+	print(lp.data)
+	print(lp.axis)
+	print(lp.labels)
+	print(lp.units)
+	print(lp.setvals)

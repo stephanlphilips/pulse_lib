@@ -167,22 +167,17 @@ def loop_controller(func):
 	'''
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		import time
-		t0 = time.time()
 		obj = args[0]
 
 		loop_info_args = []
 		loop_info_kwargs = []
 		for i in range(1,len(args)):
 			if isinstance(args[i], loop_obj):
-				if len(args[i].axis) == 1 :
-					setpnt = setpoint(args[i].axis[0])
-					setpnt.setpoint = (args[i].data,)
-					setpnt.label = args[i].labels
-					setpnt.unit = args[i].units
-				else:
-					setpnt=None
-					print("detected 2d loop, unit generation not supported at the moment.")
+				setpnt=list()
+
+				for j in range(len(args[i].axis)):
+					setpnt_single = setpoint(args[i].axis[j], label = (args[i].labels[j],), unit = (args[i].units[j],), setpoint=(args[i].setvals[j],))
+					setpnt.append(setpnt_single)
 
 				info = {
 				'nth_arg': i,
@@ -196,6 +191,11 @@ def loop_controller(func):
 				
 		for key in kwargs.keys():
 			if isinstance(kwargs[key], loop_obj):
+				setpnt=list()
+				for j in range(len(kwargs[key].axis)):
+					setpnt_single = setpoint(kwargs[key].axis[j], label = (kwargs[key].labels[j],), unit = (kwargs[key].units[j],), setpoint=(kwargs[key].setvals[j],))
+					setpnt.append(setpnt_single)
+
 				info = {
 				'nth_arg': key,
 				'shape' : kwargs[key].shape,
@@ -205,25 +205,15 @@ def loop_controller(func):
 				'setpnt' : setpnt}
 				loop_info_kwargs.append(info)
 
-				if len(kwargs[key].axis) == 1 :
-					setpnt = setpoint(kwargs[key].axis[0])
-					setpnt.setpoint = (kwargs[key].data,)
-					setpnt.label = kwargs[key].labels
-					setpnt.unit = kwargs[key].units
-
-					obj._setpoints += setpnt
-				else:
-					print("detected 2d loop, unit generation not supported at the moment.")
-
 		for lp in loop_info_args:
 			for i in range(len(lp['axis'])-1,-1,-1):
 				new_dim, axis = get_new_dim_loop(obj.data.shape, lp['axis'][i], lp['shape'][i])
 				lp['axis'][i] = axis
 				obj.data = update_dimension(obj.data, new_dim)
 
-				if lp['setpnt'] is not None and i == 0:
-					lp['setpnt'].axis = axis
-					obj._setpoints += lp['setpnt']
+				if lp['setpnt'] is not None:
+					lp['setpnt'][i].axis = axis
+					obj._setpoints += lp['setpnt'][i]
 
 		# todo update : (not used atm, but just to be generaric.)
 		for lp in loop_info_kwargs:
@@ -249,34 +239,34 @@ def loop_controller_post_processing(func):
 	'''
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		import time
-		t0 = time.time()
 		obj = args[0]
 
 		loop_info_args = []
 		loop_info_kwargs = []
 		for i in range(1,len(args)):
-			if isinstance(args[i], loop_obj):
-				if len(args[i].axis) == 1 :
-					setpnt = setpoint(args[i].axis[0])
-					setpnt.setpoint = (args[i].data,)
-					setpnt.label = args[i].labels
-					setpnt.unit = args[i].units
-				else:
-					setpnt=None
-					print("detected 2d loop, unit generation not supported at the moment.")
+			setpnt=list()
 
-				info = {
-				'nth_arg': i,
-				'shape' : args[i].shape,
-				'len': len(args[i]),
-				'axis': args[i].axis,
-				'data' : args[i].data,
-				'setpnt' : setpnt
-				}
-				loop_info_args.append(info)
+			for j in range(len(args[i].axis)):
+				setpnt_single = setpoint(args[i].axis[j], label = (args[i].labels[j],), unit = (args[i].units[j],), setpoint=(args[i].setvals[j],))
+				setpnt.append(setpnt_single)
+
+			info = {
+			'nth_arg': i,
+			'shape' : args[i].shape,
+			'len': len(args[i]),
+			'axis': args[i].axis,
+			'data' : args[i].data,
+			'setpnt' : setpnt
+			}
+			loop_info_args.append(info)
 				
 		for key in kwargs.keys():
+			setpnt=list()
+
+			for j in range(len(kwargs[key].axis)):
+				setpnt_single = setpoint(kwargs[key].axis[j], label = (kwargs[key].labels[j],), unit = (kwargs[key].units[j],), setpoint=(kwargs[key].setvals[j],))
+				setpnt.append(setpnt_single)
+					
 			if isinstance(kwargs[key], loop_obj):
 				info = {
 				'nth_arg': key,
@@ -287,25 +277,15 @@ def loop_controller_post_processing(func):
 				'setpnt' : setpnt}
 				loop_info_kwargs.append(info)
 
-				if len(kwargs[key].axis) == 1 :
-					setpnt = setpoint(kwargs[key].axis[0])
-					setpnt.setpoint = (kwargs[key].data,)
-					setpnt.label = kwargs[key].labels
-					setpnt.unit = kwargs[key].units
-
-					obj._setpoints += setpnt
-				else:
-					print("detected 2d loop, unit generation not supported at the moment.")
-
 		for lp in loop_info_args:
 			for i in range(len(lp['axis'])-1,-1,-1):
 				new_dim, axis = get_new_dim_loop(obj.pulse_data_all.shape, lp['axis'][i], lp['shape'][i])
 				lp['axis'][i] = axis
 				obj._pulse_data_all = update_dimension(obj.pulse_data_all, new_dim)
 
-				if lp['setpnt'] is not None and i == 0:
-					lp['setpnt'].axis = axis
-					obj._setpoints += lp['setpnt']
+				if lp['setpnt'] is not None:
+					lp['setpnt'][i].axis = axis
+					obj._setpoints += lp['setpnt'][i]
 
 		# todo update : (not used atm, but just to be generaric.)
 		for lp in loop_info_kwargs:
