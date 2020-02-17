@@ -413,7 +413,7 @@ class pulse_data(parent_data):
 
             # add up the sin pulse.
             my_sequence[start_pt:stop_pt] += amp*amp_envelope*np.sin(
-                    np.linspace(0, n_pt/sample_rate*1e-9, n_pt)*freq*2*np.pi
+                    np.linspace(start_pt/sample_rate*1e-9, (start_pt+n_pt)/sample_rate*1e-9, n_pt)*freq*2*np.pi
                     + phase + phase_envelope )
 
         return my_sequence  
