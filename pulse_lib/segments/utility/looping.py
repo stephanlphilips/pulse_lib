@@ -119,3 +119,14 @@ class linspace(loop_obj):
 		super().__init__()
 		super().add_data(np.linspace(start, stop, n_steps), axis = axis, labels = name, units = unit, setvals= setvals)
 
+class logspace(loop_obj):
+	"""docstring for logspace"""
+	def __init__(self, start, stop, n_steps = 50, name = None, unit = None, axis = -1, setvals = None):
+		super().__init__()
+		super().add_data(np.logspace(start, stop, n_steps), axis = axis, labels = name, units = unit, setvals= setvals)
+
+class geomspace(loop_obj):
+	"""docstring for geomspace"""
+	def __init__(self, start, stop, n_steps = 50, name = None, unit = None, axis = -1, setvals = None):
+		super().__init__()
+		super().add_data(np.geomspace(start, stop, n_steps), axis = axis, labels = name, units = unit, setvals= setvals)
