@@ -143,7 +143,7 @@ class segment_container():
 			times (np.ndarray) : numpy array with the total time (maximum of all the channels), for all the different loops executed.
 		'''
 
-		shape = list(getattr(self, self.channels[0]).shape)
+		shape = list(self.shape)
 		n_channels = len(self.channels)
 		
 		time_data = np.empty([n_channels] + shape)
@@ -163,11 +163,11 @@ class segment_container():
 			times (np.ndarray) : numpy array with the total time (maximum of all the channels), for all the different loops executed.
 		'''
 
-		shape = list(getattr(self, self.channels[0]).shape)
+		shape = list(self.shape)
 		n_channels = len(self.channels)
 		
 		time_data = np.empty([n_channels] + shape)
-		
+
 		for i in range(len(self.channels)):
 			time_data[i] = upconvert_dimension(getattr(self, self.channels[i]).start_time, shape)
 

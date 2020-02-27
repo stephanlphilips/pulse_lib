@@ -107,9 +107,9 @@ class setpoint_mgr():
 @dataclass
 class setpoint():
 	axis : int
-	setpoint : tuple = tuple()
 	label : tuple = tuple()
 	unit : tuple = tuple()
+	setpoint : tuple = tuple()
 
 	def __add__(self, other):
 		if self.axis != other.axis:
@@ -130,6 +130,7 @@ class setpoint():
 
 if __name__ == '__main__':
 	b = setpoint(1)
+	print(b.axis)
 	b.label = ('Voltage1',)
 	b.unit = ('V',)
 	a = setpoint(0)

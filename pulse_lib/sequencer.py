@@ -1,4 +1,5 @@
 import pulse_lib.segments.segment_container
+from qcodes import Parameter
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.utility.looping import loop_obj
@@ -31,6 +32,7 @@ class sequencer():
 		self._names = None
 
 		self._shape = (1,)
+		self._sweep_index = [0]
 		self.sequence = list()
 		self.uploader = upload_module
 		self.correction_limits = correction_limits
@@ -51,6 +53,9 @@ class sequencer():
 		self._sample_rate = 1e9
 		self._HVI_variables = None
 
+	@property
+	def sweep_index(self):
+		return self._sweep_index
 
 	@property
 	def shape(self):
@@ -134,6 +139,7 @@ class sequencer():
 			self._shape = find_common_dimension(i[0].shape, self._shape)
 
 		self._shape = tuple(self._shape)
+		self._sweep_index = [0]*self.ndim
 		self._HVI_variables = data_container(marker_HVI_variable())
 		self._HVI_variables = update_dimension(self._HVI_variables, self.shape)
 
@@ -151,6 +157,14 @@ class sequencer():
 			self._HVI_variables += segment_container._software_markers.pulse_data_all
 
 			t_tot += segment_container.total_time
+		
+		self.params =[]
+		for i in range(len(self.labels)):
+			par_name = self.labels[i]
+			set_param = index_param(par_name, self, dim = i)
+			self.params.append(set_param)
+			setattr(self, par_name, set_param)
+
 
 	def add_dsp(self, dps_corr):
 		'''
@@ -178,7 +192,7 @@ class sequencer():
 			start_function (function) : function to be executed to start the HVI (this can also be None)
 			kwargs : keyword arguments for the HVI script (see usage in the examples (e.g. when you want to provide your digitzer card))
 		'''
-		if self.uploader.current_HVI_ID != HVI_ID :
+		if self.uploader.current_HVI_ID != HVI_ID:
 			self.HVI = HVI_to_load(self.uploader.AWGs, self.uploader.channel_map, **kwargs)
 			self.uploader.current_HVI_ID = HVI_ID
 			self.uploader.current_HVI = self.HVI
@@ -228,7 +242,18 @@ class sequencer():
 		'''
 		self.uploader.release_memory(self.id, index)
 
+	def set_sweep_index(self,dim,value):
+		self._sweep_index[dim] = value
 
+class index_param(Parameter):
+    def __init__(self, name, my_seq, dim):  
+        self.my_seq = my_seq
+        self.dim = dim
+        val_map = dict(zip(my_seq.setpoints[dim], range(len(my_seq.setpoints[dim]))))
+        super().__init__(name=name, val_mapping = val_map, initial_value = my_seq.setpoints[dim][0])
+
+    def set_raw(self, value):
+        self.my_seq.set_sweep_index(self.dim, value)
 
 if __name__ == '__main__':
 	from pulse_lib.segments.segment_container import segment_container
