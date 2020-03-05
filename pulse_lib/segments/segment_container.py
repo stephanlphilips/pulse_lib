@@ -385,30 +385,35 @@ class segment_container():
         '''
         metadata = {}
         for ch in self.channels:
-            data = getattr(self,ch).data_tmp.baseband_pulse_data.localdata
-            bb_d = {}
-            j = 0
-            for d in data:
-                if not (d['stop'] - d['start'] < 1 or (d['v_start'] == 0 and d['v_stop'] == 0)):
-                    bb_d[('p%i' %j)] = d
-                    j += 1
-            if bb_d:
-                metadata[ch+'_baseband'] = bb_d
-            
-            pulsedata = getattr(self,ch).data_tmp.MW_pulse_data
-            if pulsedata:
-                all_pulse = {}
-                for (i,pulse) in enumerate(pulsedata):
-                    pd = {}
-                    pd['start'] = pulse.start
-                    pd['stop'] = pulse.stop
-                    pd['amplitude'] = pulse.amplitude
-                    pd['frequency'] = pulse.frequency
-                    pd['start_phase'] = pulse.start_phase
-                    pd['AM_envelope'] = pulse.envelope.AM_envelope_function.__repr__() 
-                    pd['PM_envelope'] = pulse.envelope.PM_envelope_function.__repr__()
-                    all_pulse[('p%i' %i)] = pd
-                metadata[ch+'_pulses'] = all_pulse
+            try:
+                data = getattr(self,ch).data_tmp.baseband_pulse_data.localdata
+                bb_d = {}
+                j = 0
+                for d in data:
+                    if not (d['stop'] - d['start'] < 1 or (d['v_start'] == 0 and d['v_stop'] == 0)):
+                        bb_d[('p%i' %j)] = d
+                        j += 1
+                if bb_d:
+                    metadata[ch+'_baseband'] = bb_d
+            except:
+                pass
+            try:
+                pulsedata = getattr(self,ch).data_tmp.MW_pulse_data
+                if pulsedata:
+                    all_pulse = {}
+                    for (i,pulse) in enumerate(pulsedata):
+                        pd = {}
+                        pd['start'] = pulse.start
+                        pd['stop'] = pulse.stop
+                        pd['amplitude'] = pulse.amplitude
+                        pd['frequency'] = pulse.frequency
+                        pd['start_phase'] = pulse.start_phase
+                        pd['AM_envelope'] = pulse.envelope.AM_envelope_function.__repr__() 
+                        pd['PM_envelope'] = pulse.envelope.PM_envelope_function.__repr__()
+                        all_pulse[('p%i' %i)] = pd
+                    metadata[ch+'_pulses'] = all_pulse
+            except:
+                pass
         return metadata
 
 def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channels_objs):
