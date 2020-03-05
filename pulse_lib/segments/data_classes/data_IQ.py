@@ -49,7 +49,7 @@ class envelope_generator():
         if self.AM_envelope_function is None:
             envelope = np.ones([int(n_points)]) #assume rectangular envelope
         elif isinstance(self.AM_envelope_function, tuple) or isinstance(self.AM_envelope_function, str):
-            envelope = signal.get_window(self.AM_envelope_function, int(n_points*10))[::10]
+            envelope = signal.get_window(self.AM_envelope_function, int(n_points*10))[::10][:int(n_points)] #ugly fix
         else:
             envelope = self.AM_envelope_function(delta_t, sample_rate) # user reponsible to do good subsampling him/herself.
 
