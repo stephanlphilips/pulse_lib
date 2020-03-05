@@ -262,15 +262,21 @@ class segment_container():
 		for i in range(len(self.channels)):
 			time_data[i] = upconvert_dimension(getattr(self, self.channels[i]).total_time, shape)
 
-
 		times = np.amax(time_data, axis = 0)
 		times, axis = reduce_arr(times)
-
 		if len(axis) == 0:
 			loop_obj = times
 		else:
+			axis_np = np.array(axis)
+			label = np.array(self.setpoint_data.labels)
+			unit = np.array(self.setpoint_data.units)
+			setvals = np.array(self.setpoint_data.setpoints)
+			if max(axis) <= (len(setvals)-1): # not completely universal yet. If first higer axes get populated, it might fail
+				setvals = setvals[axis_np]
+				label = label[axis_np]
+				unit = unit[axis_np]
 			loop_obj = lp.loop_obj()
-			loop_obj.add_data(times, axis)
+			loop_obj.add_data(times, axis, label, unit, setvals)
 
 		for i in self.channels:
 			segment = getattr(self, i)
@@ -322,7 +328,11 @@ class segment_container():
 			t_off (str) : offset to be given from the marker 
 		'''
 		times = lp.loop_obj()
-		times.add_data(self._start_time, axis=list(range(self.ndim -1,-1,-1)))
+		# Look into this inversion of the setpoints
+		times.add_data(self._start_time, axis=list(range(self.ndim -1,-1,-1)), 
+				labels = self.setpoint_data.labels[::-1], 
+				units = self.setpoint_data.units[::-1], 
+				setvals = self.setpoint_data.setpoints[::-1])
 
 		self.add_HVI_variable(marker_name, times + t_off, True)
 

@@ -504,26 +504,14 @@ def reduce_arr(arr):
 	"""
 	ndim = len(arr.shape)
 	data_axis = []
-
+	slice_array = ()
 	for i in range(ndim):
-		new_arr = arr
-		if i != ndim -1:
-			new_arr = np.swapaxes(new_arr, i, ndim-1)
-
-		for j in range(ndim - 1):
-			new_arr = new_arr[0]
-
-		if len(new_arr) > 0 and np.array_equal(new_arr, np.full(new_arr.shape, new_arr[0])) == False:
-			data_axis.append(i)
-
-	data_axis = [len(arr.shape) - i - 1 for i in data_axis]
-
-	j = 0
-	for i in data_axis:
-		if i != j:
-			arr = np.swapaxes(arr, len(arr.shape) - i -1, len(arr.shape) - j -1)		
-		j += 1
-
-	for i in range(len(arr.shape) - len(data_axis)):
-		arr = arr[0]
-	return arr, data_axis
+		slc_arr = i*(0,) + (slice(None),) + (ndim - i - 1) * (0,)
+		new_arr = arr[slc_arr]
+		if not np.all(new_arr == new_arr[0]):
+			data_axis.append(ndim - i - 1)
+			slice_array += (slice(None),)
+		else:
+			slice_array += (0,)  
+	red_ar = arr[slice_array]
+	return red_ar, data_axis
