@@ -80,7 +80,7 @@ class setpoint_mgr():
 			if len(self._setpoints[key].label) >= 1:
 				labels += (self._setpoints[key].label[0] , )
 			else:
-				labels += ("No label defined", )
+				labels += ("No_label_defined", )
 		return labels
 	
 	@property

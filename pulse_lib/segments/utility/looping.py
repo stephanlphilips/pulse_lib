@@ -33,7 +33,7 @@ class loop_obj():
 			self.axis = axis
 		
 		if labels is None:
-			self.labels = tuple(['no label']*self.ndim)
+			self.labels = tuple(['no_label']*self.ndim)
 		elif type(labels) == str:
 			self.labels = (labels, )
 		else:
@@ -42,7 +42,7 @@ class loop_obj():
 			self.labels = labels
 
 		if units is None:
-			self.units = tuple(['no label']*self.ndim)
+			self.units = tuple(['no_label']*self.ndim)
 		elif type(units) == str:
 			self.units = (units, )
 		else:
@@ -59,7 +59,7 @@ class loop_obj():
 				raise ValueError ('3D unit generation not supported atm ..')
 		else:
 			self.setvals = tuple()
-			if len(data.shape) == 1:
+			if isinstance(setvals,list):
 				setvals = np.asarray(setvals)
 
 				if self.shape != setvals.shape:
