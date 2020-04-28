@@ -69,6 +69,7 @@ class sequencer():
 	def setpoint_data(self):
 		setpoint_data = setpoint_mgr()
 		for seg_container in self.sequence:
+			print(seg_container)
 			setpoint_data += seg_container[0].setpoint_data
 
 		return setpoint_data
@@ -159,11 +160,12 @@ class sequencer():
 			t_tot += segment_container.total_time
 		
 		self.params =[]
-		for i in range(len(self.labels)):
-			par_name = self.labels[i]
-			set_param = index_param(par_name, self, dim = i)
-			self.params.append(set_param)
-			setattr(self, par_name, set_param)
+        
+# 		for i in range(len(self.labels)):
+# 			par_name = self.labels[i]
+# 			set_param = index_param(par_name, self, dim = i)
+# 			self.params.append(set_param)
+# 			setattr(self, par_name, set_param)
 
 
 	def add_dsp(self, dps_corr):
