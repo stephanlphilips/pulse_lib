@@ -3,13 +3,14 @@ from qcodes import Parameter
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.utility.looping import loop_obj
-from pulse_lib.keysight.uploader import upload_job,convert_prescaler_to_sample_rate
+from pulse_lib.keysight.uploader import convert_prescaler_to_sample_rate
 from pulse_lib.segments.data_classes.data_HVI_variables import marker_HVI_variable
 from pulse_lib.segments.data_classes.data_generic import data_container
 from si_prefix import si_format
 
 import numpy as np
 import uuid
+import logging
 
 class sequencer():
     """
@@ -40,7 +41,6 @@ class sequencer():
         # arguments of post processing the might be needed during rendering.
         self.DSP = None
         self.neutralize = True
-        self.priority = -1
 
         # HVI if needed..
         self.HVI = None
@@ -214,13 +214,17 @@ class sequencer():
         (note that this is only possible if you AWG supports upload while doing playback)
         '''
 
-        upload_object = upload_job(self.sequence, index, self.id, self.n_rep ,self.prescaler, self.neutralize, self.priority)
-        if self.DSP is not None:
-            upload_object.add_dsp_function(self.DSP)
-        if self.HVI is not None:
-            upload_object.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables.item(tuple(index)).HVI_markers})
+        upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep ,self.prescaler, self.neutralize)
 
-        self.uploader.add_upload_job(upload_object)
+        if self.DSP is not None:
+            upload_job.add_dsp_function(self.DSP)
+
+        if self.HVI is not None:
+            upload_job.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables.item(tuple(index)).HVI_markers})
+
+        self.uploader.add_upload_job(upload_job)
+
+        return upload_job
 
 
     def play(self, index, release= True):
@@ -233,6 +237,7 @@ class sequencer():
         Note that the playback will not start until you have uploaded the waveforms.
         '''
         self.uploader.play(self.id, index, release)
+
 
     def release_memory(self, index):
         '''

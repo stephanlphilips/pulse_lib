@@ -1,15 +1,13 @@
 import numpy as np
-import matplotlib.pyplot as plt 
+import copy
+
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
 from pulse_lib.keysight.uploader import keysight_uploader
 from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
-from dataclasses import dataclass
-# from qcodes.intruments.parameter import Parameter
-import copy
 
-import uuid
+from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
 
 class pulselib:
     '''
@@ -25,24 +23,21 @@ class pulselib:
         self.virtual_channels = []
         self.IQ_channels = []
 
-        if backend == "keysight":
-            self.cpp_uploader = keysight_upload_module()
-            # TODO
-            # self.uploader = ... 
+        self._backend = backend
+
         self.channel_delays = dict()
         self.channel_delays_computed = dict()
         self.channel_compenstation_limits = dict()
         self.channels_to_physical_locations = dict()
         self.AWG_to_dac_ratio = dict()
 
-
         self.delays = []
         self.convertion_matrix= []
         self.voltage_limits_correction = dict()
 
-
         self.segments_bin = None
         self.sequencer = None
+        self.cpp_uploader = None
 
     @property
     def channels(self):
@@ -59,7 +54,7 @@ class pulselib:
             awg (object) : qcodes object of the concerning AWG
         '''
         self.awg_devices[name] =awg
-        if awg is not None:
+        if awg is not None and self.cpp_uploader is not None:
             self.cpp_uploader.add_awg_module(name, awg)
 
     def define_channel(self, channel_name, AWG_name, channel_number):
@@ -80,7 +75,6 @@ class pulselib:
         self.channel_delays_computed[channel_name] = (0,0)
         self.channel_compenstation_limits[channel_name] = (0,0)
         self.channels_to_physical_locations[channel_name] = (AWG_name, channel_number)
-        self.voltage_rescaler = dict()
 
     def define_marker(self, marker_name, AWG_name, channel_number):
         '''
@@ -110,7 +104,7 @@ class pulselib:
         if channel in self.awg_channels:
             self.channel_delays[channel] = delay
         else:
-            raise ValueError("Channel delay error: Channel '{}' does not exist. Please provide valid input".format(i[0]))
+            raise ValueError("Channel delay error: Channel '{}' does not exist. Please provide valid input".format(channel))
 
         self.__process_channel_delays()
         return 0
@@ -127,12 +121,24 @@ class pulselib:
         if channel_name in self.awg_channels:
             self.channel_compenstation_limits[channel_name] = limit
         else:
-            raise ValueError("Channel voltage compenstation error: Channel '{}' does not exist. Please provide valid input".format(i[0]))
+            raise ValueError("Channel voltage compenstation error: Channel '{}' does not exist. Please provide valid input".format(channel_name))
 
     def finish_init(self):
         # function that finishes the initialisation
         # TODO rewrite, so this function is embedded in the other ones.
-        self.uploader = keysight_uploader(self.awg_devices, self.cpp_uploader, self.awg_channels, self.channels_to_physical_locations , self.channel_delays_computed, self.channel_compenstation_limits, self.AWG_to_dac_ratio)
+
+        if self._backend == "keysight":
+            self.cpp_uploader = keysight_upload_module()
+            for name, awg in self.awg_devices.items():
+                if awg is not None:
+                    self.cpp_uploader.add_awg_module(name, awg)
+
+            self.uploader = keysight_uploader(self.awg_devices, self.cpp_uploader, self.awg_channels,
+                                              self.channels_to_physical_locations , self.channel_delays_computed,
+                                              self.channel_compenstation_limits, self.AWG_to_dac_ratio)
+        elif self._backend == "M3202A":
+            self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels, self.channels_to_physical_locations,
+                                            self.channel_delays_computed, self.channel_compenstation_limits, self.AWG_to_dac_ratio)
 
     def mk_segment(self):
         '''
