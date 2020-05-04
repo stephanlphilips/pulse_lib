@@ -3,6 +3,7 @@ import logging
 from dataclasses import dataclass
 
 from qcodes.instrument.base import Instrument
+from typing import List
 
 class MemoryManager:
     def __init__(self):
@@ -25,9 +26,12 @@ class WaveformReference:
     wave_number: int
     size: int
     memory_manager: MemoryManager
+    waveform: List
 
     def release(self):
         self.memory_manager.free(self.wave_number)
+        self.waveform = None
+
 
 # mock for M3202A / SD_AWG_Async
 class MockM3202A(Instrument):
@@ -37,7 +41,6 @@ class MockM3202A(Instrument):
         self._slot_number = slot
         self._chassis_numnber = chassis
         self.memory_manager = MemoryManager()
-        self.wave_memory = {}
         self.channel_data = {}
         self.amplitudes = {}
         for i in range(4):
@@ -55,9 +58,8 @@ class MockM3202A(Instrument):
     def upload_waveform(self, wave) -> WaveformReference:
         size = len(wave)
         slot = self.memory_manager.allocate(size)
-        self.wave_memory[slot] = wave
         logging.info(f'{self.name}.upload_waveform({slot}, {size})')
-        return WaveformReference(slot, size, self.memory_manager)
+        return WaveformReference(slot, size, self.memory_manager, wave)
 
     def set_channel_amplitude(self, amplitude, channel):
         logging.info(f'{self.name}.set_channel_amplitude({amplitude}, {channel})')
@@ -68,14 +70,14 @@ class MockM3202A(Instrument):
 
     def awg_flush(self, channel):
         logging.info(f'{self.name}.awg_flush({channel})')
-        self.channel_data[channel+1] = []
+        self.channel_data[channel] = []
 
     def awg_stop(self, channel):
         logging.info(f'{self.name}.awg_stop({channel})')
 
     def awg_queue_waveform(self, channel, waveform_ref, trigger_mode, start_delay, cycles, prescaler):
         logging.info(f'{self.name}.awg_queue_waveform({channel}, {waveform_ref.wave_number}, {trigger_mode}, {start_delay}, {cycles}, {prescaler})')
-        self.channel_data[channel].append(self.wave_memory[waveform_ref.wave_number] * self.amplitudes[channel])
+        self.channel_data[channel].append(waveform_ref.waveform * self.amplitudes[channel])
 
     def awg_is_running(self, channel):
         return False
