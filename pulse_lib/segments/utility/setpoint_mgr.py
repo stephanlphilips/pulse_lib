@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import copy
+import numpy as np
 
 """
 file that constains a few classes that do automatric unit management.
