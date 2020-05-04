@@ -1,5 +1,5 @@
 """
-File contains an object that mananges segments. E.g. you are dealing with mutiple channels. 
+File contains an object that mananges segments. E.g. you are dealing with mutiple channels.
 This object also allows you to do operations on all segments at the same time.
 """
 
@@ -48,10 +48,10 @@ class segment_container():
 
         for name in channel_names:
             self._Vmin_max_data[name] = {"v_min" : None, "v_max" : None}
-        
+
         self.prev_upload = datetime.datetime.utcfromtimestamp(0)
 
-        
+
         # define real channels (+ markers)
         for name in channel_names:
             if name in markers:
@@ -81,7 +81,7 @@ class segment_container():
 
     def __copy__(self):
         new = segment_container([])
-        
+
         new._virtual_gates_objs = self._virtual_gates_objs
         new._IQ_channel_objs = self._IQ_channel_objs
 
@@ -96,16 +96,16 @@ class segment_container():
         new._Vmin_max_data = copy.copy(self._Vmin_max_data)
         new._software_markers = copy.copy(self._software_markers)
         new._setpoints = copy.copy(self._setpoints)
-        
+
         # update the references in of all the channels
         add_reference_channels(new, self._virtual_gates_objs, self._IQ_channel_objs)
 
         return new
-    
+
     @property
     def software_markers(self):
         return self._software_markers
-    
+
     @software_markers.setter
     def software_markers(self, new_marker):
         self._software_markers = new_marker
@@ -122,11 +122,11 @@ class segment_container():
             my_shape = find_common_dimension(my_shape, dim)
 
         return my_shape
-    
+
     @property
     def ndim(self):
         return len(self.shape)
-    
+
     @property
     def last_mod(self):
         time = datetime.datetime.utcfromtimestamp(0)
@@ -145,9 +145,9 @@ class segment_container():
 
         shape = list(self.shape)
         n_channels = len(self.channels)
-        
+
         time_data = np.empty([n_channels] + shape)
-        
+
         for i in range(len(self.channels)):
             time_data[i] = upconvert_dimension(getattr(self, self.channels[i]).total_time, shape)
 
@@ -165,7 +165,7 @@ class segment_container():
 
         shape = list(self.shape)
         n_channels = len(self.channels)
-        
+
         time_data = np.empty([n_channels] + shape)
 
         for i in range(len(self.channels)):
@@ -183,9 +183,9 @@ class segment_container():
         for i in self.channels:
             segment = getattr(self, i)
             comb_setpoints += segment.setpoints
-        
+
         return comb_setpoints
-    
+
 
     @property
     def Vmin_max_data(self):
@@ -230,7 +230,7 @@ class segment_container():
             stop (double) : stop time of the slice
 
         The slice_time function allows you to cut all the waveforms in the segment container in different sizes.
-        This function should be handy for debugging, example usage would be, 
+        This function should be handy for debugging, example usage would be,
         You are runnning an algorithm and want to check what the measurement outcomes are though the whole algorithm.
         Pratically, you want to know
             0 -> 10ns (@10 ns still everything as expected?)
@@ -246,15 +246,15 @@ class segment_container():
         '''
         Args:
             extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms...].
-            
+
         Allings all segments togeter and sets the input time to 0,
-        e.g. , 
+        e.g. ,
         chan1 : waveform until 70 ns
         chan2 : waveform until 140ns
         -> totaltime will be 140 ns,
         when you now as a new pulse (e.g. at time 0, it will actually occur at 140 ns in both blocks)
         '''
-        
+
         n_channels = len(self.channels)
         shape = list(self.shape)
         time_data = np.empty([n_channels] + shape)
@@ -293,16 +293,16 @@ class segment_container():
         Args:
             shape (tuple) : shape of the new waveform
             ref (bool) : put to True if you want to extend the dimension by using pointers instead of making full copies.
-        If referencing is True, a pre-render will already be performed to make sure nothing is rendered double. 
+        If referencing is True, a pre-render will already be performed to make sure nothing is rendered double.
         '''
         if shape is None:
             shape = self.shape
 
-        
+
         for i in self.channels:
             if self.render_mode == False:
                 getattr(self, i).data = update_dimension(getattr(self, i).data, shape, ref)
-    
+
             if getattr(self, i).type == 'render' and self.render_mode == True:
                 getattr(self, i)._pulse_data_all = update_dimension(getattr(self, i)._pulse_data_all, shape, ref)
 
@@ -313,11 +313,11 @@ class segment_container():
 
     def add_HVI_marker(self, marker_name, t_off = 0):
         '''
-        add a HVI marker that corresponds to the current time of the segment (defined by reset_time). 
+        add a HVI marker that corresponds to the current time of the segment (defined by reset_time).
 
         Args:
             marker_name (str) : name of the marker to add
-            t_off (str) : offset to be given from the marker 
+            t_off (str) : offset to be given from the marker
         '''
         times = lp.loop_obj(no_setpoints=True)
         # Look into this inversion of the setpoints
@@ -350,7 +350,7 @@ class segment_container():
     def add_master_clock(self, time):
         '''
         add a master clock to the segment.
-        
+
         Args:
             time (float) :  effective time that this segment start in the sequence.
 
@@ -397,7 +397,7 @@ class segment_container():
                         pd['amplitude'] = pulse.amplitude
                         pd['frequency'] = pulse.frequency
                         pd['start_phase'] = pulse.start_phase
-                        pd['AM_envelope'] = pulse.envelope.AM_envelope_function.__repr__() 
+                        pd['AM_envelope'] = pulse.envelope.AM_envelope_function.__repr__()
                         pd['PM_envelope'] = pulse.envelope.PM_envelope_function.__repr__()
                         all_pulse[('p%i' %i)] = pd
                     metadata[ch+'_pulses'] = all_pulse
@@ -408,9 +408,9 @@ class segment_container():
 def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channels_objs):
     '''
     add/update the references to the channels
-    
+
     Args:
-        segment_container_obj (segment_container) : 
+        segment_container_obj (segment_container) :
         virtual_gates_objs (list<virtual_gates_constructor>) : list of object that define virtual gates
         IQ_channels_objs (list<IQ_channel_constructor>) : list of objects that define virtual IQ channels.
     '''
@@ -428,7 +428,7 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
 
             for j in range(virtual_gates.size):
                 if virtual_gates_values[j] != 0:
-                    virutal_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j], 
+                    virutal_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j],
                         getattr(segment_container_obj, virtual_gates.virtual_gate_names[j]), virtual_gates_values[j])
                     real_channel.add_reference_channel(virutal_channel_reference_info)
 
@@ -445,7 +445,7 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
         # set up markers
         for marker_info in IQ_channels_obj.markers:
             real_channel_marker = getattr(segment_container_obj, marker_info.Marker_channel)
-            
+
             for virtual_channel_name in IQ_channels_obj.virtual_channel_map:
                 virtual_channel = getattr(segment_container_obj, virtual_channel_name.channel_name)
                 real_channel_marker.add_reference_marker_IQ(virtual_channel, marker_info.pre_delay, marker_info.post_delay)
