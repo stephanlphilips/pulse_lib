@@ -79,7 +79,12 @@ class setpoint_mgr():
         labels = tuple()
         for key in sorted(self._setpoints.keys()):
             if len(self._setpoints[key].label) >= 1:
-                labels += (self._setpoints[key].label[0] , )
+                good_labels = np.where(np.asarray(self._setpoints[key].label) != 'no label')[0]
+                if len(good_labels)>=1:
+                    labels += (self._setpoints[key].label[good_labels[0]] , )
+                else:
+                    labels += (self._setpoints[key].label[0] , )
+
             else:
                 labels += ("No_label_defined", )
         return labels
@@ -89,7 +94,11 @@ class setpoint_mgr():
         units = tuple()
         for key in sorted(self._setpoints.keys()):
             if len(self._setpoints[key].unit) >= 1:
-                units += (self._setpoints[key].unit[0] , )
+                good_units = np.where(np.asarray(self._setpoints[key].unit) != 'no label')[0]
+                if len(good_units)>=1:
+                    units += (self._setpoints[key].unit[good_units[0]] , )
+                else:
+                    units += (self._setpoints[key].unit[0] , )
             else:
                 units += ("a.u.", )
         return units
@@ -99,7 +108,11 @@ class setpoint_mgr():
         setpnts = tuple()
         for key in sorted(self._setpoints.keys()):
             if len(self._setpoints[key].setpoint) >= 1:
-                setpnts += (self._setpoints[key].setpoint[0] , )
+                good_labels = np.where(np.asarray(self._setpoints[key].label) != 'no label')[0]
+                if len(good_labels)>=1:
+                    setpnts += (self._setpoints[key].setpoint[good_labels[0]] , )
+                else:
+                    setpnts += (self._setpoints[key].setpoint[0] , )
             else:
                 setpnts += (None, )
         return setpnts
