@@ -5,7 +5,8 @@ from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.keysight.uploader import upload_job,convert_prescaler_to_sample_rate
 from pulse_lib.segments.data_classes.data_HVI_variables import marker_HVI_variable
-from pulse_lib.segments.data_classes.data_generic import data_container
+from pulse_lib.segments.data_classes.data_generic import data_container, parent_data
+
 from si_prefix import si_format
 
 import numpy as np
@@ -138,13 +139,22 @@ class sequencer():
             i[0].enter_rendering_mode()
             self._shape = find_common_dimension(i[0].shape, self._shape)
 
+        # Set the waveform cache equal to the the sum of the length of all axis of all channels.
+        # The cache will than be big enough for 1D iterations along every axis. This gives best performance
+        total_axis_length = 0
+        for i in self.sequence:
+            segment_container = i[0]
+            for channel_name in segment_container.channels:
+                shape = getattr(segment_container, channel_name).data.shape
+                total_axis_length += sum(shape)
+        parent_data.set_waveform_cache_size(total_axis_length)
+
         self._shape = tuple(self._shape)
         self._sweep_index = [0]*self.ndim
         self._HVI_variables = data_container(marker_HVI_variable())
         self._HVI_variables = update_dimension(self._HVI_variables, self.shape)
 
         # enforce master clock for the current segments (affects the IQ channels (translated into a phase shift) and and the marker channels (time shifts))
-        t_start = 0
         t_tot = np.zeros(self.shape)
 
         for i in self.sequence:
