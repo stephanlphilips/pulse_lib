@@ -46,11 +46,11 @@ class pulselib:
 
     @property
     def channels(self):
-        channels = copy.copy(self.awg_channels) 
+        channels = copy.copy(self.awg_channels)
         for i in self.virtual_channels:
             channels += i.virtual_gate_names
         return channels
-    
+
     def add_awgs(self, name, awg):
         '''
         add a awg to the library
@@ -64,7 +64,7 @@ class pulselib:
 
     def define_channel(self, channel_name, AWG_name, channel_number):
         '''
-        define the channels and their location 
+        define the channels and their location
         Args:
             channel_name (str) : name of a given channel on the AWG. This would usually the name of the gate that it is connected to.
             AWG_name (str) : name of the instrument (as given in add_awgs())
@@ -84,7 +84,7 @@ class pulselib:
 
     def define_marker(self, marker_name, AWG_name, channel_number):
         '''
-        define the channels and their location 
+        define the channels and their location
         Args:
             marker_name (str) : name of a given channel on the AWG. This would usually the name of the gate that it is connected to.
             AWG_name (str) : name of the instrument (as given in add_awgs())
@@ -95,9 +95,9 @@ class pulselib:
 
     def add_channel_delay(self, channel, delay):
         '''
-        Adds to a channel a delay. 
-        The delay is added by adding points in front of the first sequence/or 
-        just after the last sequence. The first value of the sequence will be 
+        Adds to a channel a delay.
+        The delay is added by adding points in front of the first sequence/or
+        just after the last sequence. The first value of the sequence will be
         taken as an extentsion point.
 
         Args:
@@ -144,7 +144,7 @@ class pulselib:
 
     def mk_sequence(self,seq):
         '''
-        seq: list of list, 
+        seq: list of list,
             e.g. [ ['name segment 1' (str), number of times to play (int), prescale (int)] ]
             prescale (default 0, see keysight manual) (not all awg's will support this).
         '''
@@ -153,13 +153,13 @@ class pulselib:
         seq_obj.metadata = {}
         for (i,pc) in enumerate(seq):
             md = pc.get_metadata()
-            seq_obj.metadata[('pc%i'%i)] = md            
+            seq_obj.metadata[('pc%i'%i)] = md
         return seq_obj
 
     def load_hardware(self, hardware):
         '''
         load virtual gates and attenuation via the harware class (used in qtt)
-        
+
         Args:
             hardware (harware_parent) : harware class.
         '''
@@ -225,12 +225,13 @@ class pulselib:
         if channel_name in self.awg_channels:
             raise ValueError("double declaration of the a channel/marker name ({}).".format(channel_name))
 
+
 if __name__ == '__main__':
     from pulse_lib.virtual_channel_constructors import IQ_channel_constructor, virtual_gates_constructor
 
     p = pulselib()
 
-    
+
     class AWG(object):
         """docstring for AWG"""
         def __init__(self, name):
@@ -243,7 +244,7 @@ if __name__ == '__main__':
     AWG2 = AWG("AWG2")
     AWG3 = AWG("AWG3")
     AWG4 = AWG("AWG4")
-        
+
     # add to pulse_lib
     # p.add_awgs('AWG1',AWG1)
     # p.add_awgs('AWG2',AWG2)
