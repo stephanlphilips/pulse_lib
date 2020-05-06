@@ -1,15 +1,5 @@
 
-import threading as th
-import numpy as np
-import time
-from pulse_lib.keysight.uploader_core.uploader import waveform_cache_container,waveform_upload_chache
-def mk_thread(function):
-    def wrapper(*args, **kwargs):
-        thread = th.Thread(target=function, args=args, kwargs=kwargs)
-        thread.start()
-        return thread
-    return wrapper
-
+from pulse_lib.keysight.uploader_core.uploader import waveform_cache_container
 
 
 class keysight_uploader():
@@ -190,7 +180,7 @@ class keysight_uploader():
 
 		for i in range(len(job.sequence)):
 
-			seg = job.sequence[i][0]
+			seg = job.sequence[i]
 
 			# TODO add precaler in as sample rate
 			for channel in self.channel_names:
@@ -264,15 +254,14 @@ class upload_job(object):
 	def __init__(self, sequence, index, seq_id, n_rep, prescaler=0, neutralize=True, priority=0):
 		'''
 		Args:
-			sequence (list of list): list with list of the sequence
+			sequence (list of segment_container): list with segment_containers in sequence
 			index (tuple) : index that needs to be uploaded
-			seq_id (uuid) : if of the sequence
+			seq_id (uuid) : id of the sequence
 			n_rep (int) : number of repetitions of this sequence.
 			prescaler (int) : scale the upluading speeds (f_sampling = 1Gs/(5*prescaler))
 			neutralize (bool) : place a neutralizing segment at the end of the upload
 			priority (int) : priority of the job (the higher one will be excuted first)
 		'''
-		# TODO make custom function for this. This should just extend time, not reset it.
 		self.sequence = sequence
 		self.id = seq_id
 		self.index = index

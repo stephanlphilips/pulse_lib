@@ -69,7 +69,7 @@ class sequencer():
     def setpoint_data(self):
         setpoint_data = setpoint_mgr()
         for seg_container in self.sequence:
-            setpoint_data += seg_container[0].setpoint_data
+            setpoint_data += seg_container.setpoint_data
 
         return setpoint_data
 
@@ -119,32 +119,28 @@ class sequencer():
 
     def add_sequence(self, sequence):
         '''
-        adds a sequence to this object. The Sequence needs to be defined like:
+        Adds a sequence to this object.
         Args:
-            sequence (array) : array of arrays with in the latter one,
-                [segmentobject, n_rep, prescaler] (n_rep and prescaler are by default one)
+            sequence (array) : array of segment_container
         '''
-        # correct format if needed
-        for i in range(len(sequence)):
-            if isinstance(sequence[i], pulse_lib.segments.segment_container.segment_container):
-                self.sequence.append([sequence[i], 1, 1])
-            elif isinstance(sequence[i], list):
-                self.sequence.append(sequence[i])
+        # check input
+        for entry in sequence:
+            if isinstance(entry, pulse_lib.segments.segment_container.segment_container):
+                self.sequence.append(entry)
             else:
-                raise ValueError('The provided element in the sequence seems to be of the wrong data type. {} provided, but segment_container or list expected'.format(type(sequence[i])))
+                raise ValueError('The provided element in the sequence seems to be of the wrong data type. {} provided, segment_container expected'.format(type(entry)))
 
         # update dimensionality of all sequence objects
-        for i in self.sequence:
-            i[0].enter_rendering_mode()
-            self._shape = find_common_dimension(i[0].shape, self._shape)
+        for seg_container in self.sequence:
+            seg_container.enter_rendering_mode()
+            self._shape = find_common_dimension(seg_container.shape, self._shape)
 
         # Set the waveform cache equal to the the sum of the length of all axis of all channels.
         # The cache will than be big enough for 1D iterations along every axis. This gives best performance
         total_axis_length = 0
-        for i in self.sequence:
-            segment_container = i[0]
-            for channel_name in segment_container.channels:
-                shape = getattr(segment_container, channel_name).data.shape
+        for seg_container in self.sequence:
+            for channel_name in seg_container.channels:
+                shape = getattr(seg_container, channel_name).data.shape
                 total_axis_length += sum(shape)
         parent_data.set_waveform_cache_size(total_axis_length)
 
@@ -156,16 +152,15 @@ class sequencer():
         # enforce master clock for the current segments (affects the IQ channels (translated into a phase shift) and and the marker channels (time shifts))
         t_tot = np.zeros(self.shape)
 
-        for i in self.sequence:
-            segment_container = i[0]
-            segment_container.extend_dim(self._shape, ref=True)
+        for seg_container in self.sequence:
+            seg_container.extend_dim(self._shape, ref=True)
 
             lp_time = loop_obj(no_setpoints=True)
             lp_time.add_data(t_tot, axis=list(range(self.ndim -1,-1,-1)))
-            segment_container.add_master_clock(lp_time)
-            self._HVI_variables += segment_container._software_markers.pulse_data_all
+            seg_container.add_master_clock(lp_time)
+            self._HVI_variables += seg_container._software_markers.pulse_data_all
 
-            t_tot += segment_container.total_time
+            t_tot += seg_container.total_time
 
         self.params =[]
 
@@ -246,6 +241,7 @@ class sequencer():
     def set_sweep_index(self,dim,value):
         self._sweep_index[dim] = value
 
+
 class index_param(Parameter):
     def __init__(self, name, my_seq, dim):
         self.my_seq = my_seq
@@ -255,6 +251,7 @@ class index_param(Parameter):
 
     def set_raw(self, value):
         self.my_seq.set_sweep_index(self.dim, value)
+
 
 if __name__ == '__main__':
     from pulse_lib.segments.segment_container import segment_container
