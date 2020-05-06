@@ -110,7 +110,17 @@ class loop_obj():
         cpy.data += other
         return cpy
 
+    def __radd__(self, other):
+        cpy = copy.copy(self)
+        cpy.data += other
+        return cpy
+
     def __mul__(self, other):
+        cpy = copy.copy(self)
+        cpy.data *= other
+        return cpy
+
+    def __rmul__(self, other):
         cpy = copy.copy(self)
         cpy.data *= other
         return cpy
@@ -119,6 +129,12 @@ class loop_obj():
         cpy = copy.copy(self)
         cpy.data -= other
         return cpy
+
+    def __rsub__(self, other):
+        cpy = copy.copy(self)
+        cpy.data = other - cpy.data
+        return cpy
+
     def __truediv__(self, other):
         cpy = copy.copy(self)
         cpy.data += self.data/other
@@ -172,9 +188,30 @@ if __name__ == '__main__':
 
     data = np.zeros([4,4])
     lp = loop_obj()
-    lp.add_data(data, axis=[0,1], labels = ("gate_name_1", "gate_name_2"), units = ('mV', 'mV'))#, setvals=([0,0,0,0],[1,2,3,4]))
+    lp.add_data(data, axis=[0,1], labels = ("gate_name_1", "gate_name_2"), units = ('mV', 'mV'), setvals=([0,0,0,0],[1,2,3,4]))
     print(lp.data)
     print(lp.axis)
     print(lp.labels)
     print(lp.units)
     print(lp.setvals)
+
+    lp = linspace(0, 10, 5)
+
+    lp2 = lp + 100
+    print(lp2.setvals)
+    print(lp2.data)
+
+    lp2 = 100 + lp
+    print(lp2.data)
+
+    lp2 = lp - 100
+    print(lp2.data)
+
+    lp2 = 100 - lp
+    print(lp2.data)
+
+    lp2 = lp * 100
+    print(lp2.data)
+
+    lp2 = 100 * lp
+    print(lp2.data)
