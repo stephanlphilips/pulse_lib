@@ -143,7 +143,7 @@ class pulse_data(parent_data):
         if len(self.MW_pulse_data) == 0:
             return self.baseband_pulse_data.v_max
         else:
-            return np.max(self.render(sample_rate=1e9, clear_cache_on_exit = False))
+            return np.max(self.render(sample_rate=1e9))
 
     def get_vmin(self,sample_rate = 1e9):
         '''
@@ -154,7 +154,7 @@ class pulse_data(parent_data):
         if len(self.MW_pulse_data) == 0:
             return self.baseband_pulse_data.v_min
         else:   
-            return np.min(self.render(sample_rate=1e9, clear_cache_on_exit = False))
+            return np.min(self.render(sample_rate=1e9))
 
     def integrate_waveform(self, pre_delay, post_delay, sample_rate):
         '''

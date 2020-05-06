@@ -5,7 +5,8 @@ from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.keysight.uploader import convert_prescaler_to_sample_rate
 from pulse_lib.segments.data_classes.data_HVI_variables import marker_HVI_variable
-from pulse_lib.segments.data_classes.data_generic import data_container
+from pulse_lib.segments.data_classes.data_generic import data_container, parent_data
+
 from si_prefix import si_format
 
 import numpy as np
@@ -39,7 +40,6 @@ class sequencer():
         self.correction_limits = correction_limits
 
         # arguments of post processing the might be needed during rendering.
-        self.DSP = None
         self.neutralize = True
 
         # HVI if needed..
@@ -69,7 +69,7 @@ class sequencer():
     def setpoint_data(self):
         setpoint_data = setpoint_mgr()
         for seg_container in self.sequence:
-            setpoint_data += seg_container[0].setpoint_data
+            setpoint_data += seg_container.setpoint_data
 
         return setpoint_data
 
@@ -119,24 +119,30 @@ class sequencer():
 
     def add_sequence(self, sequence):
         '''
-        adds a sequence to this object. The Sequence needs to be defined like:
+        Adds a sequence to this object.
         Args:
-            sequence (array) : array of arrays with in the latter one,
-                [segmentobject, n_rep, prescaler] (n_rep and prescaler are by default one)
+            sequence (array) : array of segment_container
         '''
-        # correct format if needed
-        for i in range(len(sequence)):
-            if isinstance(sequence[i], pulse_lib.segments.segment_container.segment_container):
-                self.sequence.append([sequence[i], 1, 1])
-            elif isinstance(sequence[i], list):
-                self.sequence.append(sequence[i])
+        # check input
+        for entry in sequence:
+            if isinstance(entry, pulse_lib.segments.segment_container.segment_container):
+                self.sequence.append(entry)
             else:
-                raise ValueError('The provided element in the sequence seems to be of the wrong data type. {} provided, but segment_container or list expected'.format(type(sequence[i])))
+                raise ValueError('The provided element in the sequence seems to be of the wrong data type. {} provided, segment_container expected'.format(type(entry)))
 
         # update dimensionality of all sequence objects
-        for i in self.sequence:
-            i[0].enter_rendering_mode()
-            self._shape = find_common_dimension(i[0].shape, self._shape)
+        for seg_container in self.sequence:
+            seg_container.enter_rendering_mode()
+            self._shape = find_common_dimension(seg_container.shape, self._shape)
+
+        # Set the waveform cache equal to the the sum of the length of all axis of all channels.
+        # The cache will than be big enough for 1D iterations along every axis. This gives best performance
+        total_axis_length = 0
+        for seg_container in self.sequence:
+            for channel_name in seg_container.channels:
+                shape = getattr(seg_container, channel_name).data.shape
+                total_axis_length += sum(shape)
+        parent_data.set_waveform_cache_size(total_axis_length)
 
         self._shape = tuple(self._shape)
         self._sweep_index = [0]*self.ndim
@@ -144,19 +150,17 @@ class sequencer():
         self._HVI_variables = update_dimension(self._HVI_variables, self.shape)
 
         # enforce master clock for the current segments (affects the IQ channels (translated into a phase shift) and and the marker channels (time shifts))
-        t_start = 0
         t_tot = np.zeros(self.shape)
 
-        for i in self.sequence:
-            segment_container = i[0]
-            segment_container.extend_dim(self._shape, ref=True)
+        for seg_container in self.sequence:
+            seg_container.extend_dim(self._shape, ref=True)
 
             lp_time = loop_obj(no_setpoints=True)
             lp_time.add_data(t_tot, axis=list(range(self.ndim -1,-1,-1)))
-            segment_container.add_master_clock(lp_time)
-            self._HVI_variables += segment_container._software_markers.pulse_data_all
+            seg_container.add_master_clock(lp_time)
+            self._HVI_variables += seg_container._software_markers.pulse_data_all
 
-            t_tot += segment_container.total_time
+            t_tot += seg_container.total_time
 
         self.params =[]
 
@@ -167,13 +171,6 @@ class sequencer():
 #           setattr(self, par_name, set_param)
 
 
-    def add_dsp(self, dps_corr):
-        '''
-        Add a class to be used for dsp corrections (note only IIR and FIR allowed for performace reasons)
-        Args:
-            dps_corr (dps_corr_class) : object that can be used to perform the DSP correction
-        '''
-        self.DSP = dps_corr
 
     def voltage_compenstation(self, compenstate):
         '''
@@ -217,9 +214,6 @@ class sequencer():
 
         upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep ,self.prescaler, self.neutralize)
 
-        if self.DSP is not None:
-            upload_job.add_dsp_function(self.DSP)
-
         if self.HVI is not None:
             upload_job.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables.item(tuple(index)).HVI_markers})
 
@@ -251,6 +245,7 @@ class sequencer():
     def set_sweep_index(self,dim,value):
         self._sweep_index[dim] = value
 
+
 class index_param(Parameter):
     def __init__(self, name, my_seq, dim):
         self.my_seq = my_seq
@@ -260,6 +255,7 @@ class index_param(Parameter):
 
     def set_raw(self, value):
         self.my_seq.set_sweep_index(self.dim, value)
+
 
 if __name__ == '__main__':
     from pulse_lib.segments.segment_container import segment_container

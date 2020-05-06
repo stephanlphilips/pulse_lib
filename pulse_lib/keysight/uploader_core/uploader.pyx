@@ -13,10 +13,9 @@ cimport numpy as np
 cdef extern from "keysight_awg_post_processing_and_upload.h":
 	struct waveform_raw_upload_data:
 		vector[double*] *wvf_data
-		# npt added here already as you cannot fetch it without the gil 
+		# npt added here already as you cannot fetch it without the gil
 		vector[int] *wvf_npt
 		pair[double, double] *min_max_voltage
-		vector[double*] *DSP_param
 		short *upload_data
 		int *npt
 		vector[int] data_location_on_AWG
@@ -41,7 +40,7 @@ ctypedef s_waveform_info waveform_info
 cdef class keysight_upload_module():
 	"""
 	This is a speraturate module for the upload in keysight units. This module also does some last post processing on the waveform (e.g. DSP/convert to short/extend them, so they fit into the memory ...)
-	The upload in writtin in C, so can be fully run without gil in a multhithreaded way. 
+	The upload in writtin in C, so can be fully run without gil in a multhithreaded way.
 	This module is in now way a replacement for the python module and has as main function to get the waveform into the memory
 	"""
 	cdef cpp_uploader *keysight_uploader
@@ -72,7 +71,7 @@ cdef class keysight_upload_module():
 		cdef mapcpp[string, pair[string, int]].iterator it = waveform_cache.channel_to_AWG_map.begin()
 		cdef waveform_raw_upload_data_ptr channel_data
 		while(it != waveform_cache.channel_to_AWG_map.end()):
-			# make tuple with gate voltages for the channel and location of the AWG memeory where the waveforms are stored. 
+			# make tuple with gate voltages for the channel and location of the AWG memeory where the waveforms are stored.
 
 			channel_data = dereference(dereference(AWG_raw_upload_data.find(dereference(it).second.first)).second.find(dereference(it).second.second)).second
 
@@ -141,7 +140,7 @@ cdef class waveform_cache_container():
 		'''
 		if len(self.waveform_chache_python) == 0 :
 			raise ValueError("No waveforms presents in waveform chache container ...")
-		
+
 		# get first key of chache object (the pyton one)
 		idx = next(iter(self.waveform_chache_python))
 		return self[idx].npt
@@ -162,10 +161,10 @@ cdef class waveform_cache_container():
 		for chan in self.waveform_chache_python:
 			if int(self[chan].compensation_time*sample_rate +0.99) > compensation_npt:
 				compensation_npt = int(self[chan].compensation_time*sample_rate +0.99)
-			
+
 			wvf_npt = self[chan].npt
-		
-		
+
+
 		# make sure we have modulo 10 time
 		cdef int total_pt = compensation_npt + wvf_npt
 		cdef int mod = total_pt%10
@@ -255,7 +254,7 @@ cdef class waveform_upload_chache():
 		make a voltage compenstation pulse of time t
 		Args:
 			npt (double) : number of points allocated for the compenstation pulse
-			sample_rate (double) : rate at which the pulse is generated. 
+			sample_rate (double) : rate at which the pulse is generated.
 		'''
 		cdef double voltage = 0
 		if npt == 0 or self.compensation_time == 0:

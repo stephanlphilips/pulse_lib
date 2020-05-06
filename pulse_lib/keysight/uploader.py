@@ -160,7 +160,6 @@ class keysight_uploader():
 		1) get all the upload data
 		2) perform DC correction (if needed)
 		3) compile the HVI script for the next upload
-		4) perform DSP correction (if needed)
 		5a) convert data in an aprropriate upload format (c++)
 		5b) upload all data (c++)
 		6) write in the job object the resulting locations of sequences that have been uploaded.
@@ -177,7 +176,7 @@ class keysight_uploader():
 
 		for i in range(len(job.sequence)):
 
-			seg = job.sequence[i][0]
+			seg = job.sequence[i]
 
 			# TODO add precaler in as sample rate
 			for channel in self.channel_names:
@@ -228,9 +227,6 @@ class keysight_uploader():
 		if job.HVI is not None:
 			job.compile_HVI()
 
-		# 3) DSP correction --> moved to c++
-		# TODO later
-
 		duration = time.perf_counter() - start
 		logging.info(f'generated wavefroms in {duration*1000:6.3f} ms')
 
@@ -263,15 +259,14 @@ class upload_job(object):
 	def __init__(self, sequence, index, seq_id, n_rep, prescaler=0, neutralize=True, priority=0):
 		'''
 		Args:
-			sequence (list of list): list with list of the sequence
+			sequence (list of segment_container): list with segment_containers in sequence
 			index (tuple) : index that needs to be uploaded
-			seq_id (uuid) : if of the sequence
+			seq_id (uuid) : id of the sequence
 			n_rep (int) : number of repetitions of this sequence.
 			prescaler (int) : scale the upluading speeds (f_sampling = 1Gs/(5*prescaler))
 			neutralize (bool) : place a neutralizing segment at the end of the upload
 			priority (int) : priority of the job (the higher one will be excuted first)
 		'''
-		# TODO make custom function for this. This should just extend time, not reset it.
 		self.sequence = sequence
 		self.id = seq_id
 		self.index = index
@@ -280,15 +275,10 @@ class upload_job(object):
 		self.sample_rate = convert_prescaler_to_sample_rate(prescaler)
 		self.neutralize = neutralize
 		self.priority = priority
-		self.DSP = False
 		self.playback_time = 0 #total playtime of the waveform
 		self.upload_data = None
 		self.waveform_cache = None
 		self.HVI = None
-
-	def add_dsp_function(self, DSP):
-		self.DSP = True
-		self.DSP_func = DSP
 
 	def add_HVI(self, HVI, compile_function, start_function, **kwargs):
 		"""

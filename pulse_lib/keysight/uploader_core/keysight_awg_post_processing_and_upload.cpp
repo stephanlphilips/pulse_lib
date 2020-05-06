@@ -26,7 +26,7 @@ void cpp_uploader::add_awg_module(std::string AWG_name, int chassis, int slot){
 	error_handle = my_AWG_module->open(ProductName, chassis, slot, 1);
 	check_error(my_SD_module, &error_handle);
 	delete[] ProductName;
-	
+
 	AWG_modules[AWG_name] = my_AWG_module;
 	SD_modules[AWG_name] = my_SD_module;
 	mem_mgr[AWG_name] = new mem_ctrl();
@@ -36,7 +36,7 @@ void cpp_uploader::add_awg_module(std::string AWG_name, int chassis, int slot){
 
 
 void cpp_uploader::add_upload_job(std::map<std::string, std::map<int, waveform_raw_upload_data*>> *upload_data){
-	
+
 	// make first time estimation to determine if multithreading useful (overhead ~ 5ms) (times in ms)
 	double time_no_multi_upload = *upload_data->begin()->second.begin()->second->npt * 4*upload_data->size()/10e3;
 	double time_multi_upload = *upload_data->begin()->second.begin()->second->npt*4/10e3 + 5;
@@ -47,10 +47,9 @@ void cpp_uploader::add_upload_job(std::map<std::string, std::map<int, waveform_r
 		advance(AWG_iterator, i);
 		for (auto channel_iterator = AWG_iterator->second.begin(); channel_iterator != AWG_iterator->second.end(); ++channel_iterator){
 			rescale_concatenate_and_convert_to_16_bit_number(channel_iterator->second);
-			// TODO : add DSP function here.
 			load_data_on_awg(AWG_iterator->first, channel_iterator->second);
 			free_cache(channel_iterator->second);
-		}	
+		}
 	}
 }
 
@@ -60,7 +59,7 @@ void cpp_uploader::rescale_concatenate_and_convert_to_16_bit_number(waveform_raw
 	All voltages are also concatenated
 	*/
 	upload_data->upload_data = new short[*upload_data->npt];
-	
+
 	double *wvf_ptr;
 	double v_offset = 0;
 	double v_pp = fmax(fabs(upload_data->min_max_voltage->first),fabs(upload_data->min_max_voltage->second))*2;
@@ -88,7 +87,7 @@ void cpp_uploader::load_data_on_awg(std::string awg_name, waveform_raw_upload_da
 		throw std::invalid_argument("No segments available on the AWG/segment is too long ..");
 
 	error_handles[awg_name] = AWG_modules[awg_name]->waveformReLoad(0, *upload_data->npt, upload_data->upload_data, segment_location, 0);
-	
+
 	check_error(SD_modules[awg_name], &error_handles[awg_name]);
 
 
@@ -119,14 +118,14 @@ void cpp_uploader::resegment_memory(){
 	/*
 		apply the segment allocation on the AWG. As provided in the memctrl object.
 	*/
-	
+
 
 	#pragma omp parallel for
 	for (int i = 0; i < AWG_modules.size(); ++i){
 		std::map<std::string, SD_AIO*>::iterator my_AWG_module_iter = AWG_modules.begin();
 		advance(my_AWG_module_iter, i);
-		
-		// completely reinit the memory. 
+
+		// completely reinit the memory.
 		mem_ctrl * mem_ctrl_tmp = mem_mgr[my_AWG_module_iter->first];
 		delete mem_ctrl_tmp;
 		mem_mgr[my_AWG_module_iter->first] = new mem_ctrl();

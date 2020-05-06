@@ -302,7 +302,7 @@ class UploadAggregator:
 
         for i in range(len(job.sequence)):
 
-            seg = job.sequence[i][0]
+            seg = job.sequence[i]
 
             for channel_name, channel_info in self.channels.items():
                 start = time.perf_counter()
