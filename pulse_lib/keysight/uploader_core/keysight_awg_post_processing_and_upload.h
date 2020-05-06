@@ -18,7 +18,6 @@ struct waveform_raw_upload_data{
 	std::vector<double*> *wvf_data;
 	std::vector<int> *wvf_npt;
 	std::pair<double, double> *min_max_voltage;
-	std::vector<double*> *DSP_param;
 	short *upload_data;
 	int *npt;
 	std::vector<int> data_location_on_AWG;

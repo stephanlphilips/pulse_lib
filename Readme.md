@@ -40,13 +40,11 @@ https://pulse-lib.readthedocs.io
 
 # TODO
 TODO list:
-* Support for calibarion arguments? -- this should be engineered well.
+* Support for calibration arguments? -- this should be engineered well.
 * HVI2 integration
-* add DSP module (must also be C++)
 
 TODO bugs and small things to fix,
 * remove finish init
-* memory bug : memory is not released automatically after the sequence is done. This should be automated.This can lead to accumulating memory when doing playback and crash the system. Overhead reduced by fixing issue that led to copying things that could be rereferenced, but issue still needs attention. 
 * Keysight FPGA pulse correction not there? --> investigation needed. + correction for long time scale pulses
 New functionality (prioritized):
 * TODO : automate phase compensation of microwave pulses. (master clock already there for the HVI markers)

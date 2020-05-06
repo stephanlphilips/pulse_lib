@@ -39,7 +39,6 @@ class sequencer():
         self.correction_limits = correction_limits
 
         # arguments of post processing the might be needed during rendering.
-        self.DSP = None
         self.neutralize = True
         self.priority = -1
 
@@ -177,13 +176,6 @@ class sequencer():
 #           setattr(self, par_name, set_param)
 
 
-    def add_dsp(self, dps_corr):
-        '''
-        Add a class to be used for dsp corrections (note only IIR and FIR allowed for performace reasons)
-        Args:
-            dps_corr (dps_corr_class) : object that can be used to perform the DSP correction
-        '''
-        self.DSP = dps_corr
 
     def voltage_compenstation(self, compenstate):
         '''
@@ -226,8 +218,6 @@ class sequencer():
         '''
 
         upload_object = upload_job(self.sequence, index, self.id, self.n_rep ,self.prescaler, self.neutralize, self.priority)
-        if self.DSP is not None:
-            upload_object.add_dsp_function(self.DSP)
         if self.HVI is not None:
             upload_object.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables.item(tuple(index)).HVI_markers})
 
