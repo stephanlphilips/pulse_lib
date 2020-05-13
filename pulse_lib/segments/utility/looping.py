@@ -35,6 +35,8 @@ class loop_obj():
         else:
             if len(axis) != len(self.data.shape):
                 raise ValueError(f"Provided incorrect dimensions for the axis (axis:{axis} <> data:{self.data.shape})")
+            if sorted(axis, reverse=True) != axis:
+                raise ValueError(f"Axis must be defined in decending order, e.g. [1,0]")
             self.axis = axis
 
         if labels is None:
