@@ -107,13 +107,27 @@ class loop_obj():
 
     def __add__(self, other):
         cpy = copy.copy(self)
-        cpy.data += other
+        if isinstance(other, loop_obj):
+            if cpy.ndim == 1 and other.ndim == 1 and cpy.axis[0] != other.axis[0]:
+                if cpy.axis[0] < other.axis[0]:
+                    first, second = other, cpy
+                else:
+                    first, second = cpy, other
+
+                cpy.axis = [first.axis[0], second.axis[0]]
+                cpy.labels = (first.labels[0], second.labels[0])
+                cpy.units = (first.units[0], second.units[0])
+                cpy.setvals = (first.setvals[0], second.setvals[0])
+                cpy.data = np.array(first.data)[:,np.newaxis] + np.array(second.data)[np.newaxis,:]
+            else:
+                raise Exception('Adding loop objects not supported')
+            # TODO equal axis and multiple dimensions
+        else:
+            cpy.data += other
         return cpy
 
     def __radd__(self, other):
-        cpy = copy.copy(self)
-        cpy.data += other
-        return cpy
+        return self.__add__(other)
 
     def __mul__(self, other):
         cpy = copy.copy(self)
@@ -152,6 +166,9 @@ class loop_obj():
         if hasattr(self, 'data'):
             cpy.data= copy.copy(self.data)
         return cpy
+
+    def __repr__(self):
+        return f'axis:{self.axis}, labels:{self.labels}, units: {self.units}, setvals: {self.setvals}'
 
 
 class linspace(loop_obj):
