@@ -205,9 +205,10 @@ if __name__ == '__main__':
     print(lp.units)
     print(lp.setvals)
 
-    data = np.zeros([4,4])
+    data = np.arange(10,40,10)[:,np.newaxis] + np.arange(1,5)[np.newaxis,:]
     lp = loop_obj()
-    lp.add_data(data, axis=[0,1], labels = ("gate_name_1", "gate_name_2"), units = ('mV', 'mV'), setvals=([0,0,0,0],[1,2,3,4]))
+    lp.add_data(data, axis=[1,0], labels = ("gate_name_1", "gate_name_2"), units = ('mV', 'mV'), setvals=([10,20,30],[1,2,3,4]))
+
     print(lp.data)
     print(lp.axis)
     print(lp.labels)
