@@ -1,7 +1,7 @@
 
 import time
 import logging
-from pulse_lib.keysight.uploader_core.uploader import waveform_cache_container,waveform_upload_chache
+from pulse_lib.keysight.uploader_core.uploader import waveform_cache_container
 
 
 class keysight_uploader():
@@ -138,8 +138,9 @@ class keysight_uploader():
 
 
 	def release_memory(self, seq_id=None, index=None):
-		for job in self.jobs:
-			if job.id == seq_id and job.index == index:
+		for job in self.upload_ready_to_start:
+			if (seq_id is None
+				or (job.seq_id == seq_id and (index is None or job.index == index))):
 				self.upload_done.append(job)
 
 		self._release_memory_jobs()
