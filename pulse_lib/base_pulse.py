@@ -1,15 +1,12 @@
 import numpy as np
-import matplotlib.pyplot as plt 
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
 from pulse_lib.keysight.uploader import keysight_uploader
 from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
-from dataclasses import dataclass
 # from qcodes.intruments.parameter import Parameter
 import copy
 
-import uuid
 
 class pulselib:
     '''
@@ -28,7 +25,7 @@ class pulselib:
         if backend == "keysight":
             self.cpp_uploader = keysight_upload_module()
             # TODO
-            # self.uploader = ... 
+            # self.uploader = ...
         self.channel_delays = dict()
         self.channel_delays_computed = dict()
         self.channel_compenstation_limits = dict()
@@ -110,7 +107,7 @@ class pulselib:
         if channel in self.awg_channels:
             self.channel_delays[channel] = delay
         else:
-            raise ValueError("Channel delay error: Channel '{}' does not exist. Please provide valid input".format(i[0]))
+            raise ValueError("Channel delay error: Channel '{}' does not exist. Please provide valid input".format(channel))
 
         self.__process_channel_delays()
         return 0
@@ -127,7 +124,7 @@ class pulselib:
         if channel_name in self.awg_channels:
             self.channel_compenstation_limits[channel_name] = limit
         else:
-            raise ValueError("Channel voltage compenstation error: Channel '{}' does not exist. Please provide valid input".format(i[0]))
+            raise ValueError("Channel voltage compenstation error: Channel '{}' does not exist. Please provide valid input".format(channel_name))
 
     def finish_init(self):
         # function that finishes the initialisation
@@ -144,9 +141,7 @@ class pulselib:
 
     def mk_sequence(self,seq):
         '''
-        seq: list of list,
-            e.g. [ ['name segment 1' (str), number of times to play (int), prescale (int)] ]
-            prescale (default 0, see keysight manual) (not all awg's will support this).
+        seq: list of segment_container.
         '''
         seq_obj = sequencer(self.uploader, self.voltage_limits_correction)
         seq_obj.add_sequence(seq)
@@ -227,7 +222,7 @@ class pulselib:
 
 
 if __name__ == '__main__':
-    from pulse_lib.virtual_channel_constructors import IQ_channel_constructor, virtual_gates_constructor
+    from pulse_lib.virtual_channel_constructors import IQ_channel_constructor
 
     p = pulselib()
 

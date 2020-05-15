@@ -1,15 +1,5 @@
 
-import threading as th
-import numpy as np
-import time
-from pulse_lib.keysight.uploader_core.uploader import waveform_cache_container,waveform_upload_chache
-def mk_thread(function):
-    def wrapper(*args, **kwargs):
-        thread = th.Thread(target=function, args=args, kwargs=kwargs)
-        thread.start()
-        return thread
-    return wrapper
-
+from pulse_lib.keysight.uploader_core.uploader import waveform_cache_container
 
 
 class keysight_uploader():
@@ -18,7 +8,7 @@ class keysight_uploader():
 	"""
 	def __init__(self, AWGs, cpp_uploader,channel_names, channel_locations, channel_delays, channel_compenstation_limits, AWG_to_dac_ratio):
 		'''
-		Initialize the keysight uploader. 
+		Initialize the keysight uploader.
 		Args:
 			AWGs (dict<awg_name,QcodesIntrument>) : list with AWG's
 			cpp_uploader (keysight_upload_module) : class that performs normalisation and conversion of the wavorm to short + upload.
@@ -78,7 +68,7 @@ class keysight_uploader():
 		self.cpp_uploader.resegment_memory()
 
 		# set to single shot meaurements. This is the default option for HVI based code.
-		for channel, channel_loc in self.channel_map.items(): 
+		for channel, channel_loc in self.channel_map.items():
 			self.awg[channel_loc[0]].awg_queue_config(channel_loc[1], 0)
 
 	def play(self, seq_id, index, release = True):
@@ -91,7 +81,7 @@ class keysight_uploader():
 		"""
 
 		"""
-		steps : 
+		steps :
 		0) get upload data (min max voltages for all the channels, total time of the sequence, location where things are stored in the AWG memory.) and wait until the AWG is idle
 		1) set voltages for all the channels.
 		2) make queue for each channels (now assuming single waveform upload).
@@ -100,21 +90,21 @@ class keysight_uploader():
 		# 0)
 		job =  self.__get_upload_data(seq_id, index)
 		self.wait_until_AWG_idle()
-		
+
 		# 1 + 2)
 		# flush the queue's
 		for channel_name, data in job.upload_data.items():
 			"""
 			upload data <tuple>:
 				[0] <tuple <double>> : min output voltate, max output voltage
-				[1] <list <tuple <mem_loc<int>, n_rep<int>, precaler<int>> : upload locations of differnt segments 
+				[1] <list <tuple <mem_loc<int>, n_rep<int>, precaler<int>> : upload locations of differnt segments
 					(by definition backend now merges all segments in 1 since it should
 					not slow you down, but option is left open if this would change .. )
 			"""
 			awg_name, channel_number = self.channel_map[channel_name.decode('ascii')]
 			v_pp, v_off = convert_min_max_to_vpp_voff(*data[0])
-			
-			# This should happen in HVI			
+
+			# This should happen in HVI
 			# self.AWGs[awg_name].awg_stop(channel_number)
 
 			self.AWGs[awg_name].set_channel_amplitude(v_pp/1000/2,channel_number) #amp = vpp/2 (speciefied in V on module, so therefore factor 1000)
@@ -135,7 +125,7 @@ class keysight_uploader():
 			job.HVI.start()
 		else:
 			job.HVI_start_function(job.HVI, self.AWGs, self.channel_map, job.playback_time, job.n_rep, **job.HVI_kwargs)
-		
+
 		# determine if the current waveform needs to be reused.
 		if release == True:
 			self.release_memory()
@@ -159,7 +149,6 @@ class keysight_uploader():
 		1) get all the upload data
 		2) perform DC correction (if needed)
 		3) compile the HVI script for the next upload
-		4) perform DSP correction (if needed)
 		5a) convert data in an aprropriate upload format (c++)
 		5b) upload all data (c++)
 		6) write in the job object the resulting locations of sequences that have been uploaded.
@@ -175,14 +164,14 @@ class keysight_uploader():
 		# 		if self.kill_uploader_thread == True:
 		# 			break
 		# 		continue
-			
-			
+
+
 
 		# start = time.time()
 
 		# 1) get all the upload data -- construct object to hall the rendered data
 		waveform_cache = waveform_cache_container(self.channel_map, self.channel_compenstation_limits)
-		
+
 
 		pre_delay = 0
 		post_delay = 0
@@ -191,7 +180,7 @@ class keysight_uploader():
 
 		for i in range(len(job.sequence)):
 
-			seg = job.sequence[i][0]
+			seg = job.sequence[i]
 
 			# TODO add precaler in as sample rate
 			for channel in self.channel_names:
@@ -199,7 +188,7 @@ class keysight_uploader():
 					pre_delay = self.channel_delays[channel][0]
 				if i == len(job.sequence) -1:
 					post_delay = self.channel_delays[channel][1]
-				
+
 				wvf = seg.get_waveform(channel, job.index, pre_delay, post_delay, sample_rate)
 				integral = 0
 				if job.neutralize == True:
@@ -207,7 +196,7 @@ class keysight_uploader():
 
 				vmin = getattr(seg, channel).v_min(job.index, sample_rate)
 				vmax = getattr(seg, channel).v_max(job.index, sample_rate)
-				
+
 				if channel in self.AWG_to_dac_ratio.keys(): #start Luca modification
 					ratio = self.AWG_to_dac_ratio[channel]
 				else:
@@ -217,7 +206,7 @@ class keysight_uploader():
 
 				pre_delay = 0
 				post_delay = 0
-		
+
 		# 2) perform DC correction (if needed)
 		'''
 		Steps: [TODO : best way to include sample rate here? (by default now 1GS/s)]
@@ -234,13 +223,10 @@ class keysight_uploader():
 			job.playback_time = waveform_cache.npt*5*job.prescaler
 		else:
 			job.playback_time = waveform_cache.npt*5*job.prescaler*2
-		
-		# 3) 
+
+		# 3)
 		if job.HVI is not None:
 			job.compile_HVI()
-
-		# 3) DSP correction --> moved to c++
-		# TODO later
 
 		# 3 + 4a+b)
 		job.upload_data = self.cpp_uploader.add_upload_data(waveform_cache)
@@ -268,15 +254,14 @@ class upload_job(object):
 	def __init__(self, sequence, index, seq_id, n_rep, prescaler=0, neutralize=True, priority=0):
 		'''
 		Args:
-			sequence (list of list): list with list of the sequence
+			sequence (list of segment_container): list with segment_containers in sequence
 			index (tuple) : index that needs to be uploaded
-			seq_id (uuid) : if of the sequence
+			seq_id (uuid) : id of the sequence
 			n_rep (int) : number of repetitions of this sequence.
 			prescaler (int) : scale the upluading speeds (f_sampling = 1Gs/(5*prescaler))
 			neutralize (bool) : place a neutralizing segment at the end of the upload
 			priority (int) : priority of the job (the higher one will be excuted first)
 		'''
-		# TODO make custom function for this. This should just extend time, not reset it.
 		self.sequence = sequence
 		self.id = seq_id
 		self.index = index
@@ -285,15 +270,10 @@ class upload_job(object):
 		self.sample_rate = convert_prescaler_to_sample_rate(prescaler)
 		self.neutralize = neutralize
 		self.priority = priority
-		self.DSP = False
 		self.playback_time = 0 #total playtime of the waveform
 		self.upload_data = None
 		self.waveform_cache = None
 		self.HVI = None
-	
-	def add_dsp_function(self, DSP):
-		self.DSP = True
-		self.DSP_func = DSP
 
 	def add_HVI(self, HVI, compile_function, start_function, **kwargs):
 		"""
@@ -326,7 +306,7 @@ def convert_prescaler_to_sample_rate(prescalor):
 
 	Args:
 		prescalor (int) : prescalor set to the awg.
-	
+
 	Returns:
 		sample_rate (float) : effective sample rate the AWG will be running
 	"""
@@ -334,5 +314,5 @@ def convert_prescaler_to_sample_rate(prescalor):
 		return 1e9
 	if prescalor == 1:
 		return 200e6
-	else: 
+	else:
 		return 1e9/(2*5*prescalor)
