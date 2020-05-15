@@ -190,7 +190,7 @@ class IQ_channel_constructor(object):
         if IQ_comp not in ["I", "Q"]:
             raise ValueError("The compenent of the IQ signal is not specified properly (current given {}, expected \"I\" or \"Q\")".format(IQ_comp))
 
-        if image not in ["+", "Q"]:
+        if image not in ["+", "-"]:
             raise ValueError("The image of the IQ signal is not specified properly (current given {}, expected \"+\" or \"-\")".format(image))
 
         self.IQ_channel_map.append(IQ_channel_info(channel_name, IQ_comp, image))

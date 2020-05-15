@@ -216,6 +216,16 @@ class segment_base():
 
         return self.data_tmp
 
+    @loop_controller
+    def update_dim(self, loop_obj):
+        '''
+        update the dimesion of the segment by providing a loop object to it (decorator takes care of it).
+
+        Args:
+            loop_obj (loop_obj) : loop object with certain dimension to add.
+        '''
+        return self.data_tmp
+        
     def add_HVI_marker(self, marker_name, t_off = 0):
         '''
         Add a HVI marker that corresponds to the current time of the segment (defined by reset_time).

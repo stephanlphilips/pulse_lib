@@ -137,7 +137,7 @@ class loop_obj():
 
     def __truediv__(self, other):
         cpy = copy.copy(self)
-        cpy.data += self.data/other
+        cpy.data = self.data/other
         return cpy
 
     def __copy__(self):
