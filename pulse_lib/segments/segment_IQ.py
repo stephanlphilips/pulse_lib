@@ -90,9 +90,9 @@ class segment_IQ(segment_base):
             f1 (float) : stop frequency
             amp (float) : amplitude of the pulse.
         '''
-        PM = make_chirp(f0, f1)
+        PM = make_chirp(f0, f1, t0, t1)
         MW_data = IQ_data_single(t0 + self.data_tmp.start_time, t1 + self.data_tmp.start_time, amp, f0, 0, envelope_generator(None, PM))
-        
+
         self.data_tmp.add_MW_data(MW_data)
         return self.data_tmp
 

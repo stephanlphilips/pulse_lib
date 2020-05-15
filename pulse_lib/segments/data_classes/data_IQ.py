@@ -80,17 +80,17 @@ class envelope_generator():
 
         return envelope
 
-def make_chirp(f_start, f_stop):
+def make_chirp(f_start, f_stop, time0, time1):
     '''
-    Make a chirp. 
+    Make a chirp.
 
     Args:
         f_start (float) : start frequency (Hz)
         f_stop (stop frequency) : stop frequency (Hz)
     '''
 
-    f_diff = (f_stop - f_start)/2
-        
+    chirp_constant = (f_stop - f_start)/(time1*1e-9-time0*1e-9)/2
+
     def my_chirp(delta_t, sample_rate = 1):
         """
         Function that makes a phase envelope to make a chirped pulse
@@ -104,10 +104,9 @@ def make_chirp(f_start, f_stop):
         """
 
         n_points = int(delta_t*sample_rate + 0.9)
-        f = np.linspace(0, f_diff*2*np.pi, n_points)
         t = np.linspace(0, n_points/sample_rate*1e-9, n_points)
-
-        return f*t
+        out = [2*np.pi*chirp_constant*x*x for x in t]
+        return out
 
     return my_chirp
 
