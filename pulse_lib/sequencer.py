@@ -234,16 +234,22 @@ class sequencer():
         self.uploader.play(self.id, index, release)
 
 
-    def release_memory(self, index):
+    def release_memory(self, index=None):
         '''
         function to free up memory in the AWG manually. By default the sequencer class will do garbarge collection for you (e.g. delete waveforms after playback)
         Args:
-            index (tuple) : index if wich you wannt to upload. This index should fit into the shape of the sequence being played.
+            index (tuple) : index if wich you want to release. If none release memory for all indexes.
         '''
         self.uploader.release_memory(self.id, index)
 
+
     def set_sweep_index(self,dim,value):
         self._sweep_index[dim] = value
+
+
+    def __del__(self):
+        logging.debug(f'destructor seq: {self.id}')
+        self.release_memory()
 
 
 class index_param(Parameter):

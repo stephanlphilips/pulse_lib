@@ -52,6 +52,9 @@ class setpoint_mgr():
 
         return content
 
+    def __repr__(self):
+        return self.__str__()
+
     def __getitem__(self, axis):
         """
         get setpoint data for a certain axis

@@ -160,6 +160,21 @@ class pulselib:
             seq_obj.metadata[('pc%i'%i)] = md
         return seq_obj
 
+    def release_awg_memory(self, wait_idle=True):
+        """
+        Releases AWG waveform memory.
+        Also flushes AWG queues.
+        """
+        if wait_idle:
+            self.uploader.wait_until_AWG_idle()
+
+        self.uploader.release_memory()
+
+        for awg_name, channel_number in self.channels_to_physical_locations.values():
+            awg = self.awg_devices[awg_name]
+            awg.awg_flush(channel_number)
+
+
     def load_hardware(self, hardware):
         '''
         load virtual gates and attenuation via the harware class (used in qtt)

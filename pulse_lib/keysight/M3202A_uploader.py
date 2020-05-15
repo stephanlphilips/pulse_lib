@@ -4,7 +4,6 @@ import logging
 from dataclasses import dataclass, field
 from typing import List, Tuple
 
-from pulse_lib.keysight.uploader import convert_prescaler_to_sample_rate
 
 class AwgConfig:
     MAX_AMPLITUDE = 1500 # mV
@@ -40,6 +39,8 @@ class M3202A_Uploader:
 
 
     def create_job(self, sequence, index, seq_id, n_rep, prescaler=0, neutralize=True):
+        # remove any old job with same sequencer and index
+        self.release_memory(seq_id, index)
         return Job(self.jobs, sequence, index, seq_id, n_rep, prescaler, neutralize)
 
 
@@ -59,7 +60,6 @@ class M3202A_Uploader:
         4) start upload of all data
         5) store reference to uploaded waveform in job
         '''
-
         start = time.perf_counter()
 
         aggregator = UploadAggregator(self.channel_names, self.channel_attenuation, self.channel_compensation_limits, self.channel_delays)
@@ -89,7 +89,7 @@ class M3202A_Uploader:
             job (upload_job) :job, with locations of the sequences to be uploaded.
         """
         for job in self.jobs:
-            if job.id == seq_id and job.index == index and not job.released:
+            if job.seq_id == seq_id and job.index == index and not job.released:
                 return job
 
         raise ValueError("Sequence with id {}, index {} not placed for upload .. . Always make sure to first upload your segment and then do the playback.")
@@ -158,15 +158,16 @@ class M3202A_Uploader:
             job.release()
 
 
-    def release_memory(self, seq_id, index):
+    def release_memory(self, seq_id=None, index=None):
         """
         Release job memory for `seq_id` and `index`.
         Args:
-            seq_id (uuid) : id of the sequence
-            index (tuple) : index that has to be played
+            seq_id (uuid) : id of the sequence. if None release all
+            index (tuple) : index that has to be released; if None release all.
         """
         for job in self.jobs:
-            if job.id == seq_id and job.index == index:
+            if (seq_id is None
+                or (job.seq_id == seq_id and (index is None or job.index == index))):
                 job.release()
 
 
@@ -210,7 +211,7 @@ class Job(object):
         '''
         self.job_list = job_list
         self.sequence = sequence
-        self.id = seq_id
+        self.seq_id = seq_id
         self.index = index
         self.n_rep = n_rep
         self.prescaler = prescaler
@@ -223,6 +224,7 @@ class Job(object):
 
         self.channel_queues = dict()
         self.HVI = None
+        logging.debug(f'new job {seq_id}-{index}')
 
 
     def add_HVI(self, HVI, compile_function, start_function, **kwargs):
@@ -247,13 +249,26 @@ class Job(object):
 
 
     def release(self):
+        if self.released:
+            logging.warning(f'job {self.seq_id}-{self.index} already released')
+            return
+
+        logging.debug(f'release job {self.seq_id}-{self.index}')
         self.released = True
 
         for channel_name, queue in self.channel_queues.items():
             for queue_item in queue:
                 queue_item.wave_reference.release()
 
-        self.job_list.remove(self)
+        if self in self.job_list:
+            self.job_list.remove(self)
+
+
+    def __del__(self):
+        if not self.released:
+            logging.warn(f'Job {self.seq_id}-{self.index} was not released. '
+                         'Automatic release in destructor.')
+            self.release()
 
 
 @dataclass
@@ -461,3 +476,19 @@ class UploadAggregator:
             return -channel_info.integral / channel_info.dc_compensation_min
 
 
+def convert_prescaler_to_sample_rate(prescaler):
+    """
+    Keysight specific function.
+
+    Args:
+        prescaler (int) : prescaler set to the awg.
+
+    Returns:
+        sample_rate (float) : effective sample rate the AWG will be running
+    """
+    if prescaler == 0:
+        return 1e9
+    if prescaler == 1:
+        return 200e6
+    else:
+        return 1e9/(2*5*prescaler)
