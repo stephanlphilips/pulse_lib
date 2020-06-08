@@ -1,7 +1,7 @@
 """
 Generic data class where all others should be derived from.
 """
-
+import uuid
 from abc import ABC, abstractmethod
 import numpy as np
 from pulse_lib.segments.utility.segments_c_func import get_effective_point_number
@@ -18,6 +18,9 @@ class parent_data(ABC):
     software_marker_data = dict()
 
     waveform_cache = LruCache(100)
+
+    def __init__(self):
+        self.id = uuid.uuid4()
 
     @classmethod
     def set_waveform_cache_size(cls, size):
@@ -126,6 +129,7 @@ class parent_data(ABC):
         # If no render performed, generate full waveform, we will cut out the right size if needed
         cache_entry = self._get_cached_data_entry()
         if cache_entry.data is None or cache_entry.data['sample_rate'] != sample_rate:
+
             pre_delay_wvf = pre_delay
             if pre_delay > 0:
                 pre_delay_wvf = 0
@@ -146,7 +150,7 @@ class parent_data(ABC):
         return my_waveform
 
     def _get_cached_data_entry(self):
-        return self.waveform_cache[id(self)]
+        return self.waveform_cache[self.id]
 
 
     def get_resized_waveform(self, pre_delay, post_delay):

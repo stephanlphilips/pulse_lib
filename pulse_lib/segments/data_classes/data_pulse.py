@@ -17,6 +17,7 @@ class pulse_data(parent_data):
     class defining base (utility) operations for baseband and microwave pulses.
     """
     def __init__(self):
+        super().__init__()
         self.baseband_pulse_data = pulse_data_single_sequence()
         self.MW_pulse_data = list()
 
@@ -36,8 +37,8 @@ class pulse_data(parent_data):
         """
         self.MW_pulse_data.append(MW_data_object)
         if self.MW_end_time < MW_data_object.stop:
-            self.MW_end_time = MW_data_object.stop 
-    
+            self.MW_end_time = MW_data_object.stop
+
     @property
     def total_time(self):
         '''
@@ -70,7 +71,7 @@ class pulse_data(parent_data):
     def wait(self, time):
         """
         Wait after last point for x ns (note that this does not reset time)
-        
+
         Args:
             time (double) : time in ns to wait
         """
@@ -99,7 +100,7 @@ class pulse_data(parent_data):
 
         self.baseband_pulse_data.append(other.baseband_pulse_data)
         self.MW_pulse_data = new_MW_pulse_data
-    
+
     def repeat(self, n):
         """
         repeat n times
@@ -150,10 +151,10 @@ class pulse_data(parent_data):
         calculate the maximum voltage in the current segment_single.
 
         If sine waves included, will take the minimum of the total render. If not, it just takes the min of the pulse data.
-        ''' 
+        '''
         if len(self.MW_pulse_data) == 0:
             return self.baseband_pulse_data.v_min
-        else:   
+        else:
             return np.min(self.render(sample_rate=1e9))
 
     def integrate_waveform(self, pre_delay, post_delay, sample_rate):
@@ -197,7 +198,7 @@ class pulse_data(parent_data):
     def __slice_MW_data(self, start, end):
         '''
         slice MW_data
-        
+
         Args:
             Start (double) : enforced minimal starting time
             End (double) : enforced max time
@@ -220,17 +221,17 @@ class pulse_data(parent_data):
     def shift_MW_frequency(self, frequency):
         '''
         shift the frequency of a MW signal that is defined. This is needed for dealing with the upconverion of a IQ signal.
-        
+
         Args:
             frequency (float) : frequency you want to shift
         '''
         for IQ_data_single_object in self.MW_pulse_data:
             IQ_data_single_object.frequency -= frequency
- 
+
     def shift_MW_phases(self, phase_shift):
         '''
         Shift the phases of all the microwaves present in the MW data object
-        
+
         Args:
             phase_shift (float) : amount of phase to shift in rad.
         '''
@@ -269,7 +270,7 @@ class pulse_data(parent_data):
         insert_position += 1
 
         new_arr = np.zeros([src_array.shape[0]+dim_insert, src_array.shape[1]])
-        
+
         new_arr[:insert_position, :] = src_array[:insert_position, :]
         new_arr[insert_position:(insert_position + dim_insert), :] = to_insert
         new_arr[(insert_position + dim_insert):] = src_array[insert_position :]
@@ -333,7 +334,7 @@ class pulse_data(parent_data):
 
         else:
             raise TypeError("multiplication should be done with a number, type {} not supported".format(type(other)))
-        
+
         return new_data
 
 
@@ -345,7 +346,7 @@ class pulse_data(parent_data):
         # express in Gs/s
         sample_rate = sample_rate*1e-9
         sample_time_step = 1/sample_rate
-                
+
         t_tot = self.total_time
 
         # get number of points that need to be rendered
@@ -355,7 +356,7 @@ class pulse_data(parent_data):
 
         my_sequence = np.zeros([int(t_tot_pt + pre_delay_pt + post_delay_pt)])
         # start rendering pulse data
-        
+
         # TODO upgrade to new format -- put in the cython part for better performance..
         times, voltages = self.baseband_pulse_data.pulse_data
         baseband_pulse = np.empty([len(times), 2])
@@ -375,7 +376,7 @@ class pulse_data(parent_data):
                 else:
                     val = py_calc_value_point_in_between(baseband_pulse[i,:], baseband_pulse[i+1,:], t_tot)
                     my_sequence[t0_pt + pre_delay_pt: t_tot_pt + pre_delay_pt] = np.linspace(
-                        baseband_pulse[i,1], 
+                        baseband_pulse[i,1],
                         val, t_tot_pt-t0_pt)
             else:
                 if baseband_pulse[i,1] == baseband_pulse[i+1,1]:
@@ -392,13 +393,13 @@ class pulse_data(parent_data):
             # start stop time of MW pulse
 
             start_pulse = IQ_data_single_object.start
-            stop_pulse = IQ_data_single_object.stop        
+            stop_pulse = IQ_data_single_object.stop
 
             # max amp, freq and phase.
             amp  =  IQ_data_single_object.amplitude
             freq =  IQ_data_single_object.frequency
             phase = IQ_data_single_object.start_phase
-            
+
             # evelope data of the pulse
             if IQ_data_single_object.envelope is None:
                 IQ_data_single_object.envelope = envelope_generator()
@@ -407,7 +408,7 @@ class pulse_data(parent_data):
             phase_envelope = IQ_data_single_object.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate)
 
             #self.baseband_pulse_data[-1,0] convert to point numbers
-            n_pt = len(amp_envelope)  
+            n_pt = len(amp_envelope)
             start_pt = get_effective_point_number(start_pulse, sample_time_step) + pre_delay_pt
             stop_pt = start_pt + n_pt
 
@@ -416,7 +417,7 @@ class pulse_data(parent_data):
                     np.linspace(start_pt/sample_rate*1e-9, (start_pt+n_pt)/sample_rate*1e-9, n_pt)*freq*2*np.pi
                     + phase + phase_envelope )
 
-        return my_sequence  
+        return my_sequence
 
 if __name__ == '__main__':
     """
