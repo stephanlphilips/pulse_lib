@@ -380,6 +380,10 @@ class segment_container():
                 j = 0
                 for d in data:
                     if not (d['stop'] - d['start'] < 1 or (d['v_start'] == 0 and d['v_stop'] == 0)):
+                        if (not bb_d) and d['start'] > 0:
+                            d0 = {'start': 0, 'stop': d['start'], 'v_start': 0, 'v_stop': 0, 'index_start': 0, 'index_stop': 0}
+                            bb_d['p0'] = d0
+                            j += 1
                         bb_d[('p%i' %j)] = d
                         j += 1
                 if bb_d:
