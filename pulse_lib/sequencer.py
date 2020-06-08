@@ -164,13 +164,11 @@ class sequencer():
 
         self.params =[]
 
-#       for i in range(len(self.labels)):
-#           par_name = self.labels[i]
-#           set_param = index_param(par_name, self, dim = i)
-#           self.params.append(set_param)
-#           setattr(self, par_name, set_param)
-
-
+        for i in range(len(self.labels)):
+            par_name = self.labels[i]
+            set_param = index_param(par_name, self, dim = i)
+            self.params.append(set_param)
+            setattr(self, par_name, set_param)
 
     def voltage_compenstation(self, compenstate):
         '''
