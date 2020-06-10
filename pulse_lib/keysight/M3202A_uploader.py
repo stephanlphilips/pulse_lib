@@ -96,7 +96,7 @@ class M3202A_Uploader:
             if job.seq_id == seq_id and job.index == index and not job.released:
                 return job
 
-        raise ValueError("Sequence with id {}, index {} not placed for upload .. . Always make sure to first upload your segment and then do the playback.")
+        raise ValueError(f'Sequence with id {seq_id}, index {index} not placed for upload .. . Always make sure to first upload your segment and then do the playback.')
 
 
     def play(self, seq_id, index, release_job = True):
