@@ -17,7 +17,7 @@ class reference_marker_4_IQ:
 
 class segment_marker(segment_base):
     """docstring for segment_marker"""
-    def __init__(self, name, HVI_variable_data = None, marker_voltage = 2500):
+    def __init__(self, name, HVI_variable_data = None, marker_voltage = 1500):
         """s
         init marker object
         Args:

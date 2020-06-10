@@ -3,7 +3,7 @@ from qcodes import Parameter
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.utility.looping import loop_obj
-from pulse_lib.keysight.uploader import upload_job,convert_prescaler_to_sample_rate
+from pulse_lib.keysight.uploader import convert_prescaler_to_sample_rate
 from pulse_lib.segments.data_classes.data_HVI_variables import marker_HVI_variable
 from pulse_lib.segments.data_classes.data_generic import data_container, parent_data
 
@@ -11,6 +11,7 @@ from si_prefix import si_format
 
 import numpy as np
 import uuid
+import logging
 
 class sequencer():
     """
@@ -40,7 +41,6 @@ class sequencer():
 
         # arguments of post processing the might be needed during rendering.
         self.neutralize = True
-        self.priority = -1
 
         # HVI if needed..
         self.HVI = None
@@ -164,13 +164,11 @@ class sequencer():
 
         self.params =[]
 
-#       for i in range(len(self.labels)):
-#           par_name = self.labels[i]
-#           set_param = index_param(par_name, self, dim = i)
-#           self.params.append(set_param)
-#           setattr(self, par_name, set_param)
-
-
+        for i in range(len(self.labels)):
+            par_name = self.labels[i]
+            set_param = index_param(par_name, self, dim = i)
+            self.params.append(set_param)
+            setattr(self, par_name, set_param)
 
     def voltage_compenstation(self, compenstate):
         '''
@@ -212,11 +210,14 @@ class sequencer():
         (note that this is only possible if you AWG supports upload while doing playback)
         '''
 
-        upload_object = upload_job(self.sequence, index, self.id, self.n_rep ,self.prescaler, self.neutralize, self.priority)
-        if self.HVI is not None:
-            upload_object.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables.item(tuple(index)).HVI_markers})
+        upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep ,self.prescaler, self.neutralize)
 
-        self.uploader.add_upload_job(upload_object)
+        if self.HVI is not None:
+            upload_job.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables.item(tuple(index)).HVI_markers})
+
+        self.uploader.add_upload_job(upload_job)
+
+        return upload_job
 
 
     def play(self, index, release= True):
@@ -230,16 +231,23 @@ class sequencer():
         '''
         self.uploader.play(self.id, index, release)
 
-    def release_memory(self, index):
+
+    def release_memory(self, index=None):
         '''
         function to free up memory in the AWG manually. By default the sequencer class will do garbarge collection for you (e.g. delete waveforms after playback)
         Args:
-            index (tuple) : index if wich you wannt to upload. This index should fit into the shape of the sequence being played.
+            index (tuple) : index if wich you want to release. If none release memory for all indexes.
         '''
         self.uploader.release_memory(self.id, index)
 
+
     def set_sweep_index(self,dim,value):
         self._sweep_index[dim] = value
+
+
+    def __del__(self):
+        logging.debug(f'destructor seq: {self.id}')
+        self.release_memory()
 
 
 class index_param(Parameter):

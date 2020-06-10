@@ -1,4 +1,6 @@
 
+import time
+import logging
 from pulse_lib.keysight.uploader_core.uploader import waveform_cache_container
 
 
@@ -32,7 +34,9 @@ class keysight_uploader():
 		self.upload_queue = []
 		self.upload_ready_to_start = []
 		self.upload_done = []
-		self.kill_uploader_thread = False
+
+	def create_job(self, sequence, index, seq_id, n_rep, prescaler=0, neutralize=True):
+		return upload_job(sequence, index, seq_id, n_rep, prescaler, neutralize)
 
 	def add_upload_job(self, job):
 		'''
@@ -40,7 +44,6 @@ class keysight_uploader():
 		Args:
 			job (upload_job) : upload_job object that defines what needs to be uploaded and possible post processing of the waveforms (if needed)
 		'''
-		# self.upload_queue.append(job)
 		self.upload(job)
 
 	def __get_upload_data(self, seq_id, index):
@@ -126,20 +129,29 @@ class keysight_uploader():
 		else:
 			job.HVI_start_function(job.HVI, self.AWGs, self.channel_map, job.playback_time, job.n_rep, **job.HVI_kwargs)
 
-		# determine if the current waveform needs to be reused.
 		if release == True:
-			self.release_memory()
+			self._release_memory_jobs()
 			self.upload_done.append(job)
 		else:
+			# return job to queue for reuse of waveforms
 			self.upload_ready_to_start.append(job)
 
 
+	def release_memory(self, seq_id=None, index=None):
+		for job in self.upload_ready_to_start:
+			if (seq_id is None
+				or (job.seq_id == seq_id and (index is None or job.index == index))):
+				self.upload_done.append(job)
 
-	def release_memory(self):
+		self._release_memory_jobs()
+
+
+	def _release_memory_jobs(self):
 		# release the memory of all jobs that are uploaded. Be careful to do not run this when active playback is happening. Otherwise you risk of overwriting a waveform while playing.
 		for job in self.upload_done:
 			self.cpp_uploader.release_memory(job.waveform_cache)
 		self.upload_done = []
+
 
 	def upload(self, job):
 		'''
@@ -155,26 +167,11 @@ class keysight_uploader():
 
 		'''
 
-		# while self.upload == True:
-		# 	job = self.__get_new_job()
-
-		# 	if job is None:
-		# 		# wait 5 ms and continue
-		# 		time.sleep(0.005)
-		# 		if self.kill_uploader_thread == True:
-		# 			break
-		# 		continue
-
-
-
-		# start = time.time()
+		start = time.perf_counter()
+		logging.debug('uploading')
 
 		# 1) get all the upload data -- construct object to hall the rendered data
 		waveform_cache = waveform_cache_container(self.channel_map, self.channel_compenstation_limits)
-
-
-		pre_delay = 0
-		post_delay = 0
 
 		sample_rate = job.sample_rate
 
@@ -184,6 +181,9 @@ class keysight_uploader():
 
 			# TODO add precaler in as sample rate
 			for channel in self.channel_names:
+				pre_delay = 0
+				post_delay = 0
+
 				if i == 0:
 					pre_delay = self.channel_delays[channel][0]
 				if i == len(job.sequence) -1:
@@ -228,12 +228,18 @@ class keysight_uploader():
 		if job.HVI is not None:
 			job.compile_HVI()
 
+		duration = time.perf_counter() - start
+		logging.info(f'generated wavefroms in {duration*1000:6.3f} ms')
+
+		start = time.perf_counter()
 		# 3 + 4a+b)
 		job.upload_data = self.cpp_uploader.add_upload_data(waveform_cache)
 
 		# submit the current job as completed.
 		self.upload_ready_to_start.append(job)
 
+		duration = time.perf_counter() - start
+		logging.info(f'uploaded in {duration*1000:6.3f} ms')
 
 
 	def wait_until_AWG_idle(self):
