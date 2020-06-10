@@ -73,6 +73,10 @@ class M3202A_Uploader:
 
 
     def __upload_to_awg(self, channel_name, waveform):
+#        vmin = waveform.min()
+#        vmax = waveform.max()
+#        length = len(waveform)
+#        logging.debug(f'{channel_name}: V({vmin*1000:6.3f}, {vmax*1000:6.3f}) {length}')
         (awg_name, channel) = self.channel_map[channel_name]
         awg = self.AWGs[awg_name]
         wave_ref = awg.upload_waveform(waveform)
@@ -184,9 +188,8 @@ class M3202A_Uploader:
         awg_name, channel = next(iter(self.channel_map.values()))
         awg = self.AWGs[awg_name]
 
-        idle = 1 # 1 is False
-        while idle == 1:
-            idle = awg.awg_is_running(channel)
+        while awg.awg_is_running(channel):
+            time.sleep(0.001)
 
 
 @dataclass

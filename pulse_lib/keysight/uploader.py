@@ -250,9 +250,8 @@ class keysight_uploader():
 		awg_name, channel = next(iter(self.channel_map.values()))
 		awg = self.AWGs[awg_name]
 
-		idle = 1 # 1 is False
-		while idle == 1:
-			idle = awg.awg.AWGisRunning(channel)
+		while awg.awg.AWGisRunning(channel):
+			time.sleep(0.001)
 
 
 class upload_job(object):
