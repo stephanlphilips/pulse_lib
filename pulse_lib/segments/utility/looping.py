@@ -35,6 +35,8 @@ class loop_obj():
         else:
             if len(axis) != len(self.data.shape):
                 raise ValueError(f"Provided incorrect dimensions for the axis (axis:{axis} <> data:{self.data.shape})")
+            if sorted(axis, reverse=True) != axis:
+                raise ValueError(f"Axis must be defined in decending order, e.g. [1,0]")
             self.axis = axis
 
         if labels is None:
@@ -107,13 +109,27 @@ class loop_obj():
 
     def __add__(self, other):
         cpy = copy.copy(self)
-        cpy.data += other
+        if isinstance(other, loop_obj):
+            if cpy.ndim == 1 and other.ndim == 1 and cpy.axis[0] != other.axis[0]:
+                if cpy.axis[0] < other.axis[0]:
+                    first, second = other, cpy
+                else:
+                    first, second = cpy, other
+
+                cpy.axis = [first.axis[0], second.axis[0]]
+                cpy.labels = (first.labels[0], second.labels[0])
+                cpy.units = (first.units[0], second.units[0])
+                cpy.setvals = (first.setvals[0], second.setvals[0])
+                cpy.data = np.array(first.data)[:,np.newaxis] + np.array(second.data)[np.newaxis,:]
+            else:
+                raise Exception('Adding loop objects not supported')
+            # TODO equal axis and multiple dimensions
+        else:
+            cpy.data += other
         return cpy
 
     def __radd__(self, other):
-        cpy = copy.copy(self)
-        cpy.data += other
-        return cpy
+        return self.__add__(other)
 
     def __mul__(self, other):
         cpy = copy.copy(self)
@@ -153,6 +169,9 @@ class loop_obj():
             cpy.data= copy.copy(self.data)
         return cpy
 
+    def __repr__(self):
+        return f'axis:{self.axis}, labels:{self.labels}, units: {self.units}, setvals: {self.setvals}'
+
 
 class linspace(loop_obj):
     """docstring for linspace"""
@@ -164,7 +183,7 @@ class logspace(loop_obj):
     """docstring for logspace"""
     def __init__(self, start, stop, n_steps = 50, name = None, unit = None, axis = -1, setvals = None):
         super().__init__()
-        super().add_data(np.logspace(start, stop, n_steps), axis = axis, labels = name, units = unit, setvals= setvals)
+        super().add_data(np.logspace(start, stop, n_steps), axis = axis, labels = name, units = unit, setvals = setvals)
 
 class geomspace(loop_obj):
     """docstring for geomspace"""
@@ -186,9 +205,10 @@ if __name__ == '__main__':
     print(lp.units)
     print(lp.setvals)
 
-    data = np.zeros([4,4])
+    data = np.arange(10,40,10)[:,np.newaxis] + np.arange(1,5)[np.newaxis,:]
     lp = loop_obj()
-    lp.add_data(data, axis=[0,1], labels = ("gate_name_1", "gate_name_2"), units = ('mV', 'mV'), setvals=([0,0,0,0],[1,2,3,4]))
+    lp.add_data(data, axis=[1,0], labels = ("gate_name_1", "gate_name_2"), units = ('mV', 'mV'), setvals=([10,20,30],[1,2,3,4]))
+
     print(lp.data)
     print(lp.axis)
     print(lp.labels)
