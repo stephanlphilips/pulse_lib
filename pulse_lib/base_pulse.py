@@ -3,10 +3,7 @@ import copy
 
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
-from pulse_lib.keysight.uploader import keysight_uploader
-from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
-
 from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
 
 class pulselib:
@@ -128,14 +125,8 @@ class pulselib:
         # TODO rewrite, so this function is embedded in the other ones.
 
         if self._backend == "keysight":
-            self.cpp_uploader = keysight_upload_module()
-            for name, awg in self.awg_devices.items():
-                if awg is not None:
-                    self.cpp_uploader.add_awg_module(name, awg)
+            raise Exception('Old keysight driver is not supported anymore. Use M3202A driver and backend="M3202A"')
 
-            self.uploader = keysight_uploader(self.awg_devices, self.cpp_uploader, self.awg_channels,
-                                              self.channels_to_physical_locations , self.channel_delays_computed,
-                                              self.channel_compenstation_limits, self.AWG_to_dac_ratio)
         elif self._backend == "M3202A":
             self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels, self.channels_to_physical_locations,
                                             self.channel_delays_computed, self.channel_compenstation_limits, self.AWG_to_dac_ratio)
