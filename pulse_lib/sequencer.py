@@ -17,12 +17,11 @@ class sequencer():
     """
     Class to make sequences for segments.
     """
-    def __init__(self, upload_module, correction_limits):
+    def __init__(self, upload_module):
         '''
         make a new sequence object.
         Args:
             upload_module (uploader) : class of the upload module. Used to submit jobs
-            correction_limits (dict) : dict that contains the limits in voltage that can be used to correct the waveform amplitude at the end of a sequence.
         Returns:
             None
         '''
@@ -37,7 +36,6 @@ class sequencer():
         self._sweep_index = [0]
         self.sequence = list()
         self.uploader = upload_module
-        self.correction_limits = correction_limits
 
         # arguments of post processing the might be needed during rendering.
         self.neutralize = True
@@ -178,16 +176,17 @@ class sequencer():
         '''
         self.neutralize = compenstate
 
-    def add_HVI(self, HVI_ID ,HVI_to_load, compile_function, start_function, **kwargs):
+    def add_HVI(self, HVI_ID, HVI_to_load, compile_function, start_function, **kwargs):
         '''
         Add HVI code to the AWG.
         Args:
             HVI_ID (str) : string that gives an ID to the HVI that is currently loaded.
             HVI_to_load (function) : function that returns a HVI file.
-            compile_function (function) : function that compiles the HVI code. Default arguments that will be provided are (HVI, npt, n_rep) = (HVI object, number of points of the sequence, number of repetitions wanted)
+            compile_function (function) : Not used anymore.
             start_function (function) : function to be executed to start the HVI (this can also be None)
             kwargs : keyword arguments for the HVI script (see usage in the examples (e.g. when you want to provide your digitzer card))
         '''
+        # @@@ current HVI is stored in uploader.
         if self.uploader.current_HVI_ID != HVI_ID:
             self.HVI = HVI_to_load(self.uploader.AWGs, self.uploader.channel_map, **kwargs)
             self.uploader.current_HVI_ID = HVI_ID
@@ -195,7 +194,6 @@ class sequencer():
         else:
             self.HVI = self.uploader.current_HVI
 
-        self.HVI_compile_function = compile_function
         self.HVI_start_function = start_function
         self.HVI_kwargs = kwargs
 
@@ -213,7 +211,7 @@ class sequencer():
         upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep ,self.prescaler, self.neutralize)
 
         if self.HVI is not None:
-            upload_job.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables.item(tuple(index)).HVI_markers})
+            upload_job.add_HVI(self.HVI, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables.item(tuple(index)).HVI_markers})
 
         self.uploader.add_upload_job(upload_job)
 

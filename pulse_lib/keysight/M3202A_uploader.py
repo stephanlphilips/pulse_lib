@@ -150,11 +150,7 @@ class M3202A_Uploader:
                 trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
 
         # 3)
-        if job.HVI_start_function is None:
-            job.HVI.load()
-            job.HVI.start()
-        else:
-            job.HVI_start_function(job.HVI, self.AWGs, self.channel_map, job.playback_time, job.n_rep, **job.HVI_kwargs)
+        job.HVI_start_function(job.HVI, self.AWGs, self.channel_map, job.playback_time, job.n_rep, **job.HVI_kwargs)
 
 
         # determine if the current job needs to be reused.
@@ -230,7 +226,7 @@ class Job(object):
         logging.debug(f'new job {seq_id}-{index}')
 
 
-    def add_HVI(self, HVI, compile_function, start_function, **kwargs):
+    def add_HVI(self, HVI, start_function, **kwargs):
         """
         Introduce HVI functionality to the upload.
         args:

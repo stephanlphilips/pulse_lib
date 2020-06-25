@@ -28,14 +28,6 @@ class pulselib:
         self.channels_to_physical_locations = dict()
         self.AWG_to_dac_ratio = dict()
 
-        self.delays = []
-        self.convertion_matrix= []
-        self.voltage_limits_correction = dict()
-
-        self.segments_bin = None
-        self.sequencer = None
-        self.cpp_uploader = None
-
     @property
     def channels(self):
         channels = copy.copy(self.awg_channels)
@@ -51,8 +43,6 @@ class pulselib:
             awg (object) : qcodes object of the concerning AWG
         '''
         self.awg_devices[name] =awg
-        if awg is not None and self.cpp_uploader is not None:
-            self.cpp_uploader.add_awg_module(name, awg)
 
     def define_channel(self, channel_name, AWG_name, channel_number):
         '''
@@ -143,7 +133,7 @@ class pulselib:
         '''
         seq: list of segment_container.
         '''
-        seq_obj = sequencer(self.uploader, self.voltage_limits_correction)
+        seq_obj = sequencer(self.uploader)
         seq_obj.add_sequence(seq)
         seq_obj.metadata = {}
         for (i,pc) in enumerate(seq):
