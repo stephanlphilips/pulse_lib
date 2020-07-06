@@ -158,6 +158,13 @@ class pulselib:
         for (i,pc) in enumerate(seq):
             md = pc.get_metadata()
             seq_obj.metadata[('pc%i'%i)] = md
+        LOdict = {}
+        for iq in self.IQ_channels:
+            virt_maps = iq.virtual_channel_map
+            for vm in virt_maps:
+                name = vm.channel_name
+                LOdict[name] = iq.LO
+        seq_obj.metadata['LOs'] = LOdict
         return seq_obj
 
     def release_awg_memory(self, wait_idle=True):
