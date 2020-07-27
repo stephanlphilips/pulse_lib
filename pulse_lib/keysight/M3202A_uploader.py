@@ -96,6 +96,7 @@ class M3202A_Uploader:
             if job.seq_id == seq_id and job.index == index and not job.released:
                 return job
 
+        logging.error(f'Job not found for index {index} of seq {seq_id}')
         raise ValueError(f'Sequence with id {seq_id}, index {index} not placed for upload .. . Always make sure to first upload your segment and then do the playback.')
 
 
@@ -392,6 +393,7 @@ class UploadAggregator:
                 compensation_voltage = -channel_info.integral * sample_rate / compensation_npt
                 dc_compensation = np.full((compensation_npt,), compensation_voltage)
                 self.add_data(channel_info, dc_compensation, -channel_info.integral)
+                logging.debug(f'DC compensation {channel_name}: {compensation_voltage:6.1f} mV {compensation_npt} Sa')
             else :
                 no_compensation = np.zeros((compensation_npt,), np.float)
                 self.add_data(channel_info, no_compensation, 0)
