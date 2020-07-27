@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import logging
 
 class loop_obj():
     """object that initializes some standard fields that need to be there in a loop object.
@@ -36,7 +37,7 @@ class loop_obj():
             if len(axis) != len(self.data.shape):
                 raise ValueError(f"Provided incorrect dimensions for the axis (axis:{axis} <> data:{self.data.shape})")
             if sorted(axis, reverse=True) != axis:
-                raise ValueError(f"Axis must be defined in decending order, e.g. [1,0]")
+                raise ValueError("Axis must be defined in decending order, e.g. [1,0]")
             self.axis = axis
 
         if labels is None:
@@ -121,6 +122,11 @@ class loop_obj():
                 cpy.units = (first.units[0], second.units[0])
                 cpy.setvals = (first.setvals[0], second.setvals[0])
                 cpy.data = np.array(first.data)[:,np.newaxis] + np.array(second.data)[np.newaxis,:]
+            elif cpy.ndim == 1 and other.ndim == 1 and cpy.axis[0] == other.axis[0]:
+                logging.warning(f'adding same axis loopobjects, along: {cpy.axis[0]}')
+                if len(cpy.data) != len(other.data):
+                    raise Exception('Trying to add loops with incompatible sizes')
+                cpy.data += other.data
             else:
                 raise Exception('Adding loop objects not supported')
             # TODO equal axis and multiple dimensions
