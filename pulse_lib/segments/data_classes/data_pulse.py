@@ -10,7 +10,7 @@ from pulse_lib.segments.utility.segments_c_func import py_calc_value_point_in_be
 from pulse_lib.segments.data_classes.data_generic import parent_data, data_container
 from pulse_lib.segments.data_classes.data_IQ import envelope_generator
 from pulse_lib.segments.data_classes.data_pulse_core import pulse_data_single_sequence, base_pulse_element
-
+# import time as tm
 
 class pulse_data(parent_data):
     """
@@ -297,7 +297,6 @@ class pulse_data(parent_data):
             # is there a need for copy command  -- investigate is this would start effecting performance.
             new_data.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
             new_data.baseband_pulse_data += other.baseband_pulse_data
-
             MW_pulse_data = copy.copy(self.MW_pulse_data)
             MW_pulse_data.extend(other.MW_pulse_data)
             new_data.MW_pulse_data = MW_pulse_data
@@ -411,10 +410,10 @@ class pulse_data(parent_data):
             n_pt = len(amp_envelope)
             start_pt = get_effective_point_number(start_pulse, sample_time_step) + pre_delay_pt
             stop_pt = start_pt + n_pt
-
+            
             # add up the sin pulse.
             my_sequence[start_pt:stop_pt] += amp*amp_envelope*np.sin(
-                    np.linspace(start_pt/sample_rate*1e-9, (start_pt+n_pt)/sample_rate*1e-9, n_pt)*freq*2*np.pi
+                    np.linspace(start_pt/sample_rate*1e-9, (start_pt+n_pt-1)/sample_rate*1e-9, n_pt)*freq*2*np.pi
                     + phase + phase_envelope )
 
         return my_sequence
