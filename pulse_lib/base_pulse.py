@@ -3,8 +3,7 @@ import copy
 
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
-from pulse_lib.keysight.uploader import keysight_uploader
-from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
+
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 
 from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
@@ -15,7 +14,7 @@ class pulselib:
     The idea is that you first make individula segments,
     you can than later combine them into a sequence, this sequence will be uploaded
     '''
-    def __init__(self, backend = "keysight"):
+    def __init__(self, backend = "M3202A"):
         # awg channels and locations need to be input parameters.
         self.awg_devices = dict()
         self.awg_channels = []
@@ -128,6 +127,10 @@ class pulselib:
         # TODO rewrite, so this function is embedded in the other ones.
 
         if self._backend == "keysight":
+            
+            from pulse_lib.keysight.uploader import keysight_uploader
+            from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
+
             self.cpp_uploader = keysight_upload_module()
             for name, awg in self.awg_devices.items():
                 if awg is not None:
