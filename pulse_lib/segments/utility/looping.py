@@ -66,7 +66,7 @@ class loop_obj():
                         raise ValueError ('Multidimensional setpoints cannot be inferred from input.')
             else:
                 self.setvals = tuple()
-                if isinstance(setvals,list):
+                if isinstance(setvals,list) or isinstance(setvals, np.ndarray):
                     setvals = np.asarray(setvals)
 
                     if self.shape != setvals.shape:
@@ -76,7 +76,6 @@ class loop_obj():
                     setvals = list(setvals)
                     for setval_idx in range(len(setvals)):
                         setvals[setval_idx] = np.asarray(setvals[setval_idx])
-
                         if self.shape[setval_idx] != len(setvals[setval_idx]):
                             raise ValueError("setvals should have the same dimensions as the data dimensions.")
 
