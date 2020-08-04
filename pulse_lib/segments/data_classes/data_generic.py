@@ -135,7 +135,7 @@ class parent_data(ABC):
                 pre_delay_wvf = 0
             post_delay_wvf = post_delay
             if post_delay < 0:
-                pre_delay_wvf = 0
+                post_delay_wvf = 0
 
             cache_entry.data = {
                 'sample_rate' : sample_rate,

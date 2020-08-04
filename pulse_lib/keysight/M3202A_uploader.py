@@ -38,10 +38,10 @@ class M3202A_Uploader:
         self.jobs = []
 
 
-    def create_job(self, sequence, index, seq_id, n_rep, prescaler=0, neutralize=True):
+    def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True):
         # remove any old job with same sequencer and index
         self.release_memory(seq_id, index)
-        return Job(self.jobs, sequence, index, seq_id, n_rep, prescaler, neutralize)
+        return Job(self.jobs, sequence, index, seq_id, n_rep, sample_rate, neutralize)
 
 
     def add_upload_job(self, job):
@@ -201,7 +201,7 @@ class AwgQueueItem:
 
 class Job(object):
     """docstring for upload_job"""
-    def __init__(self, job_list, sequence, index, seq_id, n_rep, prescaler=0, neutralize=True, priority=0):
+    def __init__(self, job_list, sequence, index, seq_id, n_rep, sample_rate, neutralize=True, priority=0):
         '''
         Args:
             job_list (list): list with all jobs.
@@ -209,7 +209,7 @@ class Job(object):
             index (tuple) : index that needs to be uploaded
             seq_id (uuid) : if of the sequence
             n_rep (int) : number of repetitions of this sequence.
-            prescaler (int) : scale the upluading speeds (f_sampling = 1Gs/(5*prescaler))
+            sample_rate (float) : sample rate
             neutralize (bool) : place a neutralizing segment at the end of the upload
             priority (int) : priority of the job (the higher one will be excuted first)
         '''
@@ -218,8 +218,7 @@ class Job(object):
         self.seq_id = seq_id
         self.index = index
         self.n_rep = n_rep
-        self.prescaler = prescaler
-        self.sample_rate = convert_prescaler_to_sample_rate(prescaler)
+        self.default_sample_rate = sample_rate
         self.neutralize = neutralize
         self.priority = priority
         self.playback_time = 0 #total playtime of the waveform
@@ -316,12 +315,29 @@ class UploadAggregator:
         4) start upload of all data
         5) store reference to uploaded waveform in job
         '''
-
-        sample_rate = job.sample_rate
+        current_sample_rate = None
+        job.playback_time = 0
 
         for i in range(len(job.sequence)):
 
+            add_pre_delay = i == 0
+            add_post_delay = i == len(job.sequence) -1
+            # add post delay when there is a sample rate change
+            if i < len(job.sequence) - 1 and job.sequence[i+1].sample_rate != job.sequence[i].sample_rate:
+                add_post_delay = True
+
             seg = job.sequence[i]
+
+            sample_rate = seg.sample_rate if seg.sample_rate is not None else job.default_sample_rate
+            if current_sample_rate is not None and current_sample_rate != sample_rate:
+                self.align_data(sample_rate, keep_voltage=True)
+                self.upload_to_awg(job, current_sample_rate, awg_upload_func)
+                self.reset_data(reset_integral=False)
+                job.playback_time += self.npt / current_sample_rate * 1e9
+                add_pre_delay = True
+
+            current_sample_rate = sample_rate
+
 
             for channel_name, channel_info in self.channels.items():
                 start = time.perf_counter()
@@ -329,9 +345,9 @@ class UploadAggregator:
                 pre_delay = 0
                 post_delay = 0
 
-                if i == 0:
+                if add_pre_delay:
                     pre_delay = channel_info.channel_delays[0]
-                if i == len(job.sequence) -1:
+                if add_post_delay:
                     post_delay = channel_info.channel_delays[1]
 
                 wvf = seg.get_waveform(channel_name, job.index, pre_delay, post_delay, sample_rate)
@@ -344,31 +360,32 @@ class UploadAggregator:
                 duration = time.perf_counter() - start
                 logging.debug(f'added {i}:{channel_name} {duration*1000:6.3f} ms {len(wvf)} Sa, integral: {integral}')
 
-
         if job.neutralize:
             self.add_dc_compensation(sample_rate)
 
         self.align_data(sample_rate)
         self.append_zeros()
 
-        self.add_upload_data(job, awg_upload_func)
+        self.upload_to_awg(job, current_sample_rate, awg_upload_func)
 
-        job.playback_time = self.npt / sample_rate * 1e9
+        job.playback_time += self.npt / current_sample_rate * 1e9
 
         self.reset_data()
 
 
-    def add_upload_data(self, job, awg_upload_func):
+    def upload_to_awg(self, job, sample_rate, awg_upload_func):
 
         for channel_name, channel_info in self.channels.items():
 
             waveform = self.get_upload_data(channel_info)
 
             wave_ref = awg_upload_func(channel_name, waveform)
-            job.add_waveform(channel_name, wave_ref, job.prescaler)
+            prescaler = convert_sample_rate_to_prescaler(sample_rate)
+            job.add_waveform(channel_name, wave_ref, prescaler)
 
 
     def reset_data(self, reset_integral=True):
+        self.npt = 0
         for channel_info in self.channels.values():
             channel_info.data = []
             channel_info.npt = 0
@@ -421,20 +438,15 @@ class UploadAggregator:
 
 
     def append_zeros(self):
+        ''' Adds extra zeros to make sure you end up with 0V when done.'''
         zero_padding = np.zeros(AwgConfig.ALIGNMENT, dtype=np.float)
         for channel_info in self.channels.values():
             self.add_data(channel_info, zero_padding, 0)
 
 
-    def get_upload_data(self, channel_info, append_zeros=True):
+    def get_upload_data(self, channel_info):
 
-        if append_zeros:
-            # add extra zeros to make sure you end up with 0V when done.
-            zero_padding = np.zeros(AwgConfig.ALIGNMENT, dtype=np.float)
-            data = channel_info.data + [zero_padding]
-        else:
-            data = channel_info.data
-
+        data = channel_info.data
         # concat all
         # divide by attenuation
         # divide by AwgConfig.AWG_AMPLITUDE
@@ -479,6 +491,33 @@ class UploadAggregator:
             return -channel_info.integral / channel_info.dc_compensation_max
         else:
             return -channel_info.integral / channel_info.dc_compensation_min
+
+
+def convert_sample_rate_to_prescaler(sample_rate):
+    """
+    Keysight specific function.
+
+    Args:
+        sample_rate (float) : sample rate
+    Returns:
+        prescaler (int) : prescaler set to the awg.
+    """
+    if sample_rate > 200e6:
+        prescaler = 0
+    elif sample_rate > 50e6:
+        prescaler = 1
+    else:
+        prescaler = int(1e9/(5*sample_rate*2))
+
+    return prescaler
+
+
+def get_effective_sample_rate(sample_rate):
+    """
+    Returns the sample rate that will be used by the Keysight AWG.
+    This is the a rate >= requested sample rate.
+    """
+    return convert_prescaler_to_sample_rate(convert_sample_rate_to_prescaler(sample_rate))
 
 
 def convert_prescaler_to_sample_rate(prescaler):

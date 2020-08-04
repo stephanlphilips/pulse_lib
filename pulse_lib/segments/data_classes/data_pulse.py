@@ -4,7 +4,6 @@ data class to make pulses.
 import numpy as np
 import copy
 
-
 import pulse_lib.segments.utility.segments_c_func as seg_func
 from pulse_lib.segments.utility.segments_c_func import py_calc_value_point_in_between, get_effective_point_number
 from pulse_lib.segments.data_classes.data_generic import parent_data, data_container
@@ -410,13 +409,14 @@ class pulse_data(parent_data):
             n_pt = len(amp_envelope)
             start_pt = get_effective_point_number(start_pulse, sample_time_step) + pre_delay_pt
             stop_pt = start_pt + n_pt
-            
+
             # add up the sin pulse.
             my_sequence[start_pt:stop_pt] += amp*amp_envelope*np.sin(
                     np.linspace(start_pt/sample_rate*1e-9, (start_pt+n_pt-1)/sample_rate*1e-9, n_pt)*freq*2*np.pi
                     + phase + phase_envelope )
 
-        return my_sequence
+        # remove last value. It is always 0. It is only needed in the loop on the baseband pulses.
+        return my_sequence[:-1]
 
 if __name__ == '__main__':
     """

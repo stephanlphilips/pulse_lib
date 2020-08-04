@@ -28,7 +28,8 @@ class segment_container():
     Class returns vmin/vmax data to awg object
     Class returns upload data as a numpy<double> array to awg object.
     '''
-    def __init__(self, channel_names, markers = [], virtual_gates_objs = [], IQ_channels_objs = []):
+    def __init__(self, channel_names, markers=[], virtual_gates_objs=[], IQ_channels_objs=[],
+                 name=None, sample_rate=None):
         """
         initialize a container for segments.
         Args:
@@ -36,6 +37,8 @@ class segment_container():
             markers (list<str>) : declaration which of these channels are markers
             virtual_gates_objs (list<virtual_gates_constructor>) : list of object that define virtual gates
             IQ_channels_objs (list<IQ_channel_constructor>) : list of objects that define virtual IQ channels.
+            Name (str): Optional name of segment container
+            sample_rate (float): Optional sample rate of segment container. This sample rate overrules the default set on the sequence.
         """
         # physical + virtual channels
         self.channels = []
@@ -46,6 +49,8 @@ class segment_container():
 
         self._virtual_gates_objs = virtual_gates_objs
         self._IQ_channel_objs = IQ_channels_objs
+        self.name = name
+        self.sample_rate = sample_rate
 
         for name in channel_names:
             self._Vmin_max_data[name] = {"v_min" : None, "v_max" : None}
@@ -433,7 +438,7 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
 
             for j in range(virtual_gates.size):
                 if virtual_gates_values[j] != 0:
-                    virutal_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j], 
+                    virutal_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j],
                         virtual_gates_values[j], segment_container_obj)
                     real_channel.add_reference_channel(virutal_channel_reference_info)
 

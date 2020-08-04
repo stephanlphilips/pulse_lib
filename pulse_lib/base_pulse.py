@@ -127,7 +127,7 @@ class pulselib:
         # TODO rewrite, so this function is embedded in the other ones.
 
         if self._backend == "keysight":
-            
+
             from pulse_lib.keysight.uploader import keysight_uploader
             from pulse_lib.keysight.uploader_core.uploader import keysight_upload_module
 
@@ -143,13 +143,14 @@ class pulselib:
             self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels, self.channels_to_physical_locations,
                                             self.channel_delays_computed, self.channel_compenstation_limits, self.AWG_to_dac_ratio)
 
-    def mk_segment(self):
+    def mk_segment(self, name=None, sample_rate=None):
         '''
         generate a new segment.
         Returns:
             segment (segment_container) : returns a container that contains all the previously defined gates.
         '''
-        return segment_container(self.awg_channels, self.awg_markers, self.virtual_channels, self.IQ_channels)
+        return segment_container(self.awg_channels, self.awg_markers, self.virtual_channels, self.IQ_channels,
+                                 name=name, sample_rate=sample_rate)
 
     def mk_sequence(self,seq):
         '''

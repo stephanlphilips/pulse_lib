@@ -1,9 +1,9 @@
-import pulse_lib.segments.segment_container
 from qcodes import Parameter
+from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.utility.looping import loop_obj
-from pulse_lib.keysight.M3202A_uploader import convert_prescaler_to_sample_rate
+from pulse_lib.keysight.M3202A_uploader import get_effective_sample_rate
 from pulse_lib.segments.data_classes.data_HVI_variables import marker_HVI_variable
 from pulse_lib.segments.data_classes.data_generic import data_container, parent_data
 
@@ -49,7 +49,6 @@ class sequencer():
         self.HVI_kwargs = None
 
         self.n_rep = 1000
-        self.prescaler = 0
         self._sample_rate = 1e9
         self._HVI_variables = None
 
@@ -102,20 +101,13 @@ class sequencer():
         Rate at which to set the AWG. Note that not all rates are supported and a rate as close to the one you enter will be put.
 
         Args:
-            rate (float) : target sample rate for the AWG (unit : S/s).
+            rate (float) : target sample rate for the AWG (unit : Sa/s).
         """
-        if rate > 200e6:
-            prescaler = 0
-        elif rate > 50e6:
-            prescaler = 1
-        else:
-            prescaler = 1e9/(5*rate*2)
+        self._sample_rate = get_effective_sample_rate(rate)
 
-        self.prescaler = int(prescaler)
-        self._sample_rate = convert_prescaler_to_sample_rate(prescaler)
-
-        print("Info : effective sampling rate is set to {}S/s".format(si_format(self._sample_rate, precision=1)))
-
+        msg = f"effective sampling rate is set to {si_format(self._sample_rate, precision=1)}Sa/s"
+        logging.info(msg)
+        print("Info : " + msg)
 
     def add_sequence(self, sequence):
         '''
@@ -125,12 +117,20 @@ class sequencer():
         '''
         # check input
         for entry in sequence:
-            if isinstance(entry, pulse_lib.segments.segment_container.segment_container):
+            if isinstance(entry, segment_container):
                 self.sequence.append(entry)
             else:
-                raise ValueError('The provided element in the sequence seems to be of the wrong data type. {} provided, segment_container expected'.format(type(entry)))
+                raise ValueError('The provided element in the sequence seems to be of the wrong data type.'
+                                 f'{type(entry)} provided, segment_container expected')
 
-        # update dimensionality of all sequence objects
+        for seg_container in self.sequence:
+            if seg_container.sample_rate is not None:
+                effective_rate = get_effective_sample_rate(seg_container.sample_rate)
+                msg = f"effective sampling rate for {seg_container.name} is set to {si_format(effective_rate, precision=1)}Sa/s"
+                logging.info(msg)
+                print("Info : " + msg)
+
+            # update dimensionality of all sequence objects
         for seg_container in self.sequence:
             seg_container.enter_rendering_mode()
             self._shape = find_common_dimension(seg_container.shape, self._shape)
@@ -210,10 +210,11 @@ class sequencer():
         (note that this is only possible if you AWG supports upload while doing playback)
         '''
 
-        upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep ,self.prescaler, self.neutralize)
+        upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep, self._sample_rate, self.neutralize)
 
         if self.HVI is not None:
-            upload_job.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables.item(tuple(index)).HVI_markers})
+            upload_job.add_HVI(self.HVI, self.HVI_compile_function, self.HVI_start_function,
+                               **{**self.HVI_kwargs, **self._HVI_variables.item(tuple(index)).HVI_markers})
 
         self.uploader.add_upload_job(upload_job)
 
@@ -262,7 +263,6 @@ class index_param(Parameter):
 
 
 if __name__ == '__main__':
-    from pulse_lib.segments.segment_container import segment_container
     import pulse_lib.segments.utility.looping as lp
 
     a = segment_container(["a", "b"])
