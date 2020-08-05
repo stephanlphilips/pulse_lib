@@ -3,7 +3,7 @@ from qcodes import Parameter
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.utility.looping import loop_obj
-from pulse_lib.keysight.uploader import convert_prescaler_to_sample_rate
+from pulse_lib.keysight.M3202A_uploader import convert_prescaler_to_sample_rate
 from pulse_lib.segments.data_classes.data_HVI_variables import marker_HVI_variable
 from pulse_lib.segments.data_classes.data_generic import data_container, parent_data
 

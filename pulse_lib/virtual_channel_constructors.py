@@ -2,7 +2,7 @@ import warnings
 import numpy as np
 
 from dataclasses import dataclass
-from pulse_lib.segments.segment_pulse import segment_pulse
+
 from qcodes.instrument.parameter import Parameter
 
 class virtual_gates_constructor(object):
@@ -122,8 +122,13 @@ class virtual_pulse_channel_info:
     info that is needed to link a real channel to a virtual channel
     """
     name: str
-    segment: segment_pulse
     multiplication_factor: float
+    seg_container: any
+
+    @property
+    def segment(self):
+        return getattr(self.seg_container, self.name)
+    
 
 @dataclass
 class IQ_channel_info:

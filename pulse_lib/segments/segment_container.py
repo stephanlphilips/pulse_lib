@@ -18,6 +18,7 @@ import numpy as np
 import datetime
 import copy
 
+
 class segment_container():
     '''
     Class containing all the single segments for for a series of channels.
@@ -432,8 +433,8 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
 
             for j in range(virtual_gates.size):
                 if virtual_gates_values[j] != 0:
-                    virutal_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j],
-                        getattr(segment_container_obj, virtual_gates.virtual_gate_names[j]), virtual_gates_values[j])
+                    virutal_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j], 
+                        virtual_gates_values[j], segment_container_obj)
                     real_channel.add_reference_channel(virutal_channel_reference_info)
 
 
