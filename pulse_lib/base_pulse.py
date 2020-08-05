@@ -210,46 +210,20 @@ class pulselib:
         '''
         self.channel_delays_computed = dict()
 
-        for channel in self.channel_delays:
-            self.channel_delays_computed[channel] = (self.__get_pre_delay(channel), self.__get_post_delay(channel))
-
-
-    def __calculate_total_channel_delay(self):
-        '''
-        function for calculating how many ns time there is a delay in between the channels.
-        Also support for negative delays...
-
-        returns:
-            tot_delay (the total delay)
-            max_delay (hight amount of the delay)
-        '''
-
         delays =  np.array( list(self.channel_delays.values()))
-        tot_delay = np.max(delays) - np.min(delays)
+        max_delay = np.max(delays)
+        min_delay = np.min(delays)
 
-        return tot_delay, np.max(delays)
+        for channel in self.channel_delays:
+            delay = self.channel_delays[channel]
 
-    def __get_pre_delay(self, channel):
-        '''
-        get the of ns that a channel needs to be pushed forward/backward.
-        returns
-            pre-delay : number of points that need to be pushed in from of the segment
-        '''
-        tot_delay, max_delay = self.__calculate_total_channel_delay()
-        max_pre_delay = tot_delay - max_delay
-        delay = self.channel_delays[channel]
-        return -(delay + max_pre_delay)
+            # note: pre_delay is passed as a negative value
+            pre_delay = -(delay - min_delay)
+            post_delay = max_delay - delay
 
-    def __get_post_delay(self, channel):
-        '''
-        get the of ns that a channel needs to be pushed forward/backward.
-        returns
-            post-delay: number of points that need to be pushed after the segment
-        '''
-        tot_delay, max_delay = self.__calculate_total_channel_delay()
-        delay = self.channel_delays[channel]
+            self.channel_delays_computed[channel] = (pre_delay, post_delay)
+            print(f'new {channel}: {self.channel_delays_computed[channel]}')
 
-        return -delay + max_delay
 
     def _check_uniqueness_of_channel_name(self, channel_name):
         if channel_name in self.awg_channels:
