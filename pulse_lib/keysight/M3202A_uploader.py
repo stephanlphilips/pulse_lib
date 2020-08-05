@@ -370,8 +370,6 @@ class UploadAggregator:
                     pre_delay_pt = get_effective_point_number(-pre_delay, 1e9/sample_rate)
                     tot_delay_pt = get_effective_point_number(tot_delay, 1e9/sample_rate)
                     post_delay_pt = tot_delay_pt - pre_delay_pt
-                    post_delay_pt2 = get_effective_point_number(post_delay, 1e9/sample_rate)
-                    logging.info(f'delay {(pre_delay_pt, post_delay_pt, post_delay_pt2, tot_delay_pt)}')
                     v = wvf[-1] if len(wvf) > 0 else 0
                     post_delay_wvf = v*np.ones(post_delay_pt)
                     self.add_data(channel_info, post_delay_wvf, v*post_delay_pt*1e-9)
