@@ -74,6 +74,7 @@ class pulselib:
         self.channel_delays_computed[channel_name] = (0,0)
         self.channel_compenstation_limits[channel_name] = (0,0)
         self.channels_to_physical_locations[channel_name] = (AWG_name, channel_number)
+        self.__process_channel_delays()
 
     def define_marker(self, marker_name, AWG_name, channel_number):
         '''
@@ -85,6 +86,7 @@ class pulselib:
         '''
         self.awg_markers.append(marker_name)
         self.define_channel(marker_name, AWG_name, channel_number)
+        self.__process_channel_delays()
 
     def add_channel_delay(self, channel, delay):
         '''
@@ -222,7 +224,6 @@ class pulselib:
             post_delay = max_delay - delay
 
             self.channel_delays_computed[channel] = (pre_delay, post_delay)
-            print(f'new {channel}: {self.channel_delays_computed[channel]}')
 
 
     def _check_uniqueness_of_channel_name(self, channel_name):
