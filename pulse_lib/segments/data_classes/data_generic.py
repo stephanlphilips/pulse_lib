@@ -74,12 +74,10 @@ class parent_data(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def integrate_waveform(self, pre_delay, post_delay, sample_rate):
+    def integrate_waveform(self, sample_rate):
         '''
         takes a full integral of the currently scheduled waveform.
         Args:
-            start_time (double) : from which points the rendering needs to start
-            stop_time (double) : to which point the rendering needs to go (default (-1), to entire segment)
             sample_rate (double) : rate at which the AWG will be run
         Returns:
             integrate (double) : the integrated value of the waveform (unit is mV/sec).
@@ -99,7 +97,7 @@ class parent_data(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def _render(self, sample_rate, pre_delay = 0, post_delay = 0):
+    def _render(self, sample_rate):
         '''
         make a full rendering of the waveform at a predetermined sample rate. This should be defined in the child of this class.
         '''
@@ -115,7 +113,7 @@ class parent_data(ABC):
         '''
         self.software_marker_data[marker_name] = time
 
-    def render(self, pre_delay = 0, post_delay = 0, sample_rate=1e9):
+    def render(self, sample_rate=1e9):
         '''
         renders pulse
         Args:
@@ -129,80 +127,19 @@ class parent_data(ABC):
         # If no render performed, generate full waveform, we will cut out the right size if needed
         cache_entry = self._get_cached_data_entry()
         if cache_entry.data is None or cache_entry.data['sample_rate'] != sample_rate:
-
-            pre_delay_wvf = pre_delay
-            if pre_delay > 0:
-                pre_delay_wvf = 0
-            post_delay_wvf = post_delay
-            if post_delay < 0:
-                post_delay_wvf = 0
-
+            waveform = self._render(sample_rate)
             cache_entry.data = {
                 'sample_rate' : sample_rate,
-                'waveform' : self._render(sample_rate, pre_delay_wvf, post_delay_wvf),
-                'pre_delay': pre_delay,
-                'post_delay' : post_delay
+                'waveform' : waveform,
             }
+        else:
+            waveform = cache_entry.data['waveform']
 
-        # get the waveform
-        my_waveform = self.get_resized_waveform(pre_delay, post_delay)
-
-        return my_waveform
+        return waveform
 
     def _get_cached_data_entry(self):
         return self.waveform_cache[self.id]
 
-
-    def get_resized_waveform(self, pre_delay, post_delay):
-        '''
-        extend/shrink an existing waveform
-        Args:
-            pre_delay (double) : ns to add before
-            post_delay (double) : ns to add after the waveform
-        Returns:
-            waveform (np.ndarray[ndim=1, dtype=double])
-        '''
-        cached_data = self._get_cached_data_entry().data
-
-        sample_rate = cached_data['sample_rate']*1e-9
-        sample_time_step = 1/sample_rate
-
-        pre_delay_pt = get_effective_point_number(pre_delay, sample_time_step)
-        post_delay_pt = get_effective_point_number(post_delay, sample_time_step)
-
-        wvf_pre_delay_pt = get_effective_point_number(cached_data['pre_delay'], sample_time_step)
-        wvf_post_delay_pt = get_effective_point_number(cached_data['post_delay'], sample_time_step)
-
-        # points to add/remove from existing waveform
-        n_pt_before = - pre_delay_pt + wvf_pre_delay_pt
-        n_pt_after = post_delay_pt - wvf_post_delay_pt
-
-        # if cutting is possible (prefered since no copying is involved)
-        cached_waveform = cached_data['waveform']
-        if n_pt_before <= 0 and n_pt_after <= 0:
-            if n_pt_after == 0:
-                return cached_waveform[-n_pt_before:]
-            else:
-                return cached_waveform[-n_pt_before: n_pt_after]
-        else:
-            n_pt = len(cached_waveform) + n_pt_after + n_pt_before
-            new_waveform =  np.zeros((n_pt, ))
-
-            if n_pt_before > 0:
-                new_waveform[0:n_pt_before] = self.baseband_pulse_data[0,1]
-                if n_pt_after < 0:
-                    new_waveform[n_pt_before:] = cached_waveform[:n_pt_after]
-                elif n_pt_after == 0:
-                    new_waveform[n_pt_before:] = cached_waveform
-                else:
-                    new_waveform[n_pt_before:-n_pt_after] = cached_waveform
-            else:
-                new_waveform[:-n_pt_after] = cached_waveform[-n_pt_before:]
-
-            if n_pt_after > 0:
-                new_waveform[-n_pt_after:] =  self.baseband_pulse_data[-1,1]
-
-            return new_waveform
 
 class data_container(np.ndarray):
 

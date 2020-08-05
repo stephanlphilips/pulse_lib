@@ -88,7 +88,7 @@ class marker_data(parent_data):
     def get_vmax(self,sample_rate = 1e9):
         return self.pulse_amplitude
 
-    def integrate_waveform(self, pre_delay, post_delay, sample_rate):
+    def integrate_waveform(self, sample_rate):
         """
         as markers are connected to mateched inputs, we do not need to compenstate, hence no interagration of waveforms is needed.
         """
@@ -174,7 +174,7 @@ class marker_data(parent_data):
         for i in self.my_marker_data:
             print(i)
 
-    def _render(self, sample_rate, pre_delay = 0.0, post_delay = 0.0):
+    def _render(self, sample_rate):
         '''
         make a full rendering of the waveform at a predermined sample rate.
         '''
@@ -186,19 +186,17 @@ class marker_data(parent_data):
 
         # get number of points that need to be rendered
         t_tot_pt = get_effective_point_number(t_tot, sample_time_step) + 1
-        pre_delay_pt = - get_effective_point_number(pre_delay, sample_time_step)
-        post_delay_pt = get_effective_point_number(post_delay, sample_time_step)
 
-        my_sequence = np.zeros([int(t_tot_pt + pre_delay_pt + post_delay_pt)])
+        my_sequence = np.zeros([int(t_tot_pt)])
 
 
         for data_points in self.my_marker_data:
-            start = get_effective_point_number(data_points[0], sample_time_step) + pre_delay_pt
-            stop = get_effective_point_number(data_points[1], sample_time_step) + pre_delay_pt
+            start = get_effective_point_number(data_points[0], sample_time_step)
+            stop = get_effective_point_number(data_points[1], sample_time_step)
 
             my_sequence[start:stop] = 1*self.pulse_amplitude
 
-        return my_sequence
+        return my_sequence[:-1]
 
 def slice_out_marker_single(start, stop, start_stop_position):
     """

@@ -156,26 +156,16 @@ class pulse_data(parent_data):
         else:
             return np.min(self.render(sample_rate=1e9))
 
-    def integrate_waveform(self, pre_delay, post_delay, sample_rate):
+    def integrate_waveform(self, sample_rate):
         '''
         takes a full integral of the currently scheduled waveform.
         Args:
-            start_time (double) : from which points the rendering needs to start
-            stop_time (double) : to which point the rendering needs to go (default (-1), to entire segment)
             sample_rate (double) : rate at which the AWG will be run
         Returns:
             integrate (double) : the integrated value of the waveform (unit is mV/sec).
         '''
         integrated_value = 0
-        # if len(self.sin_data) == 0 and pre_delay <= 0 and post_delay>= 0:
 
-        if sample_rate is None:
-            sample_rate = self.waveform_cache['sample_rate']*1e-9
-        sample_time_step = 1/sample_rate
-        pre_delay_eff = get_effective_point_number(pre_delay, sample_time_step)*sample_time_step
-        post_delay_eff = get_effective_point_number(post_delay, sample_time_step)*sample_time_step
-
-        # TODO upgrade to new format -- put in the cython part for better performance..
         times, voltages = self.baseband_pulse_data.pulse_data
         baseband_pulse = np.empty([len(times), 2])
         baseband_pulse[:,0] = times
@@ -183,11 +173,7 @@ class pulse_data(parent_data):
 
         for i in range(len(baseband_pulse)-1):
             integrated_value += (baseband_pulse[i,1] + baseband_pulse[i+1,1])/2*(baseband_pulse[i+1,0] - baseband_pulse[i,0])
-        integrated_value += pre_delay_eff*baseband_pulse[0,1] +post_delay_eff*baseband_pulse[-1,1]
         integrated_value *= 1e-9
-        # else: # slow way ...
-        #     wvf = self.render(pre_delay, post_delay, sample_rate, clear_cache_on_exit = False)
-        #     integrated_value = np.trapz(wvf, dx=1/sample_rate)
 
         return integrated_value
 
@@ -336,7 +322,7 @@ class pulse_data(parent_data):
         return new_data
 
 
-    def _render(self, sample_rate, pre_delay = 0, post_delay = 0):
+    def _render(self, sample_rate):
         '''
         make a full rendering of the waveform at a predetermined sample rate.
         '''
@@ -349,10 +335,8 @@ class pulse_data(parent_data):
 
         # get number of points that need to be rendered
         t_tot_pt = get_effective_point_number(t_tot, sample_time_step) + 1
-        pre_delay_pt = - get_effective_point_number(pre_delay, sample_time_step)
-        post_delay_pt = get_effective_point_number(post_delay, sample_time_step)
 
-        my_sequence = np.zeros([int(t_tot_pt + pre_delay_pt + post_delay_pt)])
+        my_sequence = np.zeros([int(t_tot_pt)])
         # start rendering pulse data
 
         # TODO upgrade to new format -- put in the cython part for better performance..
@@ -370,21 +354,21 @@ class pulse_data(parent_data):
                 continue
             elif t1 > t_tot + sample_time_step:
                 if baseband_pulse[i,1] == baseband_pulse[i+1,1]:
-                    my_sequence[t0_pt + pre_delay_pt: t_tot_pt + pre_delay_pt] = baseband_pulse[i,1]
+                    my_sequence[t0_pt: t_tot_pt] = baseband_pulse[i,1]
                 else:
                     val = py_calc_value_point_in_between(baseband_pulse[i,:], baseband_pulse[i+1,:], t_tot)
-                    my_sequence[t0_pt + pre_delay_pt: t_tot_pt + pre_delay_pt] = np.linspace(
+                    my_sequence[t0_pt: t_tot_pt] = np.linspace(
                         baseband_pulse[i,1],
                         val, t_tot_pt-t0_pt)
             else:
                 if baseband_pulse[i,1] == baseband_pulse[i+1,1]:
-                    my_sequence[t0_pt + pre_delay_pt: t1_pt + pre_delay_pt] = baseband_pulse[i,1]
+                    my_sequence[t0_pt: t1_pt] = baseband_pulse[i,1]
                 else:
-                    my_sequence[t0_pt + pre_delay_pt: t1_pt + pre_delay_pt] = np.linspace(baseband_pulse[i,1], baseband_pulse[i+1,1], t1_pt-t0_pt)
+                    my_sequence[t0_pt: t1_pt] = np.linspace(baseband_pulse[i,1], baseband_pulse[i+1,1], t1_pt-t0_pt)
         # top off the sequence -- default behavior, extend the last value
         if len(baseband_pulse) > 1:
             pt = get_effective_point_number(baseband_pulse[i+1,0], sample_time_step)
-            my_sequence[pt + pre_delay_pt:] = baseband_pulse[i+1,1]
+            my_sequence[pt:] = baseband_pulse[i+1,1]
 
         # render MW pulses.
         for IQ_data_single_object in self.MW_pulse_data:
@@ -407,15 +391,15 @@ class pulse_data(parent_data):
 
             #self.baseband_pulse_data[-1,0] convert to point numbers
             n_pt = len(amp_envelope)
-            start_pt = get_effective_point_number(start_pulse, sample_time_step) + pre_delay_pt
+            start_pt = get_effective_point_number(start_pulse, sample_time_step)
             stop_pt = start_pt + n_pt
 
-            # add up the sin pulse.
+            # add the sin pulse
             my_sequence[start_pt:stop_pt] += amp*amp_envelope*np.sin(
-                    np.linspace(start_pt/sample_rate*1e-9, (start_pt+n_pt-1)/sample_rate*1e-9, n_pt)*freq*2*np.pi
+                    2*np.pi*freq/sample_rate*1e-9*(np.arange(n_pt)+start_pt)
                     + phase + phase_envelope )
 
-        # remove last value. It is always 0. It is only needed in the loop on the baseband pulses.
+        # remove last value. t_tot_pt = t_tot + 1. Last value is always 0. It is only needed in the loop on the baseband pulses.
         return my_sequence[:-1]
 
 if __name__ == '__main__':
@@ -448,7 +432,7 @@ if __name__ == '__main__':
     data.add_pulse_data(base_pulse_element(200,280, 2 , 1))
 
     data.repeat(2)
-    rendering_data = data.render(0,0,1e9)
+    rendering_data = data.render(1e9)
     t = np.linspace(0, data.total_time, len(rendering_data))
     plt.plot(t, rendering_data)
     plt.show()
