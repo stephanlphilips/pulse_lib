@@ -379,6 +379,7 @@ class segment_container():
         get_metadata
         '''
         metadata = {}
+        metadata['_total_time'] = self.total_time
         for ch in self.channels:
             try:
                 data = getattr(self,ch).data_tmp.baseband_pulse_data.localdata
