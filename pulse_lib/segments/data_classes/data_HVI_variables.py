@@ -103,7 +103,7 @@ class marker_HVI_variable(parent_data):
     def get_vmax(self,sample_rate = 1e9):
         return 0
 
-    def integrate_waveform(self, pre_delay, post_delay, sample_rate):
+    def integrate_waveform(self, sample_rate):
         """
         as markers are connected to matched inputs, we do not need to compensate, hence no integration of waveforms is needed.
         """
@@ -188,7 +188,7 @@ class marker_HVI_variable(parent_data):
     def __repr__(self):
         return "=== raw data in HVI variable object ===\n\namplitude data ::\n" + str(self.my_amp_data) + "\ntime dep data ::\n" + str(self.my_time_data)
 
-    def _render(self, sample_rate, pre_delay = 0.0, post_delay = 0.0):
+    def _render(self, sample_rate):
         '''
         make a full rendering of the waveform at a predetermined sample rate.
         '''

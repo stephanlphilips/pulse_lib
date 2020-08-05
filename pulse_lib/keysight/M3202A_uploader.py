@@ -4,6 +4,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import List, Tuple
 
+from pulse_lib.segments.utility.segments_c_func import get_effective_point_number
+
 
 class AwgConfig:
     MAX_AMPLITUDE = 1500 # mV
@@ -345,20 +347,30 @@ class UploadAggregator:
                 pre_delay = 0
                 post_delay = 0
 
-                if add_pre_delay:
-                    pre_delay = channel_info.channel_delays[0]
-                if add_post_delay:
-                    post_delay = channel_info.channel_delays[1]
-
-                wvf = seg.get_waveform(channel_name, job.index, pre_delay, post_delay, sample_rate)
+                wvf = seg.get_waveform(channel_name, job.index, sample_rate)
                 integral = 0
                 if job.neutralize:
-                    integral = getattr(seg, channel_name).integrate(job.index, pre_delay, post_delay, sample_rate)
+                    integral = getattr(seg, channel_name).integrate(job.index, sample_rate)
+
+                if add_pre_delay and channel_info.channel_delays[0] < 0:
+                    pre_delay = channel_info.channel_delays[0]
+                    v = wvf[0] if len(wvf) > 0 else 0
+                    pre_delay_pt = -get_effective_point_number(pre_delay, 1e9/sample_rate)
+                    pre_delay_wvf = v*np.ones(pre_delay_pt)
+                    self.add_data(channel_info, pre_delay_wvf, v*pre_delay_pt*1e-9)
 
                 self.add_data(channel_info, wvf, integral)
 
+                if add_post_delay and channel_info.channel_delays[1] > 0:
+                    post_delay = channel_info.channel_delays[1]
+                    v = wvf[-1] if len(wvf) > 0 else 0
+                    post_delay_pt = get_effective_point_number(post_delay, 1e9/sample_rate)
+                    post_delay_wvf = v*np.ones(post_delay_pt)
+                    self.add_data(channel_info, post_delay_wvf, v*post_delay_pt*1e-9)
+
                 duration = time.perf_counter() - start
-                logging.debug(f'added {i}:{channel_name} {duration*1000:6.3f} ms {len(wvf)} Sa, integral: {integral}')
+                logging.debug(f'added {i}:{channel_name} {duration*1000:6.3f} ms {len(wvf)} Sa, integral: {integral}, '
+                              f'pre:{pre_delay}, post:{post_delay}')
 
         if job.neutralize:
             self.add_dc_compensation(sample_rate)

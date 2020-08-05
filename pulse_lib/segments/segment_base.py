@@ -225,7 +225,7 @@ class segment_base():
             loop_obj (loop_obj) : loop object with certain dimension to add.
         '''
         return self.data_tmp
-        
+
     def add_HVI_marker(self, marker_name, t_off = 0):
         '''
         Add a HVI marker that corresponds to the current time of the segment (defined by reset_time).
@@ -304,21 +304,19 @@ class segment_base():
         else:
             return self.pulse_data_all.start_time
 
-    def get_segment(self, index, pre_delay = 0, post_delay = 0, sample_rate=1e9):
+    def get_segment(self, index, sample_rate=1e9):
         '''
         get the numpy output of as segment
 
         Args:
             index of segment (list) : which segment to render (e.g. [0] if dimension is 1 or [2,5,10] if dimension is 3)
-            pre_delay (int) : number of points to push before the sequence
-            post_delay (int) : number of points to push after the sequence.
             sample_rate (float) : #/s (number of samples per second)
 
         Returns:
             A numpy array that contains the points for each ns
             points is the expected lenght.
         '''
-        wvf = self._generate_segment(index, pre_delay, post_delay, sample_rate)
+        wvf = self._generate_segment(index, sample_rate)
         return wvf
 
     def v_max(self, index, sample_rate = 1e9):
@@ -330,14 +328,12 @@ class segment_base():
         index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
         return self.pulse_data_all.flat[index].get_vmin()
 
-    def integrate(self, index, pre_delay = 0, post_delay = 0, sample_rate = 1e9):
+    def integrate(self, index, sample_rate = 1e9):
         '''
         Get integral value of the waveform (e.g. to calculate an automatic compensation)
 
         Args:
             index (tuple) : index of the concerning waveform
-            pre_delay (double) : ns to delay before the pulse
-            post_delay (double) : ns to delay after the pulse
             sample_rate (double) : rate at which to render the pulse
 
         Returns:
@@ -346,8 +342,7 @@ class segment_base():
         flat_index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
         pulse_data_all_curr_seg = self.pulse_data_all.flat[flat_index]
 
-        total_time = pulse_data_all_curr_seg.total_time
-        return pulse_data_all_curr_seg.integrate_waveform(pre_delay, total_time + post_delay, sample_rate)
+        return pulse_data_all_curr_seg.integrate_waveform(sample_rate)
 
     @property
     def pulse_data_all(self):
@@ -392,14 +387,12 @@ class segment_base():
 
         return self._last_edit
 
-    def _generate_segment(self, index, pre_delay = 0, post_delay = 0, sample_rate = 1e9):
+    def _generate_segment(self, index, sample_rate = 1e9):
         '''
         Generate numpy array of the segment
 
         Args:
             index (tuple) : index of the segement to generate
-            pre_delay (int): predelay of the pulse (in ns) (e.g. for compensation of diffent coax length's)
-            post_delay (int): extend the pulse for x ns
             sample rate (double) : sample rate of the pulse to be rendered at.
         '''
 
@@ -407,9 +400,7 @@ class segment_base():
         flat_index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
         pulse_data_all_curr_seg = self.pulse_data_all.flat[flat_index]
 
-        total_time = pulse_data_all_curr_seg.total_time
-
-        my_sequence = pulse_data_all_curr_seg.render(pre_delay, post_delay, sample_rate)
+        my_sequence = pulse_data_all_curr_seg.render(sample_rate)
         return my_sequence
 
     def plot_segment(self, index = [0], render_full = True, sample_rate = 1e9):
@@ -420,8 +411,6 @@ class segment_base():
             sample_rate (float): standard 1 Gs/s
         '''
 
-        sample_time_step = 1/sample_rate
-
         if render_full == True:
             flat_index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
             pulse_data_curr_seg = self.pulse_data_all.flat[flat_index]
@@ -429,7 +418,7 @@ class segment_base():
             flat_index = np.ravel_multi_index(tuple(index), self.data.shape)
             pulse_data_curr_seg = self.data.flat[flat_index]
 
-        y = pulse_data_curr_seg.render(0, 0, sample_rate)
+        y = pulse_data_curr_seg.render(sample_rate)
         x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))
         # print(x, y)
         plt.plot(x,y, label=self.name)

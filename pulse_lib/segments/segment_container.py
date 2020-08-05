@@ -280,18 +280,16 @@ class segment_container():
             segment = getattr(self, i)
             segment.reset_time(loop_obj, False)
 
-    def get_waveform(self, channel, index = [0], pre_delay=0, post_delay = 0, sample_rate=1e9):
+    def get_waveform(self, channel, index = [0], sample_rate=1e9):
         '''
         function to get the raw data of a waveform,
         inputs:
             channel (str) : channel name of the waveform you want
             index (tuple) :
-            pre_delay (int) : extra offset in from of the waveform (start at negative time) (for a certain channel, as defined in channel delays)
-            post_delay (int) : time gets appended to the waveform (for a certain channel)
         returns:
             np.ndarray[ndim=1, dtype=double] : waveform as a numpy array
         '''
-        return getattr(self, channel).get_segment(index, pre_delay, post_delay, sample_rate)
+        return getattr(self, channel).get_segment(index, sample_rate)
 
     def extend_dim(self, shape=None, ref = False):
         '''
