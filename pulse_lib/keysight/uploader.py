@@ -199,7 +199,7 @@ class keysight_uploader():
                 if i == 0:
                     pre_delay = self.channel_delays[channel][0]
                     v = wvf[0]
-                    pre_delay_pt = -get_effective_point_number(pre_delay, 1e9/sample_rate)
+                    pre_delay_pt = get_effective_point_number(-pre_delay, 1e9/sample_rate)
                     pre_delay_wvf = v*np.ones(pre_delay_pt)
                     waveform_cache[channel].add_data(pre_delay_wvf/ratio, (v/ratio, v/ratio), v*pre_delay_pt*1e-9/ratio)
 

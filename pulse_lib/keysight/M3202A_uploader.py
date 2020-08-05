@@ -356,16 +356,23 @@ class UploadAggregator:
                 if add_pre_delay and channel_info.channel_delays[0] < 0:
                     pre_delay = channel_info.channel_delays[0]
                     v = wvf[0] if len(wvf) > 0 else 0
-                    pre_delay_pt = -get_effective_point_number(pre_delay, 1e9/sample_rate)
+                    pre_delay_pt = get_effective_point_number(-pre_delay, 1e9/sample_rate)
                     pre_delay_wvf = v*np.ones(pre_delay_pt)
                     self.add_data(channel_info, pre_delay_wvf, v*pre_delay_pt*1e-9)
 
                 self.add_data(channel_info, wvf, integral)
 
                 if add_post_delay and channel_info.channel_delays[1] > 0:
+                    # use rounded pre_delay and tot_delay to avoid rounding differences
+                    pre_delay = channel_info.channel_delays[0]
                     post_delay = channel_info.channel_delays[1]
+                    tot_delay = post_delay - pre_delay
+                    pre_delay_pt = get_effective_point_number(-pre_delay, 1e9/sample_rate)
+                    tot_delay_pt = get_effective_point_number(tot_delay, 1e9/sample_rate)
+                    post_delay_pt = tot_delay_pt - pre_delay_pt
+                    post_delay_pt2 = get_effective_point_number(post_delay, 1e9/sample_rate)
+                    logging.info(f'delay {(pre_delay_pt, post_delay_pt, post_delay_pt2, tot_delay_pt)}')
                     v = wvf[-1] if len(wvf) > 0 else 0
-                    post_delay_pt = get_effective_point_number(post_delay, 1e9/sample_rate)
                     post_delay_wvf = v*np.ones(post_delay_pt)
                     self.add_data(channel_info, post_delay_wvf, v*post_delay_pt*1e-9)
 
@@ -439,7 +446,7 @@ class UploadAggregator:
 
         for channel_name, channel_info in self.channels.items():
             if channel_info.npt != npt:
-                logging.warn(f'Unequal data length {channel_name}:{channel_info.npt} overall:{self.npt}')
+                logging.warn(f'Unequal data length {channel_name}:{channel_info.npt} overall:{npt}')
 
             npt_fill = total_npt - channel_info.npt
 
