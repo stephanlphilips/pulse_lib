@@ -334,8 +334,9 @@ class UploadAggregator:
             if current_sample_rate is not None and current_sample_rate != sample_rate:
                 self.align_data(sample_rate, keep_voltage=True)
                 self.upload_to_awg(job, current_sample_rate, awg_upload_func)
-                self.reset_data(reset_integral=False)
                 job.playback_time += self.npt / current_sample_rate * 1e9
+                self.reset_data(reset_integral=False)
+                logging.info(f'playback time:{job.playback_time}')
                 add_pre_delay = True
 
             current_sample_rate = sample_rate
@@ -381,6 +382,7 @@ class UploadAggregator:
         self.upload_to_awg(job, current_sample_rate, awg_upload_func)
 
         job.playback_time += self.npt / current_sample_rate * 1e9
+        logging.info(f'playback time:{job.playback_time}')
 
         self.reset_data()
 
