@@ -141,7 +141,7 @@ class sequencer():
         for seg_container in self.sequence:
             for channel_name in seg_container.channels:
                 shape = getattr(seg_container, channel_name).data.shape
-                total_axis_length += sum(shape)
+                total_axis_length += max(shape)
         parent_data.set_waveform_cache_size(total_axis_length)
 
         self._shape = tuple(self._shape)
