@@ -210,8 +210,6 @@ class pulselib:
         '''
         Makes a variable that contains the amount of points that need to be put before and after when a upload is performed.
         '''
-        self.channel_delays_computed = dict()
-
         delays =  np.array( list(self.channel_delays.values()))
         max_delay = np.max(delays)
         min_delay = np.min(delays)
