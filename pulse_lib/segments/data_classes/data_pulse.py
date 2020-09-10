@@ -271,6 +271,7 @@ class pulse_data(parent_data):
         my_copy.MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
         my_copy.start_time = copy.copy(self.start_time)
         my_copy.software_marker_data = copy.copy(self.software_marker_data)
+        my_copy.global_phase = copy.copy(self.global_phase)
         return my_copy
 
     def __add__(self, other):
