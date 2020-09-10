@@ -336,24 +336,26 @@ class UploadAggregator:
                 self.upload_to_awg(job, current_sample_rate, awg_upload_func)
                 job.playback_time += self.npt / current_sample_rate * 1e9
                 self.reset_data(reset_integral=False)
-                logging.info(f'playback time:{job.playback_time}')
                 add_pre_delay = True
 
             current_sample_rate = sample_rate
 
-
+            # TODO use interalignment regions. This region uses highest sample rate of joining segments
+            # interalignment takes care of channel delay and alignment on 10 samples.
+            # Calculate alignment region for all channels.
+            # Note: a waveform could be shorter than the alignment region!
             for channel_name, channel_info in self.channels.items():
                 start = time.perf_counter()
 
-                pre_delay = 0
-                post_delay = 0
+                pre_delay_pt = 0
+                post_delay_pt = 0
 
                 wvf = seg.get_waveform(channel_name, job.index, sample_rate)
                 integral = 0
                 if job.neutralize:
                     integral = getattr(seg, channel_name).integrate(job.index, sample_rate)
 
-                if add_pre_delay and channel_info.channel_delays[0] < 0:
+                if add_pre_delay:
                     pre_delay = channel_info.channel_delays[0]
                     v = wvf[0] if len(wvf) > 0 else 0
                     pre_delay_pt = get_effective_point_number(-pre_delay, 1e9/sample_rate)
@@ -362,7 +364,7 @@ class UploadAggregator:
 
                 self.add_data(channel_info, wvf, integral)
 
-                if add_post_delay and channel_info.channel_delays[1] > 0:
+                if add_post_delay:
                     # use rounded pre_delay and tot_delay to avoid rounding differences
                     pre_delay = channel_info.channel_delays[0]
                     post_delay = channel_info.channel_delays[1]
@@ -376,7 +378,7 @@ class UploadAggregator:
 
                 duration = time.perf_counter() - start
                 logging.debug(f'added {i}:{channel_name} {duration*1000:6.3f} ms {len(wvf)} Sa, integral: {integral}, '
-                              f'pre:{pre_delay}, post:{post_delay}')
+                              f'pre:{pre_delay_pt}, post:{post_delay_pt}')
 
         if job.neutralize:
             self.add_dc_compensation(sample_rate)
@@ -387,7 +389,6 @@ class UploadAggregator:
         self.upload_to_awg(job, current_sample_rate, awg_upload_func)
 
         job.playback_time += self.npt / current_sample_rate * 1e9
-        logging.info(f'playback time:{job.playback_time}')
 
         self.reset_data()
 
@@ -413,6 +414,8 @@ class UploadAggregator:
 
 
     def add_data(self, channel_info, wvf, integral):
+        if len(wvf) == 0:
+            return
         channel_info.integral += integral
         channel_info.data.append(wvf)
         channel_info.npt += len(wvf)
@@ -441,6 +444,9 @@ class UploadAggregator:
         remainder = npt % AwgConfig.ALIGNMENT
         padding_npt = (AwgConfig.ALIGNMENT - remainder) if remainder > 0 else 0
         total_npt = npt + padding_npt
+
+        if padding_npt == 0:
+            return
 
         for channel_name, channel_info in self.channels.items():
             if channel_info.npt != npt:
