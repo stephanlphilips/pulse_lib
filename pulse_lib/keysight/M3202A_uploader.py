@@ -285,7 +285,7 @@ class ChannelInfo:
     channel_delays: Tuple[float] = (0,0)
     integral: float = 0.0
     npt: int = 0
-    data: List[List[float]] = field(default_factory=list)
+    data: List[List[np.ndarray]] = field(default_factory=list)
 
 
 class UploadAggregator:
