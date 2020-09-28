@@ -2,7 +2,7 @@ import time
 import numpy as np
 import logging
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from pulse_lib.segments.utility.segments_c_func import get_effective_point_number
 
@@ -258,6 +258,7 @@ class Job(object):
             logging.warning(f'job {self.seq_id}-{self.index} already released')
             return
 
+        self.upload_info = None
         logging.debug(f'release job {self.seq_id}-{self.index}')
         self.released = True
 
@@ -278,14 +279,32 @@ class Job(object):
 
 @dataclass
 class ChannelInfo:
+    # static data
     attenuation: float = 1.0
     dc_compensation: bool = False
     dc_compensation_min: float = 0.0
     dc_compensation_max: float = 0.0
-    channel_delays: Tuple[float] = (0,0)
+    prefix_ns: float = 0.0
+    # aggregation state
     integral: float = 0.0
     npt: int = 0
-    data: List[List[np.ndarray]] = field(default_factory=list)
+    data: List[np.ndarray] = field(default_factory=list)
+
+@dataclass
+class SectionInfo:
+    sample_rate: float
+    npt: int = 0
+    end_time: float = 0.0
+    cropped_start: float = 0.0
+    cropped_end: float = 0.0
+    waveforms: Dict[str,np.ndarray] = field(default_factory=dict, repr=False)
+    # timestamps can be generated from sample rates
+
+@dataclass
+class JobUploadInfo:
+    sections: List[SectionInfo] = field(default_factory=list)
+    dc_compensation_duration: float = 0.0
+    dc_compensation_voltages: Dict[str, float] = field(default_factory=dict)
 
 
 class UploadAggregator:
@@ -293,12 +312,14 @@ class UploadAggregator:
         self.npt = 0
         self.channels = dict()
 
+        self.max_prefix_ns = 0
         for channel_name in channel_names:
             info = ChannelInfo()
             self.channels[channel_name] = info
 
             info.attenuation = channel_attenuation[channel_name]
-            info.channel_delays = channel_delays[channel_name]
+            info.prefix_ns = -channel_delays[channel_name][0]
+            self.max_prefix_ns = max(self.max_prefix_ns, info.prefix_ns)
 
             if channel_name in channel_compensation_limits:
                 # Note: Compensation limits are specified before attenuation, i.e. at AWG output level.
@@ -311,89 +332,166 @@ class UploadAggregator:
     def upload_job(self, job, awg_upload_func):
         '''
         Steps:
-        1) get all the upload data
-        2) perform DC correction (if needed)
-        3) convert data in an aprropriate upload format
-        4) start upload of all data
-        5) store reference to uploaded waveform in job
+            * add zeros for the amount of channel delay
+            * add segments
+            *   when sample rate changes add welding samples and upload 'section'
+            * append zeros to align all channels
+            * add DC compensation
+            * add at least 1 zero value and align to muliple of 10 samples
+            * upload waveforms
+
+        Welding includes aligment of all channels on a multiple of 10 samples using the highest of the two
+        sample rates.
         '''
-        current_sample_rate = None
-        job.playback_time = 0
+        self.playback_time = 0
+        self.wavelen = 0
+        self.upload_delta_ns = 0
+        job.upload_info = JobUploadInfo()
 
-        for i in range(len(job.sequence)):
+        seq0 = job.sequence[0]
+        sample_rate = seq0.sample_rate if seq0.sample_rate is not None else job.default_sample_rate
+        section_info = SectionInfo(sample_rate)
+        job.upload_info.sections.append(section_info)
+        self.add_prefix(1e9/sample_rate)
 
-            add_pre_delay = i == 0
-            add_post_delay = i == len(job.sequence) -1
-            # add post delay when there is a sample rate change
-            if i < len(job.sequence) - 1 and job.sequence[i+1].sample_rate != job.sequence[i].sample_rate:
-                add_post_delay = True
+        nseq = len(job.sequence)
+        sample_rate_prev = None
+        for iseq in range(nseq):
+            seq = job.sequence[iseq]
 
-            seg = job.sequence[i]
+            sample_rate = seq.sample_rate if seq.sample_rate is not None else job.default_sample_rate
+            t_sample = 1e9/sample_rate
+            if iseq < nseq-1:
+                seq_next = job.sequence[iseq+1]
+                sample_rate_next = seq_next.sample_rate if seq_next.sample_rate is not None else job.default_sample_rate
+            else:
+                sample_rate_next = None
 
-            sample_rate = seg.sample_rate if seg.sample_rate is not None else job.default_sample_rate
-            if current_sample_rate is not None and current_sample_rate != sample_rate:
-                self.align_data(sample_rate, keep_voltage=True)
-                self.upload_to_awg(job, current_sample_rate, awg_upload_func)
-                job.playback_time += self.npt / current_sample_rate * 1e9
-                self.reset_data(reset_integral=False)
-                add_pre_delay = True
-
-            current_sample_rate = sample_rate
-
-            # TODO use interalignment regions. This region uses highest sample rate of joining segments
-            # interalignment takes care of channel delay and alignment on 10 samples.
-            # Calculate alignment region for all channels.
-            # Note: a waveform could be shorter than the alignment region!
+            wvf = {}
+            integral = {}
+            istart = {}
+            iend = {}
+            len_seq = None
             for channel_name, channel_info in self.channels.items():
                 start = time.perf_counter()
-
-                pre_delay_pt = 0
-                post_delay_pt = 0
-
-                wvf = seg.get_waveform(channel_name, job.index, sample_rate)
-                integral = 0
-                if job.neutralize:
-                    integral = getattr(seg, channel_name).integrate(job.index, sample_rate)
-
-                if add_pre_delay:
-                    pre_delay = channel_info.channel_delays[0]
-                    v = wvf[0] if len(wvf) > 0 else 0
-                    pre_delay_pt = get_effective_point_number(-pre_delay, 1e9/sample_rate)
-                    pre_delay_wvf = v*np.ones(pre_delay_pt)
-                    self.add_data(channel_info, pre_delay_wvf, v*pre_delay_pt*1e-9)
-
-                self.add_data(channel_info, wvf, integral)
-
-                if add_post_delay:
-                    # use rounded pre_delay and tot_delay to avoid rounding differences
-                    pre_delay = channel_info.channel_delays[0]
-                    post_delay = channel_info.channel_delays[1]
-                    tot_delay = post_delay - pre_delay
-                    pre_delay_pt = get_effective_point_number(-pre_delay, 1e9/sample_rate)
-                    tot_delay_pt = get_effective_point_number(tot_delay, 1e9/sample_rate)
-                    post_delay_pt = tot_delay_pt - pre_delay_pt
-                    v = wvf[-1] if len(wvf) > 0 else 0
-                    post_delay_wvf = v*np.ones(post_delay_pt)
-                    self.add_data(channel_info, post_delay_wvf, v*post_delay_pt*1e-9)
-
+                seg = getattr(seq, channel_name)
+                wvf[channel_name] = seg.get_segment(job.index, sample_rate)
+                integral[channel_name] = seg.integrate(job.index, sample_rate) if job.neutralize else 0
+                if len_seq is None:
+                    len_seq = len(wvf[channel_name])
+                else:
+                    if len(wvf[channel_name]) != len_seq:
+                        logging.warn(f'waveform {iseq}:{channel_name} {len(wvf)} Sa <> sequence length {len_seq}')
+                istart[channel_name] = 0
+                iend[channel_name] = len_seq
                 duration = time.perf_counter() - start
-                logging.debug(f'added {i}:{channel_name} {duration*1000:6.3f} ms {len(wvf)} Sa, integral: {integral}, '
-                              f'pre:{pre_delay_pt}, post:{post_delay_pt}')
+                logging.debug(f'added {iseq}:{channel_name} {len(wvf)} Sa, integral: {integral[channel_name]*1e3:6.2f} uVs in {duration*1000:6.3f} ms')
+
+
+            # create welding region if sample_rate decreases
+            if sample_rate_prev is not None and sample_rate < sample_rate_prev:
+                # welding region is length of padding for alignment (delay region is already written)
+                nwelding = self.get_wave_alignment()
+                ts_welding = 1e9/sample_rate_prev
+                crop_start = int(np.round((nwelding*ts_welding - self.upload_delta_ns)/t_sample))
+
+                for channel_name, channel_info in self.channels.items():
+                    xseg = wvf[channel_name]
+                    nwelding_ch = nwelding + self.get_suffix_length(1e9/sample_rate_prev, channel_info)
+                    if np.round(nwelding_ch*ts_welding/t_sample) >= len(xseg):
+                        raise Exception(f'segment {iseq} too short for welding. (nwelding_ch:{nwelding_ch} len_wvf:{len(xseg)})')
+                    isub = [np.round((i*ts_welding)/t_sample) for i in np.arange(nwelding_ch)]
+                    welding_samples = np.take(xseg, isub)
+                    self.add_data(channel_info, welding_samples, 0)
+
+                # welding replaces crop_start samples of segment
+                self.add_waveform_time(nwelding, ts_welding, crop_start*t_sample)
+                logging.debug(f'welding {iseq-1}->{iseq}: cropping {iseq} with {crop_start*t_sample} ns')
+
+                # next wave
+                self.upload_to_awg(job, sample_rate_prev, awg_upload_func)
+                self.reset_data(reset_integral=False)
+                section_info = SectionInfo(sample_rate)
+                section_info.cropped_start = crop_start * t_sample
+                job.upload_info.sections.append(section_info)
+
+                # number samples to crop per channel
+                for channel_name, channel_info in self.channels.items():
+                    istart[channel_name] = crop_start + self.get_suffix_length(t_sample, channel_info)
+
+                len_seq -= crop_start
+
+
+            # create welding region if sample rate increases
+            if sample_rate_next is not None and sample_rate_next > sample_rate:
+                ts_welding = 1e9/sample_rate_next
+                # cut away overlapping delay region and align. Use maximum needed for welding
+                npad = int(np.ceil(self.get_max_prefix(ts_welding)*ts_welding/t_sample))
+                len_seq -= npad
+                # wavelength alignment:
+                waveremainder = self.get_wave_remainder(len_seq)
+                len_seq -= waveremainder
+
+                crop_end = npad + waveremainder
+                section_info.cropped_end = crop_end * t_sample
+
+                for channel_name, channel_info in self.channels.items():
+                    xseg = wvf[channel_name]
+                    iend[channel_name] = len(xseg)-crop_end + self.get_suffix_length(t_sample, channel_info)
+                    samples = xseg[istart[channel_name]:iend[channel_name]]
+                    self.add_data(channel_info, samples, integral[channel_name])
+
+                self.add_waveform_time(len_seq, t_sample, len_seq*t_sample)
+                logging.debug(f'welding {iseq}->{iseq+1}: cropping {iseq} with {crop_end*t_sample} ns')
+
+                # next wave
+                self.upload_to_awg(job, sample_rate, awg_upload_func)
+                self.reset_data(reset_integral=False)
+                section_info = SectionInfo(sample_rate_next)
+                job.upload_info.sections.append(section_info)
+
+                nwelding = int(np.round((crop_end*t_sample - self.upload_delta_ns)/ts_welding))
+
+                for channel_name, channel_info in self.channels.items():
+                    xseg = wvf[channel_name]
+                    nwelding_ch = nwelding - self.get_suffix_length(1e9/sample_rate_next, channel_info)
+                    if nwelding_ch * ts_welding > len(xseg)*t_sample:
+                        raise Exception('segment too short for welding')
+                    isub = [min(len(xseg)-1, iend[channel_name] +  np.round((i*ts_welding)/t_sample)) for i in np.arange(nwelding_ch)]
+                    welding_samples = np.take(xseg, isub)
+                    self.add_data(channel_info, welding_samples, 0)
+
+                self.add_waveform_time(nwelding, ts_welding, crop_end*t_sample)
+
+            else:
+                for channel_name, channel_info in self.channels.items():
+                    xseg = wvf[channel_name]
+                    samples = xseg[istart[channel_name]:]
+                    self.add_data(channel_info, samples, integral[channel_name])
+
+                self.add_waveform_time(len_seq, t_sample, len_seq*t_sample)
+
+            sample_rate_prev = sample_rate
+
+        self.add_suffix(t_sample)
 
         if job.neutralize:
-            self.add_dc_compensation(sample_rate)
+            self.add_dc_compensation(sample_rate, job.upload_info)
 
-        self.align_data(sample_rate)
-        self.append_zeros()
+        self.append_zeros(sample_rate)
 
-        self.upload_to_awg(job, current_sample_rate, awg_upload_func)
+        self.upload_to_awg(job, sample_rate, awg_upload_func)
 
-        job.playback_time += self.npt / current_sample_rate * 1e9
+        job.playback_time = self.playback_time
 
         self.reset_data()
 
 
     def upload_to_awg(self, job, sample_rate, awg_upload_func):
+
+        section_info = job.upload_info.sections[-1]
+        section_info.npt = self.npt
+        section_info.end_time = self.playback_time
 
         for channel_name, channel_info in self.channels.items():
 
@@ -402,6 +500,43 @@ class UploadAggregator:
             wave_ref = awg_upload_func(channel_name, waveform)
             prescaler = convert_sample_rate_to_prescaler(sample_rate)
             job.add_waveform(channel_name, wave_ref, prescaler)
+            section_info.waveforms[channel_name] = waveform
+
+
+    def get_max_prefix(self, t_sample):
+        return int(np.round(self.max_prefix_ns/t_sample))
+
+
+    def get_prefix_length(self, t_sample, channel_info):
+        return int(np.round(channel_info.prefix_ns/t_sample))
+
+
+    def get_suffix_length(self, t_sample, channel_info):
+        return self.get_max_prefix(t_sample) - self.get_prefix_length(t_sample, channel_info)
+
+
+    def add_prefix(self, t_sample):
+        for channel_name, channel_info in self.channels.items():
+            wvf = np.zeros(self.get_prefix_length(t_sample, channel_info))
+            self.add_data(channel_info, wvf, 0.0)
+        self.add_waveform_time(self.get_max_prefix(t_sample), t_sample, self.max_prefix_ns)
+
+
+    def add_suffix(self, t_sample):
+        wavepadding = self.get_wave_alignment()
+        for channel_name, channel_info in self.channels.items():
+            wvf = np.zeros(wavepadding + self.get_suffix_length(t_sample, channel_info))
+            self.add_data(channel_info, wvf, 0.0)
+
+        self.add_waveform_time(wavepadding, t_sample, wavepadding*t_sample)
+
+
+    def get_wave_alignment(self, n=0):
+        return (AwgConfig.ALIGNMENT - 1) - (self.wavelen + n - 1) % AwgConfig.ALIGNMENT
+
+
+    def get_wave_remainder(self, n):
+        return (self.wavelen + n) % AwgConfig.ALIGNMENT
 
 
     def reset_data(self, reset_integral=True):
@@ -422,9 +557,18 @@ class UploadAggregator:
         self.npt = max(self.npt, channel_info.npt)
 
 
-    def add_dc_compensation(self, sample_rate):
+    def add_waveform_time(self, n, sampling_period, duration):
+        self.wavelen += n
+        self.playback_time += n * sampling_period
+        self.upload_delta_ns += n * sampling_period - duration
 
-        compensation_npt = self.get_compensation_npt(sample_rate)
+
+    def add_dc_compensation(self, sample_rate, upload_info):
+
+        compensation_time = self.get_max_compensation_time()
+        compensation_npt = int(np.ceil(compensation_time * sample_rate))
+
+        logging.debug(f'DC compensation: {compensation_npt} samples')
 
         for channel_name, channel_info in self.channels.items():
 
@@ -432,41 +576,26 @@ class UploadAggregator:
                 compensation_voltage = -channel_info.integral * sample_rate / compensation_npt
                 dc_compensation = np.full((compensation_npt,), compensation_voltage)
                 self.add_data(channel_info, dc_compensation, -channel_info.integral)
+                upload_info.dc_compensation_voltages[channel_name] = compensation_voltage
                 logging.debug(f'DC compensation {channel_name}: {compensation_voltage:6.1f} mV {compensation_npt} Sa')
             else :
                 no_compensation = np.zeros((compensation_npt,), np.float)
                 self.add_data(channel_info, no_compensation, 0)
+                upload_info.dc_compensation_voltages[channel_name] = 0
+
+        self.add_waveform_time(compensation_npt, 1e9/sample_rate, compensation_npt*1e9/sample_rate)
+        upload_info.dc_compensation_duration = compensation_npt*1e9/sample_rate
 
 
-    def align_data(self, sample_rate, keep_voltage=False):
-
-        npt = self.npt
-        remainder = npt % AwgConfig.ALIGNMENT
-        padding_npt = (AwgConfig.ALIGNMENT - remainder) if remainder > 0 else 0
-        total_npt = npt + padding_npt
-
-        if padding_npt == 0:
-            return
-
-        for channel_name, channel_info in self.channels.items():
-            if channel_info.npt != npt:
-                logging.warn(f'Unequal data length {channel_name}:{channel_info.npt} overall:{npt}')
-
-            npt_fill = total_npt - channel_info.npt
-
-            voltage = 0
-            if keep_voltage:
-                voltage = channel_info.data[-1][-1]
-
-            padding_samples = np.full((npt_fill,), voltage)
-            self.add_data(channel_info, padding_samples, voltage * padding_npt / sample_rate)
-
-
-    def append_zeros(self):
-        ''' Adds extra zeros to make sure you end up with 0V when done.'''
-        zero_padding = np.zeros(AwgConfig.ALIGNMENT, dtype=np.float)
+    def append_zeros(self, sample_rate):
+        ''' Align and add extra zeros to make sure you end up with 0V when done.'''
+        min_zeros = 1
+        wavepadding = self.get_wave_alignment(min_zeros)
+        zero_padding = np.zeros(wavepadding+min_zeros, dtype=np.float)
         for channel_info in self.channels.values():
             self.add_data(channel_info, zero_padding, 0)
+
+        self.add_waveform_time(AwgConfig.ALIGNMENT, 1e9/sample_rate, AwgConfig.ALIGNMENT*1e9/sample_rate)
 
 
     def get_upload_data(self, channel_info):
@@ -481,7 +610,7 @@ class UploadAggregator:
         return waveform
 
 
-    def get_compensation_npt(self, sample_rate):
+    def get_max_compensation_time(self):
         '''
         generate a DC compensation of the pulse.
         As usuallly we put capacitors in between the AWG and the gate on the sample, you need to correct
@@ -496,11 +625,7 @@ class UploadAggregator:
             compensation_time = self.get_compensation_time(channel_info)
             max_compensation_time = max(max_compensation_time, compensation_time)
 
-        compensation_npt = int(max_compensation_time * sample_rate + 0.99)
-
-        logging.debug(f'DC compensation: {compensation_npt} samples')
-
-        return compensation_npt
+        return max_compensation_time
 
 
     def get_compensation_time(self, channel_info):
