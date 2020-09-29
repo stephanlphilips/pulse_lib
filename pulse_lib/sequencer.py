@@ -165,7 +165,7 @@ class sequencer():
         self.params =[]
 
         for i in range(len(self.labels)):
-            par_name = self.labels[i]
+            par_name = self.labels[i].replace(' ','_')
             set_param = index_param(par_name, self, dim = i)
             self.params.append(set_param)
             setattr(self, par_name, set_param)
