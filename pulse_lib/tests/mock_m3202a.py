@@ -42,9 +42,11 @@ class MockM3202A(Instrument):
         self._chassis_numnber = chassis
         self.memory_manager = MemoryManager()
         self.channel_data = {}
+        self.channel_prescaler = {}
         self.amplitudes = {}
         for i in range(4):
             self.channel_data[i+1] = []
+            self.channel_prescaler[i+1] = []
 
         self.chassis = chassis
         self.slot = slot
@@ -78,9 +80,13 @@ class MockM3202A(Instrument):
     def awg_queue_waveform(self, channel, waveform_ref, trigger_mode, start_delay, cycles, prescaler):
         logging.info(f'{self.name}.awg_queue_waveform({channel}, {waveform_ref.wave_number}, {trigger_mode}, {start_delay}, {cycles}, {prescaler})')
         self.channel_data[channel].append(waveform_ref.waveform * self.amplitudes[channel])
+        self.channel_prescaler[channel].append(prescaler)
 
     def awg_is_running(self, channel):
         return False
 
     def get_data(self, channel):
         return self.channel_data[channel]
+
+    def get_data_prescaler(self, channel):
+        return self.channel_data[channel], self.channel_prescaler[channel]

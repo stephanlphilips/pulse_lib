@@ -3,6 +3,7 @@ import copy
 
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
+
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
 
@@ -12,7 +13,7 @@ class pulselib:
     The idea is that you first make individula segments,
     you can than later combine them into a sequence, this sequence will be uploaded
     '''
-    def __init__(self, backend = "keysight"):
+    def __init__(self, backend = "M3202A"):
         # awg channels and locations need to be input parameters.
         self.awg_devices = dict()
         self.awg_channels = []
@@ -62,6 +63,7 @@ class pulselib:
         self.channel_delays_computed[channel_name] = (0,0)
         self.channel_compenstation_limits[channel_name] = (0,0)
         self.channels_to_physical_locations[channel_name] = (AWG_name, channel_number)
+        self.__process_channel_delays()
 
     def define_marker(self, marker_name, AWG_name, channel_number):
         '''
@@ -73,6 +75,7 @@ class pulselib:
         '''
         self.awg_markers.append(marker_name)
         self.define_channel(marker_name, AWG_name, channel_number)
+        self.__process_channel_delays()
 
     def add_channel_delay(self, channel, delay):
         '''
@@ -121,13 +124,14 @@ class pulselib:
             self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels, self.channels_to_physical_locations,
                                             self.channel_delays_computed, self.channel_compenstation_limits, self.AWG_to_dac_ratio)
 
-    def mk_segment(self):
+    def mk_segment(self, name=None, sample_rate=None):
         '''
         generate a new segment.
         Returns:
             segment (segment_container) : returns a container that contains all the previously defined gates.
         '''
-        return segment_container(self.awg_channels, self.awg_markers, self.virtual_channels, self.IQ_channels)
+        return segment_container(self.awg_channels, self.awg_markers, self.virtual_channels, self.IQ_channels,
+                                 name=name, sample_rate=sample_rate)
 
     def mk_sequence(self,seq):
         '''
@@ -139,6 +143,13 @@ class pulselib:
         for (i,pc) in enumerate(seq):
             md = pc.get_metadata()
             seq_obj.metadata[('pc%i'%i)] = md
+        LOdict = {}
+        for iq in self.IQ_channels:
+            virt_maps = iq.virtual_channel_map
+            for vm in virt_maps:
+                name = vm.channel_name
+                LOdict[name] = iq.LO
+        seq_obj.metadata['LOs'] = LOdict
         return seq_obj
 
     def release_awg_memory(self, wait_idle=True):
@@ -178,48 +189,19 @@ class pulselib:
         '''
         Makes a variable that contains the amount of points that need to be put before and after when a upload is performed.
         '''
-        self.channel_delays_computed = dict()
+        delays =  np.array( list(self.channel_delays.values()))
+        max_delay = np.max(delays)
+        min_delay = np.min(delays)
 
         for channel in self.channel_delays:
-            self.channel_delays_computed[channel] = (self.__get_pre_delay(channel), self.__get_post_delay(channel))
+            delay = self.channel_delays[channel]
 
+            # note: pre_delay is passed as a negative value
+            pre_delay = -(delay - min_delay)
+            post_delay = max_delay - delay
 
-    def __calculate_total_channel_delay(self):
-        '''
-        function for calculating how many ns time there is a delay in between the channels.
-        Also support for negative delays...
+            self.channel_delays_computed[channel] = (pre_delay, post_delay)
 
-        returns:
-            tot_delay (the total delay)
-            max_delay (hight amount of the delay)
-        '''
-
-        delays =  np.array( list(self.channel_delays.values()))
-        tot_delay = np.max(delays) - np.min(delays)
-
-        return tot_delay, np.max(delays)
-
-    def __get_pre_delay(self, channel):
-        '''
-        get the of ns that a channel needs to be pushed forward/backward.
-        returns
-            pre-delay : number of points that need to be pushed in from of the segment
-        '''
-        tot_delay, max_delay = self.__calculate_total_channel_delay()
-        max_pre_delay = tot_delay - max_delay
-        delay = self.channel_delays[channel]
-        return -(delay + max_pre_delay)
-
-    def __get_post_delay(self, channel):
-        '''
-        get the of ns that a channel needs to be pushed forward/backward.
-        returns
-            post-delay: number of points that need to be pushed after the segment
-        '''
-        tot_delay, max_delay = self.__calculate_total_channel_delay()
-        delay = self.channel_delays[channel]
-
-        return -delay + max_delay
 
     def _check_uniqueness_of_channel_name(self, channel_name):
         if channel_name in self.awg_channels:
