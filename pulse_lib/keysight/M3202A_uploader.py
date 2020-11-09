@@ -28,8 +28,6 @@ class M3202A_Uploader:
             None
         '''
         self.AWGs = AWGs
-        self.current_HVI = None
-        self.current_HVI_ID = None
 
         self.channel_names = channel_names
         self.channel_map = channel_map
@@ -38,6 +36,8 @@ class M3202A_Uploader:
         self.channel_attenuation = channel_attenuation
 
         self.jobs = []
+        # hvi is used by scheduler to check whether another hvi must be loaded.
+        self.hvi = None
 
 
     def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True):
@@ -111,19 +111,10 @@ class M3202A_Uploader:
             release_job (bool) : release memory on AWG after done.
         """
 
-        """
-        steps :
-        0) get upload data (min max voltages for all the channels, total time of the sequence, location where things are stored in the AWG memory.) and wait until the AWG is idle
-        1) set voltages for all the channels.
-        2) make queue for each channels (now assuming single waveform upload).
-        3) upload HVI code & start.
-        """
-        # 0)
         job =  self.__get_job(seq_id, index)
         self.wait_until_AWG_idle()
 
-        # 1 + 2)
-        # flush the queue's
+        # queue waveforms
         for channel_name, queue in job.channel_queues.items():
             """
             upload data <tuple>:
@@ -152,11 +143,9 @@ class M3202A_Uploader:
                         trigger_mode,start_delay,cycles, queue_item.prescaler)
                 trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
 
-        # 3)
-        job.HVI_start_function(job.HVI, self.AWGs, self.channel_map, job.playback_time, job.n_rep, **job.HVI_kwargs)
+        # start hvi
+        job.hw_schedule.start(job.playback_time, job.n_rep, job.schedule_params)
 
-
-        # determine if the current job needs to be reused.
         if release_job:
             job.release()
 
@@ -224,23 +213,19 @@ class Job(object):
         self.released = False
 
         self.channel_queues = dict()
-        self.HVI = None
+        self.hw_schedule = None
         logging.debug(f'new job {seq_id}-{index}')
 
 
-    def add_HVI(self, HVI, start_function, **kwargs):
+    def add_hw_schedule(self, hw_schedule, schedule_params):
         """
-        Introduce HVI functionality to the upload.
+        Add the scheduling to the AWG waveforms.
         args:
-            HVI (SD_HVI) : HVI object from the keysight libraries
-            compile_function (function) : function that compiles the HVI code. Default arguments that will be provided are (HVI, npt, n_rep) = (HVI object, number of points of the sequence, number of repetitions wanted)
-            start_function (function) :function to be executed to start the HVI (this can also be None)
-            kwargs : keyword arguments for the HVI script (see usage in the examples (e.g. when you want to provide your digitzer card))
+            hw_schedule (HardwareSchedule) : schedule for repetitively starting the AWG waveforms
+            kwargs : keyword arguments for the hardware schedule (see usage in the examples)
         """
-        self.HVI = HVI
-        self.HVI_start_function = start_function
-        self.HVI_kwargs = kwargs
-
+        self.hw_schedule = hw_schedule
+        self.schedule_params = schedule_params
 
     def add_waveform(self, channel_name, wave_ref, prescaler):
         if channel_name not in self.channel_queues:

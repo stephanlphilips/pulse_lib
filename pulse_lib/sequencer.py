@@ -1,11 +1,14 @@
 from qcodes import Parameter
-from pulse_lib.segments.segment_container import segment_container
-from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension
-from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
-from pulse_lib.segments.utility.looping import loop_obj
-from pulse_lib.keysight.M3202A_uploader import get_effective_sample_rate
-from pulse_lib.segments.data_classes.data_HVI_variables import marker_HVI_variable
-from pulse_lib.segments.data_classes.data_generic import data_container, parent_data
+
+from .keysight.M3202A_uploader import get_effective_sample_rate
+from .schedule.hardware_schedule import HardwareSchedule
+from .schedule.hvi_compatibility import HviCompatibilityWrapper
+from .segments.data_classes.data_HVI_variables import marker_HVI_variable
+from .segments.data_classes.data_generic import data_container, parent_data
+from .segments.segment_container import segment_container
+from .segments.utility.data_handling_functions import find_common_dimension, update_dimension
+from .segments.utility.setpoint_mgr import setpoint_mgr
+from .segments.utility.looping import loop_obj
 
 from si_prefix import si_format
 
@@ -40,11 +43,8 @@ class sequencer():
         # arguments of post processing the might be needed during rendering.
         self.neutralize = True
 
-        # HVI if needed..
-        self.HVI = None
-        self.HVI_compile_function = None
-        self.HVI_start_function = None
-        self.HVI_kwargs = None
+        # hardware schedule (HVI)
+        self.hw_schedule = None
 
         self.n_rep = 1000
         self._sample_rate = 1e9
@@ -176,6 +176,7 @@ class sequencer():
         '''
         self.neutralize = compenstate
 
+    # TODO: deprecate
     def add_HVI(self, HVI_ID, HVI_to_load, compile_function, start_function, **kwargs):
         '''
         Add HVI code to the AWG.
@@ -183,19 +184,34 @@ class sequencer():
             HVI_ID (str) : string that gives an ID to the HVI that is currently loaded.
             HVI_to_load (function) : function that returns a HVI file.
             compile_function (function) : Not used anymore.
-            start_function (function) : function to be executed to start the HVI (this can also be None)
-            kwargs : keyword arguments for the HVI script (see usage in the examples (e.g. when you want to provide your digitzer card))
+            start_function (function) : function to be executed to start the HVI
+            kwargs : keyword arguments for the HVI script (see usage in the examples (e.g. when you want to provide your digitizer card))
         '''
-        # @@@ current HVI is stored in uploader.
-        if self.uploader.current_HVI_ID != HVI_ID:
-            self.HVI = HVI_to_load(self.uploader.AWGs, self.uploader.channel_map, **kwargs)
-            self.uploader.current_HVI_ID = HVI_ID
-            self.uploader.current_HVI = self.HVI
+        if self.uploader.hvi is None or self.uploader.hvi.hvi_id != HVI_ID:
+            self.hw_schedule = HviCompatibilityWrapper(HVI_ID, self.uploader.AWGs, self.uploader.channel_map,
+                                                       HVI_to_load, start_function)
+            self.hw_schedule.load()
+            self.uploader.hvi = self.hw_schedule
         else:
-            self.HVI = self.uploader.current_HVI
+            self.hw_schedule = self.uploader.hvi
 
-        self.HVI_start_function = start_function
-        self.HVI_kwargs = kwargs
+        self.hw_schedule.set_schedule_parameters(**kwargs)
+
+    def set_hw_schedule(self, hw_schedule: HardwareSchedule, **kwargs):
+        '''
+        Sets hardware schedule for the sequence.
+        Args:
+            hw_schedule: object with load() and start() methods to load and start the hardware schedule.
+            kwargs : keyword arguments to be passed to the schedule.
+        '''
+        if self.uploader.hvi is None or self.uploader.hvi.hvi_id != hw_schedule.hvi_id:
+            self.hw_schedule = hw_schedule
+            self.hw_schedule.load()
+            self.uploader.hvi = self.hw_schedule
+        else:
+            self.hw_schedule = self.uploader.hvi
+
+        self.hw_schedule.set_schedule_parameters(**kwargs)
 
     def upload(self, index):
         '''
@@ -210,8 +226,8 @@ class sequencer():
 
         upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep, self._sample_rate, self.neutralize)
 
-        if self.HVI is not None:
-            upload_job.add_HVI(self.HVI, self.HVI_start_function, **{**self.HVI_kwargs, **self._HVI_variables.item(tuple(index)).HVI_markers})
+        if self.hw_schedule is not None:
+            upload_job.add_hw_schedule(self.hw_schedule, self._HVI_variables.item(tuple(index)).HVI_markers)
 
         self.uploader.add_upload_job(upload_job)
 
