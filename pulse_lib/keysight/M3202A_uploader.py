@@ -40,6 +40,15 @@ class M3202A_Uploader:
         self.hvi = None
 
 
+    def get_effective_sample_rate(self, sample_rate):
+        """
+        Returns the sample rate that will be used by the Keysight AWG.
+        This is the a rate >= requested sample rate.
+        """
+        awg = list(self.AWGs.values())[0]
+        return awg.convert_prescaler_to_sample_rate(awg.convert_sample_rate_to_prescaler(sample_rate))
+
+
     def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True):
         # remove any old job with same sequencer and index
         self.release_memory(seq_id, index)
@@ -128,22 +137,28 @@ class M3202A_Uploader:
             # This should happen in HVI
             # self.AWGs[awg_name].awg_stop(channel_number)
 
-            self.AWGs[awg_name].set_channel_amplitude(AwgConfig.MAX_AMPLITUDE/1000,channel_number)
-            self.AWGs[awg_name].set_channel_offset(0,channel_number)
+            self.AWGs[awg_name].set_channel_amplitude(AwgConfig.MAX_AMPLITUDE/1000, channel_number)
+            self.AWGs[awg_name].set_channel_offset(0, channel_number)
 
             # empty AWG queue
             self.AWGs[awg_name].awg_flush(channel_number)
 
             start_delay = 0 # no start delay
-            trigger_mode = 1 # software/HVI trigger
+            # Note: Keysight SD1 3.x requires trigger_mode 5 (trigger mode == 1 result in an exception)
+            trigger_mode = 5 # software/HVI trigger cycle
             cycles = 1
             for queue_item in queue:
-                self.AWGs[awg_name].awg_queue_waveform(
+                awg = self.AWGs[awg_name]
+                prescaler = awg.convert_sample_rate_to_prescaler(queue_item.sample_rate)
+                awg.awg_queue_waveform(
                         channel_number, queue_item.wave_reference,
-                        trigger_mode,start_delay,cycles, queue_item.prescaler)
+                        trigger_mode, start_delay, cycles, prescaler)
                 trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
 
         # start hvi
+        hw_schedule = job.hw_schedule
+        if not hw_schedule.is_loaded():
+            hw_schedule.load()
         job.hw_schedule.start(job.playback_time, job.n_rep, job.schedule_params)
 
         if release_job:
@@ -183,7 +198,7 @@ class M3202A_Uploader:
 @dataclass
 class AwgQueueItem:
     wave_reference: object
-    prescaler: int
+    sample_rate: float
 
 
 class Job(object):
@@ -227,11 +242,11 @@ class Job(object):
         self.hw_schedule = hw_schedule
         self.schedule_params = schedule_params
 
-    def add_waveform(self, channel_name, wave_ref, prescaler):
+    def add_waveform(self, channel_name, wave_ref, sample_rate):
         if channel_name not in self.channel_queues:
             self.channel_queues[channel_name] = []
 
-        self.channel_queues[channel_name].append(AwgQueueItem(wave_ref, prescaler))
+        self.channel_queues[channel_name].append(AwgQueueItem(wave_ref, sample_rate))
 
 
     def release(self):
@@ -366,7 +381,8 @@ class UploadAggregator:
                 istart[channel_name] = 0
                 iend[channel_name] = len_seq
                 duration = time.perf_counter() - start
-                logging.debug(f'added {iseq}:{channel_name} {len(wvf)} Sa, integral: {integral[channel_name]*1e3:6.2f} uVs in {duration*1000:6.3f} ms')
+                logging.debug(f'added {iseq}:{channel_name} {len(wvf[channel_name])} Sa, '
+                              f'integral: {integral[channel_name]*1e3:6.2f} uVs in {duration*1000:6.3f} ms')
 
 
             # create welding region if sample_rate decreases
@@ -380,7 +396,8 @@ class UploadAggregator:
                     xseg = wvf[channel_name]
                     nwelding_ch = nwelding + self.get_suffix_length(1e9/sample_rate_prev, channel_info)
                     if np.round(nwelding_ch*ts_welding/t_sample) >= len(xseg):
-                        raise Exception(f'segment {iseq} too short for welding. (nwelding_ch:{nwelding_ch} len_wvf:{len(xseg)})')
+                        raise Exception(f'segment {iseq} too short for welding. (nwelding_ch:{nwelding_ch} '
+                                        f'len_wvf:{len(xseg)})')
                     isub = [np.round((i*ts_welding)/t_sample) for i in np.arange(nwelding_ch)]
                     welding_samples = np.take(xseg, isub)
                     self.add_data(channel_info, welding_samples, 0)
@@ -479,8 +496,7 @@ class UploadAggregator:
             waveform = self.get_upload_data(channel_info)
 
             wave_ref = awg_upload_func(channel_name, waveform)
-            prescaler = convert_sample_rate_to_prescaler(sample_rate)
-            job.add_waveform(channel_name, wave_ref, prescaler)
+            job.add_waveform(channel_name, wave_ref, sample_rate)
             section_info.waveforms[channel_name] = waveform
 
 
@@ -624,46 +640,3 @@ class UploadAggregator:
             return -channel_info.integral / channel_info.dc_compensation_min
 
 
-def convert_sample_rate_to_prescaler(sample_rate):
-    """
-    Keysight specific function.
-
-    Args:
-        sample_rate (float) : sample rate
-    Returns:
-        prescaler (int) : prescaler set to the awg.
-    """
-    if sample_rate > 200e6:
-        prescaler = 0
-    elif sample_rate > 50e6:
-        prescaler = 1
-    else:
-        prescaler = int(1e9/(5*sample_rate*2))
-
-    return prescaler
-
-
-def get_effective_sample_rate(sample_rate):
-    """
-    Returns the sample rate that will be used by the Keysight AWG.
-    This is the a rate >= requested sample rate.
-    """
-    return convert_prescaler_to_sample_rate(convert_sample_rate_to_prescaler(sample_rate))
-
-
-def convert_prescaler_to_sample_rate(prescaler):
-    """
-    Keysight specific function.
-
-    Args:
-        prescaler (int) : prescaler set to the awg.
-
-    Returns:
-        sample_rate (float) : effective sample rate the AWG will be running
-    """
-    if prescaler == 0:
-        return 1e9
-    if prescaler == 1:
-        return 200e6
-    else:
-        return 1e9/(2*5*prescaler)

@@ -1,6 +1,5 @@
 from qcodes import Parameter
 
-from .keysight.M3202A_uploader import get_effective_sample_rate
 from .schedule.hardware_schedule import HardwareSchedule
 from .schedule.hvi_compatibility import HviCompatibilityWrapper
 from .segments.data_classes.data_HVI_variables import marker_HVI_variable
@@ -101,7 +100,7 @@ class sequencer():
         Args:
             rate (float) : target sample rate for the AWG (unit : Sa/s).
         """
-        self._sample_rate = get_effective_sample_rate(rate)
+        self._sample_rate = self.uploader.get_effective_sample_rate(rate)
 
         msg = f"effective sampling rate is set to {si_format(self._sample_rate, precision=1)}Sa/s"
         logging.info(msg)
@@ -123,7 +122,7 @@ class sequencer():
 
         for seg_container in self.sequence:
             if seg_container.sample_rate is not None:
-                effective_rate = get_effective_sample_rate(seg_container.sample_rate)
+                effective_rate = self.uploader.get_effective_sample_rate(seg_container.sample_rate)
                 msg = f"effective sampling rate for {seg_container.name} is set to {si_format(effective_rate, precision=1)}Sa/s"
                 logging.info(msg)
                 print("Info : " + msg)
@@ -190,7 +189,6 @@ class sequencer():
         if self.uploader.hvi is None or self.uploader.hvi.hvi_id != HVI_ID:
             self.hw_schedule = HviCompatibilityWrapper(HVI_ID, self.uploader.AWGs, self.uploader.channel_map,
                                                        HVI_to_load, start_function)
-            self.hw_schedule.load()
             self.uploader.hvi = self.hw_schedule
         else:
             self.hw_schedule = self.uploader.hvi
@@ -206,7 +204,6 @@ class sequencer():
         '''
         if self.uploader.hvi is None or self.uploader.hvi.hvi_id != hw_schedule.hvi_id:
             self.hw_schedule = hw_schedule
-            self.hw_schedule.load()
             self.uploader.hvi = self.hw_schedule
         else:
             self.hw_schedule = self.uploader.hvi
