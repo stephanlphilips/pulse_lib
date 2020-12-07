@@ -188,6 +188,7 @@ class segment_base():
         data_org = self.data
         self.data = data_item
         item = copy.copy(self)
+        item.data = data_item # TODO [SdS]: make clean solution
         self.data = data_org
         return item
 
