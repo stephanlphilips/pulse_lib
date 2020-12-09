@@ -125,13 +125,6 @@ class M3202A_Uploader:
 
         # queue waveforms
         for channel_name, queue in job.channel_queues.items():
-            """
-            upload data <tuple>:
-                [0] <tuple <double>> : min output voltate, max output voltage
-                [1] <list <tuple <mem_loc<int>, n_rep<int>, precaler<int>> : upload locations of differnt segments
-                    (by definition backend now merges all segments in 1 since it should
-                    not slow you down, but option is left open if this would change .. )
-            """
             awg_name, channel_number = self.channel_map[channel_name]
 
             # This should happen in HVI
@@ -159,6 +152,7 @@ class M3202A_Uploader:
         hw_schedule = job.hw_schedule
         if not hw_schedule.is_loaded():
             hw_schedule.load()
+
         job.hw_schedule.start(job.playback_time, job.n_rep, job.schedule_params)
 
         if release_job:
