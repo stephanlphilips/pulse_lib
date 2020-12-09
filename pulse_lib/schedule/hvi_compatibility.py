@@ -10,6 +10,7 @@ from .hardware_schedule import HardwareSchedule
 
 class HviCompatibilityWrapper(HardwareSchedule):
     verbose = False
+    loaded_schedule = None
 
     def __init__(self, HVI_ID, AWGs, channel_map, load_HVI, execute_HVI):
         self.awgs = AWGs
@@ -31,6 +32,7 @@ class HviCompatibilityWrapper(HardwareSchedule):
     def load(self):
         if self.hvi is None:
             self.hvi = self.load_hvi(self.awgs, self.channel_map, **self.schedule_parms)
+        HviCompatibilityWrapper.loaded_schedule = self.hvi
 
     def is_loaded(self):
         return self.hvi is not None
@@ -54,9 +56,10 @@ class HviCompatibilityWrapper(HardwareSchedule):
         self.hvi.close()
         self.hvi = None
         self.hvi_id = '<not loaded>'
+        HviCompatibilityWrapper.loaded_schedule = None
 
     def __del__(self):
-        if self.hvi is not None:
+        if self.hvi is not None and HviCompatibilityWrapper.loaded_schedule == self.hvi:
             try:
                 logging.warn(f'Automatic close of HVI in __del__()')
                 self.close()

@@ -187,6 +187,9 @@ class sequencer():
             kwargs : keyword arguments for the HVI script (see usage in the examples (e.g. when you want to provide your digitizer card))
         '''
         if self.uploader.hvi is None or self.uploader.hvi.hvi_id != HVI_ID:
+            if self.uploader.hvi is not None:
+                self.uploader.hvi.close()
+
             self.hw_schedule = HviCompatibilityWrapper(HVI_ID, self.uploader.AWGs, self.uploader.channel_map,
                                                        HVI_to_load, start_function)
             self.uploader.hvi = self.hw_schedule
