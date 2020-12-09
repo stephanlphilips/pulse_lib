@@ -477,9 +477,10 @@ def reduce_arr(arr):
     data_axis = []
     slice_array = ()
     for i in range(ndim):
-        slc_arr = i*(0,) + (slice(None),) + (ndim - i - 1) * (0,)
-        new_arr = arr[slc_arr]
-        if not np.all(new_arr == new_arr[0]):
+        mn = np.min(arr, axis=i)
+        mx = np.max(arr, axis=i)
+        eq = np.all(mn == mx)
+        if not eq:
             data_axis.append(ndim - i - 1)
             slice_array += (slice(None),)
         else:

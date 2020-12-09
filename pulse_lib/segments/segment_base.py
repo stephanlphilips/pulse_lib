@@ -177,9 +177,19 @@ class segment_base():
         Args:
             *key (int/slice object) : key of the element -- just use numpy style accessing (slicing supported)
         '''
-        item = copy.copy(self)
-        item.data = data_container(self.data[key[0]])
+        data_item = self.data[key[0]]
+        if not isinstance(data_item, data_container):
+            # If the slice contains only 1 element, then it's not a data_container anymore.
+            # Put it in a data_container to maintain pulse_lib structure.
+            data_item = data_container(data_item)
 
+        # To avoid unnecessary copying of data we first slice on self, copy, and then restore data in self.
+        # This trick makes the indexing operation orders faster.
+        data_org = self.data
+        self.data = data_item
+        item = copy.copy(self)
+        item.data = data_item # TODO [SdS]: make clean solution
+        self.data = data_org
         return item
 
     @last_edited
