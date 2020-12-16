@@ -90,3 +90,30 @@ class MockM3202A(Instrument):
 
     def get_data_prescaler(self, channel):
         return self.channel_data[channel], self.channel_prescaler[channel]
+
+    def convert_sample_rate_to_prescaler(self, sample_rate):
+        """
+        Args:
+            sample_rate (float) : sample rate
+        Returns:
+            prescaler (int) : prescaler set to the awg.
+        """
+        # 0 = 1000e6, 1 = 200e6, 2 = 100e6, 3=66.7e6
+        prescaler = int(200e6/sample_rate)
+
+        return prescaler
+
+
+    def convert_prescaler_to_sample_rate(self, prescaler):
+        """
+        Args:
+            prescaler (int) : prescaler set to the awg.
+
+        Returns:
+            sample_rate (float) : effective sample rate the AWG will be running
+        """
+        # 0 = 1000e6, 1 = 200e6, 2 = 100e6, 3=66.7e6
+        if prescaler == 0:
+            return 1e9
+        else:
+            return 200e6/prescaler
