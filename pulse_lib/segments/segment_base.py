@@ -20,11 +20,11 @@ def last_edited(f):
     just a simpe decorater used to say that a certain wavefrom is updaded and therefore a new upload needs to be made to the awg.
     '''
     @wraps(f)
-    def wrapper(*args):
+    def wrapper(*args, **kwargs):
         if args[0].render_mode == True:
             ValueError("cannot alter this segment, this segment ({}) in render mode.".format(args[0].name))
         args[0]._last_edit = last_edit.ToRender
-        return f(*args)
+        return f(*args, **kwargs)
     return wrapper
 
 class last_edit:
