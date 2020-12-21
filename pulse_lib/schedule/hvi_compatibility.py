@@ -52,11 +52,12 @@ class HviCompatibilityWrapper(HardwareSchedule):
             return awg.awg_is_running(channel)
 
     def close(self):
-        self.hvi.releaseHW()
-        self.hvi.close()
-        self.hvi = None
-        self.hvi_id = '<not loaded>'
-        HviCompatibilityWrapper.loaded_schedule = None
+        if self.hvi is not None:
+            self.hvi.releaseHW()
+            self.hvi.close()
+            self.hvi = None
+            self.hvi_id = '<not loaded>'
+            HviCompatibilityWrapper.loaded_schedule = None
 
     def __del__(self):
         if self.hvi is not None and HviCompatibilityWrapper.loaded_schedule == self.hvi:
