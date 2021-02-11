@@ -3,6 +3,8 @@ data class to make pulses.
 """
 import numpy as np
 import copy
+from dataclasses import dataclass
+from typing import Any, Dict, Callable, List
 
 import pulse_lib.segments.utility.segments_c_func as seg_func
 from pulse_lib.segments.utility.segments_c_func import py_calc_value_point_in_between, get_effective_point_number
@@ -10,6 +12,25 @@ from pulse_lib.segments.data_classes.data_generic import parent_data, data_conta
 from pulse_lib.segments.data_classes.data_IQ import envelope_generator
 from pulse_lib.segments.data_classes.data_pulse_core import pulse_data_single_sequence, base_pulse_element
 # import time as tm
+
+@dataclass
+class custom_pulse_element:
+    start: float
+    stop: float
+    func: Callable[..., np.ndarray]
+    kwargs: Dict[str,Any]
+
+def shift_start_stop(data:List[Any], delta) -> None:
+    for element in data:
+        element.start += delta
+        element.stop += delta
+    return data
+
+def get_max_time(data:List[Any]) -> float:
+    stop = 0
+    for element in data:
+        stop = max(stop, element.stop)
+    return stop
 
 class pulse_data(parent_data):
     """
@@ -19,10 +40,12 @@ class pulse_data(parent_data):
         super().__init__()
         self.baseband_pulse_data = pulse_data_single_sequence()
         self.MW_pulse_data = list()
+        self.custom_pulse_data = list()
 
         self.start_time = 0
         self.MW_end_time = 0
         self.global_phase = 0
+        self.custom_end_time = 0
 
     def add_pulse_data(self, my_input):
         self.baseband_pulse_data.add_pulse(my_input)
@@ -38,6 +61,11 @@ class pulse_data(parent_data):
         if self.MW_end_time < MW_data_object.stop:
             self.MW_end_time = MW_data_object.stop
 
+    def add_custom_pulse_data(self, custom_pulse:custom_pulse_element):
+        self.custom_pulse_data.append(custom_pulse)
+        if self.custom_end_time < custom_pulse.stop:
+            self.custom_end_time = custom_pulse.stop
+
     @property
     def total_time(self):
         '''
@@ -46,10 +74,7 @@ class pulse_data(parent_data):
         Returns:
             total_time (float) : total time of the segment.
         '''
-        if self.baseband_pulse_data.total_time < self.MW_end_time:
-            return self.MW_end_time
-
-        return self.baseband_pulse_data.total_time
+        return max(self.baseband_pulse_data.total_time, self.MW_end_time, self.custom_end_time)
 
     def reset_time(self, time,  extend_only = False):
         '''
@@ -93,12 +118,18 @@ class pulse_data(parent_data):
         else:
             self.slice_time(0, time)
 
-        other._shift_all_time_MW(time)
-        new_MW_pulse_data =  self.MW_pulse_data +  copy.copy(other.MW_pulse_data)
-        other._shift_all_time_MW(-time)
+
+        other_MW_pulse_data = copy.deepcopy(other.MW_pulse_data)
+        shift_start_stop(other_MW_pulse_data, time)
+        other_custom_pulse_data = copy.deepcopy(other.custom_pulse_data)
+        shift_start_stop(other_custom_pulse_data, time)
 
         self.baseband_pulse_data.append(other.baseband_pulse_data)
-        self.MW_pulse_data = new_MW_pulse_data
+        self.MW_pulse_data += other_MW_pulse_data
+        self.custom_pulse_data += other_custom_pulse_data
+
+        self.MW_end_time = get_max_time(self.MW_pulse_data)
+        self.custom_end_time = get_max_time(self.custom_pulse_data)
 
     def repeat(self, n):
         """
@@ -108,14 +139,21 @@ class pulse_data(parent_data):
         """
         time = self.total_time
         new_MW_pulse_data =  copy.copy(self.MW_pulse_data)
+        new_custom_pulse_data =  copy.copy(self.custom_pulse_data)
 
         for i in range(n):
-            self._shift_all_time_MW(time)
-            shifted_MW = copy.deepcopy(self.MW_pulse_data)
-            new_MW_pulse_data +=  shifted_MW
+            shifted_MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
+            shift_start_stop(shifted_MW_pulse_data, (i+1)*time)
+            shifted_custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
+            shift_start_stop(shifted_custom_pulse_data, (i+1)*time)
+            new_MW_pulse_data +=  shifted_MW_pulse_data
+            new_custom_pulse_data +=  shifted_custom_pulse_data
 
-        self._shift_all_time_MW(-n*time)
         self.MW_pulse_data = new_MW_pulse_data
+        self.custom_pulse_data = new_custom_pulse_data
+
+        self.MW_end_time = get_max_time(self.MW_pulse_data)
+        self.custom_end_time = get_max_time(self.custom_pulse_data)
 
         self.baseband_pulse_data.repeat(n)
 
@@ -129,6 +167,7 @@ class pulse_data(parent_data):
         '''
         self.baseband_pulse_data.slice_time(start, end)
         self.__slice_MW_data(start, end)
+        self.__slice_custom_pulse_data(start, end)
 
     '''
     Properties of the waveform
@@ -140,7 +179,7 @@ class pulse_data(parent_data):
 
         If sine waves included, will take the maximum of the total render. If not, it just takes the max of the pulse data.
         '''
-        if len(self.MW_pulse_data) == 0:
+        if len(self.MW_pulse_data) == 0 and len(self.custom_pulse_data) == 0:
             return self.baseband_pulse_data.v_max
         else:
             return np.max(self.render(sample_rate=1e9))
@@ -151,7 +190,7 @@ class pulse_data(parent_data):
 
         If sine waves included, will take the minimum of the total render. If not, it just takes the min of the pulse data.
         '''
-        if len(self.MW_pulse_data) == 0:
+        if len(self.MW_pulse_data) == 0 and len(self.custom_pulse_data) == 0:
             return self.baseband_pulse_data.v_min
         else:
             return np.min(self.render(sample_rate=1e9))
@@ -173,6 +212,10 @@ class pulse_data(parent_data):
 
         for i in range(len(baseband_pulse)-1):
             integrated_value += (baseband_pulse[i,1] + baseband_pulse[i+1,1])/2*(baseband_pulse[i+1,0] - baseband_pulse[i,0])
+
+        for custom_pulse in self.custom_pulse_data:
+            integrated_value += np.sum(self._render_custom_pulse(custom_pulse, sample_rate))
+
         integrated_value *= 1e-9
 
         return integrated_value
@@ -202,6 +245,29 @@ class pulse_data(parent_data):
                 new_MW_data.append(i)
 
         self.MW_pulse_data = new_MW_data
+
+    def __slice_custom_pulse_data(self, start, end):
+        '''
+        slice custom_data
+
+        Args:
+            Start (double) : enforced minimal starting time
+            End (double) : enforced max time
+        '''
+        new_custom_data = []
+
+        for i in self.custom_pulse_data:
+            if i.start < start:
+                i.start = start
+            if i.stop > end:
+                i.stop = end
+
+            if i.start < i.stop:
+                i.start -= start
+                i.stop -= start
+                new_custom_data.append(i)
+
+        self.custom_pulse_data = new_custom_data
 
     def shift_MW_frequency(self, frequency):
         '''
@@ -269,9 +335,13 @@ class pulse_data(parent_data):
         my_copy = pulse_data()
         my_copy.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
         my_copy.MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
+        my_copy.custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
         my_copy.start_time = copy.copy(self.start_time)
         my_copy.software_marker_data = copy.copy(self.software_marker_data)
         my_copy.global_phase = copy.copy(self.global_phase)
+        my_copy.MW_end_time = get_max_time(my_copy.MW_pulse_data)
+        my_copy.custom_end_time = get_max_time(my_copy.custom_pulse_data)
+
         return my_copy
 
     def __add__(self, other):
@@ -283,17 +353,16 @@ class pulse_data(parent_data):
             # is there a need for copy command  -- investigate is this would start effecting performance.
             new_data.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
             new_data.baseband_pulse_data += other.baseband_pulse_data
-            MW_pulse_data = copy.copy(self.MW_pulse_data)
-            MW_pulse_data.extend(other.MW_pulse_data)
-            new_data.MW_pulse_data = MW_pulse_data
+            new_data.MW_pulse_data = self.MW_pulse_data + other.MW_pulse_data
+            new_data.custom_pulse_data = self.custom_pulse_data + other.custom_pulse_data
 
         elif type(other) == int or type(other) == float:
             new_pulse = copy.copy(self.baseband_pulse_data)
             new_pulse.add_pulse(base_pulse_element(0,-1, other, other))
             new_data.baseband_pulse_data = new_pulse
 
-            MW_pulse_data = copy.copy(self.MW_pulse_data)
-            new_data.MW_pulse_data = MW_pulse_data
+            new_data.MW_pulse_data = copy.copy(self.MW_pulse_data)
+            new_data.custom_pulse_data = copy.copy(self.custom_pulse_data)
 
         else:
             raise TypeError("Please add up pulse_data object (or pulse/IQ segment type) type or a number ")
@@ -317,11 +386,17 @@ class pulse_data(parent_data):
                 IQ_data_single_object_cpy.amplitude *=other
                 new_data.MW_pulse_data.append(IQ_data_single_object_cpy)
 
+            new_data.custom_pulse_data = copy.copy(self.custom_pulse_data)
+
         else:
             raise TypeError("multiplication should be done with a number, type {} not supported".format(type(other)))
 
         return new_data
 
+    def _render_custom_pulse(self, custom_pulse, sample_rate):
+        duration = custom_pulse.stop - custom_pulse.start
+        data = custom_pulse.func(duration, sample_rate, **custom_pulse.kwargs)
+        return data
 
     def _render(self, sample_rate):
         '''
@@ -399,6 +474,12 @@ class pulse_data(parent_data):
             my_sequence[start_pt:stop_pt] += amp*amp_envelope*np.sin(
                     2*np.pi*freq/sample_rate*1e-9*(np.arange(n_pt)+start_pt)
                     + phase + phase_envelope )
+
+        for custom_pulse in self.custom_pulse_data:
+            data = self._render_custom_pulse(custom_pulse, sample_rate*1e9)
+            start_pt = get_effective_point_number(custom_pulse.start, sample_time_step)
+            stop_pt = start_pt + len(data)
+            my_sequence[start_pt:stop_pt] += data
 
         # remove last value. t_tot_pt = t_tot + 1. Last value is always 0. It is only needed in the loop on the baseband pulses.
         return my_sequence[:-1]

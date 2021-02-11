@@ -6,7 +6,7 @@ import numpy as np
 
 from pulse_lib.segments.segment_base import last_edited, segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller
-from pulse_lib.segments.data_classes.data_pulse import pulse_data
+from pulse_lib.segments.data_classes.data_pulse import pulse_data, custom_pulse_element
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.data_classes.data_pulse_core import base_pulse_element
@@ -21,7 +21,7 @@ class IQ_render_info:
     """
     LO : float
     virtual_channel_name: str
-    virtual_channel_pointer: segment_IQ #TODO fix to segment_IQ data type, needs to be post loaded somehow. 
+    virtual_channel_pointer: segment_IQ #TODO fix to segment_IQ data type, needs to be post loaded somehow.
     IQ_render_option : str
     image_render_option : str
 
@@ -49,10 +49,10 @@ class segment_pulse(segment_base):
         pulse = base_pulse_element(start + self.data_tmp.start_time,stop + self.data_tmp.start_time, amplitude, amplitude)
         if stop == -1:
             pulse = base_pulse_element(start + self.data_tmp.start_time,stop , amplitude, amplitude)
-        
+
         self.data_tmp.add_pulse_data(pulse)
         return self.data_tmp
-    
+
     @last_edited
     @loop_controller
     def add_ramp(self, start, stop, amplitude, keep_amplitude=False):
@@ -64,7 +64,7 @@ class segment_pulse(segment_base):
             amplitude : total hight of the ramp, starting from the base point
             keep_amplitude : when pulse is done, keep reached amplitude for time infinity
         '''
-        
+
         pulse = base_pulse_element(start + self.data_tmp.start_time,stop + self.data_tmp.start_time, 0, amplitude)
         self.data_tmp.add_pulse_data(pulse)
 
@@ -122,10 +122,31 @@ class segment_pulse(segment_base):
         self.data_tmp.add_MW_data(IQ_data_single(start + self.data_tmp.start_time, stop + self.data_tmp.start_time, amp, freq, phase_offset))
         return self.data_tmp
 
+
     @last_edited
     @loop_controller
-    def add_np(self,start, array):
-        raise NotImplemented
+    def add_custom_pulse(self, start, stop, custom_func, **kwargs):
+        """
+        Adds a custom pulse to this segment.
+        Args:
+            start (double) : start time in ns of the pulse
+            stop (double) : stop time in ns of the pulse
+            custom_func: function to generate the samples for this pulse. It must return a 1D numpy array.
+            kwargs: keyword arguments passed into the custom_func
+
+        Example:
+            def tukey_pulse(duration, sample_rate, amplitude, alpha):
+                n_points = int(round(duration / sample_rate * 1e9))
+                return signal.windows.tukey(n_points, alpha) * amplitude
+
+            seg.add_custom_pulse(0, 10, tukey_pulse, alpha=0.5, amplitude=142.0)
+
+        """
+        pulse_data = custom_pulse_element(start + self.data_tmp.start_time, stop + self.data_tmp.start_time,
+                                          custom_func, kwargs)
+        self.data_tmp.add_custom_pulse_data(pulse_data)
+        return self.data_tmp
+
 
     def add_reference_channel(self, virtual_channel_reference_info):
         '''
@@ -164,7 +185,7 @@ class segment_pulse(segment_base):
     def __copy__(self):
         cpy = segment_pulse(self.name)
         return self._copy(cpy)
-    
+
 
 
 
