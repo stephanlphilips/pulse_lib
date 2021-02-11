@@ -213,8 +213,16 @@ def loop_controller(func):
 
         # todo update : (not used atm, but just to be generaric.)
         for lp in loop_info_kwargs:
-            new_dim = get_new_dim_loop(obj.data.shape, lp)
-            obj.data = update_dimension(obj.data, new_dim)
+            for i in range(len(lp['axis'])-1,-1,-1):
+                new_dim, axis = get_new_dim_loop(obj.data.shape, lp['axis'][i], lp['shape'][i])
+                lp['axis'][i] = axis
+                obj.data = update_dimension(obj.data, new_dim)
+
+                if lp['setpnt'] is not None:
+                    lp['setpnt'][i].axis = axis
+                    obj._setpoints += lp['setpnt'][i]
+#            new_dim = get_new_dim_loop(obj.data.shape, lp)
+#            obj.data = update_dimension(obj.data, new_dim)
 
         loop_over_data(func, obj.data, args, loop_info_args, kwargs, loop_info_kwargs)
 
@@ -299,7 +307,7 @@ def loop_over_data(func, data, args, args_info, kwargs, kwargs_info):
                 args_cpy[arg['nth_arg']] = args[arg['nth_arg']][i]
         for kwarg in kwargs_info:
             if n_dim-1 in kwarg['axis']:
-                kwargs_cpy[kwargs_info['nth_arg']] = kwargs[kwargs_info['nth_arg']][i]
+                kwargs_cpy[kwarg['nth_arg']] = kwargs[kwarg['nth_arg']][i]
 
         if n_dim == 1:
             # we are at the lowest level of the loop.
