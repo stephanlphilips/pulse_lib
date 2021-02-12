@@ -17,6 +17,7 @@ from pulse_lib.segments.data_classes.data_pulse_core import pulse_data_single_se
 class custom_pulse_element:
     start: float
     stop: float
+    amplitude: float
     func: Callable[..., np.ndarray]
     kwargs: Dict[str,Any]
 
@@ -386,8 +387,10 @@ class pulse_data(parent_data):
                 IQ_data_single_object_cpy.amplitude *=other
                 new_data.MW_pulse_data.append(IQ_data_single_object_cpy)
 
-            new_data.custom_pulse_data = copy.copy(self.custom_pulse_data)
-
+            for custom_pulse in self.custom_pulse_data:
+                new = copy.copy(custom_pulse)
+                new.amplitude *= other
+                new_data.custom_pulse_data.append(new)
         else:
             raise TypeError("multiplication should be done with a number, type {} not supported".format(type(other)))
 
@@ -395,7 +398,7 @@ class pulse_data(parent_data):
 
     def _render_custom_pulse(self, custom_pulse, sample_rate):
         duration = custom_pulse.stop - custom_pulse.start
-        data = custom_pulse.func(duration, sample_rate, **custom_pulse.kwargs)
+        data = custom_pulse.func(duration, sample_rate, custom_pulse.amplitude, **custom_pulse.kwargs)
         return data
 
     def _render(self, sample_rate):

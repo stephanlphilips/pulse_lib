@@ -125,12 +125,13 @@ class segment_pulse(segment_base):
 
     @last_edited
     @loop_controller
-    def add_custom_pulse(self, start, stop, custom_func, **kwargs):
+    def add_custom_pulse(self, start, stop, amplitude, custom_func, **kwargs):
         """
         Adds a custom pulse to this segment.
         Args:
             start (double) : start time in ns of the pulse
             stop (double) : stop time in ns of the pulse
+            amplitude (double) : amplitude of the pulse
             custom_func: function to generate the samples for this pulse. It must return a 1D numpy array.
             kwargs: keyword arguments passed into the custom_func
 
@@ -139,11 +140,11 @@ class segment_pulse(segment_base):
                 n_points = int(round(duration / sample_rate * 1e9))
                 return signal.windows.tukey(n_points, alpha) * amplitude
 
-            seg.add_custom_pulse(0, 10, tukey_pulse, alpha=0.5, amplitude=142.0)
+            seg.add_custom_pulse(0, 10, 142.0, tukey_pulse, alpha=0.5)
 
         """
         pulse_data = custom_pulse_element(start + self.data_tmp.start_time, stop + self.data_tmp.start_time,
-                                          custom_func, kwargs)
+                                          amplitude, custom_func, kwargs)
         self.data_tmp.add_custom_pulse_data(pulse_data)
         return self.data_tmp
 
