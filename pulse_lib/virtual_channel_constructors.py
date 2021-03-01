@@ -113,8 +113,6 @@ class marker_info:
     structure to save relevant information about marker data.
     """
     Marker_channel: str
-    pre_delay: float = 0.0
-    post_delay: float = 0.0
 
 @dataclass
 class virtual_pulse_channel_info:
@@ -128,7 +126,7 @@ class virtual_pulse_channel_info:
     @property
     def segment(self):
         return getattr(self.seg_container, self.name)
-    
+
 
 @dataclass
 class IQ_channel_info:
@@ -189,7 +187,7 @@ class IQ_channel_constructor(object):
             image (str) : "+" or "-", specify only when differential inputs are needed.
         """
 
-        self.__check_channel_name(channel_name)
+        self.__check_awg_channel_name(channel_name)
 
         IQ_comp = IQ_comp.upper()
         if IQ_comp not in ["I", "Q"]:
@@ -200,7 +198,7 @@ class IQ_channel_constructor(object):
 
         self.IQ_channel_map.append(IQ_channel_info(channel_name, IQ_comp, image))
 
-    def add_marker(self, channel_name, pre_delay, post_delay):
+    def add_marker(self, channel_name, pre_delay=0, post_delay=0):
         """
         Channel for in phase information of the IQ channel (postive image)
         Args:
@@ -208,8 +206,10 @@ class IQ_channel_constructor(object):
             pre_delay (float) : number of ns that the marker needs to be send before the IQ pulse.
             post_delay (float) : how long to keep the marker on after the IQ pulse is done.
         """
-        self.__check_channel_name(channel_name)
-        self.markers.append(marker_info(channel_name, pre_delay, post_delay))
+        if pre_delay or post_delay:
+            raise Exception(f'delays must be set with pulse_lib.define_marker(name, before_ns=value, after_ns=value)')
+        self.__check_marker_channel_name(channel_name)
+        self.markers.append(marker_info(channel_name))
 
     def set_LO(self, LO):
         """
@@ -231,11 +231,20 @@ class IQ_channel_constructor(object):
         """
         self.virtual_channel_map.append(virtual_channel_info(virtual_channel_name, LO_freq))
 
-    def __check_channel_name(self, channel_name):
+    def __check_awg_channel_name(self, channel_name):
         """
         quickly checks that if the channel that is given has a valid name.
         Args:
             channel_name (str) : name of the physical channel to check
         """
         if channel_name not in self.pulse_lib_obj.awg_channels:
+            raise ValueError("The given channel {} does not exist. Please specify first the physical channels on the AWG and then make the virtual ones.".format(channel_name))
+
+    def __check_marker_channel_name(self, channel_name):
+        """
+        quickly checks that if the channel that is given has a valid name.
+        Args:
+            channel_name (str) : name of the physical channel to check
+        """
+        if channel_name not in self.pulse_lib_obj.marker_channels:
             raise ValueError("The given channel {} does not exist. Please specify first the physical channels on the AWG and then make the virtual ones.".format(channel_name))

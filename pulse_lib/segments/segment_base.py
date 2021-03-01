@@ -312,7 +312,7 @@ class segment_base():
             for ref_chan in self.references_markers:
                 my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.IQ_channel_ptr.shape)# Luca modification
                 self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape) # Luca modification
-                self._pulse_data_all += ref_chan.IQ_channel_ptr.get_marker_data()#ref_chan.pre_delay, ref_chan.post_delay)
+                self._pulse_data_all += ref_chan.IQ_channel_ptr.get_marker_data()
 
             self._last_edit = last_edit.Rendered
 
@@ -370,7 +370,7 @@ class segment_base():
         return self._get_data_all_at(index).get_vmax(sample_rate)
 
     def v_min(self, index, sample_rate = 1e9):
-        return self._get_data_all_at(index).get_vmax(sample_rate)
+        return self._get_data_all_at(index).get_vmin(sample_rate)
 
     def integrate(self, index, sample_rate = 1e9):
         '''

@@ -60,10 +60,10 @@ class segment_container():
 
         # define real channels (+ markers)
         for name in channel_names:
-            if name in markers:
-                setattr(self, name, segment_marker(name, self._software_markers))
-            else:
-                setattr(self, name, segment_pulse(name, self._software_markers))
+            setattr(self, name, segment_pulse(name, self._software_markers))
+            self.channels.append(name)
+        for name in markers:
+            setattr(self, name, segment_marker(name, self._software_markers))
             self.channels.append(name)
 
         # define virtual gates
@@ -457,7 +457,7 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
 
             for virtual_channel_name in IQ_channels_obj.virtual_channel_map:
                 virtual_channel = getattr(segment_container_obj, virtual_channel_name.channel_name)
-                real_channel_marker.add_reference_marker_IQ(virtual_channel, marker_info.pre_delay, marker_info.post_delay)
+                real_channel_marker.add_reference_marker_IQ(virtual_channel)
 
 
 if __name__ == '__main__':
@@ -480,7 +480,7 @@ if __name__ == '__main__':
     seg.a.add_IQ_channel(1e9, "q1", chan, "I", "0")
     seg.b.add_IQ_channel(1e9, "q1", chan, "Q", "0")
 
-    seg.M1.add_reference_marker_IQ(chan, 5,10)
+    seg.M1.add_reference_marker_IQ(chan)
 
 
     seg.a.add_block(0,lp.linspace(50,100,10),100)
