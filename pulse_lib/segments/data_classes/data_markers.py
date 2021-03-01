@@ -6,6 +6,12 @@ from pulse_lib.segments.utility.segments_c_func import get_effective_point_numbe
 
 import numpy as np
 import copy
+from dataclasses import dataclass
+
+@dataclass
+class marker_pulse:
+    start: float
+    stop: float
 
 class marker_data(parent_data):
     def __init__(self, pulse_amplitude = 1000):
@@ -30,8 +36,8 @@ class marker_data(parent_data):
             stop (double) : stop time of the marker
         """
         if stop < start:
-            raise ValueError("please provive a end time ({}) that is bigger than the start time ({}) for the marker".format(stop, start))
-        self.my_marker_data.append( (start + self.start_time, stop + self.start_time) )
+            raise ValueError(f"Start time ({start}) should be > stop time ({stop})")
+        self.my_marker_data.append( marker_pulse(start + self.start_time, stop + self.start_time) )
 
         if stop + self.start_time > self.end_time:
             self.end_time = self.start_time + stop
@@ -139,8 +145,8 @@ class marker_data(parent_data):
         data_copy_shifted = copy.copy(self)
 
         for i in range(len(data_copy_shifted.my_marker_data)):
-            data_copy_shifted.my_marker_data[i] = (data_copy_shifted.my_marker_data[i][0] + time_shift,
-                                                            data_copy_shifted.my_marker_data[i][1] + time_shift)
+            data_copy_shifted.my_marker_data[i] = marker_pulse(data_copy_shifted.my_marker_data[i].start + time_shift,
+                                                               data_copy_shifted.my_marker_data[i].stop + time_shift)
 
 
         return data_copy_shifted
@@ -153,7 +159,7 @@ class marker_data(parent_data):
         """
 
         if not isinstance(other, marker_data):
-            raise ValueError("only makers can be added to makers. No other types allowed.")
+            raise ValueError("only markers can be added to markers. No other types allowed.")
 
         new_data = marker_data()
         new_data.my_marker_data += self.my_marker_data
@@ -189,39 +195,38 @@ class marker_data(parent_data):
 
         my_sequence = np.zeros([int(t_tot_pt)])
 
-
         for data_points in self.my_marker_data:
-            start = get_effective_point_number(data_points[0], sample_time_step)
-            stop = get_effective_point_number(data_points[1], sample_time_step)
+            start = get_effective_point_number(data_points.start, sample_time_step)
+            stop = get_effective_point_number(data_points.stop, sample_time_step)
 
             my_sequence[start:stop] = 1*self.pulse_amplitude
 
         return my_sequence[:-1]
 
-def slice_out_marker_single(start, stop, start_stop_position):
+def slice_out_marker_single(start, stop, start_stop_pulse):
     """
     check if start stop falls in valid range.
     Args:
         start (double) : startpoint of where the marker must be in
         end (double) : endpoint where the marker must be in.
-        start_stop_position (tuple) : tuple iwht start and stop point of the marker.
+        start_stop_position (marker_pulse) : tuple iwht start and stop point of the marker.
     Return:
         True/False if start and stop are not in range
         start_stop_position (tuple) : sliced time.
 
     Function also fixes the time in the pointer that is given.
     """
-    start_stop_position = list(start_stop_position)
-    if start_stop_position[1] <= start or start_stop_position[0] >= stop:
+    if start_stop_pulse.stop <= start or start_stop_pulse.start >= stop:
         return False
 
-    if start_stop_position[0] < start:
-        start_stop_position[0] = start
+    result = copy.copy(start_stop_pulse)
+    if result.start < start:
+        result.start = start
 
-    if start_stop_position[1] > stop:
-        start_stop_position[1] = stop
+    if result.stop > stop:
+        result.stop = stop
 
-    start_stop_position[0] -= start
-    start_stop_position[1] -= start
+    result.start -= start
+    result.stop -= start
 
-    return True, tuple(start_stop_position)
+    return True, result
