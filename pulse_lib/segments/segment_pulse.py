@@ -2,17 +2,13 @@
 Class that is used to make DC pulses.
 """
 
-import numpy as np
-
 from pulse_lib.segments.segment_base import last_edited, segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller
 from pulse_lib.segments.data_classes.data_pulse import pulse_data, custom_pulse_element
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
-from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.data_classes.data_pulse_core import base_pulse_element
 from pulse_lib.segments.segment_IQ import segment_IQ
 from dataclasses import dataclass
-import copy
 
 @dataclass
 class IQ_render_info:
@@ -189,7 +185,6 @@ class segment_pulse(segment_base):
 
 
 
-
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
@@ -204,7 +199,7 @@ if __name__ == '__main__':
     print(a, b, a+b)
     t2 = linspace(100,500, 20, axis= 0)
     t = linspace(1,50, 10000, name = "test", unit = "test", axis= 0)
-    import time
+
     # s.data_tmp = s.data[0]
     s.add_block(20, 50, 20)
     print(s.data[0].total_time)

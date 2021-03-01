@@ -1,9 +1,13 @@
 
 import logging
 from dataclasses import dataclass
+from typing import List, Tuple
+
+import numpy as np
+import matplotlib.pyplot as pt
 
 from qcodes.instrument.base import Instrument
-from typing import List
+
 
 class MemoryManager:
     def __init__(self):
@@ -91,7 +95,8 @@ class MockM3202A(Instrument):
     def get_data_prescaler(self, channel):
         return self.channel_data[channel], self.channel_prescaler[channel]
 
-    def convert_sample_rate_to_prescaler(self, sample_rate):
+    @staticmethod
+    def convert_sample_rate_to_prescaler(sample_rate):
         """
         Args:
             sample_rate (float) : sample rate
@@ -104,7 +109,8 @@ class MockM3202A(Instrument):
         return prescaler
 
 
-    def convert_prescaler_to_sample_rate(self, prescaler):
+    @staticmethod
+    def convert_prescaler_to_sample_rate(prescaler):
         """
         Args:
             prescaler (int) : prescaler set to the awg.
@@ -117,3 +123,63 @@ class MockM3202A(Instrument):
             return 1e9
         else:
             return 200e6/prescaler
+
+    def plot(self):
+        for channel in range(1,5):
+            data, prescaler = self.get_data_prescaler(channel)
+            print(f'data: {[(len(s),p) for s,p in zip(data,prescaler)]}')
+
+            if len(data) == 0:
+                continue
+
+            wave_data = []
+            t = []
+            t0 = 0
+            for d,p in zip(data, prescaler):
+                sr = MockM3202A.convert_prescaler_to_sample_rate(p)
+                if p == 0:
+                    ts = np.arange(len(d))/sr + t0
+                    t0 = ts[-1] + 1/sr
+                    wd = d
+                else:
+                    ts = np.arange(len(d)+1)/sr + t0
+                    ts = np.repeat(ts,2)[1:-1]
+                    t0 = ts[-1]
+                    wd = np.repeat(d,2)
+
+                t.append(ts)
+                wave_data.append(wd)
+
+            wave = np.concatenate(wave_data)
+            t = np.concatenate(t)*1e9
+            pt.plot(t, wave, label=f'{self.name}-{channel}')
+
+
+class MockM3202A_fpga(MockM3202A):
+    '''
+    Extension of M3202A with fpga programmed features:
+        * markers via TriggerOut
+        * local oscillators (TODO)
+        * DC compensation (TODO)
+    '''
+    def __init__(self, name, chassis, slot):
+        super().__init__(name, chassis, slot)
+        self.marker_table = []
+
+    def load_marker_table(self, table:List[Tuple[int,int]]):
+        '''
+        Args:
+            table: list with tuples (time on, time off)
+        '''
+        self.marker_table = table.copy()
+
+    def plot(self):
+        super().plot()
+        t = []
+        values = []
+        print(self.marker_table)
+        for m in self.marker_table:
+            t += [m[0], m[0], m[1], m[1]]
+            values += [0, 1.5, 1.5, 0]
+
+        pt.plot(t, values, ':', label=f'{self.name}-T')

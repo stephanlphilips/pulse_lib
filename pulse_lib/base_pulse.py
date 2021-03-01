@@ -1,8 +1,8 @@
 import numpy as np
-import copy
 
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
+from pulse_lib.configuration.physical_channels import awg_channel, marker_channel
 
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
@@ -14,24 +14,19 @@ class pulselib:
     you can than later combine them into a sequence, this sequence will be uploaded
     '''
     def __init__(self, backend = "M3202A"):
-        # awg channels and locations need to be input parameters.
         self.awg_devices = dict()
-        self.awg_channels = []
-        self.awg_markers = []
+        self.awg_channels = dict()
+        self.marker_channels = dict()
         self.virtual_channels = []
-        self.IQ_channels = []
+        self.IQ_channels = [] # TODO: add to name check, channel list
 
         self._backend = backend
 
-        self.channel_delays = dict()
-        self.channel_delays_computed = dict()
-        self.channel_compenstation_limits = dict()
-        self.channels_to_physical_locations = dict()
-        self.AWG_to_dac_ratio = dict()
-
     @property
     def channels(self):
-        channels = copy.copy(self.awg_channels)
+        channels = []
+        channels += self.awg_channels.keys()
+        channels += self.marker_channels.keys()
         for i in self.virtual_channels:
             channels += i.virtual_gate_names
         return channels
@@ -43,7 +38,7 @@ class pulselib:
             name (str) : name you want to give to a peculiar AWG
             awg (object) : qcodes object of the concerning AWG
         '''
-        self.awg_devices[name] =awg
+        self.awg_devices[name] = awg
 
     def define_channel(self, channel_name, AWG_name, channel_number):
         '''
@@ -54,28 +49,21 @@ class pulselib:
             channel_number (int) : channel number on the AWG
         '''
         self._check_uniqueness_of_channel_name(channel_name)
+        self.awg_channels[channel_name] = awg_channel(channel_name, AWG_name, channel_number)
 
-        self.awg_channels.append(channel_name)
-        self.AWG_to_dac_ratio[channel_name] = 1
-
-        # initialize basic properties of the channel
-        self.channel_delays[channel_name] = 0
-        self.channel_delays_computed[channel_name] = (0,0)
-        self.channel_compenstation_limits[channel_name] = (0,0)
-        self.channels_to_physical_locations[channel_name] = (AWG_name, channel_number)
-        self.__process_channel_delays()
-
-    def define_marker(self, marker_name, AWG_name, channel_number):
+    def define_marker(self, marker_name, AWG_name, channel_number, before_ns=0, after_ns=0,
+                      amplitude=1000, invert=False):
         '''
         define the channels and their location
         Args:
             marker_name (str) : name of a given channel on the AWG. This would usually the name of the gate that it is connected to.
             AWG_name (str) : name of the instrument (as given in add_awgs())
             channel_number (int) : channel number on the AWG
+            before_ns (float): extenstion of the marker pulse raising the marker before requested marker pulse
+            after_ns (float): extenstion of the marker pulse holding the marker after requested marker pulse
         '''
-        self.awg_markers.append(marker_name)
-        self.define_channel(marker_name, AWG_name, channel_number)
-        self.__process_channel_delays()
+        self.marker_channels[marker_name] = marker_channel(marker_name, AWG_name, channel_number,
+                                                           before_ns, after_ns, amplitude, invert)
 
     def add_channel_delay(self, channel, delay):
         '''
@@ -87,42 +75,50 @@ class pulselib:
         Args:
             channel (str) : channel name as defined in self.define_channel().
             delay (int): delay of the current coax line (this may be a postive or negative number)
-
-        Returns:
-            0/Error
         '''
         if channel in self.awg_channels:
-            self.channel_delays[channel] = delay
+            self.awg_channels[channel].delay = delay
         else:
-            raise ValueError("Channel delay error: Channel '{}' does not exist. Please provide valid input".format(channel))
+            raise ValueError(f"Channel delay error: Channel '{channel}' is not defined")
 
-        self.__process_channel_delays()
-        return 0
 
     def add_channel_compenstation_limit(self, channel_name, limit):
+        # call the method with the correct name
+        self.add_channel_compensation_limit(channel_name, limit)
+
+    def add_channel_compensation_limit(self, channel_name, limit):
         '''
-        add voltage limitations per channnel that can be used to make sure that the intragral of the total voltages is 0.
+        add voltage limitations per channnel that can be used to make sure that the intregral of the total voltages is 0.
         Args:
             channel (str) : channel name as defined in self.define_channel().
             limit (tuple<float,float>) : lower/upper limit for DC compensation, e.g. (-100,500)
-        Returns:
-            None
         '''
         if channel_name in self.awg_channels:
-            self.channel_compenstation_limits[channel_name] = limit
+            self.awg_channels[channel_name].compensation_limits = limit
         else:
-            raise ValueError("Channel voltage compenstation error: Channel '{}' does not exist. Please provide valid input".format(channel_name))
+            raise ValueError(f"Channel compensation delay error: Channel '{channel_name}' is not defined")
+
+    def add_channel_attenuation(self, channel_name, attenuation):
+        '''
+        Sets channel attenuation factor (AWG-to-DAC ratio).
+        Args:
+            channel_name (str) : channel name as defined in self.define_channel().
+            attenuation (float) : attenuation factor
+        '''
+        if channel_name in self.awg_channels:
+            self.awg_channels[channel_name].attenuation = attenuation
+        else:
+            raise ValueError(f"Channel '{channel_name}' is not defined")
+
 
     def finish_init(self):
         # function that finishes the initialisation
-        # TODO rewrite, so this function is embedded in the other ones.
 
         if self._backend == "keysight":
             raise Exception('Old keysight driver is not supported anymore. Use M3202A driver and backend="M3202A"')
 
         elif self._backend == "M3202A":
-            self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels, self.channels_to_physical_locations,
-                                            self.channel_delays_computed, self.channel_compenstation_limits, self.AWG_to_dac_ratio)
+            self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels, self.marker_channels)
 
     def mk_segment(self, name=None, sample_rate=None):
         '''
@@ -130,7 +126,8 @@ class pulselib:
         Returns:
             segment (segment_container) : returns a container that contains all the previously defined gates.
         '''
-        return segment_container(self.awg_channels, self.awg_markers, self.virtual_channels, self.IQ_channels,
+        return segment_container(self.awg_channels.keys(), self.marker_channels.keys(),
+                                 self.virtual_channels, self.IQ_channels,
                                  name=name, sample_rate=sample_rate)
 
     def mk_sequence(self,seq):
@@ -162,9 +159,9 @@ class pulselib:
 
         self.uploader.release_memory()
 
-        for awg_name, channel_number in self.channels_to_physical_locations.values():
-            awg = self.awg_devices[awg_name]
-            awg.awg_flush(channel_number)
+        for channel in self.awg_channels:
+            awg = self.awg_devices[channel.awg_name]
+            awg.awg_flush(channel.channel_number)
 
 
     def load_hardware(self, hardware):
@@ -179,32 +176,22 @@ class pulselib:
             vgc.load_via_harware(virtual_gate_set)
 
         # set output ratio's of the channels from the harware file.
-        if self.AWG_to_dac_ratio.keys() == hardware.AWG_to_dac_conversion.keys():
-            self.AWG_to_dac_ratio = hardware.AWG_to_dac_conversion
-        else:
-            hardware.AWG_to_dac_conversion = self.AWG_to_dac_ratio
+
+        # copy all named channels from harware file to awg_channels
+        for channel, attenuation in hardware.AWG_to_dac_conversion.items():
+            self.awg_channels[channel].attenuation = attenuation
+
+        sync = False
+        for channel in self.awg_channels.values():
+            if channel.name not in hardware.AWG_to_dac_conversion:
+                hardware.AWG_to_dac_conversion[channel.name] = channel.attenuation
+                sync = True
+        if sync:
             hardware.sync_data()
-
-    def __process_channel_delays(self):
-        '''
-        Makes a variable that contains the amount of points that need to be put before and after when a upload is performed.
-        '''
-        delays =  np.array( list(self.channel_delays.values()))
-        max_delay = np.max(delays)
-        min_delay = np.min(delays)
-
-        for channel in self.channel_delays:
-            delay = self.channel_delays[channel]
-
-            # note: pre_delay is passed as a negative value
-            pre_delay = -(delay - min_delay)
-            post_delay = max_delay - delay
-
-            self.channel_delays_computed[channel] = (pre_delay, post_delay)
 
 
     def _check_uniqueness_of_channel_name(self, channel_name):
-        if channel_name in self.awg_channels:
+        if channel_name in self.awg_channels or channel_name in self.marker_channels:
             raise ValueError("double declaration of the a channel/marker name ({}).".format(channel_name))
 
 

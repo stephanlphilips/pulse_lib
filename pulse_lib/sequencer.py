@@ -190,7 +190,8 @@ class sequencer():
             if self.uploader.hvi is not None:
                 self.uploader.hvi.close()
 
-            self.hw_schedule = HviCompatibilityWrapper(HVI_ID, self.uploader.AWGs, self.uploader.channel_map,
+            channel_map = {key:(value.awg_name,value.channel_number) for key,value in self.uploader.awg_channels.items()}
+            self.hw_schedule = HviCompatibilityWrapper(HVI_ID, self.uploader.AWGs, channel_map,
                                                        HVI_to_load, start_function)
             self.uploader.hvi = self.hw_schedule
         else:

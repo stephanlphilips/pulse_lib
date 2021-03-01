@@ -13,7 +13,7 @@ As data format we will use a class to store
 * freq1
 * freq2 (opt)
 * amp
-* phase 
+* phase
 
 TODO : change dicts to keep the data to an object!!
 '''
@@ -36,14 +36,14 @@ class segment_IQ(segment_base):
     """
     def __init__(self, name, HVI_variable_data = None,):
         '''
-        Args: 
+        Args:
             name : name of the IQ segment
             HVI_variable_data (segment_HVI_variables) : segment used to keep variables that can be used in HVI.
 
         Tip, make on of these segments for each qubit. Then you get a very clean implementation of reference frame changes!
         '''
         super().__init__(name, pulse_data(), HVI_variable_data ,segment_type = 'IQ_virtual')
-        
+
         # generator to be set for automated phase compenstation in between pulses. @TODO!!
         self.qubit_freq = 0
 
@@ -119,24 +119,24 @@ class segment_IQ(segment_base):
             local_data[i] = copy.copy(self.data.flat[i])
             local_data[i].shift_MW_phases(phase_shift)
             local_data[i].shift_MW_frequency(LO)
-        
+
         local_data = local_data.reshape(self.data.shape)
 
         return local_data
 
-    def get_marker_data(self, pre_delay, post_delay):
+    def get_marker_data(self):
         '''
         generate markers for the PM of the IQ modulation
         '''
         my_marker_data = update_dimension(data_container(marker_data()), self.shape)
         my_marker_data = my_marker_data.flatten()
-        
+
         # make a flat reference.
         local_data = self.data.flatten()
-        
+
         for i in range(len(local_data)):
             for MW_pulse_info in local_data[i].MW_pulse_data:
-                my_marker_data[i].add_marker(MW_pulse_info.start - pre_delay, MW_pulse_info.stop + post_delay)
+                my_marker_data[i].add_marker(MW_pulse_info.start, MW_pulse_info.stop)
 
         my_marker_data = my_marker_data.reshape(self.shape)
 
