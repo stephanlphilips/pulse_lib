@@ -68,7 +68,7 @@ class M3202A_Uploader:
 
         aggregator = UploadAggregator(self.awg_channels, self.marker_channels)
 
-        aggregator.upload_job(job, self.__upload_to_awg)
+        aggregator.upload_job(job, self.__upload_to_awg) # @@@ TODO split generation and upload
 
         self.jobs.append(job)
 
@@ -85,10 +85,18 @@ class M3202A_Uploader:
             awg_name = self.awg_channels[channel_name].awg_name
         elif channel_name in self.marker_channels:
             awg_name = self.marker_channels[channel_name].module_name
+        else:
+            raise Exception(f'Channel {channel_name} not found in configuration')
         awg = self.AWGs[awg_name]
         wave_ref = awg.upload_waveform(waveform)
         return wave_ref
 
+    def __upload_markers(self, channel_name, table):
+        if not channel_name in self.marker_channels:
+            raise Exception(f'Channel {channel_name} not found in configuration')
+        awg_name = self.marker_channels[channel_name].module_name
+        awg = self.AWGs[awg_name]
+        awg.load_marker_table(table)
 
     def __get_job(self, seq_id, index):
         """
@@ -119,7 +127,8 @@ class M3202A_Uploader:
         job =  self.__get_job(seq_id, index)
         self.wait_until_AWG_idle()
 
-        # TODO @@@ handle trigger out markers
+        for channel_name, marker_table in job.marker_tables.items():
+            self.__upload_markers(channel_name, marker_table)
 
         # queue waveforms
         for channel_name, queue in job.channel_queues.items():
@@ -313,7 +322,6 @@ class JobUploadInfo:
 class SegmentRenderInfo:
     # original times from sequence, but rounded for sample rates
     # first segment starts at t_start = 0
-    # TODO? : round to 100 ns?
     sample_rate: float
     t_start: float
     npt: int
@@ -596,7 +604,6 @@ class UploadAggregator:
             self._upload_wvf(job, channel_name, channel_info.attenuation, buffer, section.sample_rate, awg_upload_func)
 
     def _render_markers(self, job, awg_upload_func):
-        sections = job.upload_info.sections
         for channel_name, marker_channel in self.marker_channels.items():
             logging.info(f'Marker: {channel_name} ({marker_channel.amplitude} mV)')
             start_stop = []
@@ -610,49 +617,72 @@ class UploadAggregator:
                     start_stop.append((seg_render.t_start + pulse.start - marker_channel.before_ns, +1))
                     start_stop.append((seg_render.t_start + pulse.stop + marker_channel.after_ns, -1))
 
-            if len(start_stop) == 0:
-                continue
+            if len(start_stop) > 0:
+                m = np.array(start_stop)
+                ind = np.argsort(m[:,0])
+                m = m[ind]
+            else:
+                m = []
 
-            amplitude = marker_channel.amplitude
-            m = np.array(start_stop)
-            ind = np.argsort(m[:,0])
-            m = m[ind]
+            if marker_channel.channel_number == 0:
+                self._upload_fpga_markers(job, marker_channel, m)
+            else:
+                self._upload_awg_markers(job, marker_channel, m, awg_upload_func)
 
-            buffers = [np.zeros(section.npt) for section in sections]
-            i_section = 0
-            s = 0
-            t_on = 0
-            for on_off in m:
-                s += on_off[1]
-                if s < 0:
-                    logging.error(f'Marker error {channel_name} {on_off}')
-                if s == 1 and on_off[1] == 1:
-                    t_on = on_off[0]
-                if s == 0 and on_off[1] == -1:
-                    t_off = on_off[0]
-                    logging.info(f'Marker: {t_on} - {t_off}')
-                    # search start section
-                    while t_on >= sections[i_section].t_end:
+    def _upload_awg_markers(self, job, marker_channel, m, awg_upload_func):
+        # TODO @@@ : round section length to 100 ns and use max 1e8 Sa/s rendering?
+        sections = job.upload_info.sections
+        amplitude = marker_channel.amplitude
+        buffers = [np.zeros(section.npt) for section in sections]
+        i_section = 0
+        s = 0
+        t_on = 0
+        for on_off in m:
+            s += on_off[1]
+            if s < 0:
+                logging.error(f'Marker error {marker_channel.name} {on_off}')
+            if s == 1 and on_off[1] == 1:
+                t_on = on_off[0]
+            if s == 0 and on_off[1] == -1:
+                t_off = on_off[0]
+                logging.info(f'Marker: {t_on} - {t_off}')
+                # search start section
+                while t_on >= sections[i_section].t_end:
+                    i_section += 1
+                section = sections[i_section]
+                pt_on = int((t_on - section.t_start) * section.sample_rate)
+                if t_off < section.t_end:
+                    pt_off = int((t_off - section.t_start) * section.sample_rate)
+                    buffers[i_section][pt_on:pt_off] = amplitude
+                else:
+                    buffers[i_section][pt_on:] = amplitude
+                    i_section += 1
+                    # search end section
+                    while t_off >= sections[i_section].t_end:
+                        buffers[i_section][:] = amplitude
                         i_section += 1
                     section = sections[i_section]
-                    pt_on = int((t_on - section.t_start) * section.sample_rate)
-                    if t_off < section.t_end:
-                        pt_off = int((t_off - section.t_start) * section.sample_rate)
-                        buffers[i_section][pt_on:pt_off] = amplitude
-                    else:
-                        buffers[i_section][pt_on:] = amplitude
-                        i_section += 1
-                        # search end section
-                        while t_off >= sections[i_section].t_end:
-                            buffers[i_section][:] = amplitude
-                            i_section += 1
-                        section = sections[i_section]
-                        pt_off = int((t_off - section.t_start) * section.sample_rate)
-                        buffers[i_section][:pt_off] = amplitude
+                    pt_off = int((t_off - section.t_start) * section.sample_rate)
+                    buffers[i_section][:pt_off] = amplitude
 
-            for buffer, section in zip(buffers, sections):
-                self._upload_wvf(job, channel_name, 1.0, buffer, section.sample_rate, awg_upload_func)
+        for buffer, section in zip(buffers, sections):
+            self._upload_wvf(job, marker_channel.name, 1.0, buffer, section.sample_rate, awg_upload_func)
 
+    def _upload_fpga_markers(self, job, marker_channel, m):
+        table = []
+        job.marker_tables[marker_channel.name] = table
+        s = 0
+        t_on = 0
+        for on_off in m:
+            s += on_off[1]
+            if s < 0:
+                logging.error(f'Marker error {marker_channel.name} {on_off}')
+            if s == 1 and on_off[1] == 1:
+                t_on = on_off[0]
+            if s == 0 and on_off[1] == -1:
+                t_off = on_off[0]
+                logging.info(f'Marker: {t_on} - {t_off}')
+                table.append((t_on, t_off))
 
     def _upload_wvf(self, job, channel_name, attenuation, waveform, sample_rate, awg_upload_func):
         # note: numpy inplace multiplication is much faster than standard multiplication
@@ -664,6 +694,8 @@ class UploadAggregator:
     def upload_job(self, job, awg_upload_func):
 
         job.upload_info = JobUploadInfo()
+        job.marker_tables = {} # @@@ add to upload_info?
+
         self._integrate(job)
 
         self._generate_sections(job)
