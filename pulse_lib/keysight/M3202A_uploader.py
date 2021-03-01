@@ -127,9 +127,6 @@ class M3202A_Uploader:
         for channel_name, queue in job.channel_queues.items():
             awg_name, channel_number = self.channel_map[channel_name]
 
-            # This should happen in HVI
-            # self.AWGs[awg_name].awg_stop(channel_number)
-
             self.AWGs[awg_name].set_channel_amplitude(AwgConfig.MAX_AMPLITUDE/1000, channel_number)
             self.AWGs[awg_name].set_channel_offset(0, channel_number)
 
@@ -137,8 +134,7 @@ class M3202A_Uploader:
             self.AWGs[awg_name].awg_flush(channel_number)
 
             start_delay = 0 # no start delay
-            # Note: Keysight SD1 3.x requires trigger_mode 5 (trigger mode == 1 result in an exception)
-            trigger_mode = 5 # software/HVI trigger cycle
+            trigger_mode = 1 # software/HVI trigger
             cycles = 1
             for queue_item in queue:
                 awg = self.AWGs[awg_name]
