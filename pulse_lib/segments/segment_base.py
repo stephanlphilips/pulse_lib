@@ -112,19 +112,6 @@ class segment_base():
         self.data_tmp.wait(time)
         return self.data_tmp
 
-    @property
-    def shape(self):
-        if self.render_mode == False:
-            return self.data.shape
-        else:
-            return self.pulse_data_all.shape
-
-    @property
-    def ndim(self):
-        if self.render_mode == False:
-            return self.data.ndim
-        else:
-            return self.pulse_data_all.shape
 
     @property
     def setpoints(self):
@@ -300,59 +287,7 @@ class segment_base():
         self.data_tmp.slice_time(start_time, stop_time)
         return self.data_tmp
 
-    @property
-    def total_time(self,):
-        if self.render_mode == False:
-            return self.data.total_time
-        else:
-            return self.pulse_data_all.total_time
-
-    @property
-    def start_time(self,):
-        if self.render_mode == False:
-            return self.data.start_time
-        else:
-            return self.pulse_data_all.start_time
-
-    def get_segment(self, index, sample_rate=1e9):
-        '''
-        get the numpy output of as segment
-
-        Args:
-            index of segment (list) : which segment to render (e.g. [0] if dimension is 1 or [2,5,10] if dimension is 3)
-            sample_rate (float) : #/s (number of samples per second)
-
-        Returns:
-            A numpy array that contains the points for each ns
-            points is the expected lenght.
-        '''
-        wvf = self._generate_segment(index, sample_rate)
-        return wvf
-
-    def v_max(self, index, sample_rate = 1e9):
-        index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
-
-        return self.pulse_data_all.flat[index].get_vmax()
-
-    def v_min(self, index, sample_rate = 1e9):
-        index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
-        return self.pulse_data_all.flat[index].get_vmin()
-
-    def integrate(self, index, sample_rate = 1e9):
-        '''
-        Get integral value of the waveform (e.g. to calculate an automatic compensation)
-
-        Args:
-            index (tuple) : index of the concerning waveform
-            sample_rate (double) : rate at which to render the pulse
-
-        Returns:
-            intergral (float) : integral of the pulse
-        '''
-        flat_index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
-        pulse_data_all_curr_seg = self.pulse_data_all.flat[flat_index]
-
-        return pulse_data_all_curr_seg.integrate_waveform(sample_rate)
+    # ==== getters on all_data
 
     @property
     def pulse_data_all(self):
@@ -377,11 +312,102 @@ class segment_base():
             for ref_chan in self.references_markers:
                 my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.IQ_channel_ptr.shape)# Luca modification
                 self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape) # Luca modification
-                self._pulse_data_all += ref_chan.IQ_channel_ptr.get_marker_data(ref_chan.pre_delay, ref_chan.post_delay)
+                self._pulse_data_all += ref_chan.IQ_channel_ptr.get_marker_data()#ref_chan.pre_delay, ref_chan.post_delay)
 
             self._last_edit = last_edit.Rendered
 
         return self._pulse_data_all
+
+    @property
+    def shape(self):
+        if self.render_mode == False:
+            return self.data.shape
+        else:
+            return self.pulse_data_all.shape
+
+    @property
+    def ndim(self):
+        if self.render_mode == False:
+            return self.data.ndim
+        else:
+            return self.pulse_data_all.shape
+
+    @property
+    def total_time(self):
+        if self.render_mode == False:
+            return self.data.total_time
+        else:
+            return self.pulse_data_all.total_time
+
+    @property
+    def start_time(self):
+        if self.render_mode == False:
+            return self.data.start_time
+        else:
+            return self.pulse_data_all.start_time
+
+    # ==== operations working on an index
+
+    def _get_data_all_at(self, index):
+        index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
+        return self.pulse_data_all.flat[index]
+
+    def get_segment(self, index, sample_rate=1e9):
+        '''
+        get the numpy output of as segment
+
+        Args:
+            index of segment (list) : which segment to render (e.g. [0] if dimension is 1 or [2,5,10] if dimension is 3)
+            sample_rate (float) : #/s (number of samples per second)
+
+        Returns:
+            A numpy array that contains the points for each ns
+            points is the expected lenght.
+        '''
+        return self._get_data_all_at(index).render(sample_rate)
+
+    def v_max(self, index, sample_rate = 1e9):
+        return self._get_data_all_at(index).get_vmax(sample_rate)
+
+    def v_min(self, index, sample_rate = 1e9):
+        return self._get_data_all_at(index).get_vmax(sample_rate)
+
+    def integrate(self, index, sample_rate = 1e9):
+        '''
+        Get integral value of the waveform (e.g. to calculate an automatic compensation)
+
+        Args:
+            index (tuple) : index of the concerning waveform
+            sample_rate (double) : rate at which to render the pulse
+
+        Returns:
+            integral (float) : integral of the pulse
+        '''
+        return self._get_data_all_at(index).integrate_waveform(sample_rate)
+
+
+    def plot_segment(self, index = [0], render_full = True, sample_rate = 1e9):
+        '''
+        Args:
+            index : index of which segment to plot
+            render full (bool) : do full render (e.g. also get data form virtual channels). Put True if you want to see the waveshape send to the AWG.
+            sample_rate (float): standard 1 Gs/s
+        '''
+
+        if render_full == True:
+            pulse_data_curr_seg = self._get_data_all_at(index)
+        else:
+            flat_index = np.ravel_multi_index(tuple(index), self.data.shape)
+            pulse_data_curr_seg = self.data.flat[flat_index]
+
+        y = pulse_data_curr_seg.render(sample_rate)
+        x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))
+        # print(x, y)
+        plt.plot(x,y, label=self.name)
+        plt.xlabel("time (ns)")
+        plt.ylabel("amplitude (mV)")
+        plt.legend()
+        # plt.show()
 
     @property
     def last_edit(self):
@@ -396,45 +422,4 @@ class segment_base():
                 self._last_edit = last_edit.ToRender
 
         return self._last_edit
-
-    def _generate_segment(self, index, sample_rate = 1e9):
-        '''
-        Generate numpy array of the segment
-
-        Args:
-            index (tuple) : index of the segement to generate
-            sample rate (double) : sample rate of the pulse to be rendered at.
-        '''
-
-        # get object with the concerning data
-        flat_index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
-        pulse_data_all_curr_seg = self.pulse_data_all.flat[flat_index]
-
-        my_sequence = pulse_data_all_curr_seg.render(sample_rate)
-        return my_sequence
-
-    def plot_segment(self, index = [0], render_full = True, sample_rate = 1e9):
-        '''
-        Args:
-            index : index of which segment to plot
-            render full (bool) : do full render (e.g. also get data form virtual channels). Put True if you want to see the waveshape send to the AWG.
-            sample_rate (float): standard 1 Gs/s
-        '''
-
-        if render_full == True:
-            flat_index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
-            pulse_data_curr_seg = self.pulse_data_all.flat[flat_index]
-        else:
-            flat_index = np.ravel_multi_index(tuple(index), self.data.shape)
-            pulse_data_curr_seg = self.data.flat[flat_index]
-
-        y = pulse_data_curr_seg.render(sample_rate)
-        x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))
-        # print(x, y)
-        plt.plot(x,y, label=self.name)
-        plt.xlabel("time (ns)")
-        plt.ylabel("amplitude (mV)")
-        plt.legend()
-        # plt.show()
-
 
