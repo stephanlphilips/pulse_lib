@@ -91,7 +91,8 @@ class MockM3202A(Instrument):
     def get_data_prescaler(self, channel):
         return self.channel_data[channel], self.channel_prescaler[channel]
 
-    def convert_sample_rate_to_prescaler(self, sample_rate):
+    @staticmethod
+    def convert_sample_rate_to_prescaler(sample_rate):
         """
         Args:
             sample_rate (float) : sample rate
@@ -104,7 +105,8 @@ class MockM3202A(Instrument):
         return prescaler
 
 
-    def convert_prescaler_to_sample_rate(self, prescaler):
+    @staticmethod
+    def convert_prescaler_to_sample_rate(prescaler):
         """
         Args:
             prescaler (int) : prescaler set to the awg.
