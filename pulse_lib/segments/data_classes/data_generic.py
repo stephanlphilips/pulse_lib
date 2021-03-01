@@ -117,8 +117,6 @@ class parent_data(ABC):
         '''
         renders pulse
         Args:
-            pre_delay (double) : amount of time to put before the sequence the rendering needs to start
-            post_delay (double) : to which point in time the rendering needs to go
             sample_rate (double) : rate at which the AWG will be run
         returns
             pulse (np.ndarray) : numpy array of the pulse
