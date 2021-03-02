@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import List, Tuple, Dict, Optional
 
-#from ..hardware.channels import compute_channel_delays
+import keysightSD1 as SD1
 
 class AwgConfig:
     MAX_AMPLITUDE = 1500 # mV
@@ -92,11 +92,19 @@ class M3202A_Uploader:
         return wave_ref
 
     def __upload_markers(self, channel_name, table):
+        start = time.perf_counter()
         if not channel_name in self.marker_channels:
             raise Exception(f'Channel {channel_name} not found in configuration')
-        awg_name = self.marker_channels[channel_name].module_name
+        marker_channel = self.marker_channels[channel_name]
+        awg_name = marker_channel.module_name
         awg = self.AWGs[awg_name]
+        awg.config_fpga_trigger(
+                SD1.SD_TriggerExternalSources.TRIGGER_EXTERN,
+                SD1.SD_FpgaTriggerDirection.INOUT,
+                SD1.SD_TriggerPolarity.ACTIVE_HIGH if not marker_channel.invert else SD1.SD_TriggerPolarity.ACTIVE_LOW
+                )
         awg.load_marker_table(table)
+        logging.info(f'marker for {channel_name} loaded in {(time.perf_counter()-start)*1000:4.2f} ms')
 
     def __get_job(self, seq_id, index):
         """
@@ -132,6 +140,9 @@ class M3202A_Uploader:
 
         # queue waveforms
         for channel_name, queue in job.channel_queues.items():
+            offset = 0
+            amplitude = AwgConfig.MAX_AMPLITUDE/1000
+
             if channel_name in self.awg_channels:
                 channel = self.awg_channels[channel_name]
                 awg_name = channel.awg_name
@@ -140,11 +151,14 @@ class M3202A_Uploader:
                 channel = self.marker_channels[channel_name]
                 awg_name = channel.module_name
                 channel_number = channel.channel_number
+                if channel.invert:
+                    offset = channel.amplitude/1000
+                    amplitude = -amplitude
             else:
                 raise Exception(f'Undefined channel {channel_name}')
 
-            self.AWGs[awg_name].set_channel_amplitude(AwgConfig.MAX_AMPLITUDE/1000, channel_number)
-            self.AWGs[awg_name].set_channel_offset(0, channel_number)
+            self.AWGs[awg_name].set_channel_amplitude(amplitude, channel_number)
+            self.AWGs[awg_name].set_channel_offset(offset, channel_number)
 
             # empty AWG queue
             self.AWGs[awg_name].awg_flush(channel_number)
@@ -303,9 +317,9 @@ class RenderSection:
 
     def align(self, extend):
         if extend:
-            self.npt = ((self.npt + AwgConfig.ALIGNMENT - 1) // AwgConfig.ALIGNMENT) * AwgConfig.ALIGNMENT
+            self.npt = int((self.npt + AwgConfig.ALIGNMENT - 1) // AwgConfig.ALIGNMENT) * AwgConfig.ALIGNMENT
         else:
-            self.npt = (self.npt // AwgConfig.ALIGNMENT) * AwgConfig.ALIGNMENT
+            self.npt = int(self.npt // AwgConfig.ALIGNMENT) * AwgConfig.ALIGNMENT
 
 @dataclass
 class JobUploadInfo:
