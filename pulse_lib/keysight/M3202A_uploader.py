@@ -13,6 +13,8 @@ class AwgConfig:
 
 class M3202A_Uploader:
 
+    verbose = False
+
     def __init__(self, AWGs, awg_channels, marker_channels):
         '''
         Initialize the keysight uploader.
@@ -73,7 +75,7 @@ class M3202A_Uploader:
         self.jobs.append(job)
 
         duration = time.perf_counter() - start
-        logging.info(f'generated upload data ({duration*1000:6.3f} ms)')
+        logging.debug(f'generated upload data ({duration*1000:6.3f} ms)')
 
 
     def __upload_to_awg(self, channel_name, waveform):
@@ -104,7 +106,7 @@ class M3202A_Uploader:
                 SD1.SD_TriggerPolarity.ACTIVE_HIGH if not marker_channel.invert else SD1.SD_TriggerPolarity.ACTIVE_LOW
                 )
         awg.load_marker_table(table)
-        logging.info(f'marker for {channel_name} loaded in {(time.perf_counter()-start)*1000:4.2f} ms')
+        logging.debug(f'marker for {channel_name} loaded in {(time.perf_counter()-start)*1000:4.2f} ms')
 
     def __get_job(self, seq_id, index):
         """
@@ -349,7 +351,7 @@ class SegmentRenderInfo:
 
 
 class UploadAggregator:
-    # TODO @@@ Add verbose logging
+    verbose = False
 
     def __init__(self, awg_channels, marker_channels):
         self.npt = 0
@@ -390,7 +392,7 @@ class UploadAggregator:
                 if channel_info.dc_compensation:
                     seg_ch = getattr(seg, channel_name)
                     channel_info.integral += seg_ch.integrate(job.index, sample_rate)
-                    logging.info(f'Integral seg:{iseg} {channel_name} integral:{channel_info.integral}')
+                    logging.debug(f'Integral seg:{iseg} {channel_name} integral:{channel_info.integral}')
 
 
     def _generate_sections(self, job):
@@ -406,7 +408,6 @@ class UploadAggregator:
             duration = seg.total_time[tuple(job.index)]
             npt =  int(round(duration * sample_rate))
             info = SegmentRenderInfo(sample_rate, t_start, npt)
-            logging.info(f'duration: {duration}, sample_rate: {sample_rate}, segment:{info}')
             segments.append(info)
             t_start = info.t_end
 
@@ -431,11 +432,8 @@ class UploadAggregator:
             if sample_rate < section.sample_rate:
                 # welding region is length of padding for alignment + post_stop region
                 n_post = round(((seg.t_start + max_post_end_ns) - section.t_end) * section.sample_rate)
-                logging.info(f'decr 1: section: {section}')
                 section.npt += n_post
-                logging.info(f'decr 2: section: {section}')
                 section.align(extend=True)
-                logging.info(f'decr 3: section: {section}')
 
                 # number of points of segment to be rendered to previous section
                 n_start_transition = round((section.t_end - seg.t_start)*sample_rate)
@@ -447,24 +445,17 @@ class UploadAggregator:
                 section = RenderSection(sample_rate, section.t_end)
                 sections.append(section)
                 section.npt -= n_start_transition
-                logging.debug(f'welding {iseg-1}->{iseg}: cropping {iseg} with {n_start_transition/sample_rate:5.1f} ns')
-                logging.info(f'decr 4: section: {section}')
 
 
             seg.section = section
             seg.offset = section.npt
             section.npt += seg.npt
-            logging.info(f'middle: section: {section}')
 
             # create welding region if sample rate increases
             if sample_rate_next != 0 and sample_rate_next > sample_rate:
                 n_pre = round((section.t_end - (seg.t_end - max_pre_start_ns)) * section.sample_rate)
-                logging.info(f'incr n_pre:{n_pre}, {max_pre_start_ns}')
-                logging.info(f'incr 1: section: {section}')
                 section.npt -= n_pre
-                logging.info(f'incr 2: section: {section}')
                 section.align(extend=True)
-                logging.info(f'incr 3: section: {section}')
 
                 # start new section
                 section = RenderSection(sample_rate_next, section.t_end)
@@ -477,8 +468,6 @@ class UploadAggregator:
 
                 seg.n_end_transition = n_end_transition
                 seg.end_section = section
-                logging.debug(f'welding {iseg}->{iseg+1}: cropping {iseg} with {n_end_transition/sample_rate_next:5.1f} ns')
-                logging.info(f'incr 4: section: {section}')
 
         # add post stop samples; seg = last segment, section is last section
         n_post = round((section.t_end - (seg.t_end + max_post_end_ns)) * section.sample_rate)
@@ -490,19 +479,19 @@ class UploadAggregator:
         compensation_npt = int(np.ceil(compensation_time * section.sample_rate * 1e9))
 
         job.upload_info.dc_compensation_duration = compensation_npt/section.sample_rate
-        logging.debug(f'DC compensation: {compensation_npt} samples {compensation_time} s {job.upload_info.dc_compensation_duration} ns')
         section.npt += compensation_npt
 
         # add at least 1 zero
         section.npt += 1
         section.align(extend=True)
         job.playback_time = section.t_end - sections[0].t_start
-        logging.debug(f'Playback time: {job.playback_time}')
+        logging.debug(f'Playback time: {job.playback_time} ns')
 
-        for segment in segments:
-            logging.info(f'segment: {segment}')
-        for section in sections:
-            logging.info(f'section: {section}')
+        if UploadAggregator.verbose:
+            for segment in segments:
+                logging.info(f'segment: {segment}')
+            for section in sections:
+                logging.info(f'section: {section}')
 
 
     def _generate_upload(self, job, awg_upload_func):
@@ -517,7 +506,6 @@ class UploadAggregator:
 
                 sample_rate = seg_render.sample_rate
                 n_delay = round(channel_info.delay_ns * sample_rate)
-                logging.info(f'segment {iseg}: sr:{sample_rate}, n_delay:{n_delay}')
 
                 seg_ch = getattr(seg, channel_name)
                 start = time.perf_counter()
@@ -530,7 +518,6 @@ class UploadAggregator:
 
                 i_start = 0
                 if seg_render.start_section:
-                    logging.info(f'start section')
                     if section != seg_render.start_section:
                         logging.error(f'OOPS section mismatch {iseg}, {channel_name}')
 
@@ -539,8 +526,6 @@ class UploadAggregator:
                     t_welding = (section.t_end - seg_render.t_start)
                     i_start = round(t_welding*sample_rate) - n_delay
                     n_section = round(t_welding*section.sample_rate) + round(-channel_info.delay_ns * section.sample_rate)
-
-                    logging.info(f'welding start: i_start: {i_start} t_welding:{t_welding} n_section:{n_section}')
 
                     if n_section > 0:
                         if np.round(n_section*sample_rate/section.sample_rate) >= len(wvf):
@@ -557,7 +542,6 @@ class UploadAggregator:
 
 
                 if seg_render.end_section:
-                    logging.info(f'end section')
                     next_section = seg_render.end_section
                     # add n_end_transition + n_delay to next section. First complete this section
                     n_delay_welding = round(channel_info.delay_ns * section.sample_rate)
@@ -565,7 +549,6 @@ class UploadAggregator:
                     i_end = len(wvf) - round(t_welding*sample_rate) + n_delay_welding
 
                     if i_start != i_end:
-                        logging.info(f'append end: {i_start}:{i_end}, {len(wvf)}, {len(buffer)}')
                         buffer[-(i_end-i_start):] = wvf[i_start:i_end]
 
                     self._upload_wvf(job, channel_name, channel_info.attenuation, buffer, section.sample_rate, awg_upload_func)
@@ -579,26 +562,22 @@ class UploadAggregator:
 
                     isub = [min(len(wvf)-1, i_end + np.round(i*sample_rate/section.sample_rate)) for i in np.arange(n_section)]
                     welding_samples = np.take(wvf, isub)
-                    logging.info(f'end: i_end:{i_end}, n_section:{n_section}, t_welding:{t_welding} {channel_info.delay_ns}')
                     buffer[:n_section] = welding_samples
 
                 else:
-                    logging.info(f'middle section')
                     if section != seg_render.section:
                         logging.error(f'OOPS-2 section mismatch {iseg}, {channel_name}')
                     offset = seg_render.offset + n_delay
-                    logging.info(f'middle: i_start: {i_start}, {offset}')
                     buffer[offset+i_start:offset + len(wvf)] = wvf[i_start:]
 
 
             if job.neutralize:
-                logging.info(f'DC compensation: {section}')
                 if section != sections[-1]:
-                    # Corner case, DC compensation is in a new section
+                    # Corner case, DC compensation is in a new section # @@@ can this occur??
                     self._upload_wvf(job, channel_name, channel_info.attenuation, buffer, section.sample_rate, awg_upload_func)
                     section = sections[-1]
                     buffer = np.zeros(section.npt)
-                    logging.warning(f'DC compensation: Corner case {section}') # @@@ can this occur??
+                    logging.info(f'DC compensation: Corner case {section}')
 
                 compensation_npt = round(job.upload_info.dc_compensation_duration * section.sample_rate)
 
@@ -615,7 +594,7 @@ class UploadAggregator:
 
     def _render_markers(self, job, awg_upload_func):
         for channel_name, marker_channel in self.marker_channels.items():
-            logging.info(f'Marker: {channel_name} ({marker_channel.amplitude} mV)')
+            logging.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV)')
             start_stop = []
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
 
@@ -655,14 +634,14 @@ class UploadAggregator:
                 t_on = on_off[0]
             if s == 0 and on_off[1] == -1:
                 t_off = on_off[0]
-                logging.info(f'Marker: {t_on} - {t_off}')
+                logging.debug(f'Marker: {t_on} - {t_off}')
                 # search start section
                 while t_on >= sections[i_section].t_end:
                     i_section += 1
                 section = sections[i_section]
                 pt_on = int((t_on - section.t_start) * section.sample_rate)
                 if pt_on < 0:
-                    logging.info(f'Warning: Marker start before waveform; aligned with start')
+                    logging.info(f'Warning: Marker setup before waveform; aligned with start')
                     pt_on = 0
                 if t_off < section.t_end:
                     pt_off = int((t_off - section.t_start) * section.sample_rate)
@@ -694,7 +673,7 @@ class UploadAggregator:
                 t_on = int(on_off[0])
             if s == 0 and on_off[1] == -1:
                 t_off = int(on_off[0])
-                logging.info(f'Marker: {t_on} - {t_off}')
+                logging.debug(f'Marker: {t_on} - {t_off}')
                 table.append((t_on, t_off))
 
     def _upload_wvf(self, job, channel_name, attenuation, waveform, sample_rate, awg_upload_func):
