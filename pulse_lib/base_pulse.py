@@ -18,7 +18,7 @@ class pulselib:
         self.awg_channels = dict()
         self.marker_channels = dict()
         self.virtual_channels = []
-        self.IQ_channels = [] # TODO: add to name check, channel list
+        self.IQ_channels = [] # TODO: add to name check
 
         self._backend = backend
 
@@ -26,7 +26,8 @@ class pulselib:
     def channels(self):
         channels = []
         channels += self.awg_channels.keys()
-        channels += self.marker_channels.keys()
+        # Exclude marker_channels from channel list. channels property is used for 'sweepable' channels.
+        # channels += self.marker_channels.keys()
         for i in self.virtual_channels:
             channels += i.virtual_gate_names
         return channels
