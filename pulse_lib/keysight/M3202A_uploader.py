@@ -661,6 +661,9 @@ class UploadAggregator:
                     i_section += 1
                 section = sections[i_section]
                 pt_on = int((t_on - section.t_start) * section.sample_rate)
+                if pt_on < 0:
+                    logging.info(f'Warning: Marker start before waveform; aligned with start')
+                    pt_on = 0
                 if t_off < section.t_end:
                     pt_off = int((t_off - section.t_start) * section.sample_rate)
                     buffers[i_section][pt_on:pt_off] = amplitude
@@ -688,9 +691,9 @@ class UploadAggregator:
             if s < 0:
                 logging.error(f'Marker error {marker_channel.name} {on_off}')
             if s == 1 and on_off[1] == 1:
-                t_on = on_off[0]
+                t_on = int(on_off[0])
             if s == 0 and on_off[1] == -1:
-                t_off = on_off[0]
+                t_off = int(on_off[0])
                 logging.info(f'Marker: {t_on} - {t_off}')
                 table.append((t_on, t_off))
 
