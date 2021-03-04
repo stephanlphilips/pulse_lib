@@ -207,7 +207,7 @@ class IQ_channel_constructor(object):
             post_delay (float) : how long to keep the marker on after the IQ pulse is done.
         """
         if pre_delay or post_delay:
-            raise Exception(f'delays must be set with pulse_lib.define_marker(name, before_ns=value, after_ns=value)')
+            raise Exception(f'delays must be set with pulse_lib.define_marker(name, setup_ns=pre_delay, hold_ns=post_delay)')
         self.__check_marker_channel_name(channel_name)
         self.markers.append(marker_info(channel_name))
 

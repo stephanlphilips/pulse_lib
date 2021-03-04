@@ -16,8 +16,8 @@ class marker_channel:
     name: str
     module_name: str # could be AWG or digitizer
     channel_number: int # use 0 for Keysight trigger out channel
-    before_ns: float
-    after_ns: float
+    setup_ns: float
+    hold_ns: float
     amplitude: float = 1000
     invert: bool = False
 

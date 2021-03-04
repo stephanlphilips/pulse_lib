@@ -624,8 +624,8 @@ class UploadAggregator:
                 ch_data = seg_ch._get_data_all_at(job.index)
 
                 for pulse in ch_data.my_marker_data:
-                    start_stop.append((seg_render.t_start + pulse.start - marker_channel.before_ns, +1))
-                    start_stop.append((seg_render.t_start + pulse.stop + marker_channel.after_ns, -1))
+                    start_stop.append((seg_render.t_start + pulse.start - marker_channel.setup_ns, +1))
+                    start_stop.append((seg_render.t_start + pulse.stop + marker_channel.hold_ns, -1))
 
             if len(start_stop) > 0:
                 m = np.array(start_stop)

@@ -52,7 +52,7 @@ class pulselib:
         self._check_uniqueness_of_channel_name(channel_name)
         self.awg_channels[channel_name] = awg_channel(channel_name, AWG_name, channel_number)
 
-    def define_marker(self, marker_name, AWG_name, channel_number, before_ns=0, after_ns=0,
+    def define_marker(self, marker_name, AWG_name, channel_number, setup_ns=0, hold_ns=0,
                       amplitude=1000, invert=False):
         '''
         define the channels and their location
@@ -60,11 +60,11 @@ class pulselib:
             marker_name (str) : name of a given channel on the AWG. This would usually the name of the gate that it is connected to.
             AWG_name (str) : name of the instrument (as given in add_awgs())
             channel_number (int) : channel number on the AWG
-            before_ns (float): extenstion of the marker pulse raising the marker before requested marker pulse
-            after_ns (float): extenstion of the marker pulse holding the marker after requested marker pulse
+            setup_ns (float): setup time for the device using the marker. marker raises `setup_ns` earlier.
+            hold_ns (float): hold time for the device using the marker to ensure proper output. marker falls `hold_ns` later.
         '''
         self.marker_channels[marker_name] = marker_channel(marker_name, AWG_name, channel_number,
-                                                           before_ns, after_ns, amplitude, invert)
+                                                           setup_ns, hold_ns, amplitude, invert)
 
     def add_channel_delay(self, channel, delay):
         '''
