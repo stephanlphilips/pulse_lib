@@ -2,9 +2,10 @@ import time
 import numpy as np
 import logging
 from dataclasses import dataclass, field
-from typing import List, Tuple, Dict, Optional
+from typing import List, Dict, Optional
 
-import keysightSD1 as SD1
+from keysightSD1 import SD_TriggerExternalSources, SD_FpgaTriggerDirection, SD_TriggerPolarity
+
 
 class AwgConfig:
     MAX_AMPLITUDE = 1500 # mV
@@ -33,6 +34,28 @@ class M3202A_Uploader:
         self.jobs = []
         # hvi is used by scheduler to check whether another hvi must be loaded.
         self.hvi = None
+
+        self._config_marker_channels()
+
+    def _config_marker_channels(self):
+        for channel in self.marker_channels.values():
+            awg_name = channel.module_name
+            awg = self.AWGs[awg_name]
+            if channel.channel_number == 0:
+                awg.config_fpga_trigger(
+                        SD_TriggerExternalSources.TRIGGER_EXTERN,
+                        SD_FpgaTriggerDirection.INOUT,
+                        SD_TriggerPolarity.ACTIVE_HIGH if not channel.invert else SD_TriggerPolarity.ACTIVE_LOW
+                        )
+            else:
+                offset = 0
+                amplitude = AwgConfig.MAX_AMPLITUDE/1000
+                if channel.invert:
+                    offset = channel.amplitude/1000
+                    amplitude = -amplitude
+
+                awg.set_channel_amplitude(amplitude, channel.channel_number)
+                awg.set_channel_offset(offset, channel.channel_number)
 
 
     def get_effective_sample_rate(self, sample_rate):
@@ -100,11 +123,6 @@ class M3202A_Uploader:
         marker_channel = self.marker_channels[channel_name]
         awg_name = marker_channel.module_name
         awg = self.AWGs[awg_name]
-        awg.config_fpga_trigger(
-                SD1.SD_TriggerExternalSources.TRIGGER_EXTERN,
-                SD1.SD_FpgaTriggerDirection.INOUT,
-                SD1.SD_TriggerPolarity.ACTIVE_HIGH if not marker_channel.invert else SD1.SD_TriggerPolarity.ACTIVE_LOW
-                )
         awg.load_marker_table(table)
         logging.debug(f'marker for {channel_name} loaded in {(time.perf_counter()-start)*1000:4.2f} ms')
 
