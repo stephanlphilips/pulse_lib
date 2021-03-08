@@ -173,6 +173,9 @@ class MockM3202A_fpga(MockM3202A):
         '''
         self.marker_table = table.copy()
 
+    def config_fpga_trigger(self, source, direction, polarity):
+        pass
+
     def plot(self):
         super().plot()
         t = []
