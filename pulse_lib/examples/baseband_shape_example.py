@@ -41,6 +41,30 @@ def tukey_pulse(duration, sample_rate, amplitude, alpha):
     n_points = int(round(duration / sample_rate * 1e9))
     return signal.windows.tukey(n_points, alpha) * amplitude
 
+def iswap_pulse(duration, sample_rate, amplitude, frequency, mw_amp):
+    """
+    Generates iswap pulse
+
+    Args:
+        duration: time in ns of the pulse.
+        sample_rate: sampling rate of the pulse (Sa/s).
+        amplitude: amplitude of the pulse
+        frequency: frequency of sine
+        mw_amp: amplitude of sine
+
+    Returns:
+        pulse (np.ndarray) : Tukey pulse
+    """
+    alpha=0.5
+    n_points = int(round(duration / sample_rate * 1e9))
+    n_mod = int(n_points * (1-alpha))
+    n_pre = (n_points-n_mod) // 2
+
+    pulse = signal.windows.tukey(n_points, alpha) * amplitude
+    t_sin = np.arange(n_mod)/sample_rate
+    pulse[n_pre:n_pre+n_mod] += mw_amp * signal.windows.tukey(n_mod, alpha) * np.sin(2*np.pi*frequency*t_sin)
+    return pulse
+
 
 seg  = pulse.mk_segment()
 
@@ -61,18 +85,22 @@ seg.B4.add_sin(20, 40, 5.0, 2e8)
 seg.B4.wait(30)
 
 # virtual gate: compensation is visible on B4
-seg.vB2.add_custom_pulse(80, 100, 15.0, tukey_pulse, alpha=0.5)
+seg.vB2.add_custom_pulse(80, 140, 15.0, iswap_pulse, frequency=2e8, mw_amp=2.5)
+
+seg.enter_rendering_mode()
 
 plt.figure(2)
 seg.B2.plot_segment([0])
-plt.xlabel("time (ns)")
-plt.ylabel("voltage (mV)")
+#plt.xlabel("time (ns)")
+#plt.ylabel("voltage (mV)")
 plt.show()
 
 plt.figure(4)
 for i in range(2):
     for j in range(3):
         seg.B4.plot_segment([j,i])
-plt.xlabel("time (ns)")
-plt.ylabel("voltage (mV)")
+#plt.xlabel("time (ns)")
+#plt.ylabel("voltage (mV)")
 plt.show()
+
+seg.exit_rendering_mode()
