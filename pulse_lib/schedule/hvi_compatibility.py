@@ -25,22 +25,17 @@ class HviCompatibilityWrapper(HardwareSchedule):
         for key,value in kwargs.items():
             self.schedule_parms[key] = value
 
-    def compile(self):
-        # compilation is included in load_hvi
-        pass
-
     def load(self):
         if self.hvi is None:
+            logging.info('loading HVI')
             self.hvi = self.load_hvi(self.awgs, self.channel_map, **self.schedule_parms)
-        HviCompatibilityWrapper.loaded_schedule = self.hvi
-
-    def is_loaded(self):
-        return self.hvi is not None
+            HviCompatibilityWrapper.loaded_schedule = self.hvi
 
     def unload(self):
         self.close()
 
     def start(self, waveform_duration, n_repetitions, sequence_parameters):
+        self.load()
         hvi_params = {**self.schedule_parms, **sequence_parameters}
         if self.verbose:
             logging.debug(f'start: {hvi_params}')

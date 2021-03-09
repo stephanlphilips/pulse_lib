@@ -194,11 +194,8 @@ class M3202A_Uploader:
                         trigger_mode, start_delay, cycles, prescaler)
                 trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
 
-        # start hvi
-        hw_schedule = job.hw_schedule
-        if not hw_schedule.is_loaded():
-            hw_schedule.load()
-
+        # start hvi (start function loads schedule if not yet loaded)
+        job.hw_schedule.set_configuration(job.schedule_params, job.n_waveforms)
         job.hw_schedule.start(job.playback_time, job.n_rep, job.schedule_params)
 
         if release_job:
@@ -503,6 +500,7 @@ class UploadAggregator:
         section.npt += 1
         section.align(extend=True)
         job.playback_time = section.t_end - sections[0].t_start
+        job.n_waveforms = len(sections)
         logging.debug(f'Playback time: {job.playback_time} ns')
 
         if UploadAggregator.verbose:

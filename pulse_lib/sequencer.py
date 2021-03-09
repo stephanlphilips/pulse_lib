@@ -206,12 +206,7 @@ class sequencer():
             hw_schedule: object with load() and start() methods to load and start the hardware schedule.
             kwargs : keyword arguments to be passed to the schedule.
         '''
-        if self.uploader.hvi is None or self.uploader.hvi.hvi_id != hw_schedule.hvi_id:
-            self.hw_schedule = hw_schedule
-            self.uploader.hvi = self.hw_schedule
-        else:
-            self.hw_schedule = self.uploader.hvi
-
+        self.hw_schedule = hw_schedule
         self.hw_schedule.set_schedule_parameters(**kwargs)
 
     def upload(self, index):
