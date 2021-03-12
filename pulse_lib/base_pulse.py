@@ -15,6 +15,7 @@ class pulselib:
     '''
     def __init__(self, backend = "M3202A"):
         self.awg_devices = dict()
+        self.digitizers = dict()
         self.awg_channels = dict()
         self.marker_channels = dict()
         self.virtual_channels = []
@@ -32,6 +33,14 @@ class pulselib:
             channels += i.virtual_gate_names
         return channels
 
+    def add_awg(self, awg):
+        '''
+        add a awg to the library
+        Args:
+            awg (object) : qcodes AWG instrument
+        '''
+        self.awg_devices[awg.name] = awg
+
     def add_awgs(self, name, awg):
         '''
         add a awg to the library
@@ -39,7 +48,17 @@ class pulselib:
             name (str) : name you want to give to a peculiar AWG
             awg (object) : qcodes object of the concerning AWG
         '''
+        if name != awg.name:
+            raise Exception(f'name mismatch {name} != {awg.name}. Use awg.name or pulselib.add_awg(awg)')
         self.awg_devices[name] = awg
+
+    def add_digitizer(self, digitizer):
+        '''
+        add a digitizer to the library
+        Args:
+            digitizer (object) : qcodes digitizer instrument
+        '''
+        self.digitizers[digitizer.name] = digitizer
 
     def define_channel(self, channel_name, AWG_name, channel_number):
         '''
