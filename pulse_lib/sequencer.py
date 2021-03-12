@@ -245,7 +245,8 @@ class sequencer():
         '''
         Closes the sequencer and releases all memory and resources. Sequencer cannot be used anymore.
         '''
-        self.hw_schedule.unload()
+#        NOTE: unloading the schedule is a BAD idea. If the next sequence uses the same schedule it costs ~ 1s to load it again.
+#        self.hw_schedule.unload()
         self.hw_schedule = None
         for seg_container in self.sequence:
             seg_container.exit_rendering_mode()
