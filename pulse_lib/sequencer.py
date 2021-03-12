@@ -241,6 +241,16 @@ class sequencer():
         '''
         self.uploader.play(self.id, index, release)
 
+    def close(self):
+        '''
+        Closes the sequencer and releases all memory and resources. Sequencer cannot be used anymore.
+        '''
+        self.hw_schedule.unload()
+        self.hw_schedule = None
+        for seg_container in self.sequence:
+            seg_container.exit_rendering_mode()
+        self.sequence = None
+        self.uploader.release_memory(self.id)
 
     def release_memory(self, index=None):
         '''
