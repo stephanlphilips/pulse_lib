@@ -600,7 +600,7 @@ class UploadAggregator:
                 if compensation_npt > 0 and channel_info.dc_compensation:
                     compensation_voltage = -channel_info.integral * sample_rate / compensation_npt * 1e9
                     job.upload_info.dc_compensation_voltages[channel_name] = compensation_voltage
-                    buffer[-compensation_npt+1:-1] = compensation_voltage
+                    buffer[-(compensation_npt+1):-1] = compensation_voltage
                     logging.debug(f'DC compensation {channel_name}: {compensation_voltage:6.1f} mV {compensation_npt} Sa')
                 else:
                     job.upload_info.dc_compensation_voltages[channel_name] = 0
