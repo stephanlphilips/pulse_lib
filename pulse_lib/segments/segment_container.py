@@ -463,8 +463,6 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
 if __name__ == '__main__':
     import pulse_lib.segments.utility.looping as lp
     import matplotlib.pyplot as plt
-    from pulse_lib.segments.segment_IQ import segment_IQ
-    from pulse_lib.segments.segment_markers import segment_marker
 
     seg = segment_container(["a", "b",])
     # b = segment_container(["a", "b"])

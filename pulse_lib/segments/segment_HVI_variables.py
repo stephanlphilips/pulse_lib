@@ -3,10 +3,8 @@ Marker implementation.
 """
 
 from pulse_lib.segments.segment_base import segment_base, last_edited
-from pulse_lib.segments.segment_IQ import segment_IQ
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, loop_controller_post_processing
 from pulse_lib.segments.data_classes.data_HVI_variables import marker_HVI_variable
-from dataclasses import dataclass
 import numpy as np
 
 class segment_HVI_variables(segment_base):
@@ -47,7 +45,7 @@ class segment_HVI_variables(segment_base):
     def __getitem__(self, item):
         '''
         Get item variable of the HVI varible sequence.
-        
+
         Args:
             item (str) : string name of the HVI variable you want to fetch
 
@@ -66,9 +64,9 @@ class segment_HVI_variables(segment_base):
     def __copy__(self):
         cpy = segment_HVI_variables(self.name)
         return self._copy(cpy)
-        
+
 if __name__ == '__main__':
- 
+
     import matplotlib.pyplot as plt
     s1 = segment_HVI_variables("marker_1")
     s1._add_HVI_variable("test",100, True)
