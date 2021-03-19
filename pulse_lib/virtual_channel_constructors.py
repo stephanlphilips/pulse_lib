@@ -150,7 +150,7 @@ class virtual_channel_info:
 
 class IQ_channel_constructor(object):
     """
-    Constructor that makes virtual IQ channels on the AWG intruments.
+    Constructor that makes virtual IQ channels on the AWG instruments.
     Recommended to construct if you plan to use and MW control.
     """
     def __init__(self, pulse_lib_obj):
@@ -162,14 +162,14 @@ class IQ_channel_constructor(object):
         self.pulse_lib_obj = pulse_lib_obj
         self.pulse_lib_obj.IQ_channels.append(self)
         self.virtual_channel_map = []
-        self.IQ_channel_map = []
+        self.IQ_channel_map = [] # @@@ does not apply to QS: sequencer_number? combination with I/Q pair?
         self.markers = []
         self._LO = None
 
     @property
     def LO(self):
         """
-        get LO frequecy of the MW source
+        get LO frequency of the MW source
         """
         if isinstance(self._LO, float):
             return self._LO

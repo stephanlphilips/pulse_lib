@@ -34,7 +34,7 @@ class segment_IQ(segment_base):
     Standard single segment for IQ purposes
     todo --> add global phase and time shift in the data class instead of this one (cleaner and more generic).
     """
-    def __init__(self, name, HVI_variable_data = None,):
+    def __init__(self, name, HVI_variable_data = None): # TODO @@@ add reference_frequency (larmor_frequency?)??
         '''
         Args:
             name : name of the IQ segment
@@ -42,13 +42,14 @@ class segment_IQ(segment_base):
 
         Tip, make on of these segments for each qubit. Then you get a very clean implementation of reference frame changes!
         '''
-        super().__init__(name, pulse_data(), HVI_variable_data ,segment_type = 'IQ_virtual')
+        # TODO @@@: improve render copying...
+        super().__init__(name, pulse_data(), HVI_variable_data)# ,segment_type = 'IQ_virtual')
 
         # generator to be set for automated phase compenstation in between pulses. @TODO!!
         self.qubit_freq = 0
 
     @loop_controller
-    def add_global_phase(self,phase):
+    def add_global_phase(self,phase): # TODO when does this phase apply?
         """
         global shift in phase for all the pulses that will follow.
         Args:
@@ -58,6 +59,13 @@ class segment_IQ(segment_base):
         """
         self.data_tmp.global_phase += phase
         return self.data_tmp
+
+    @last_edited
+    @loop_controller
+    def add_phase_shift(self, t, phase): # TODO @@@
+        # list with phase shifts.
+        # during rendering create ordered list of phase shifts and MW data.
+        pass
 
     @last_edited
     @loop_controller
@@ -74,7 +82,11 @@ class segment_IQ(segment_base):
             AM ('str/tuple/function') : function describing an amplitude modulation (see examples in pulse_lib.segments.data_classes.data_IQ)
             PM ('str/tuple/function') : function describing an phase modulation (see examples in pulse_lib.segments.data_classes.data_IQ)
         '''
-        MW_data = IQ_data_single(t0 + self.data_tmp.start_time, t1 + self.data_tmp.start_time, amp, freq, phase + self.data_tmp.global_phase, envelope_generator(AM, PM))
+        MW_data = IQ_data_single(t0 + self.data_tmp.start_time,
+                                 t1 + self.data_tmp.start_time,
+                                 amp, freq,
+                                 phase + self.data_tmp.global_phase, # @@@ should global phase be stored in IQ_data_single?
+                                 envelope_generator(AM, PM))
         self.data_tmp.add_MW_data(MW_data)
         return self.data_tmp
 

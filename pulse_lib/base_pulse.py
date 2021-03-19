@@ -6,6 +6,7 @@ from pulse_lib.configuration.physical_channels import awg_channel, marker_channe
 
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
+from pulse_lib.keysight.qs_uploader import QsUploader
 
 class pulselib:
     '''
@@ -18,6 +19,7 @@ class pulselib:
         self.digitizers = dict()
         self.awg_channels = dict()
         self.marker_channels = dict()
+        self.digitizer_channels = dict()
         self.virtual_channels = []
         self.IQ_channels = [] # TODO: add to name check
 
@@ -139,6 +141,10 @@ class pulselib:
 
         elif self._backend == "M3202A":
             self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels, self.marker_channels)
+
+        elif self._backend == "Keysight_QS":
+            self.uploader = QsUploader(self.awg_devices, self.awg_channels, self.marker_channels,
+                                       self.IQ_channels, self.digitizers, self.digitizer_channels)
 
     def mk_segment(self, name=None, sample_rate=None):
         '''
