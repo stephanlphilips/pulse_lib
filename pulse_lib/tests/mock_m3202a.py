@@ -127,7 +127,7 @@ class MockM3202A(Instrument):
     def plot(self):
         for channel in range(1,5):
             data, prescaler = self.get_data_prescaler(channel)
-            print(f'data: {[(len(s),p) for s,p in zip(data,prescaler)]}')
+            print(f'{self.name} data: {[(len(s),p) for s,p in zip(data,prescaler)]}')
 
             if len(data) == 0:
                 continue
@@ -162,9 +162,10 @@ class MockM3202A_fpga(MockM3202A):
         * local oscillators (TODO)
         * DC compensation (TODO)
     '''
-    def __init__(self, name, chassis, slot):
+    def __init__(self, name, chassis, slot, marker_amplitude=1500):
         super().__init__(name, chassis, slot)
         self.marker_table = []
+        self._marker_amplitude = marker_amplitude
 
     def load_marker_table(self, table:List[Tuple[int,int]]):
         '''
@@ -176,13 +177,17 @@ class MockM3202A_fpga(MockM3202A):
     def config_fpga_trigger(self, source, direction, polarity):
         pass
 
+    def plot_marker(self):
+        if len(self.marker_table) > 0:
+            t = []
+            values = []
+            print(self.marker_table)
+            for m in self.marker_table:
+                t += [m[0], m[0], m[1], m[1]]
+                values += [0, self._marker_amplitude/1000, self._marker_amplitude/1000, 0]
+
+            pt.plot(t, values, ':', label=f'{self.name}-T')
+
     def plot(self):
         super().plot()
-        t = []
-        values = []
-        print(self.marker_table)
-        for m in self.marker_table:
-            t += [m[0], m[0], m[1], m[1]]
-            values += [0, 1.5, 1.5, 0]
-
-        pt.plot(t, values, ':', label=f'{self.name}-T')
+        self.plot_marker()
