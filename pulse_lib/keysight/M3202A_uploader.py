@@ -320,6 +320,7 @@ class ChannelInfo:
     dc_compensation: bool = False
     dc_compensation_min: float = 0.0
     dc_compensation_max: float = 0.0
+    bias_T_RC_time: Optional[float] = None
     # aggregation state
     integral: float = 0.0
 
@@ -383,6 +384,7 @@ class UploadAggregator:
             info.attenuation = channel.attenuation
             info.delay_ns = channel.delay
             info.amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.MAX_AMPLITUDE
+            info.bias_T_RC_time = channel.bias_T_RC_time
             delays.append(channel.delay)
 
             # Note: Compensation limits are specified before attenuation, i.e. at AWG output level.
@@ -520,6 +522,7 @@ class UploadAggregator:
         for channel_name, channel_info in self.channels.items():
             section = sections[0]
             buffer = np.zeros(section.npt)
+            bias_T_compensation_mV = 0
 
             for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
 
@@ -554,6 +557,8 @@ class UploadAggregator:
                         welding_samples = np.take(wvf, isub)
                         buffer[-n_section:] = welding_samples
 
+                    bias_T_compensation_mV = self._add_bias_T_compensation(buffer, bias_T_compensation_mV,
+                                                                           section.sample_rate, channel_info)
                     self._upload_wvf(job, channel_name, buffer, channel_info.amplitude, channel_info.attenuation,
                                      section.sample_rate, awg_upload_func)
 
@@ -571,6 +576,8 @@ class UploadAggregator:
                     if i_start != i_end:
                         buffer[-(i_end-i_start):] = wvf[i_start:i_end]
 
+                    bias_T_compensation_mV = self._add_bias_T_compensation(buffer, bias_T_compensation_mV,
+                                                                           section.sample_rate, channel_info)
                     self._upload_wvf(job, channel_name, buffer, channel_info.amplitude, channel_info.attenuation,
                                      section.sample_rate, awg_upload_func)
 
@@ -595,6 +602,8 @@ class UploadAggregator:
             if job.neutralize:
                 if section != sections[-1]:
                     # Corner case, DC compensation is in a new section # @@@ can this occur??
+                    bias_T_compensation_mV = self._add_bias_T_compensation(buffer, bias_T_compensation_mV,
+                                                                           section.sample_rate, channel_info)
                     self._upload_wvf(job, channel_name, buffer, channel_info.amplitude, channel_info.attenuation,
                                      section.sample_rate, awg_upload_func)
                     section = sections[-1]
@@ -612,6 +621,8 @@ class UploadAggregator:
                     job.upload_info.dc_compensation_voltages[channel_name] = 0
                     # TODO: @@@ reduce length of waveform?
 
+            bias_T_compensation_mV = self._add_bias_T_compensation(buffer, bias_T_compensation_mV,
+                                                                   section.sample_rate, channel_info)
             self._upload_wvf(job, channel_name, buffer, channel_info.amplitude, channel_info.attenuation,
                              section.sample_rate, awg_upload_func)
 
@@ -747,4 +758,15 @@ class UploadAggregator:
             result = -channel_info.integral / channel_info.dc_compensation_min
         return result
 
+
+    def _add_bias_T_compensation(self, buffer, bias_T_compensation_mV, sample_rate, channel_info):
+
+        if channel_info.bias_T_RC_time:
+            compensation_factor = 1 / (sample_rate * 1e9 * channel_info.bias_T_RC_time)
+            compensation = np.cumsum(buffer) * compensation_factor + bias_T_compensation_mV
+            bias_T_compensation_mV = compensation[-1]
+            logging.info(f'bias-T compensation  min:{np.min(compensation):5.1f} max:{np.max(compensation):5.1f} mV')
+            buffer += compensation
+
+        return bias_T_compensation_mV
 

@@ -130,6 +130,17 @@ class pulselib:
         else:
             raise ValueError(f"Channel '{channel_name}' is not defined")
 
+    def add_channel_bias_T_compensation(self, channel_name, bias_T_RC_time):
+        '''
+        Sets the bias-T RC time for the bias-T compensation.
+        Args:
+            channel_name (str) : channel name as defined in self.define_channel().
+            bias_T_RC_time (float) : RC time of bias-T
+        '''
+        if channel_name in self.awg_channels:
+            self.awg_channels[channel_name].bias_T_RC_time = bias_T_RC_time
+        else:
+            raise ValueError(f"Channel '{channel_name}' is not defined")
 
     def finish_init(self):
         # function that finishes the initialisation
