@@ -209,7 +209,7 @@ class sequencer():
         self.hw_schedule = hw_schedule
         self.hw_schedule.set_schedule_parameters(**kwargs)
 
-    def upload(self, index):
+    def upload(self, index=(0,)):
         '''
         Sends the sequence with the provided index to the uploader module. Once he is done, the play function can do its work.
         Args:
@@ -230,7 +230,7 @@ class sequencer():
         return upload_job
 
 
-    def play(self, index, release= True):
+    def play(self, index=(0,), release= True):
         '''
         Playback a certain index, assuming the index is provided.
         Args:
