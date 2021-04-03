@@ -120,7 +120,7 @@ class Tektronix5014_Uploader:
         job.hw_schedule.set_configuration(job.schedule_params, job.n_waveforms)
         job.hw_schedule.start(job.playback_time, job.n_rep, job.schedule_params)
 
-    def release_memory(self, seq_id, index):
+    def release_memory(self, seq_id, index=None):
         pass
 
 

@@ -6,9 +6,12 @@ from .hardware_schedule import HardwareSchedule
 class TektronixSchedule(HardwareSchedule):
     verbose = False
 
-    def __init__(self, AWGs:List['Tektronix_AWG5014'], digitizer):
-        self.awgs = AWGs
-        self.digitizer = digitizer
+    def __init__(self, pulselib):
+        if len(pulselib.digitizers) != 1:
+            raise Exception('There should be 1 digitizer in pulselib. '
+                            f'Found {len(pulselib.digitizers)} digitizers')
+        self.awgs:List['Tektronix_AWG5014'] = list(pulselib.awg_devices.values())
+        self.digitizer = list(pulselib.digitizers.values())[0]
         self.running = False
         self.schedule_parms = {}
 
