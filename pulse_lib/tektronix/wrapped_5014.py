@@ -52,9 +52,9 @@ class Wrapped5014:
             if channel_number not in upload_list:
                 l = len(waveform_data)
                 channel_data = ChannelData(f'ch_{channel_number}')
-                channel_data.wvf = np.zeros(l)
-                channel_data.m1 = np.zeros(l)
-                channel_data.m2 = np.zeros(l)
+                channel_data.wvf = np.zeros(l, dtype=np.uint16)
+                channel_data.m1 = np.zeros(l, dtype=np.uint16)
+                channel_data.m2 = np.zeros(l, dtype=np.uint16)
                 upload_list[channel_number] = channel_data
             else:
                 channel_data = upload_list[channel_number]
@@ -86,19 +86,21 @@ class Wrapped5014:
     def pack_and_load_awg_file(self, upload_list, channel_cfg):
         packed_waveforms = dict()
         for data in upload_list.values():
-            logging.debug(f'{data.name}: {len(data.wvf)}, '
-                          f'{min(data.wvf)} - {max(data.wvf)}, '
-                          f'{min(data.m1)} - {max(data.m1)}, '
-                          f'{min(data.m2)} - {max(data.m2)}, '
-                          )
+            logging.debug(f'pack {data.name}: {len(data.wvf)} Sa')
+#            logging.debug(f'{data.name}: {len(data.wvf)}, '
+#                          f'{np.min(data.wvf)} - {np.max(data.wvf)}, '
+#                          )
             package = self.__awg._pack_waveform(data.wvf, data.m1, data.m2)
             packed_waveforms[data.name] = package
 
+        #logging.debug('generate file')
         file_name = 'default.awg'
         self.__awg.visa_handle.write('MMEMory:CDIRectory "C:\\Users\\OEM\\Documents"')
         awg_file = self.__awg._generate_awg_file(packed_waveforms, np.array([]), [], [], [], [], channel_cfg)
+        #logging.debug('send file')
         self.__awg.send_awg_file(file_name, awg_file)
 
+        #logging.debug('load file')
         current_dir = self.__awg.visa_handle.query('MMEMory:CDIRectory?')
         current_dir = current_dir.replace('"', '')
         current_dir = current_dir.replace('\n', '\\')
