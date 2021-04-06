@@ -405,8 +405,9 @@ class UploadAggregator:
                 pulses = self._generate_digitizer_triggers(job)
                 logging.info(f'dig trigger: {pulses}')
                 for pulse in pulses:
-                    start_stop.append((seg_render.t_start + pulse.start - marker_channel.setup_ns, +1))
-                    start_stop.append((seg_render.t_start + pulse.stop + marker_channel.hold_ns, -1))
+                    # trigger time is relative to sequence start, not segment start
+                    start_stop.append((pulse.start - marker_channel.setup_ns, +1))
+                    start_stop.append((pulse.stop + marker_channel.hold_ns, -1))
 
             if len(start_stop) > 0:
                 m = np.array(start_stop)
@@ -420,7 +421,7 @@ class UploadAggregator:
     def _upload_awg_markers(self, job, marker_channel, m):
         sections = job.upload_info.sections
         section = sections[0]
-        buffer = np.zeros(section.npt)
+        buffer = np.zeros(section.npt, dtype=np.float32)
         s = 0
         t_on = 0
         for on_off in m:
