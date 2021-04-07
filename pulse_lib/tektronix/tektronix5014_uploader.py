@@ -120,6 +120,14 @@ class Tektronix5014_Uploader:
         job.hw_schedule.set_configuration(job.schedule_params, job.n_waveforms)
         job.hw_schedule.start(job.playback_time, job.n_rep, job.schedule_params)
 
+    def wait_until_AWG_idle(self):
+        while (True):
+            not_running = [awg.get_state() != 'Running' for awg in self.awgs.values()]
+            if all(not_running):
+                break
+            time.sleep(0.001)
+
+
     def release_memory(self, seq_id, index=None):
         pass
 
