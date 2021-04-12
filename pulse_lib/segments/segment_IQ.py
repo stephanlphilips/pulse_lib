@@ -49,9 +49,9 @@ class segment_IQ(segment_base):
         self.qubit_freq = 0
 
     @loop_controller
-    def add_global_phase(self,phase): # TODO when does this phase apply?
+    def add_global_phase(self,phase):
         """
-        global shift in phase for all the pulses that will follow.
+        global shift in phase for all the pulses that are subsequently added.
         Args:
             phase (double) : phase in radians
 
@@ -62,10 +62,9 @@ class segment_IQ(segment_base):
 
     @last_edited
     @loop_controller
-    def add_phase_shift(self, t, phase): # TODO @@@
-        # list with phase shifts.
-        # during rendering create ordered list of phase shifts and MW data.
-        pass
+    def add_phase_shift(self, t, phase):
+        self.data_tmp.add_phase_shift(t, phase)
+        return self.data_tmp
 
     @last_edited
     @loop_controller
@@ -85,8 +84,9 @@ class segment_IQ(segment_base):
         MW_data = IQ_data_single(t0 + self.data_tmp.start_time,
                                  t1 + self.data_tmp.start_time,
                                  amp, freq,
-                                 phase + self.data_tmp.global_phase, # @@@ should global phase be stored in IQ_data_single?
-                                 envelope_generator(AM, PM))
+                                 phase + self.data_tmp.global_phase,
+                                 envelope_generator(AM, PM),
+                                 self.name)
         self.data_tmp.add_MW_data(MW_data)
         return self.data_tmp
 
@@ -103,7 +103,11 @@ class segment_IQ(segment_base):
             amp (float) : amplitude of the pulse.
         '''
         PM = make_chirp(f0, f1, t0, t1)
-        MW_data = IQ_data_single(t0 + self.data_tmp.start_time, t1 + self.data_tmp.start_time, amp, f0, 0, envelope_generator(None, PM))
+        MW_data = IQ_data_single(t0 + self.data_tmp.start_time,
+                                 t1 + self.data_tmp.start_time, amp,
+                                 f0, 0,
+                                 envelope_generator(None, PM),
+                                 self.name)
 
         self.data_tmp.add_MW_data(MW_data)
         return self.data_tmp
@@ -154,6 +158,8 @@ class segment_IQ(segment_base):
 
         return my_marker_data
 
+    def get_accumulated_phase(self, index):
+        return self._get_data_all_at(index).get_accumulated_phase()
 
 
 if __name__ == '__main__':

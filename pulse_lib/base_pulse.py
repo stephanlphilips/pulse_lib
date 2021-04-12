@@ -3,6 +3,7 @@ import numpy as np
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
 from pulse_lib.configuration.physical_channels import awg_channel, marker_channel
+from pulse_lib.configuration.iq_channels import IQ_channel, qubit_channel
 
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
@@ -21,7 +22,8 @@ class pulselib:
         self.marker_channels = dict()
         self.digitizer_channels = dict()
         self.virtual_channels = []
-        self.IQ_channels = [] # TODO: add to name check
+        self.qubit_channels = dict() # TODO: add to name check
+        self.IQ_channels = dict()
 
         self._backend = backend
 
@@ -132,6 +134,16 @@ class pulselib:
         else:
             raise ValueError(f"Channel '{channel_name}' is not defined")
 
+    def define_IQ_channel(self, name):
+        channel = IQ_channel(name)
+        self.IQ_channel = self.IQ_channels[name] = channel
+        return channel
+
+    def define_qubit_channel(self, qubit_channel_name, IQ_channel_name, reference_frequency):
+        iq_channel = self.IQ_channels[IQ_channel_name]
+        qubit = qubit_channel(qubit_channel_name, reference_frequency)
+        iq_channel.qubit_channels.append(qubit)
+        self.qubit_channels[qubit_channel_name] = qubit
 
     def finish_init(self):
         # function that finishes the initialisation
@@ -140,7 +152,8 @@ class pulselib:
             raise Exception('Old keysight driver is not supported anymore. Use M3202A driver and backend="M3202A"')
 
         elif self._backend == "M3202A":
-            self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels, self.marker_channels)
+            self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels,
+                                            self.marker_channels, self.qubit_channels)
 
         elif self._backend == "Keysight_QS":
             self.uploader = QsUploader(self.awg_devices, self.awg_channels, self.marker_channels,
@@ -153,7 +166,7 @@ class pulselib:
             segment (segment_container) : returns a container that contains all the previously defined gates.
         '''
         return segment_container(self.awg_channels.keys(), self.marker_channels.keys(),
-                                 self.virtual_channels, self.IQ_channels,
+                                 self.virtual_channels, self.IQ_channels.values(),
                                  name=name, sample_rate=sample_rate)
 
     def mk_sequence(self,seq):
@@ -167,9 +180,8 @@ class pulselib:
             md = pc.get_metadata()
             seq_obj.metadata[('pc%i'%i)] = md
         LOdict = {}
-        for iq in self.IQ_channels:
-            virt_maps = iq.virtual_channel_map
-            for vm in virt_maps:
+        for iq in self.IQ_channels.values():
+            for vm in iq.qubit_channels:
                 name = vm.channel_name
                 LOdict[name] = iq.LO
         seq_obj.metadata['LOs'] = LOdict
@@ -247,7 +259,7 @@ if __name__ == '__main__':
     # p.add_awgs('AWG4',AWG4)
 
     # define channels
-    # p.define_channel('B0','AWG1', 1)
+    p.define_channel('B0','AWG1', 1)
     p.define_channel('P1','AWG1', 2)
     p.define_channel('B1','AWG1', 3)
     p.define_channel('P2','AWG1', 4)
@@ -261,15 +273,15 @@ if __name__ == '__main__':
     p.define_channel('G1','AWG3', 4)
     p.define_channel('I_MW','AWG4',1)
     p.define_channel('Q_MW','AWG4',2)
-    p.define_marker('M1','AWG4', 3)
-    p.define_marker('M2','AWG4', 4)
+    p.define_marker('M1','AWG4', 3, setup_ns=15, hold_ns=15)
+    p.define_marker('M2','AWG4', 4, setup_ns=15, hold_ns=15)
 
 
     # format : channel name with delay in ns (can be posive/negative)
     p.add_channel_delay('I_MW',50)
     p.add_channel_delay('Q_MW',50)
-    p.add_channel_delay('M1',20)
-    p.add_channel_delay('M2',-25)
+#    p.add_channel_delay('M1',20)
+#    p.add_channel_delay('M2',-25)
 
     # add limits on voltages for DC channel compenstation (if no limit is specified, no compensation is performed).
     # p.add_channel_compenstation_limit('B0', (-100, 500))
@@ -291,8 +303,8 @@ if __name__ == '__main__':
     # set right association of the real channels with I/Q output.
     IQ_chan_set_1.add_IQ_chan("I_MW", "I")
     IQ_chan_set_1.add_IQ_chan("Q_MW", "Q")
-    IQ_chan_set_1.add_marker("M1", -15, 15)
-    IQ_chan_set_1.add_marker("M2", -15, 15)
+    IQ_chan_set_1.add_marker("M1")
+    IQ_chan_set_1.add_marker("M2")
     # set LO frequency of the MW source. This can be changed troughout the experiments, bit only newly created segments will hold the latest value.
     IQ_chan_set_1.set_LO(1e9)
     # name virtual channels to be used.

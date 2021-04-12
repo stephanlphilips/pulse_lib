@@ -180,7 +180,7 @@ class marker_data(parent_data):
         for i in self.my_marker_data:
             print(i)
 
-    def _render(self, sample_rate):
+    def _render(self, sample_rate, ref_channel_states):
         '''
         make a full rendering of the waveform at a predermined sample rate.
         '''

@@ -181,7 +181,7 @@ class marker_HVI_variable(parent_data):
     def __repr__(self):
         return "=== raw data in HVI variable object ===\n\namplitude data ::\n" + str(self.my_amp_data) + "\ntime dep data ::\n" + str(self.my_time_data)
 
-    def _render(self, sample_rate):
+    def _render(self, sample_rate, ref_channel_states):
         '''
         make a full rendering of the waveform at a predetermined sample rate.
         '''

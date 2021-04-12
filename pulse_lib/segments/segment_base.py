@@ -352,7 +352,7 @@ class segment_base():
         index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
         return self.pulse_data_all.flat[index]
 
-    def get_segment(self, index, sample_rate=1e9):
+    def get_segment(self, index, sample_rate=1e9, ref_channel_states=None):
         '''
         get the numpy output of as segment
 
@@ -364,7 +364,7 @@ class segment_base():
             A numpy array that contains the points for each ns
             points is the expected lenght.
         '''
-        return self._get_data_all_at(index).render(sample_rate)
+        return self._get_data_all_at(index).render(sample_rate, ref_channel_states)
 
     def v_max(self, index, sample_rate = 1e9):
         return self._get_data_all_at(index).get_vmax(sample_rate)
@@ -384,7 +384,6 @@ class segment_base():
             integral (float) : integral of the pulse
         '''
         return self._get_data_all_at(index).integrate_waveform(sample_rate)
-
 
     def plot_segment(self, index = [0], render_full = True, sample_rate = 1e9):
         '''

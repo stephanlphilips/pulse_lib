@@ -10,13 +10,14 @@ from pulse_lib.segments.data_classes.data_pulse_core import base_pulse_element
 from pulse_lib.segments.segment_IQ import segment_IQ
 from dataclasses import dataclass
 
+# @@@ TODO: This is almost equal to IQ_out_channel_info + qubit_channel
 @dataclass
 class IQ_render_info:
     """
     structure to save relevant information about the rendering of the IQ channels (for is in channel object).
     """
     LO : float
-    virtual_channel_name: str
+    virtual_channel_name: str # @@@ never used, but could be useful to find qubit_channel state
     virtual_channel_pointer: segment_IQ #TODO fix to segment_IQ data type, needs to be post loaded somehow.
     IQ_render_option : str
     image_render_option : str
@@ -115,7 +116,11 @@ class segment_pulse(segment_base):
             freq (double) : frequency of the pulse
             phase_offset (double) : offset in phase is needed
         '''
-        self.data_tmp.add_MW_data(IQ_data_single(start + self.data_tmp.start_time, stop + self.data_tmp.start_time, amp, freq, phase_offset))
+        self.data_tmp.add_MW_data(IQ_data_single(start + self.data_tmp.start_time,
+                                                 stop + self.data_tmp.start_time,
+                                                 amp, freq,
+                                                 phase_offset,
+                                                 self.name))
         return self.data_tmp
 
 

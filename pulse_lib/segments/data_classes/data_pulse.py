@@ -33,6 +33,11 @@ def get_max_time(data:List[Any]) -> float:
         stop = max(stop, element.stop)
     return stop
 
+@dataclass
+class PhaseShift:
+    time: float
+    phase_shift: float
+
 class pulse_data(parent_data):
     """
     class defining base (utility) operations for baseband and microwave pulses.
@@ -42,6 +47,7 @@ class pulse_data(parent_data):
         self.baseband_pulse_data = pulse_data_single_sequence()
         self.MW_pulse_data = list()
         self.custom_pulse_data = list()
+        self.phase_shifts = list()
 
         self.start_time = 0
         self.MW_end_time = 0
@@ -66,6 +72,11 @@ class pulse_data(parent_data):
         self.custom_pulse_data.append(custom_pulse)
         if self.custom_end_time < custom_pulse.stop:
             self.custom_end_time = custom_pulse.stop
+
+    def add_phase_shift(self, time, phase_shift):
+        # TODO @@@ during rendering create ordered list of phase shifts and MW data.
+        self.phase_shifts.append(PhaseShift(time, phase_shift))
+        print(f'added {phase_shift}')
 
     @property
     def total_time(self):
@@ -336,6 +347,7 @@ class pulse_data(parent_data):
         my_copy = pulse_data()
         my_copy.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
         my_copy.MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
+        my_copy.phase_shifts = copy.copy(self.phase_shifts)
         my_copy.custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
         my_copy.start_time = copy.copy(self.start_time)
         my_copy.software_marker_data = copy.copy(self.software_marker_data)
@@ -355,6 +367,7 @@ class pulse_data(parent_data):
             new_data.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
             new_data.baseband_pulse_data += other.baseband_pulse_data
             new_data.MW_pulse_data = self.MW_pulse_data + other.MW_pulse_data
+            new_data.phase_shifts = self.MW_pulse_data + other.phase_shifts
             new_data.custom_pulse_data = self.custom_pulse_data + other.custom_pulse_data
 
         elif type(other) == int or type(other) == float:
@@ -363,6 +376,7 @@ class pulse_data(parent_data):
             new_data.baseband_pulse_data = new_pulse
 
             new_data.MW_pulse_data = copy.copy(self.MW_pulse_data)
+            new_data.phase_shifts = copy.copy(other.phase_shifts)
             new_data.custom_pulse_data = copy.copy(self.custom_pulse_data)
 
         else:
@@ -391,6 +405,8 @@ class pulse_data(parent_data):
                 new = copy.copy(custom_pulse)
                 new.amplitude *= other
                 new_data.custom_pulse_data.append(new)
+
+            new_data.phase_shifts = copy.copy(self.phase_shifts)
         else:
             raise TypeError("multiplication should be done with a number, type {} not supported".format(type(other)))
 
@@ -401,7 +417,7 @@ class pulse_data(parent_data):
         data = custom_pulse.func(duration, sample_rate, custom_pulse.amplitude, **custom_pulse.kwargs)
         return data
 
-    def _render(self, sample_rate):
+    def _render(self, sample_rate, ref_channel_states):
         '''
         make a full rendering of the waveform at a predetermined sample rate.
         '''
@@ -460,8 +476,11 @@ class pulse_data(parent_data):
             amp  =  IQ_data_single_object.amplitude
             freq =  IQ_data_single_object.frequency
             phase = IQ_data_single_object.start_phase
+            ref_start_time = ref_channel_states.start_time
+            ref_start_phase = ref_channel_states.start_phase[IQ_data_single_object.ref_channel] # @@@@
+            print(f'MW: {IQ_data_single_object.ref_channel} {ref_start_phase} {ref_start_time}')
 
-            # evelope data of the pulse
+            # emvelope data of the pulse
             if IQ_data_single_object.envelope is None:
                 IQ_data_single_object.envelope = envelope_generator()
 
@@ -475,8 +494,8 @@ class pulse_data(parent_data):
 
             # add the sin pulse
             my_sequence[start_pt:stop_pt] += amp*amp_envelope*np.sin(
-                    2*np.pi*freq/sample_rate*1e-9*(np.arange(n_pt)+start_pt)
-                    + phase + phase_envelope )
+                    2*np.pi*freq/sample_rate*1e-9*(np.arange(n_pt)+start_pt+ref_start_time/sample_rate)
+                    + phase + phase_envelope + ref_start_phase)
 
         for custom_pulse in self.custom_pulse_data:
             data = self._render_custom_pulse(custom_pulse, sample_rate*1e9)
@@ -486,6 +505,14 @@ class pulse_data(parent_data):
 
         # remove last value. t_tot_pt = t_tot + 1. Last value is always 0. It is only needed in the loop on the baseband pulses.
         return my_sequence[:-1]
+
+    def get_accumulated_phase(self):
+        phase = 0
+        for shift in self.phase_shifts:
+            phase += shift.phase_shift
+        print(f'accumulated {phase}')
+        return phase
+
 
 if __name__ == '__main__':
     """

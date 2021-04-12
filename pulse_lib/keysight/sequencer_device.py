@@ -29,13 +29,13 @@ class SequencerDevice:
         if self.iq_channels[index] is not None:
             raise Exception(f'sequencer can only have 1 IQ channel definition. ({IQ_channel.channel_map})')
 
-        iq_pair = IQ_channel.IQ_channel_map
+        iq_pair = IQ_channel.IQ_out_channels
         phases = [self._get_phase(iq_out_channel) for iq_out_channel in iq_pair]
 
         self.iq_channels[index] = IQ_channel
         sequencer_numbers = [1,2,5,6] if index == 1 else [3,4,7,8]
         sequencers = []
-        for i, qubit_channel in enumerate(IQ_channel.virtual_channel_map): # note: virtual_channel_map is a list
+        for i, qubit_channel in enumerate(IQ_channel.qubit_channels):
             if channel_numbers[1] > channel_numbers[0]:
                 phases.reverse()
             sequencer = SequencerInfo(self.name, sequencer_numbers[i],
@@ -76,12 +76,12 @@ def add_sequencers(obj, AWGs, awg_channels, IQ_channels):
         if hasattr(awg, 'get_sequencer'):
             obj.sequencer_devices[awg_name] = SequencerDevice(awg, awg_name)
 
-    for IQ_channel in IQ_channels:
-        iq_pair = IQ_channel.IQ_channel_map
-        if len(IQ_channel.IQ_channel_map) != 2:
-            raise Exception(f'IQ-channel should have 2 awg channels.'
-                            f'{iq_pair}; {IQ_channel.virtual_channel_map}')
-        iq_out_channels = [awg_channels[iq_channel_info.channel_name] for iq_channel_info in iq_pair]
+    for IQ_channel in IQ_channels.values():
+        iq_pair = IQ_channel.IQ_out_channels
+        if len(iq_pair) != 2:
+            raise Exception(f'IQ-channel should have 2 awg channels '
+                            f'({iq_pair})')
+        iq_out_channels = [awg_channels[iq_channel_info.awg_channel_name] for iq_channel_info in iq_pair]
         awg_names = [awg_channel.awg_name for awg_channel in iq_out_channels]
         if not any(awg_name in obj.sequencer_devices for awg_name in awg_names):
             continue
@@ -89,7 +89,7 @@ def add_sequencers(obj, AWGs, awg_channels, IQ_channels):
         if awg_names[0] != awg_names[1]:
             raise Exception(f'IQ channels should be on 1 awg: {iq_pair}')
 
-        obj.sequencer_out_channels += [iq_channel_info.channel_name for iq_channel_info in iq_pair]
+        obj.sequencer_out_channels += [iq_channel_info.awg_channel_name for iq_channel_info in iq_pair]
 
         seq_device = obj.sequencer_devices[awg_names[0]]
         channel_numbers = [awg_channel.channel_number for awg_channel in iq_out_channels]

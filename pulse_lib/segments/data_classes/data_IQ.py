@@ -14,7 +14,7 @@ from dataclasses import dataclass
 class envelope_generator():
     """
     Object that handles envelope functions that can be used in spin qubit experiments.
-    Key properties 
+    Key properties
         * Makes sure average amplitude of the evelope is the one expressed
         * Executes some subsampling functions to give greater time resolution than the sample rate of the AWG.
         * Allows for plotting the FT of the envelope function.
@@ -33,7 +33,7 @@ class envelope_generator():
     def get_AM_envelope(self, delta_t, sample_rate=1):
         """
         Render the envelope for the given waveshape (in init).
-        
+
         Args:
             delta_t (float) : time of the pulse (5.6 ns)
             sample_rate (float) : number of samples per second (e.g. 1GS/s)
@@ -41,8 +41,8 @@ class envelope_generator():
         Returns:
             envelope (np.ndarray[ndim=1, dtype=double]) : envelope function in DC
         """
-       
-        n_points = delta_t*sample_rate 
+
+        n_points = delta_t*sample_rate
         if n_points < 1: #skip
             return np.asarray([0])
 
@@ -58,7 +58,7 @@ class envelope_generator():
     def get_PM_envelope(self, delta_t, sample_rate=1):
         """
         Render the envelope for the given waveshape (in init).
-        
+
         Args:
             delta_t (float) : time of the pulse (5.6 ns)
             sample_rate (float) : number of samples per second (e.g. 1GS/s)
@@ -94,7 +94,7 @@ def make_chirp(f_start, f_stop, time0, time1):
     def my_chirp(delta_t, sample_rate = 1):
         """
         Function that makes a phase envelope to make a chirped pulse
-        
+
         Args:
             delta_t (double) : time in ns of the pulse.
             sample_rate (double) : sampling rate of the pulse (GS/s).
@@ -121,6 +121,7 @@ class IQ_data_single:
     frequency : float = 0
     start_phase : float = 0
     envelope : envelope_generator = None
+    ref_channel : str = None
 
 
 if __name__ == '__main__':
@@ -173,7 +174,7 @@ if __name__ == '__main__':
         else:
             time_slope = (16 + delta_t)*sample_rate - int(delta_t*sample_rate)
             envelope_left_right = signal.get_window('blackman', int(time_slope*10))[::10]
-            
+
             half_pt_gauss = int(time_slope/2)
 
             envelope[:half_pt_gauss] = envelope_left_right[:half_pt_gauss]

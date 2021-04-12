@@ -35,6 +35,8 @@ class segment_HVI_variables(segment_base):
 
         return self.data_tmp
 
+    # TODO: Remove global information from segment.
+    #       The global time shift should be kept local to the sequence rendering function. 
     @loop_controller_post_processing
     def _add_global_time_shift(self, time):
         '''

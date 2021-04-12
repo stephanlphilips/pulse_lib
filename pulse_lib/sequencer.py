@@ -152,6 +152,8 @@ class sequencer():
         for seg_container in self.sequence:
             seg_container.extend_dim(self._shape, ref=True)
 
+            # NOTE: the time shift applies only to HVI markers.
+            #       A segment with HVI markers can only be added once to the sequence.
             lp_time = loop_obj(no_setpoints=True)
             lp_time.add_data(t_tot, axis=list(range(self.ndim -1,-1,-1)))
             seg_container.add_master_clock(lp_time)
@@ -167,13 +169,13 @@ class sequencer():
             self.params.append(set_param)
             setattr(self, par_name, set_param)
 
-    def voltage_compenstation(self, compenstate):
+    def voltage_compensation(self, compensate):
         '''
-        add a voltage compenstation at the end of the sequence
+        add a voltage compensation at the end of the sequence
         Args:
-            compenstate (bool) : compenstate yes or no (default is True)
+            compensate (bool) : compensate yes or no (default is True)
         '''
-        self.neutralize = compenstate
+        self.neutralize = compensate
 
     # TODO: deprecate
     def add_HVI(self, HVI_ID, HVI_to_load, compile_function, start_function, **kwargs):
