@@ -1,3 +1,4 @@
+import time
 from typing import List, Dict, Optional
 import logging
 import numpy as np
@@ -36,6 +37,7 @@ class Wrapped5014:
         return None
 
     def upload_waveforms(self, sequences:Dict[str, np.ndarray]):
+        logging.debug('upload waveforms...')
 
         upload_list:Dict[int, ChannelData] = dict()
 
@@ -73,52 +75,56 @@ class Wrapped5014:
             return
 
         channel_cfg = self.generate_cfg()
-        logging.info('load file')
         self.pack_and_load_awg_file(upload_list, channel_cfg)
 
-        logging.info('set sequences')
+        logging.debug('set sequences')
         channels = list(upload_list.keys())
         sequences = [[data.name] for data in upload_list.values()]
         self._set_sequence(channels, sequences)
-        logging.info('upload file ready')
 
 
     def pack_and_load_awg_file(self, upload_list, channel_cfg):
+        start = time.perf_counter()
+        logging.debug('generate file')
         packed_waveforms = dict()
         for data in upload_list.values():
-            logging.debug(f'pack {data.name}: {len(data.wvf)} Sa')
+#            logging.debug(f'pack {data.name}: {len(data.wvf)} Sa')
+            start = time.perf_counter()
 #            logging.debug(f'{data.name}: {len(data.wvf)}, '
 #                          f'{np.min(data.wvf)} - {np.max(data.wvf)}, '
 #                          )
             package = self.__awg._pack_waveform(data.wvf, data.m1, data.m2)
             packed_waveforms[data.name] = package
+#            logging.info(f'packed ({(time.perf_counter()-start)*1000:5.1f})ms')
 
-        #logging.debug('generate file')
         file_name = 'default.awg'
         self.__awg.visa_handle.write('MMEMory:CDIRectory "C:\\Users\\OEM\\Documents"')
         awg_file = self.__awg._generate_awg_file(packed_waveforms, np.array([]), [], [], [], [], channel_cfg)
-        #logging.debug('send file')
+        logging.debug(f'generated ({(time.perf_counter()-start)*1000:5.1f})ms')
+        logging.debug('send file')
         self.__awg.send_awg_file(file_name, awg_file)
-
-        #logging.debug('load file')
+        start = time.perf_counter()
+        logging.debug('load file')
         current_dir = self.__awg.visa_handle.query('MMEMory:CDIRectory?')
         current_dir = current_dir.replace('"', '')
         current_dir = current_dir.replace('\n', '\\')
         self.__awg.load_awg_file(f'{current_dir}{file_name}')
+        logging.debug(f'loaded file ({(time.perf_counter()-start)*1000:5.1f})ms')
 
 
     def generate_cfg(self):
+        awg = self.__awg
         amplitudes = [0]*4
         offsets = [0]*4
         marker_lows = [[0, 0] for i in range(4)]
         marker_highs = [[0, 0] for i in range(4)]
 
         for channel in self._awg_channels.values():
-            if channel.awg_name == self.__awg.name:
+            if channel.awg_name == awg.name:
                 amplitudes[channel.channel_number-1] = channel.amplitude
 
         for channel in self._marker_channels.values():
-            if channel.module_name == self.__awg.name:
+            if channel.module_name == awg.name:
                 if isinstance(channel.channel_number, tuple):
                     channel_number = channel.channel_number[0]
                     marker_number = channel.channel_number[1]
@@ -129,11 +135,22 @@ class Wrapped5014:
                 else:
                     amplitudes[channel.channel_number-1] = channel.amplitude
 
+        # the return value of the parameter is different from what goes
+        # into the .awg file, so we translate it
+        filtertrans = {20e6: 1, 100e6: 3, 9.9e37: 10,
+                       'INF': 10, 'INFinity': 10,
+                       float('inf'): 10, None: None}
+        filters = [filtertrans[awg.ch1_filter.get_latest()],
+                   filtertrans[awg.ch2_filter.get_latest()],
+                   filtertrans[awg.ch3_filter.get_latest()],
+                   filtertrans[awg.ch4_filter.get_latest()]]
+
         channel_cfg = {}
         for i in range(4):
             ch = str(i+1)
             channel_cfg['ANALOG_METHOD_'+ch] = 1
-            channel_cfg['CHANNEL_STATE_'+ch] = 1
+#            channel_cfg['CHANNEL_STATE_'+ch] = 1
+            channel_cfg['ANALOG_FILTER_'+ch] = filters[i]
             channel_cfg['ANALOG_AMPLITUDE_'+ch] = amplitudes[i] / 1000
             channel_cfg['ANALOG_OFFSET_'+ch] = offsets[i] / 1000
             channel_cfg['MARKER1_METHOD_'+ch] = 2
