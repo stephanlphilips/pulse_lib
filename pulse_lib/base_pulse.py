@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 
 from pulse_lib.segments.segment_container import segment_container
@@ -6,7 +7,21 @@ from pulse_lib.configuration.physical_channels import awg_channel, marker_channe
 from pulse_lib.configuration.iq_channels import IQ_channel, qubit_channel
 
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
-from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
+
+try:
+    from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
+    M3202A_loaded = True
+except ImportError:
+    logging.info('Import of Keysight M3202A uploader failed', exc_info=True)
+    M3202A_loaded = False
+
+try:
+    from pulse_lib.tektronix.tektronix5014_uploader import Tektronix5014_Uploader
+    Tektronix_loaded = True
+except ImportError:
+    logging.info('Import of Tektronix uploader failed', exc_info=True)
+    Tektronix_loaded = False
+
 from pulse_lib.keysight.qs_uploader import QsUploader
 
 class pulselib:
@@ -24,6 +39,8 @@ class pulselib:
         self.virtual_channels = []
         self.qubit_channels = dict() # TODO: add to name check
         self.IQ_channels = dict()
+        # Tektronix-Spectrum feature
+        self.digitizer_markers = dict()
 
         self._backend = backend
 
@@ -64,16 +81,31 @@ class pulselib:
         '''
         self.digitizers[digitizer.name] = digitizer
 
-    def define_channel(self, channel_name, AWG_name, channel_number):
+    def add_digitizer_marker(self, digitizer_name, marker_name):
+        '''
+        Assign a marker as digitizer trigger
+        Args:
+            digitizer_name: name of the digizer
+            marker_name: name of the marker channel
+        '''
+        self.digitizer_markers[digitizer_name] = marker_name
+
+    def define_channel(self, channel_name, AWG_name, channel_number, amplitude=None):
         '''
         define the channels and their location
         Args:
             channel_name (str) : name of a given channel on the AWG. This would usually the name of the gate that it is connected to.
             AWG_name (str) : name of the instrument (as given in add_awgs())
             channel_number (int) : channel number on the AWG
+            amplitude (float): (maximum) amplitude in mV. Uses instrument default when not set.
+
+        Notes:
+            For Keysight AWG the amplitude should only be set to enforce a maximum output level. The amplitude is applied
+            digitally and setting it does not improve resolution of noise level.
+            For Tektronix AWG the amplitude applies to the analogue output range.
         '''
         self._check_uniqueness_of_channel_name(channel_name)
-        self.awg_channels[channel_name] = awg_channel(channel_name, AWG_name, channel_number)
+        self.awg_channels[channel_name] = awg_channel(channel_name, AWG_name, channel_number, amplitude)
 
     def define_marker(self, marker_name, AWG_name, channel_number, setup_ns=0, hold_ns=0,
                       amplitude=1000, invert=False):
@@ -82,9 +114,15 @@ class pulselib:
         Args:
             marker_name (str) : name of a given channel on the AWG. This would usually the name of the gate that it is connected to.
             AWG_name (str) : name of the instrument (as given in add_awgs())
-            channel_number (int) : channel number on the AWG
+            channel_number (int or Tuple(int, int)) : channel number on the AWG
             setup_ns (float): setup time for the device using the marker. marker raises `setup_ns` earlier.
             hold_ns (float): hold time for the device using the marker to ensure proper output. marker falls `hold_ns` later.
+            amplitude (float): amplitude in mV (only applies when instrument allows control)
+            invert (bool): invert the ouput, i.e. high voltage when marker not set and low when marker is active.
+
+        Notes:
+            Keysight channel number 0 is trigger out, 1..4: use AWG analogue channel
+            Tektronix: tuple, e.g. (1,2), defines marker output, integer uses analogue output channel
         '''
         self.marker_channels[marker_name] = marker_channel(marker_name, AWG_name, channel_number,
                                                            setup_ns, hold_ns, amplitude, invert)
@@ -134,6 +172,18 @@ class pulselib:
         else:
             raise ValueError(f"Channel '{channel_name}' is not defined")
 
+    def add_channel_bias_T_compensation(self, channel_name, bias_T_RC_time):
+        '''
+        Sets the bias-T RC time for the bias-T compensation.
+        Args:
+            channel_name (str) : channel name as defined in self.define_channel().
+            bias_T_RC_time (float) : RC time of bias-T
+        '''
+        if channel_name in self.awg_channels:
+            self.awg_channels[channel_name].bias_T_RC_time = bias_T_RC_time
+        else:
+            raise ValueError(f"Channel '{channel_name}' is not defined")
+
     def define_IQ_channel(self, name):
         channel = IQ_channel(name)
         self.IQ_channel = self.IQ_channels[name] = channel
@@ -152,10 +202,20 @@ class pulselib:
             raise Exception('Old keysight driver is not supported anymore. Use M3202A driver and backend="M3202A"')
 
         elif self._backend == "M3202A":
+            if not M3202A_loaded:
+                raise Exception('M3202A_Uploader import failed')
             self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels,
                                             self.marker_channels, self.qubit_channels)
 
+        elif self._backend == "Tektronix5014":
+            if not Tektronix_loaded:
+                raise Exception('Tektronix5014_Uploader import failed')
+            self.uploader = Tektronix5014_Uploader(self.awg_devices, self.awg_channels,
+                                                   self.marker_channels, self.digitizer_markers,
+                                                   self.qubit_channels) # @@@ TODO FIX for Tek.
+
         elif self._backend == "Keysight_QS":
+            # @@@ add import check
             self.uploader = QsUploader(self.awg_devices, self.awg_channels, self.marker_channels,
                                        self.IQ_channels, self.digitizers, self.digitizer_channels)
 
@@ -192,6 +252,10 @@ class pulselib:
         Releases AWG waveform memory.
         Also flushes AWG queues.
         """
+        if self._backend == "Tektronix5014":
+            logging.info(f'release_awg_memory() has no effect on Tektronix')
+            return
+
         if wait_idle:
             self.uploader.wait_until_AWG_idle()
 
@@ -210,7 +274,11 @@ class pulselib:
             hardware (harware_parent) : harware class.
         '''
         for virtual_gate_set in hardware.virtual_gates:
-            vgc = virtual_gates_constructor(self)
+            vgcs = {vgc.name:vgc for vgc in self.virtual_channels}
+            if virtual_gate_set.name in vgcs:
+                vgc = vgcs[virtual_gate_set.name]
+            else:
+                vgc = virtual_gates_constructor(self, name=virtual_gate_set.name)
             vgc.load_via_harware(virtual_gate_set)
 
         # set output ratio's of the channels from the harware file.

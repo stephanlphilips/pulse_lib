@@ -7,7 +7,7 @@ class virtual_gates_constructor(object):
     """
     Construtor to initialize virtual gate matrixes.
     """
-    def __init__(self, pulse_lib_obj):
+    def __init__(self, pulse_lib_obj, name=None):
         """
         init object
         Args:
@@ -15,6 +15,7 @@ class virtual_gates_constructor(object):
         """
         self.pulse_lib_obj = pulse_lib_obj
         self.pulse_lib_obj.virtual_channels.append(self)
+        self.name = name
         self.real_gate_names = []
         self.virtual_gate_names = []
         self._virtual_gate_matrix = None

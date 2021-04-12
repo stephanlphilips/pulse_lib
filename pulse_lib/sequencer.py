@@ -211,7 +211,7 @@ class sequencer():
         self.hw_schedule = hw_schedule
         self.hw_schedule.set_schedule_parameters(**kwargs)
 
-    def upload(self, index):
+    def upload(self, index=(0,)):
         '''
         Sends the sequence with the provided index to the uploader module. Once he is done, the play function can do its work.
         Args:
@@ -232,7 +232,7 @@ class sequencer():
         return upload_job
 
 
-    def play(self, index, release= True):
+    def play(self, index=(0,), release= True):
         '''
         Playback a certain index, assuming the index is provided.
         Args:
@@ -250,6 +250,8 @@ class sequencer():
 #        NOTE: unloading the schedule is a BAD idea. If the next sequence uses the same schedule it costs ~ 1s to load it again.
 #        self.hw_schedule.unload()
         self.hw_schedule = None
+        if not self.sequence:
+            return
         for seg_container in self.sequence:
             seg_container.exit_rendering_mode()
         self.sequence = None

@@ -25,6 +25,9 @@ class HviCompatibilityWrapper(HardwareSchedule):
         for key,value in kwargs.items():
             self.schedule_parms[key] = value
 
+    def set_configuration(self, params, n_waveforms):
+        pass
+
     def load(self):
         if self.hvi is None:
             logging.info('loading HVI')
