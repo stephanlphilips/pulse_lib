@@ -124,15 +124,17 @@ class MockM3202A(Instrument):
         else:
             return 200e6/prescaler
 
-    def plot(self):
+    def plot(self, bias_T_rc_time=0):
         for channel in range(1,5):
             data, prescaler = self.get_data_prescaler(channel)
-            print(f'{self.name} data: {[(len(s),p) for s,p in zip(data,prescaler)]}')
+            print(f'{self.name}.{channel} data: {[(len(s),p) for s,p in zip(data,prescaler)]}')
 
             if len(data) == 0:
                 continue
 
             wave_data = []
+            corr_data = []
+            corr_sum = 0
             t = []
             t0 = 0
             for d,p in zip(data, prescaler):
@@ -149,10 +151,22 @@ class MockM3202A(Instrument):
 
                 t.append(ts)
                 wave_data.append(wd)
+                if bias_T_rc_time:
+                    corr = np.cumsum(wd) / sr / bias_T_rc_time
+                    if p > 0:
+                        corr /= 2
+                    corr += corr_sum
+                    corr_sum = corr[-1]
+                    print(corr_sum)
+                    corr_data.append(corr)
 
             wave = np.concatenate(wave_data)
+
             t = np.concatenate(t)*1e9
             pt.plot(t, wave, label=f'{self.name}-{channel}')
+            if bias_T_rc_time:
+                corr = np.concatenate(corr_data)
+                pt.plot(t, wave+corr, ':', label=f'{self.name}-{channel} COR')
 
 
 class MockM3202A_fpga(MockM3202A):
@@ -188,6 +202,6 @@ class MockM3202A_fpga(MockM3202A):
 
             pt.plot(t, values, ':', label=f'{self.name}-T')
 
-    def plot(self):
-        super().plot()
+    def plot(self, bias_T_rc_time=0):
+        super().plot(bias_T_rc_time=bias_T_rc_time)
         self.plot_marker()

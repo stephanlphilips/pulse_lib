@@ -112,9 +112,20 @@ def create_seq(pulse_lib):
 
     s.MW_qubit_2.add_MW_pulse(50, 150, 50, 200e6, AM=tukey)
 
-    s.MW_qubit_1.add_MW_pulse(250, 300, 60, 50e6)
+    s.MW_qubit_1.add_MW_pulse(0, 300, 20, 35e6)
 
     s.MW_qubit_3.add_MW_pulse(250, 300, 60, 50e6)
+
+    seg2b = pulse_lib.mk_segment('manip2')
+    s = seg2b
+    s.vP4.add_ramp_ss(0, 100, 50, 100)
+    s.vP4.add_ramp_ss(100, 200, 100, 50)
+
+    s.MW_qubit_2.add_MW_pulse(50, 150, 50, 200e6, AM=tukey)
+
+    s.MW_qubit_1.add_MW_pulse(0, 300, 60, 35e6)
+
+    s.MW_qubit_3.add_MW_pulse(250, 300, 20, 20e6)
 
     seg3 = pulse_lib.mk_segment('measure', 1e8)
     s = seg3
@@ -131,7 +142,7 @@ def create_seq(pulse_lib):
     seg4.P1.wait(100)
 
     # generate the sequence and upload it.
-    my_seq = pulse_lib.mk_sequence([seg1, seg2, seg3, seg4])
+    my_seq = pulse_lib.mk_sequence([seg1, seg2, seg2b, seg3, seg4])
     my_seq.set_hw_schedule(HardwareScheduleMock())
     my_seq.n_rep = 1
 #    my_seq.sample_rate = 2e8
@@ -148,7 +159,7 @@ def plot(seq, job, awgs):
     fig.clear()
 
     for awg in awgs:
-        awg.plot()
+        awg.plot(bias_T_rc_time=0.0001)
 
     pt.legend()
     pt.show()
