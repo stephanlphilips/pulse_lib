@@ -54,18 +54,9 @@ class Tektronix5014_Uploader:
         Args:
             job (upload_job) : upload_job object that defines what needs to be uploaded and possible post processing of the waveforms (if needed)
         '''
-        '''
-        Class taking care of putting the waveform on the right AWG.
-
-        Steps:
-        1) get all the upload data
-        2) perform DC correction (if needed)
-        3) convert data in an aprropriate upload format
-        4) start upload of all data
-        5) store reference to uploaded waveform in job
-        '''
         start = time.perf_counter()
 
+        job.hw_schedule.stop()
         aggregator = UploadAggregator(self.awg_channels, self.marker_channels, self.digitizer_markers, self.awgs)
 
         aggregator.upload_job(job)
