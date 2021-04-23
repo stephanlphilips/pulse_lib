@@ -10,7 +10,7 @@ from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 try:
     from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
     M3202A_loaded = True
-except ImportError:
+except (ImportError, OSError):
     logging.info('Import of Keysight M3202A uploader failed', exc_info=True)
     M3202A_loaded = False
 
