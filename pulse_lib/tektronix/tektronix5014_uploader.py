@@ -295,10 +295,13 @@ class UploadAggregator:
 
         # sections
         sections = job.upload_info.sections
-        t_start = -max_pre_start_ns
+        # add at least 1 zero in front, because Tek outputs first sample when waiting for start trigger.
+        start_samples = 1
+        t_start = -max_pre_start_ns - start_samples/segments[0].sample_rate
 
         section = RenderSection(segments[0].sample_rate, t_start)
         sections.append(section)
+        section.npt += start_samples
         section.npt += round(max_pre_start_ns * section.sample_rate)
 
         for iseg,seg in enumerate(segments):
