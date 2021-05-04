@@ -1,6 +1,5 @@
 import numpy as np
 import copy
-import logging
 
 class loop_obj():
     """object that initializes some standard fields that need to be there in a loop object.
@@ -111,14 +110,14 @@ class loop_obj():
         cpy = copy.copy(self)
         if isinstance(other, loop_obj):
             loop_obj.__combine_axis(cpy, other)
-            if cpy.ndim == 1 and other.ndim == 1 and cpy.axis[0] != other.axis[0]:
-                if cpy.axis[0] < other.axis[0]:
+            if self.ndim == 1 and other.ndim == 1 and self.axis[0] != other.axis[0]:
+                if self.axis[0] < other.axis[0]:
                     first, second = other, cpy
                 else:
                     first, second = cpy, other
 
                 cpy.data = np.array(first.data)[:,np.newaxis] + np.array(second.data)[np.newaxis,:]
-            elif cpy.ndim == 1 and other.ndim == 1 and cpy.axis[0] == other.axis[0]:
+            elif self.ndim == 1 and other.ndim == 1 and self.axis[0] == other.axis[0]:
                 cpy.data += other.data
             else:
                 raise Exception('Adding loop objects not supported')
@@ -135,14 +134,14 @@ class loop_obj():
         cpy = copy.copy(self)
         if isinstance(other, loop_obj):
             loop_obj.__combine_axis(cpy, other)
-            if cpy.ndim == 1 and other.ndim == 1 and cpy.axis[0] != other.axis[0]:
-                if cpy.axis[0] < other.axis[0]:
+            if self.ndim == 1 and other.ndim == 1 and self.axis[0] != other.axis[0]:
+                if self.axis[0] < other.axis[0]:
                     first, second = other, cpy
                 else:
                     first, second = cpy, other
 
                 cpy.data = np.array(first.data)[:,np.newaxis] * np.array(second.data)[np.newaxis,:]
-            elif cpy.ndim == 1 and other.ndim == 1 and cpy.axis[0] == other.axis[0]:
+            elif self.ndim == 1 and other.ndim == 1 and self.axis[0] == other.axis[0]:
                 cpy.data *= other.data
             else:
                 raise Exception('Adding loop objects not supported')
@@ -166,6 +165,11 @@ class loop_obj():
         # only called if other is not loop_obj
         cpy = copy.copy(self)
         cpy.data = other - cpy.data
+        return cpy
+
+    def __neg__(self):
+        cpy = copy.copy(self)
+        cpy.data = -cpy.data
         return cpy
 
     def __truediv__(self, other):
