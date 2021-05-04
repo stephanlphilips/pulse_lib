@@ -159,7 +159,7 @@ def plot(seq, job, awgs):
     fig.clear()
 
     for awg in awgs:
-        awg.plot(bias_T_rc_time=0.0001)
+        awg.plot()
 
     pt.legend()
     pt.show()
