@@ -648,7 +648,7 @@ class UploadAggregator:
                 for acquisition in acquisition_data:
                     if has_HVI_triggers:
                         raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
-                    job.digitizer_triggers.append(seg_render.t_start + acquisition_data.start)
+                    job.digitizer_triggers.append(seg_render.t_start + acquisition.start)
 
         job.digitizer_triggers.sort()
 

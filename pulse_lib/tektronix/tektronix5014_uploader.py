@@ -397,7 +397,7 @@ class UploadAggregator:
                 seg_ch = getattr(seg, channel_name)
                 acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
                 for acquisition in acquisition_data:
-                    job.digitizer_triggers.append(seg_render.t_start + acquisition_data.start)
+                    job.digitizer_triggers.append(seg_render.t_start + acquisition.start)
 
     def _generate_digitzer_markers(self, job):
         pulse_duration = max(100, 1e9/job.default_sample_rate) # 1 Sample or 100 ns
