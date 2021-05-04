@@ -28,8 +28,6 @@ def to_loop_obj(obj, joined_loops):
         res_axis.append(idim)
         selected_loop_axis.append(joined_loops.axis.index(idim))
 
-    print('to_loop:', obj)
-    print(selected_loop_axis)
     res_axis.reverse()
     res.labels = select(res.labels, selected_loop_axis)
     res.setvals = select(res.setvals, selected_loop_axis)
@@ -49,13 +47,9 @@ def to_loop_objs(objs, loop_objs):
 def loops_to_numpy(func):
     '''
     Checks if there are there are parameters given that are loopable.
-
-    If loop:
-        * then check how many new loop parameters on which axis
-        * extend data format to the right shape (simple python list used).
-        * loop over the data and add called function
-
-    if no loop, just apply func on all data (easy)
+    Loopable parameters are converted to numpy arrays.
+    Function is called and numpy arrays in returned result are
+    converted to loob_obj with corresponding axis.
     '''
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -74,13 +68,12 @@ def loops_to_numpy(func):
         res = func(*arg_list, **kwargs)
         return to_loop_objs(res, loop_objs)
 
-
     return wrapper
+
 
 if __name__ == '__main__':
     from pulse_lib.segments.utility.looping import linspace
     from pulse_lib.base_pulse import pulselib
-    import matplotlib.pyplot as plt
 
     @loops_to_numpy
     def triangle(height:np.ndarray, slope1:np.ndarray, slope2:np.ndarray) -> np.ndarray:
@@ -89,8 +82,6 @@ if __name__ == '__main__':
         slope1: rising slope in mV/ns
         slope2: falling slope in mV/ns
         '''
-        print(slope1)
-        print(slope2)
         t_ramp1 = height/slope1
         t_ramp2 = -height/slope2
         return t_ramp1, t_ramp2
@@ -103,11 +94,6 @@ if __name__ == '__main__':
     height = 400
 
     t_ramp1, t_ramp2 = triangle(height, slope1, slope2)
-
-    print(t_ramp1)
-    print(t_ramp1.data)
-    print(t_ramp2)
-    print(t_ramp2.data)
 
     s = p.mk_segment()
     s.P1.add_ramp_ss(0, t_ramp1, 0, height)
