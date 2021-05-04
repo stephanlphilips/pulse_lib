@@ -3,7 +3,9 @@ import numpy as np
 
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
-from pulse_lib.configuration.physical_channels import awg_channel, marker_channel
+from pulse_lib.configuration.physical_channels import (
+        awg_channel, marker_channel, digitizer_channel, digitizer_channel_iq)
+
 
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 
@@ -33,6 +35,7 @@ class pulselib:
         self.digitizers = dict()
         self.awg_channels = dict()
         self.marker_channels = dict()
+        self.digitizer_channels = dict()
         self.virtual_channels = []
         self.IQ_channels = [] # TODO: add to name check
         # Tektronix-Spectrum feature
@@ -123,6 +126,15 @@ class pulselib:
         self.marker_channels[marker_name] = marker_channel(marker_name, AWG_name, channel_number,
                                                            setup_ns, hold_ns, amplitude, invert)
 
+
+    def define_digitizer_channel(self, name, digitizer_name, channel_number):
+        self._check_uniqueness_of_channel_name(name)
+        self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, channel_number)
+
+    def define_digitizer_channel_iq(self, name, digitizer_name, channel_numbers):
+        self._check_uniqueness_of_channel_name(name)
+        self.digitizer_channels[name] = digitizer_channel_iq(name, digitizer_name, channel_numbers)
+
     def add_channel_delay(self, channel, delay):
         '''
         Adds to a channel a delay.
@@ -189,13 +201,17 @@ class pulselib:
         elif self._backend == "M3202A":
             if not M3202A_loaded:
                 raise Exception('M3202A_Uploader import failed')
-            self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels, self.marker_channels)
+            self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels,
+                                            self.marker_channels,
+                                            self.digitizer_channels)
 
         elif self._backend == "Tektronix5014":
             if not Tektronix_loaded:
                 raise Exception('Tektronix5014_Uploader import failed')
             self.uploader = Tektronix5014_Uploader(self.awg_devices, self.awg_channels,
-                                                   self.marker_channels, self.digitizer_markers)
+                                                   self.marker_channels, self.digitizer_markers,
+                                                   self.digitizer_channels)
+
 
     def mk_segment(self, name=None, sample_rate=None):
         '''
@@ -205,6 +221,7 @@ class pulselib:
         '''
         return segment_container(self.awg_channels.keys(), self.marker_channels.keys(),
                                  self.virtual_channels, self.IQ_channels,
+                                 self.digitizer_channels.values(),
                                  name=name, sample_rate=sample_rate)
 
     def mk_sequence(self,seq):
@@ -276,8 +293,10 @@ class pulselib:
 
 
     def _check_uniqueness_of_channel_name(self, channel_name):
-        if channel_name in self.awg_channels or channel_name in self.marker_channels:
-            raise ValueError("double declaration of the a channel/marker name ({}).".format(channel_name))
+        if (channel_name in self.awg_channels
+            or channel_name in self.marker_channels
+            or channel_name in self.digitizer_channels):
+            raise ValueError(f"double declaration of the a channel/marker name ({channel_name}).")
 
 
 if __name__ == '__main__':
@@ -306,7 +325,7 @@ if __name__ == '__main__':
     # p.add_awgs('AWG4',AWG4)
 
     # define channels
-    # p.define_channel('B0','AWG1', 1)
+    p.define_channel('B0','AWG1', 1)
     p.define_channel('P1','AWG1', 2)
     p.define_channel('B1','AWG1', 3)
     p.define_channel('P2','AWG1', 4)

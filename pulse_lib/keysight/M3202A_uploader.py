@@ -16,13 +16,14 @@ class M3202A_Uploader:
 
     verbose = False
 
-    def __init__(self, AWGs, awg_channels, marker_channels):
+    def __init__(self, AWGs, awg_channels, marker_channels, digitizer_channels):
         '''
         Initialize the keysight uploader.
         Args:
             AWGs (dict<awg_name,QcodesIntrument>): list with AWG's
             awg_channels Dict[name, awg_channel]: channel names and properties
             marker_channels: Dict[name, marker_channel]: dict with names and properties
+            digitizer_channels:Dict[name,digitizer_channel]:dictiwhtnamesandproperties
         Returns:
             None
         '''
@@ -30,6 +31,7 @@ class M3202A_Uploader:
 
         self.awg_channels = awg_channels
         self.marker_channels = marker_channels
+        self.digitizer_channels = digitizer_channels
 
         self.jobs = []
         # hvi is used by scheduler to check whether another hvi must be loaded.
@@ -91,7 +93,8 @@ class M3202A_Uploader:
         '''
         start = time.perf_counter()
 
-        aggregator = UploadAggregator(self.awg_channels, self.marker_channels)
+        aggregator = UploadAggregator(self.awg_channels, self.marker_channels,
+                                      self.digitizer_channels)
 
         aggregator.upload_job(job, self.__upload_to_awg) # @@@ TODO split generation and upload
 
@@ -196,8 +199,11 @@ class M3202A_Uploader:
                 trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
 
         # start hvi (start function loads schedule if not yet loaded)
-        job.hw_schedule.set_configuration(job.schedule_params, job.n_waveforms)
-        job.hw_schedule.start(job.playback_time, job.n_rep, job.schedule_params)
+        acquire_triggers = {f'dig_trigger_{i}':t for i,t in enumerate(job.digitizer_triggers)}
+        schedule_params = job.schedule_params.copy()
+        schedule_params.update(acquire_triggers)
+        job.hw_schedule.set_configuration(schedule_params, job.n_waveforms)
+        job.hw_schedule.start(job.playback_time, job.n_rep, schedule_params)
 
         if release_job:
             job.release()
@@ -371,9 +377,10 @@ class SegmentRenderInfo:
 class UploadAggregator:
     verbose = False
 
-    def __init__(self, awg_channels, marker_channels):
+    def __init__(self, awg_channels, marker_channels, digitizer_channels):
         self.npt = 0
         self.marker_channels = marker_channels
+        self.digitizer_channels = digitizer_channels
         self.channels = dict()
 
         delays = []
@@ -626,6 +633,25 @@ class UploadAggregator:
             self._upload_wvf(job, channel_name, buffer, channel_info.amplitude, channel_info.attenuation,
                              section.sample_rate, awg_upload_func)
 
+    def _generate_digitizer_triggers(self, job):
+        job.digitizer_triggers = []
+        has_HVI_triggers = False
+
+        for name, value in job.schedule_params.items():
+            if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
+                has_HVI_triggers = True
+
+        for channel_name, channel in self.digitizer_channels.items():
+            for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
+                seg_ch = getattr(seg, channel_name)
+                acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
+                for acquisition in acquisition_data:
+                    if has_HVI_triggers:
+                        raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
+                    job.digitizer_triggers.append(seg_render.t_start + acquisition_data.start)
+
+        job.digitizer_triggers.sort()
+
     def _render_markers(self, job, awg_upload_func):
         for channel_name, marker_channel in self.marker_channels.items():
             logging.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV)')
@@ -728,6 +754,8 @@ class UploadAggregator:
         self._generate_upload(job, awg_upload_func)
 
         self._render_markers(job, awg_upload_func)
+
+        self._generate_digitizer_triggers(job)
 
 
     def get_max_compensation_time(self):

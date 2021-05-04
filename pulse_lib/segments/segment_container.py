@@ -7,6 +7,7 @@ from pulse_lib.segments.segment_pulse import segment_pulse
 from pulse_lib.segments.segment_IQ import segment_IQ
 from pulse_lib.segments.segment_markers import segment_marker
 from pulse_lib.segments.segment_HVI_variables import segment_HVI_variables
+from pulse_lib.segments.segment_acquisition import segment_acquisition
 
 import pulse_lib.segments.utility.looping as lp
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension, reduce_arr, upconvert_dimension
@@ -23,12 +24,12 @@ class segment_container():
     '''
     Class containing all the single segments for for a series of channels.
     This is a organisational class.
-    Class is capable of checking wheather upload is needed.
     Class is capable of termining what volatages are required for each channel.
     Class returns vmin/vmax data to awg object
     Class returns upload data as a numpy<double> array to awg object.
     '''
     def __init__(self, channel_names, markers=[], virtual_gates_objs=[], IQ_channels_objs=[],
+                 digitizer_channels = [],
                  name=None, sample_rate=None):
         """
         initialize a container for segments.
@@ -40,7 +41,7 @@ class segment_container():
             Name (str): Optional name of segment container
             sample_rate (float): Optional sample rate of segment container. This sample rate overrules the default set on the sequence.
         """
-        # physical + virtual channels
+        # physical + virtual channels + digitizer channels
         self.channels = []
         self.render_mode = False
         self.id = uuid.uuid4()
@@ -49,6 +50,7 @@ class segment_container():
 
         self._virtual_gates_objs = virtual_gates_objs
         self._IQ_channel_objs = IQ_channels_objs
+        self._digitizer_channels = digitizer_channels
         self.name = name
         self.sample_rate = sample_rate
 
@@ -82,6 +84,11 @@ class segment_container():
 
         # add the reference between channels for baseband pulses (->virtual gates) and IQ channels.
         add_reference_channels(self, self._virtual_gates_objs, self._IQ_channel_objs)
+
+        for digitizer_channel in self._digitizer_channels:
+            name = digitizer_channel.name
+            setattr(self, name, segment_acquisition(name))
+            self.channels.append(name)
 
         self._setpoints = setpoint_mgr()
 
