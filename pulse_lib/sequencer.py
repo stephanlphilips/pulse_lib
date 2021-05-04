@@ -167,13 +167,13 @@ class sequencer():
             self.params.append(set_param)
             setattr(self, par_name, set_param)
 
-    def voltage_compenstation(self, compenstate):
+    def voltage_compensation(self, compensate):
         '''
-        add a voltage compenstation at the end of the sequence
+        add a voltage compensation at the end of the sequence
         Args:
-            compenstate (bool) : compenstate yes or no (default is True)
+            compensate (bool) : compensate yes or no (default is True)
         '''
-        self.neutralize = compenstate
+        self.neutralize = compensate
 
     # TODO: deprecate
     def add_HVI(self, HVI_ID, HVI_to_load, compile_function, start_function, **kwargs):
