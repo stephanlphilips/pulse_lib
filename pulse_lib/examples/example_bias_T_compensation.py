@@ -27,7 +27,7 @@ except: pass
 
 
 def set_channel_props(pulse, channel_name, compensation_limits=(0,0), attenuation=1.0, delay=0, bias_T_rc_time=None):
-    pulse.add_channel_compenstation_limit(channel_name, compensation_limits)
+    pulse.add_channel_compensation_limit(channel_name, compensation_limits)
     pulse.add_channel_attenuation(channel_name, attenuation)
     pulse.add_channel_delay(channel_name, delay)
     pulse.add_channel_bias_T_compensation(channel_name, bias_T_rc_time)
