@@ -119,6 +119,7 @@ class segment_pulse(segment_base):
                                                  stop + self.data_tmp.start_time,
                                                  amp, freq,
                                                  phase_offset,
+                                                 None, # no envelope
                                                  self.name))
         return self.data_tmp
 
