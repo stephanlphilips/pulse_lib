@@ -1,6 +1,5 @@
 import numpy as np
 import copy
-import logging
 
 class loop_obj():
     """object that initializes some standard fields that need to be there in a loop object.
@@ -37,7 +36,7 @@ class loop_obj():
             if len(axis) != len(self.data.shape):
                 raise ValueError(f"Provided incorrect dimensions for the axis (axis:{axis} <> data:{self.data.shape})")
             if sorted(axis, reverse=True) != axis:
-                raise ValueError("Axis must be defined in decending order, e.g. [1,0]")
+                raise ValueError("Axis must be defined in descending order, e.g. [1,0]")
             self.axis = axis
 
         if labels is None:
@@ -110,21 +109,15 @@ class loop_obj():
     def __add__(self, other):
         cpy = copy.copy(self)
         if isinstance(other, loop_obj):
-            if cpy.ndim == 1 and other.ndim == 1 and cpy.axis[0] != other.axis[0]:
-                if cpy.axis[0] < other.axis[0]:
+            loop_obj.__combine_axis(cpy, other)
+            if self.ndim == 1 and other.ndim == 1 and self.axis[0] != other.axis[0]:
+                if self.axis[0] < other.axis[0]:
                     first, second = other, cpy
                 else:
                     first, second = cpy, other
 
-                cpy.axis = [first.axis[0], second.axis[0]]
-                cpy.labels = (first.labels[0], second.labels[0])
-                cpy.units = (first.units[0], second.units[0])
-                cpy.setvals = (first.setvals[0], second.setvals[0])
                 cpy.data = np.array(first.data)[:,np.newaxis] + np.array(second.data)[np.newaxis,:]
-            elif cpy.ndim == 1 and other.ndim == 1 and cpy.axis[0] == other.axis[0]:
-                logging.warning(f'adding same axis loopobjects, along: {cpy.axis[0]}')
-                if len(cpy.data) != len(other.data):
-                    raise Exception('Trying to add loops with incompatible sizes')
+            elif self.ndim == 1 and other.ndim == 1 and self.axis[0] == other.axis[0]:
                 cpy.data += other.data
             else:
                 raise Exception('Adding loop objects not supported')
@@ -134,14 +127,31 @@ class loop_obj():
         return cpy
 
     def __radd__(self, other):
+        # only called if other is not loop_obj
         return self.__add__(other)
 
     def __mul__(self, other):
         cpy = copy.copy(self)
-        cpy.data *= other
+        if isinstance(other, loop_obj):
+            loop_obj.__combine_axis(cpy, other)
+            if self.ndim == 1 and other.ndim == 1 and self.axis[0] != other.axis[0]:
+                if self.axis[0] < other.axis[0]:
+                    first, second = other, cpy
+                else:
+                    first, second = cpy, other
+
+                cpy.data = np.array(first.data)[:,np.newaxis] * np.array(second.data)[np.newaxis,:]
+            elif self.ndim == 1 and other.ndim == 1 and self.axis[0] == other.axis[0]:
+                cpy.data *= other.data
+            else:
+                raise Exception('Adding loop objects not supported')
+            # TODO equal axis and multiple dimensions
+        else:
+            cpy.data *= other
         return cpy
 
     def __rmul__(self, other):
+        # only called if other is not loop_obj
         cpy = copy.copy(self)
         cpy.data *= other
         return cpy
@@ -152,8 +162,14 @@ class loop_obj():
         return cpy
 
     def __rsub__(self, other):
+        # only called if other is not loop_obj
         cpy = copy.copy(self)
         cpy.data = other - cpy.data
+        return cpy
+
+    def __neg__(self):
+        cpy = copy.copy(self)
+        cpy.data = -cpy.data
         return cpy
 
     def __truediv__(self, other):
@@ -173,6 +189,30 @@ class loop_obj():
         if hasattr(self, 'data'):
             cpy.data= copy.copy(self.data)
         return cpy
+
+    @staticmethod
+    def __combine_axis(this, other):
+        if isinstance(other, loop_obj):
+            if this.ndim == 1 and other.ndim == 1:
+                if this.axis[0] == other.axis[0]:
+                    if this.shape != other.shape:
+                        raise Exception(f'Cannot combine loops with shapes {this.shape} and {other.shape}')
+                    # assume axis are the same
+                    # TODO check equality of units, setpoins, ...
+                    return
+                elif this.axis[0] < other.axis[0]:
+                    first, second = other, this
+                else:
+                    first, second = this, other
+
+                this.axis = [first.axis[0], second.axis[0]]
+                this.labels = (first.labels[0], second.labels[0])
+                this.units = (first.units[0], second.units[0])
+                this.setvals = (first.setvals[0], second.setvals[0])
+            else:
+                raise Exception(f'Combining loops with shapes {this.shape} and {other.shape} not supported')
+                # TODO support multiple dimensions
+
 
     def __repr__(self):
         return f'axis:{self.axis}, labels:{self.labels}, units: {self.units}, setvals: {self.setvals}'
