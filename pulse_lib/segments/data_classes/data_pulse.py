@@ -507,15 +507,18 @@ class pulse_data(parent_data):
             amp  =  IQ_data_single_object.amplitude
             freq =  IQ_data_single_object.frequency
             phase = IQ_data_single_object.start_phase
-            if ref_channel_states:
+            if ref_channel_states and IQ_data_single_object.ref_channel in ref_channel_states.start_phase:
                 ref_start_time = ref_channel_states.start_time
                 ref_start_phase = ref_channel_states.start_phase[IQ_data_single_object.ref_channel]
-                phase_shifts = [
-                        ps.phase_shift
-                        for ps in phase_shifts_channels[IQ_data_single_object.ref_channel]
-                        if ps.time <= start_pulse
-                        ]
-                phase_shift = sum(phase_shifts)
+                if IQ_data_single_object.ref_channel in phase_shifts_channels:
+                    phase_shifts = [
+                            ps.phase_shift
+                            for ps in phase_shifts_channels[IQ_data_single_object.ref_channel]
+                            if ps.time <= start_pulse
+                            ]
+                    phase_shift = sum(phase_shifts)
+                else:
+                    phase_shift = 0
             else:
                 ref_start_time = 0
                 ref_start_phase = 0
