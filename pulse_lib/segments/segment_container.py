@@ -85,6 +85,11 @@ class segment_container():
 
         self._setpoints = setpoint_mgr()
 
+    def __getitem__(self, index:str):
+        if index not in self.channels:
+            raise ValueError(f'Unknown channel {index}')
+        return getattr(self, index)
+
     def __copy__(self):
         new = segment_container([])
 
@@ -137,8 +142,8 @@ class segment_container():
     def last_mod(self):
         time = datetime.datetime.utcfromtimestamp(0)
         for i in self.channels:
-            if getattr(self, i, segment_single()).last_edit > time:
-                time = getattr(self, i, segment_single()).last_edit
+            if getattr(self, i).last_edit > time:
+                time = getattr(self, i).last_edit
         return time
 
     @property
@@ -315,6 +320,31 @@ class segment_container():
         else:
             self._software_markers._pulse_data_all = update_dimension(self._software_markers.pulse_data_all, shape, ref)
 
+    def add_block(self, start, stop, channels, amplitudes):
+        '''
+        Adds a block to each of the specified channels.
+        Args:
+           start (float, loop_obj): start of the block
+           stop (float, loop_obj): stop of the block
+           channels (List[str]): channels to apply the block to
+           amplitudes (List[float, loop_obj]): amplitude per channel
+        '''
+        for channel, amplitude in zip(channels, amplitudes):
+            self[channel].add_block(start, stop, amplitude)
+
+    def add_ramp(self, start, stop, channels, start_amplitudes, stop_amplitudes):
+        '''
+        Adds a ramp to each of the specified channels.
+        Args:
+           start (float, loop_obj): start of the block
+           stop (float, loop_obj): stop of the block
+           channels (List[str]): channels to apply the block to
+           start_amplitudes (List[float, loop_obj]): start amplitude per channel
+           stop_amplitudes (List[float, loop_obj]): stop amplitude per channel
+        '''
+        for channel, start_amp, stop_amp in zip(channels, start_amplitudes, stop_amplitudes):
+            self[channel].add_ramp_ss(start, stop, start_amp, stop_amp)
+
     def add_HVI_marker(self, marker_name, t_off = 0):
         '''
         add a HVI marker that corresponds to the current time of the segment (defined by reset_time).
@@ -372,6 +402,21 @@ class segment_container():
             getattr(self, i).render_mode =  False
             getattr(self, i)._pulse_data_all = None
 
+    def plot(self, index=(0,), channels=None, sample_rate=1e9):
+        '''
+        Plots selected channels.
+        Args:
+            index (tuple): loop index
+            channels (list[str]): channels to plot, if None plot all channels.
+            sample_rate (float): sample rate to use in rendering.
+        '''
+        if channels is None:
+            channels = self.channels
+        self.enter_rendering_mode()
+        for channel in channels:
+            self[channel].plot_segment(index, sample_rate=sample_rate)
+        self.exit_rendering_mode()
+
     def get_metadata(self):
         '''
         get_metadata
@@ -414,6 +459,7 @@ class segment_container():
                 pass
         return metadata
 
+
 def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channels_objs):
     '''
     add/update the references to the channels
@@ -436,11 +482,11 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
             virtual_gates_values = virtual_gates.virtual_gate_matrix_inv[i,:]
 
             for j in range(virtual_gates.size):
-                if virtual_gates_values[j] != 0:
-                    virutal_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j],
-                        virtual_gates_values[j], segment_container_obj)
-                    real_channel.add_reference_channel(virutal_channel_reference_info)
-
+                multiplier = virtual_gates_values[j]
+                if multiplier != 0:
+                    virtual_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j],
+                        multiplier, segment_container_obj)
+                    real_channel.add_reference_channel(virtual_channel_reference_info)
 
     # define virtual IQ channels
     for IQ_channels_obj in IQ_channels_objs:
@@ -464,7 +510,7 @@ if __name__ == '__main__':
     import pulse_lib.segments.utility.looping as lp
     import matplotlib.pyplot as plt
 
-    seg = segment_container(["a", "b",])
+    seg = segment_container(["a", "b", "c", "d"])
     # b = segment_container(["a", "b"])
     chan = segment_IQ("q1")
     setattr(seg, "q1", chan)
@@ -479,6 +525,11 @@ if __name__ == '__main__':
     seg.b.add_IQ_channel(1e9, "q1", chan, "Q", "0")
 
     seg.M1.add_reference_marker_IQ(chan)
+
+    seg['c'].add_block(0, 10, 100)
+    seg.add_block(10, 20, ['c', 'd'], [-100, -50])
+    seg.add_ramp(10, 20, ['d', 'c'], [50, -100], [100, 250])
+    seg.add_ramp(0, 20, ['c', 'd'], [250, 100], [0,0])
 
 
     seg.a.add_block(0,lp.linspace(50,100,10),100)
@@ -501,5 +552,10 @@ if __name__ == '__main__':
     seg.q1.plot_segment([0], sample_rate = 1e10)
     seg.a.plot_segment([0], True, sample_rate = 1e10)
     seg.b.plot_segment([0], True, sample_rate = 1e10)
+    seg.c.plot_segment([0], True, sample_rate = 1e10)
+    seg.d.plot_segment([0], True, sample_rate = 1e10)
     seg.M1.plot_segment([0])
     plt.show()
+
+    plt.figure()
+    seg.plot([0], ['c','d'])
