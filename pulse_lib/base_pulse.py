@@ -320,15 +320,13 @@ if __name__ == '__main__':
     p.define_channel('G1','AWG3', 4)
     p.define_channel('I_MW','AWG4',1)
     p.define_channel('Q_MW','AWG4',2)
-    p.define_marker('M1','AWG4', 3)
-    p.define_marker('M2','AWG4', 4)
+    p.define_marker('M1','AWG4', 3, setup_ns=15, hold_ns=15)
+    p.define_marker('M2','AWG4', 4, setup_ns=15, hold_ns=15)
 
 
     # format : channel name with delay in ns (can be posive/negative)
     p.add_channel_delay('I_MW',50)
     p.add_channel_delay('Q_MW',50)
-    p.add_channel_delay('M1',20)
-    p.add_channel_delay('M2',-25)
 
     # add limits on voltages for DC channel compenstation (if no limit is specified, no compensation is performed).
     # p.add_channel_compenstation_limit('B0', (-100, 500))
@@ -350,8 +348,8 @@ if __name__ == '__main__':
     # set right association of the real channels with I/Q output.
     IQ_chan_set_1.add_IQ_chan("I_MW", "I")
     IQ_chan_set_1.add_IQ_chan("Q_MW", "Q")
-    IQ_chan_set_1.add_marker("M1", -15, 15)
-    IQ_chan_set_1.add_marker("M2", -15, 15)
+    IQ_chan_set_1.add_marker("M1")
+    IQ_chan_set_1.add_marker("M2")
     # set LO frequency of the MW source. This can be changed troughout the experiments, bit only newly created segments will hold the latest value.
     IQ_chan_set_1.set_LO(1e9)
     # name virtual channels to be used.
