@@ -25,7 +25,7 @@ except ImportError:
     Tektronix_loaded = False
 
 try:
-from pulse_lib.keysight.qs_uploader import QsUploader
+    from pulse_lib.keysight.qs_uploader import QsUploader
     KeysightQS_loaded = True
 except ImportError:
     logging.info('Import of KeysightQS uploader failed', exc_info=True)
