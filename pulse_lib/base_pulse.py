@@ -5,7 +5,7 @@ from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
 from pulse_lib.configuration.physical_channels import (
         awg_channel, marker_channel, digitizer_channel, digitizer_channel_iq)
-
+from pulse_lib.configuration.iq_channels import IQ_channel, qubit_channel
 
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 
@@ -37,7 +37,8 @@ class pulselib:
         self.marker_channels = dict()
         self.digitizer_channels = dict()
         self.virtual_channels = []
-        self.IQ_channels = [] # TODO: add to name check
+        self.qubit_channels = dict()
+        self.IQ_channels = dict()
         # Tektronix-Spectrum feature
         self.digitizer_markers = dict()
 
@@ -192,6 +193,17 @@ class pulselib:
         else:
             raise ValueError(f"Channel '{channel_name}' is not defined")
 
+    def define_IQ_channel(self, name):
+        channel = IQ_channel(name)
+        self.IQ_channel = self.IQ_channels[name] = channel
+        return channel
+
+    def define_qubit_channel(self, qubit_channel_name, IQ_channel_name, reference_frequency):
+        iq_channel = self.IQ_channels[IQ_channel_name]
+        qubit = qubit_channel(qubit_channel_name, reference_frequency, iq_channel)
+        iq_channel.qubit_channels.append(qubit)
+        self.qubit_channels[qubit_channel_name] = qubit
+
     def finish_init(self):
         # function that finishes the initialisation
 
@@ -202,7 +214,7 @@ class pulselib:
             if not M3202A_loaded:
                 raise Exception('M3202A_Uploader import failed')
             self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels,
-                                            self.marker_channels,
+                                            self.marker_channels, self.qubit_channels,
                                             self.digitizer_channels)
 
         elif self._backend == "Tektronix5014":
@@ -210,8 +222,13 @@ class pulselib:
                 raise Exception('Tektronix5014_Uploader import failed')
             self.uploader = Tektronix5014_Uploader(self.awg_devices, self.awg_channels,
                                                    self.marker_channels, self.digitizer_markers,
-                                                   self.digitizer_channels)
+                                                   self.qubit_channels, self.digitizer_channels)
 
+
+        elif self._backend in ["Demo", "None", None]:
+            logging.info('No backend defined')
+        else:
+            raise Exception(f'Unknown backend: {self._backend}')
 
     def mk_segment(self, name=None, sample_rate=None):
         '''
@@ -220,7 +237,7 @@ class pulselib:
             segment (segment_container) : returns a container that contains all the previously defined gates.
         '''
         return segment_container(self.awg_channels.keys(), self.marker_channels.keys(),
-                                 self.virtual_channels, self.IQ_channels,
+                                 self.virtual_channels, self.IQ_channels.values(),
                                  self.digitizer_channels.values(),
                                  name=name, sample_rate=sample_rate)
 
@@ -235,9 +252,8 @@ class pulselib:
             md = pc.get_metadata()
             seq_obj.metadata[('pc%i'%i)] = md
         LOdict = {}
-        for iq in self.IQ_channels:
-            virt_maps = iq.virtual_channel_map
-            for vm in virt_maps:
+        for iq in self.IQ_channels.values():
+            for vm in iq.qubit_channels:
                 name = vm.channel_name
                 LOdict[name] = iq.LO
         seq_obj.metadata['LOs'] = LOdict
@@ -295,7 +311,8 @@ class pulselib:
     def _check_uniqueness_of_channel_name(self, channel_name):
         if (channel_name in self.awg_channels
             or channel_name in self.marker_channels
-            or channel_name in self.digitizer_channels):
+            or channel_name in self.digitizer_channels
+            or channel_name in self.qubit_channels):
             raise ValueError(f"double declaration of the a channel/marker name ({channel_name}).")
 
 

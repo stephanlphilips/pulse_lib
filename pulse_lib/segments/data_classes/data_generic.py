@@ -97,7 +97,7 @@ class parent_data(ABC):
         raise NotImplemented
 
     @abstractmethod
-    def _render(self, sample_rate):
+    def _render(self, sample_rate, ref_channel_states):
         '''
         make a full rendering of the waveform at a predetermined sample rate. This should be defined in the child of this class.
         '''
@@ -113,7 +113,7 @@ class parent_data(ABC):
         '''
         self.software_marker_data[marker_name] = time
 
-    def render(self, sample_rate=1e9):
+    def render(self, sample_rate=1e9, ref_channel_states=None):
         '''
         renders pulse
         Args:
@@ -125,7 +125,7 @@ class parent_data(ABC):
         # If no render performed, generate full waveform, we will cut out the right size if needed
         cache_entry = self._get_cached_data_entry()
         if cache_entry.data is None or cache_entry.data['sample_rate'] != sample_rate:
-            waveform = self._render(sample_rate)
+            waveform = self._render(sample_rate, ref_channel_states)
             cache_entry.data = {
                 'sample_rate' : sample_rate,
                 'waveform' : waveform,

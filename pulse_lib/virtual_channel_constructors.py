@@ -1,9 +1,7 @@
 import warnings
 import numpy as np
 
-from dataclasses import dataclass
-
-from qcodes.instrument.parameter import Parameter
+from .configuration.iq_channels import IQ_channel, IQ_out_channel_info
 
 class virtual_gates_constructor(object):
     """
@@ -76,7 +74,7 @@ class virtual_gates_constructor(object):
         """
         for i in args:
             if i not in self.pulse_lib_obj.awg_channels:
-                raise ValueError("{} non declared in the pulse_lib object. Make sure to specify the channel.".format(i))
+                raise ValueError(f"Channel {i} not defined in the pulse_lib object.")
 
         self.real_gate_names = args
 
@@ -108,76 +106,22 @@ class virtual_gates_constructor(object):
         self._virtual_gate_matrix = virtual_gate_matrix.data
 
 
-@dataclass
-class marker_info:
-    """
-    structure to save relevant information about marker data.
-    """
-    Marker_channel: str
-
-@dataclass
-class virtual_pulse_channel_info:
-    """
-    info that is needed to link a real channel to a virtual channel
-    """
-    name: str
-    multiplication_factor: float
-    seg_container: any
-
-    @property
-    def segment(self):
-        return getattr(self.seg_container, self.name)
-
-
-@dataclass
-class IQ_channel_info:
-    """
-    structure to save relevant information about the rendering of the IQ channels.
-    """
-    channel_name: str
-    # I or Q component
-    IQ_comp: str
-    # make the negative of positive image of the singal (*-1)
-    image: str
-
-@dataclass
-class virtual_channel_info:
-    """
-    structure to hold info of virtual_IQ_channels
-    """
-    channel_name : str
-    reference_frequency : float
-
 
 class IQ_channel_constructor(object):
     """
-    Constructor that makes virtual IQ channels on the AWG intruments.
+    Constructor that makes virtual IQ channels on the AWG instruments.
     Recommended to construct if you plan to use and MW control.
     """
-    def __init__(self, pulse_lib_obj):
+    def __init__(self, pulse_lib_obj, name=None):
         """
         init object
         Args:
             pulse_lib_obj (pulse_lib) : add a pulse lib object to whom properties need to be added.
         """
         self.pulse_lib_obj = pulse_lib_obj
-        self.pulse_lib_obj.IQ_channels.append(self)
-        self.virtual_channel_map = []
-        self.IQ_channel_map = []
-        self.markers = []
-        self._LO = None
-
-    @property
-    def LO(self):
-        """
-        get LO frequecy of the MW source
-        """
-        if isinstance(self._LO, float):
-            return self._LO
-        elif isinstance(self._LO, Parameter):
-            return self._LO.get()
-        else:
-            raise ValueError("No local oscilator defined in the IQ_channel_constructor. Please do so.")
+        if name is None:
+            name = f'_IQ-{len(pulse_lib_obj.IQ_channels)}'
+        self.IQ_channel:IQ_channel = pulse_lib_obj.define_IQ_channel(name)
 
     def add_IQ_chan(self, channel_name, IQ_comp, image = "+"):
         """
@@ -197,7 +141,7 @@ class IQ_channel_constructor(object):
         if image not in ["+", "-"]:
             raise ValueError("The image of the IQ signal is not specified properly (current given {}, expected \"+\" or \"-\")".format(image))
 
-        self.IQ_channel_map.append(IQ_channel_info(channel_name, IQ_comp, image))
+        self.IQ_channel.IQ_out_channels.append(IQ_out_channel_info(channel_name, IQ_comp, image))
 
     def add_marker(self, channel_name, pre_delay=0, post_delay=0):
         """
@@ -210,7 +154,7 @@ class IQ_channel_constructor(object):
         if pre_delay or post_delay:
             raise Exception(f'delays must be set with pulse_lib.define_marker(name, setup_ns=pre_delay, hold_ns=post_delay)')
         self.__check_marker_channel_name(channel_name)
-        self.markers.append(marker_info(channel_name))
+        self.IQ_channel.marker_channels.append(channel_name)
 
     def set_LO(self, LO):
         """
@@ -218,7 +162,7 @@ class IQ_channel_constructor(object):
         Args:
             LO (Parameter/float) :
         """
-        self._LO = LO
+        self.IQ_channel.LO_parameter = LO
 
     def add_virtual_IQ_channel(self, virtual_channel_name, LO_freq = None):
         """
@@ -226,11 +170,9 @@ class IQ_channel_constructor(object):
         It is recommended to make one IQ channel per qubit (assuming you are multiplexing for multiple qubits)
         Args:
             virtual_channel_name (str) : channel name (e.g. qubit_1)
-            LO_freq (str) : can be used to specify a resting frequency of the qubit.
-                            This is handy when your qubit frequency is diferent in the reseting state and while driving.
-                            DEV NOTE? should this be here? (-- it is a general property to construct IQ pulses in a correct way --)
+            LO_freq (float) : frequency of the qubit when not driving and default for driving.
         """
-        self.virtual_channel_map.append(virtual_channel_info(virtual_channel_name, LO_freq))
+        self.pulse_lib_obj.define_qubit_channel(virtual_channel_name, self.IQ_channel.name, reference_frequency=LO_freq)
 
     def __check_awg_channel_name(self, channel_name):
         """

@@ -115,7 +115,11 @@ class segment_pulse(segment_base):
             freq (double) : frequency of the pulse
             phase_offset (double) : offset in phase is needed
         '''
-        self.data_tmp.add_MW_data(IQ_data_single(start + self.data_tmp.start_time, stop + self.data_tmp.start_time, amp, freq, phase_offset))
+        self.data_tmp.add_MW_data(IQ_data_single(start + self.data_tmp.start_time,
+                                                 stop + self.data_tmp.start_time,
+                                                 amp, freq,
+                                                 phase_offset,
+                                                 self.name))
         return self.data_tmp
 
 

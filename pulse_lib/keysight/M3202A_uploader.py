@@ -16,13 +16,14 @@ class M3202A_Uploader:
 
     verbose = False
 
-    def __init__(self, AWGs, awg_channels, marker_channels, digitizer_channels):
+    def __init__(self, AWGs, awg_channels, marker_channels, qubit_channels, digitizer_channels):
         '''
         Initialize the keysight uploader.
         Args:
             AWGs (dict<awg_name,QcodesIntrument>): list with AWG's
             awg_channels Dict[name, awg_channel]: channel names and properties
             marker_channels: Dict[name, marker_channel]: dict with names and properties
+            qubit_channels: Dict[name, qubit_channel]: dict with names and properties
             digitizer_channels:Dict[name,digitizer_channel]:dictiwhtnamesandproperties
         Returns:
             None
@@ -31,6 +32,7 @@ class M3202A_Uploader:
 
         self.awg_channels = awg_channels
         self.marker_channels = marker_channels
+        self.qubit_channels = qubit_channels
         self.digitizer_channels = digitizer_channels
 
         self.jobs = []
@@ -94,7 +96,7 @@ class M3202A_Uploader:
         start = time.perf_counter()
 
         aggregator = UploadAggregator(self.awg_channels, self.marker_channels,
-                                      self.digitizer_channels)
+                                      self.qubit_channels, self.digitizer_channels)
 
         aggregator.upload_job(job, self.__upload_to_awg) # @@@ TODO split generation and upload
 
@@ -373,13 +375,20 @@ class SegmentRenderInfo:
     def t_end(self):
         return self.t_start + self.npt / self.sample_rate
 
+@dataclass
+class RefChannels:
+    start_time: float
+    start_phase: Dict[str,float] = field(default_factory=dict)
+    start_phases_all: List[Dict[str,float]] = field(default_factory=list)
+
 
 class UploadAggregator:
     verbose = False
 
-    def __init__(self, awg_channels, marker_channels, digitizer_channels):
+    def __init__(self, awg_channels, marker_channels, qubit_channels, digitizer_channels):
         self.npt = 0
         self.marker_channels = marker_channels
+        self.qubit_channels = qubit_channels
         self.digitizer_channels = digitizer_channels
         self.channels = dict()
 
@@ -525,6 +534,18 @@ class UploadAggregator:
     def _generate_upload(self, job, awg_upload_func):
         segments = self.segments
         sections = job.upload_info.sections
+        ref_channel_states = RefChannels(0)
+
+        # loop over all qubit channels to accumulate total phase shift
+        for i in range(len(job.sequence)):
+            ref_channel_states.start_phases_all.append(dict())
+        for channel_name, qubit_channel in self.qubit_channels.items():
+            phase = 0
+            for iseg,seg in enumerate(job.sequence):
+                ref_channel_states.start_phases_all[iseg][channel_name] = phase
+                #print(f'phase: {channel_name}.{iseg}: {phase}')
+                seg_ch = getattr(seg, channel_name)
+                phase += seg_ch.get_accumulated_phase(job.index)
 
         for channel_name, channel_info in self.channels.items():
             section = sections[0]
@@ -537,8 +558,11 @@ class UploadAggregator:
                 n_delay = round(channel_info.delay_ns * sample_rate)
 
                 seg_ch = getattr(seg, channel_name)
+                ref_channel_states.start_time = seg_render.t_start
+                ref_channel_states.start_phase = ref_channel_states.start_phases_all[iseg]
                 start = time.perf_counter()
-                wvf = seg_ch.get_segment(job.index, sample_rate*1e9)
+                #print(f'start: {channel_name}.{iseg}: {ref_channel_states.start_time}')
+                wvf = seg_ch.get_segment(job.index, sample_rate*1e9, ref_channel_states)
                 duration = time.perf_counter() - start
                 logging.debug(f'generated [{job.index}]{iseg}:{channel_name} {len(wvf)} Sa, in {duration*1000:6.3f} ms')
 

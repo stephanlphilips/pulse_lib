@@ -12,12 +12,12 @@ from pulse_lib.segments.segment_acquisition import segment_acquisition
 import pulse_lib.segments.utility.looping as lp
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension, reduce_arr, upconvert_dimension
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
-from pulse_lib.virtual_channel_constructors import virtual_pulse_channel_info
 import uuid
 
 import numpy as np
 import datetime
 import copy
+from dataclasses import dataclass
 
 
 class segment_container():
@@ -78,9 +78,9 @@ class segment_container():
 
         # define virtual IQ channels
         for IQ_channels_obj in IQ_channels_objs:
-            for virtual_channel_name in IQ_channels_obj.virtual_channel_map:
-                setattr(self, virtual_channel_name.channel_name, segment_IQ(virtual_channel_name.channel_name, self._software_markers))
-                self.channels.append(virtual_channel_name.channel_name)
+            for qubit_channel in IQ_channels_obj.qubit_channels:
+                setattr(self, qubit_channel.channel_name, segment_IQ(qubit_channel.channel_name, self._software_markers))
+                self.channels.append(qubit_channel.channel_name)
 
         # add the reference between channels for baseband pulses (->virtual gates) and IQ channels.
         add_reference_channels(self, self._virtual_gates_objs, self._IQ_channel_objs)
@@ -292,7 +292,7 @@ class segment_container():
             segment = getattr(self, i)
             segment.reset_time(loop_obj, False)
 
-    def get_waveform(self, channel, index = [0], sample_rate=1e9):
+    def get_waveform(self, channel, index = [0], sample_rate=1e9, ref_channel_states=None):
         '''
         function to get the raw data of a waveform,
         inputs:
@@ -301,7 +301,7 @@ class segment_container():
         returns:
             np.ndarray[ndim=1, dtype=double] : waveform as a numpy array
         '''
-        return getattr(self, channel).get_segment(index, sample_rate)
+        return getattr(self, channel).get_segment(index, sample_rate, ref_channel_states)
 
     def extend_dim(self, shape=None, ref = False):
         '''
@@ -466,6 +466,19 @@ class segment_container():
                 pass
         return metadata
 
+@dataclass
+class virtual_pulse_channel_info:
+    """
+    info that is needed to link a real channel to a virtual channel
+    """
+    name: str
+    multiplication_factor: float
+    seg_container: any
+
+    @property
+    def segment(self):
+        return getattr(self.seg_container, self.name)
+
 
 def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channels_objs):
     '''
@@ -498,18 +511,19 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
     # define virtual IQ channels
     for IQ_channels_obj in IQ_channels_objs:
         # set up maping to real IQ channels:
-        for IQ_real_channel_info in IQ_channels_obj.IQ_channel_map:
-            real_channel = getattr(segment_container_obj, IQ_real_channel_info.channel_name)
-            for virtual_channel_name in IQ_channels_obj.virtual_channel_map:
-                virtual_channel = getattr(segment_container_obj, virtual_channel_name.channel_name)
-                real_channel.add_IQ_channel(IQ_channels_obj.LO, virtual_channel_name.channel_name, virtual_channel, IQ_real_channel_info.IQ_comp, IQ_real_channel_info.image)
+        for IQ_out_channel in IQ_channels_obj.IQ_out_channels:
+            real_channel = getattr(segment_container_obj, IQ_out_channel.awg_channel_name)
+            for qubit_channel in IQ_channels_obj.qubit_channels:
+                virtual_channel = getattr(segment_container_obj, qubit_channel.channel_name)
+                real_channel.add_IQ_channel(IQ_channels_obj.LO, qubit_channel.channel_name,
+                                            virtual_channel, IQ_out_channel.IQ_comp, IQ_out_channel.image)
 
         # set up markers
-        for marker_info in IQ_channels_obj.markers:
-            real_channel_marker = getattr(segment_container_obj, marker_info.Marker_channel)
+        for marker_name in IQ_channels_obj.marker_channels:
+            real_channel_marker = getattr(segment_container_obj, marker_name)
 
-            for virtual_channel_name in IQ_channels_obj.virtual_channel_map:
-                virtual_channel = getattr(segment_container_obj, virtual_channel_name.channel_name)
+            for qubit_channel in IQ_channels_obj.qubit_channels:
+                virtual_channel = getattr(segment_container_obj, qubit_channel.channel_name)
                 real_channel_marker.add_reference_marker_IQ(virtual_channel)
 
 
