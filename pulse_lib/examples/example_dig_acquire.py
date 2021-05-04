@@ -9,7 +9,9 @@ import qcodes.logger as logger
 from qcodes.logger import start_all_logging
 
 from pulse_lib.base_pulse import pulselib
-from pulse_lib.tests.mock_m3202a import MockM3202A, MockM3202A_fpga
+from pulse_lib.tests.mock_m3202a import MockM3202A_fpga
+from pulse_lib.tests.mock_m3202a_qs import MockM3202A_QS
+from pulse_lib.tests.mock_m3102a_qs import MockM3102A_QS
 from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
 
 import pulse_lib.segments.utility.looping as lp
@@ -33,9 +35,14 @@ def set_channel_props(pulse, channel_name, compensation_limits=(0,0), attenuatio
     pulse.add_channel_bias_T_compensation(channel_name, bias_T_rc_time)
 
 
-def init_pulselib(awg1):
-    p = pulselib()
-    p.add_awg(awg1)
+def init_pulselib(awgs, digitizer):
+    p = pulselib(backend='Keysight_QS')
+    for awg in awgs:
+        p.add_awg(awg)
+    p.add_digitizer(digitizer)
+
+    awg1, awg2 = awgs
+
     p.define_channel('P1', awg1.name, 1)
     p.define_channel('P2', awg1.name, 2)
     p.define_channel('P3', awg1.name, 3)
@@ -45,6 +52,8 @@ def init_pulselib(awg1):
     set_channel_props(p, 'P2', compensation_limits=(-250,250), attenuation=1.0, delay=0, bias_T_rc_time=0.001)
     set_channel_props(p, 'P3', compensation_limits=(-280,280), attenuation=1.0, delay=0, bias_T_rc_time=0.001)
     set_channel_props(p, 'P4', bias_T_rc_time=0.001)
+
+    p.define_digitizer_channel('SE1', digitizer.name, 1)
 
     p.finish_init()
 
@@ -58,46 +67,34 @@ def init_pulselib(awg1):
     return p
 
 
-def tukey(duration, sample_rate):
-    n_points = int(duration * sample_rate)
-    return windows.tukey(n_points, alpha=0.5)
-
 def create_seq(pulse_lib):
 
-    seg1 = pulse_lib.mk_segment(name='init', sample_rate=1e8)
+    seg1 = pulse_lib.mk_segment(name='init')
     s = seg1
     s.P1.add_ramp_ss(0, 1000, -120, 150)
-    s.P2.add_block(0, 500, 50)
+    s['P2'].add_block(0, 500, 50)
     s.vP3.add_block(600, 800, 100)
 
-    # no sample rate specified: it uses default sample rate. In this example 2e8 Sa/s (see below).
     seg2 = pulse_lib.mk_segment('manip')
     s = seg2
     s.vP4.add_ramp_ss(0, 100, 50, 100)
     s.vP4.add_ramp_ss(100, 200, 100, 50)
 
 
-    seg3 = pulse_lib.mk_segment('measure', 1e8)
+    seg3 = pulse_lib.mk_segment('measure')
     s = seg3
     s.P1.add_block(0, 1e5, -90)
     s.P2.add_block(0, 1e5, 120)
     s.vP4.add_ramp_ss(1e4, 3e4, 0, 50)
     s.vP4.add_block(3e4, 7e4, 50)
     s.vP4.add_ramp_ss(7e4, 9e4, 50, 0)
-    s.reset_time()
-    s.add_HVI_marker('ping', 99)
-
-
-    # segment without data. Will be used for DC compensation with low sample rate
-    seg4 = pulse_lib.mk_segment('dc compensation', 1e7)
-    # wait 10 ns (i.e. 1 sample at 1e8 MSa/s)
-    seg4.P1.wait(100)
+    s.SE1.acquire(4e4, t_measure=2e4)
 
     # generate the sequence and upload it.
-    my_seq = pulse_lib.mk_sequence([seg1, seg2, seg3, seg4])
+    my_seq = pulse_lib.mk_sequence([seg1, seg2, seg3])
     my_seq.set_hw_schedule(HardwareScheduleMock())
     my_seq.n_rep = 1
-#    my_seq.sample_rate = 2e8
+    my_seq.sample_rate = 1e9
 
     return my_seq
 
@@ -126,9 +123,11 @@ def play_next():
     my_seq.play([index], release=True)
 
 
-awg1 = MockM3202A("A1", 0, 2)
+awg1 = MockM3202A_fpga("A1", 0, 2)
+awg2 = MockM3202A_QS("A2", 0, 4)
+dig = MockM3102A_QS("Dig", 0, 9)
 
-pulse = init_pulselib(awg1)
+pulse = init_pulselib([awg1, awg2], dig)
 
 my_seq = create_seq(pulse)
 
@@ -138,7 +137,7 @@ job = my_seq.upload([0])
 
 my_seq.play([0], release=False)
 
-plot(my_seq, job, (awg1,) )
+plot(my_seq, job, (awg1,dig) )
 pprint(job.upload_info)
 
 my_seq.play([0], release=True)

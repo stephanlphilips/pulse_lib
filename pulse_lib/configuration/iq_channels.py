@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Union
+from typing import List, Union, Optional
 
 from qcodes.instrument.parameter import Parameter
 
@@ -16,6 +16,7 @@ class IQ_out_channel_info:
 class qubit_channel:
     channel_name : str
     reference_frequency : float
+    iq_channel: 'IQ_channel'
 
 
 @dataclass
@@ -36,4 +37,5 @@ class IQ_channel:
         elif isinstance(self.LO_parameter, Parameter):
             return self.LO_parameter.get()
         else:
-            raise ValueError("Local oscilator not set in the IQ_channel.")
+            raise ValueError("Local oscillator not set in the IQ_channel.")
+

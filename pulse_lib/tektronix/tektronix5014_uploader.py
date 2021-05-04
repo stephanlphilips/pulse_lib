@@ -16,7 +16,8 @@ class Tektronix5014_Uploader:
 
     verbose = False
 
-    def __init__(self, awgs, awg_channels, marker_channels, digitizer_markers):
+    def __init__(self, awgs, awg_channels, marker_channels, digitizer_markers,
+                 qubit_channels, digitizer_channels):
         '''
         Initialize the Tektronix uploader.
         Args:
@@ -24,6 +25,7 @@ class Tektronix5014_Uploader:
             awg_channels Dict[name, awg_channel]: channel names and properties
             marker_channels: Dict[name, marker_channel]: dict with names and properties
             digitizer_markers: Dict[digitizer, marker_channel]: dict with digitizer names and linked marker
+            digitizer_channels: Dict[name, digitizer_channel]: dict with names and properties
         Returns:
             None
         '''
@@ -31,7 +33,9 @@ class Tektronix5014_Uploader:
 
         self.awg_channels = awg_channels
         self.marker_channels = marker_channels
+        self.digitizer_channels = digitizer_channels
         self.digitizer_markers = digitizer_markers
+        self.qubit_channels = qubit_channels
 
         self.job = None
 
@@ -57,7 +61,9 @@ class Tektronix5014_Uploader:
         start = time.perf_counter()
 
         job.hw_schedule.stop()
-        aggregator = UploadAggregator(self.awg_channels, self.marker_channels, self.digitizer_markers, self.awgs)
+        aggregator = UploadAggregator(self.awgs, self.awg_channels, self.marker_channels,
+                                      self.digitizer_channels, self.digitizer_markers,
+                                      self.qubit_channels)
 
         aggregator.upload_job(job)
 
@@ -148,8 +154,8 @@ class Job(object):
 
         self.released = False
 
-        self.channel_queues = dict()
         self.hw_schedule = None
+        self.digitizer_triggers = []
         logging.debug(f'new job {seq_id}-{index}')
 
 
@@ -218,14 +224,23 @@ class SegmentRenderInfo:
     def t_end(self):
         return self.t_start + self.npt / self.sample_rate
 
+@dataclass
+class RefChannels:
+    start_time: float
+    start_phase: Dict[str,float] = field(default_factory=dict)
+    start_phases_all: List[Dict[str,float]] = field(default_factory=list)
+
 
 class UploadAggregator:
     verbose = False
 
-    def __init__(self, awg_channels, marker_channels, digitizer_markers, awgs):
+    def __init__(self, awgs, awg_channels, marker_channels, digitizer_channels,
+                 digitizer_markers, qubit_channels):
         self.npt = 0
         self.marker_channels = marker_channels
+        self.digitizer_channels = digitizer_channels
         self.digitizer_markers = digitizer_markers
+        self.qubit_channels = qubit_channels
         self.channels = dict()
         self.waveforms = dict()
         self.awgs = dict()
@@ -295,10 +310,13 @@ class UploadAggregator:
 
         # sections
         sections = job.upload_info.sections
-        t_start = -max_pre_start_ns
+        # add at least 1 zero in front, because Tek outputs first sample when waiting for start trigger.
+        start_samples = 1
+        t_start = -max_pre_start_ns - start_samples/segments[0].sample_rate
 
         section = RenderSection(segments[0].sample_rate, t_start)
         sections.append(section)
+        section.npt += start_samples
         section.npt += round(max_pre_start_ns * section.sample_rate)
 
         for iseg,seg in enumerate(segments):
@@ -335,6 +353,18 @@ class UploadAggregator:
     def _generate_upload(self, job):
         segments = self.segments
         sections = job.upload_info.sections
+        ref_channel_states = RefChannels(0)
+
+        # loop over all qubit channels to accumulate total phase shift
+        for i in range(len(job.sequence)):
+            ref_channel_states.start_phases_all.append(dict())
+        for channel_name, qubit_channel in self.qubit_channels.items(): # @@@ FIX qubit channels
+            phase = 0
+            for iseg,seg in enumerate(job.sequence):
+                ref_channel_states.start_phases_all[iseg][channel_name] = phase
+                #print(f'phase: {channel_name}.{iseg}: {phase}')
+                seg_ch = getattr(seg, channel_name)
+                phase += seg_ch.get_accumulated_phase(job.index)
 
         for channel_name, channel_info in self.channels.items():
             section = sections[0]
@@ -347,8 +377,11 @@ class UploadAggregator:
                 n_delay = round(channel_info.delay_ns * sample_rate)
 
                 seg_ch = getattr(seg, channel_name)
+                ref_channel_states.start_time = seg_render.t_start
+                ref_channel_states.start_phase = ref_channel_states.start_phases_all[iseg]
                 start = time.perf_counter()
-                wvf = seg_ch.get_segment(job.index, sample_rate*1e9)
+                #print(f'start: {channel_name}.{iseg}: {ref_channel_states.start_time}')
+                wvf = seg_ch.get_segment(job.index, sample_rate*1e9, ref_channel_states)
                 duration = time.perf_counter() - start
                 logging.debug(f'generated [{job.index}]{iseg}:{channel_name} {len(wvf)} Sa, in {duration*1000:6.3f} ms')
 
@@ -378,11 +411,23 @@ class UploadAggregator:
             self._upload_wvf(job, channel_name, buffer, channel_info.attenuation, channel_info.amplitude)
 
     def _generate_digitizer_triggers(self, job):
-        pulse_duration = max(100, 1e9/job.default_sample_rate) # 1 Sample or 100 ns
-        marker_data = []
+        job.digitizer_triggers = []
+
         for name, value in job.schedule_params.items():
             if name.startswith('dig_trigger_'):
-                t = value
+                job.digitizer_triggers.append(value)
+
+        for channel_name, channel in self.digitizer_channels.items():
+            for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
+                seg_ch = getattr(seg, channel_name)
+                acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
+                for acquisition in acquisition_data:
+                    job.digitizer_triggers.append(seg_render.t_start + acquisition.start)
+
+    def _generate_digitzer_markers(self, job):
+        pulse_duration = max(100, 1e9/job.default_sample_rate) # 1 Sample or 100 ns
+        marker_data = []
+        for t in job.digitizer_triggers:
                 marker_data.append(marker_pulse(t, t + pulse_duration))
         return marker_data
 
@@ -401,7 +446,7 @@ class UploadAggregator:
                     start_stop.append((seg_render.t_start + pulse.stop + marker_channel.hold_ns, -1))
 
             if channel_name in self.digitizer_markers.values():
-                pulses = self._generate_digitizer_triggers(job)
+                pulses = self._generate_digitzer_markers(job)
                 logging.info(f'dig trigger: {pulses}')
                 for pulse in pulses:
                     # trigger time is relative to sequence start, not segment start
@@ -463,6 +508,8 @@ class UploadAggregator:
         self._generate_sections(job)
 
         self._generate_upload(job)
+
+        self._generate_digitizer_triggers(job)
 
         self._render_markers(job)
 

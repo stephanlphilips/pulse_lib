@@ -3,7 +3,9 @@ import numpy as np
 
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
-from pulse_lib.configuration.physical_channels import awg_channel, marker_channel
+from pulse_lib.configuration.physical_channels import (
+        awg_channel, marker_channel, digitizer_channel, digitizer_channel_iq)
+from pulse_lib.configuration.iq_channels import IQ_channel, qubit_channel
 from pulse_lib.configuration.iq_channels import IQ_channel, qubit_channel
 
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
@@ -11,7 +13,7 @@ from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 try:
     from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
     M3202A_loaded = True
-except ImportError:
+except (ImportError, OSError):
     logging.info('Import of Keysight M3202A uploader failed', exc_info=True)
     M3202A_loaded = False
 
@@ -22,7 +24,12 @@ except ImportError:
     logging.info('Import of Tektronix uploader failed', exc_info=True)
     Tektronix_loaded = False
 
+try:
 from pulse_lib.keysight.qs_uploader import QsUploader
+    KeysightQS_loaded = True
+except ImportError:
+    logging.info('Import of KeysightQS uploader failed', exc_info=True)
+    KeysightQS_loaded = False
 
 class pulselib:
     '''
@@ -37,7 +44,7 @@ class pulselib:
         self.marker_channels = dict()
         self.digitizer_channels = dict()
         self.virtual_channels = []
-        self.qubit_channels = dict() # TODO: add to name check
+        self.qubit_channels = dict()
         self.IQ_channels = dict()
         # Tektronix-Spectrum feature
         self.digitizer_markers = dict()
@@ -127,6 +134,26 @@ class pulselib:
         self.marker_channels[marker_name] = marker_channel(marker_name, AWG_name, channel_number,
                                                            setup_ns, hold_ns, amplitude, invert)
 
+
+    def define_digitizer_channel(self, name, digitizer_name, channel_number):
+        self._check_uniqueness_of_channel_name(name)
+        self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, channel_number)
+
+    def define_digitizer_channel_iq(self, name, digitizer_name, channel_numbers):
+        self._check_uniqueness_of_channel_name(name)
+        self.digitizer_channels[name] = digitizer_channel_iq(name, digitizer_name, channel_numbers)
+
+    def set_digitizer_phase(self, channel_name, phase):
+        '''
+        Sets phase of digitizer channel.
+        Args:
+            channel_name (str): name of the channel.
+            phase (float): LO phase in rad.
+
+        Note: currently only used for phase correction of I/Q input
+        '''
+        self.digitizer_channels[channel_name].phase = phase
+
     def add_channel_delay(self, channel, delay):
         '''
         Adds to a channel a delay.
@@ -191,7 +218,7 @@ class pulselib:
 
     def define_qubit_channel(self, qubit_channel_name, IQ_channel_name, reference_frequency):
         iq_channel = self.IQ_channels[IQ_channel_name]
-        qubit = qubit_channel(qubit_channel_name, reference_frequency)
+        qubit = qubit_channel(qubit_channel_name, reference_frequency, iq_channel)
         iq_channel.qubit_channels.append(qubit)
         self.qubit_channels[qubit_channel_name] = qubit
 
@@ -205,19 +232,28 @@ class pulselib:
             if not M3202A_loaded:
                 raise Exception('M3202A_Uploader import failed')
             self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels,
-                                            self.marker_channels, self.qubit_channels)
+                                            self.marker_channels, self.qubit_channels,
+                                            self.digitizer_channels)
 
         elif self._backend == "Tektronix5014":
             if not Tektronix_loaded:
                 raise Exception('Tektronix5014_Uploader import failed')
             self.uploader = Tektronix5014_Uploader(self.awg_devices, self.awg_channels,
                                                    self.marker_channels, self.digitizer_markers,
-                                                   self.qubit_channels) # @@@ TODO FIX for Tek.
+                                                   self.qubit_channels, self.digitizer_channels)
 
         elif self._backend == "Keysight_QS":
-            # @@@ add import check
-            self.uploader = QsUploader(self.awg_devices, self.awg_channels, self.marker_channels,
-                                       self.IQ_channels, self.digitizers, self.digitizer_channels)
+            if not KeysightQS_loaded:
+                raise Exception('QsUploader import failed')
+            self.uploader = QsUploader(self.awg_devices, self.awg_channels,
+                                       self.marker_channels,
+                                       self.IQ_channels, self.qubit_channels,
+                                       self.digitizers, self.digitizer_channels)
+
+        elif self._backend in ["Demo", "None", None]:
+            logging.info('No backend defined')
+        else:
+            raise Exception(f'Unknown backend: {self._backend}')
 
     def mk_segment(self, name=None, sample_rate=None):
         '''
@@ -227,13 +263,14 @@ class pulselib:
         '''
         return segment_container(self.awg_channels.keys(), self.marker_channels.keys(),
                                  self.virtual_channels, self.IQ_channels.values(),
+                                 self.digitizer_channels.values(),
                                  name=name, sample_rate=sample_rate)
 
     def mk_sequence(self,seq):
         '''
         seq: list of segment_container.
         '''
-        seq_obj = sequencer(self.uploader)
+        seq_obj = sequencer(self.uploader, self.digitizer_channels)
         seq_obj.add_sequence(seq)
         seq_obj.metadata = {}
         for (i,pc) in enumerate(seq):
@@ -297,8 +334,11 @@ class pulselib:
 
 
     def _check_uniqueness_of_channel_name(self, channel_name):
-        if channel_name in self.awg_channels or channel_name in self.marker_channels:
-            raise ValueError("double declaration of the a channel/marker name ({}).".format(channel_name))
+        if (channel_name in self.awg_channels
+            or channel_name in self.marker_channels
+            or channel_name in self.digitizer_channels
+            or channel_name in self.qubit_channels):
+            raise ValueError(f"double declaration of the a channel/marker name ({channel_name}).")
 
 
 if __name__ == '__main__':
@@ -348,8 +388,6 @@ if __name__ == '__main__':
     # format : channel name with delay in ns (can be posive/negative)
     p.add_channel_delay('I_MW',50)
     p.add_channel_delay('Q_MW',50)
-#    p.add_channel_delay('M1',20)
-#    p.add_channel_delay('M2',-25)
 
     # add limits on voltages for DC channel compenstation (if no limit is specified, no compensation is performed).
     # p.add_channel_compenstation_limit('B0', (-100, 500))

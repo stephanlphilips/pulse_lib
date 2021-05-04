@@ -8,6 +8,7 @@ from .segments.segment_container import segment_container
 from .segments.utility.data_handling_functions import find_common_dimension, update_dimension
 from .segments.utility.setpoint_mgr import setpoint_mgr
 from .segments.utility.looping import loop_obj
+from .measurements_description import measurements_description
 
 from si_prefix import si_format
 
@@ -19,7 +20,7 @@ class sequencer():
     """
     Class to make sequences for segments.
     """
-    def __init__(self, upload_module):
+    def __init__(self, upload_module, digitizer_channels):
         '''
         make a new sequence object.
         Args:
@@ -38,6 +39,8 @@ class sequencer():
         self._sweep_index = [0]
         self.sequence = list()
         self.uploader = upload_module
+
+        self._measurements_description = measurements_description(digitizer_channels)
 
         # arguments of post processing the might be needed during rendering.
         self.neutralize = True
@@ -106,6 +109,11 @@ class sequencer():
         logging.info(msg)
         print("Info : " + msg)
 
+    @property
+    def measurements_description(self):
+        return self._measurements_description
+
+
     def add_sequence(self, sequence):
         '''
         Adds a sequence to this object.
@@ -158,6 +166,7 @@ class sequencer():
             lp_time.add_data(t_tot, axis=list(range(self.ndim -1,-1,-1)))
             seg_container.add_master_clock(lp_time)
             self._HVI_variables += seg_container._software_markers.pulse_data_all
+            self._measurements_description.add_segment(seg_container)
 
             t_tot += seg_container.total_time
 
@@ -247,9 +256,11 @@ class sequencer():
         '''
         Closes the sequencer and releases all memory and resources. Sequencer cannot be used anymore.
         '''
-#        NOTE: unloading the schedule is a BAD idea. If the next sequence uses the same schedule it costs ~ 1s to load it again.
-#        self.hw_schedule.unload()
-        self.hw_schedule = None
+        if self.hw_schedule:
+            self.hw_schedule.stop()
+            # NOTE: unloading the schedule is a BAD idea. If the next sequence uses the same schedule it costs ~ 1s to load it again.
+            # self.hw_schedule.unload()
+            self.hw_schedule = None
         if not self.sequence:
             return
         for seg_container in self.sequence:

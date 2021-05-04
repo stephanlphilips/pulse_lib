@@ -4,91 +4,73 @@ File containing the parent class where all segment objects are derived from.
 
 import numpy as np
 
-from pulse_lib.segments.utility.data_handling_functions import loop_controller, get_union_of_shapes, update_dimension, find_common_dimension
+from pulse_lib.segments.utility.data_handling_functions import loop_controller
 from pulse_lib.segments.data_classes.data_generic import data_container
+from pulse_lib.segments.data_classes.data_acquisition import acquisition_data, acquisition
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
-from functools import wraps
 import copy
 
 import matplotlib.pyplot as plt
 
 
-def last_edited(f):
-    '''
-    just a simpe decorater used to say that a certain wavefrom is updaded and therefore a new upload needs to be made to the awg.
-    '''
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if args[0].render_mode == True:
-            ValueError("cannot alter this segment, this segment ({}) in render mode.".format(args[0].name))
-        args[0]._last_edit = last_edit.ToRender
-        return f(*args, **kwargs)
-    return wrapper
-
-class last_edit:
-    """
-    spec of what the state is of the pulse.
-    """
-    ToRender = -1
-    Rendered = 0
-
-class segment_base():
+class segment_acquisition():
     '''
     Class defining base function of a segment. All segment types should support all operators.
     If you make new data type, here you should buil-in in basic support to allow for general operations.
 
     For an example, look in the data classes files.
     '''
-    def __init__(self, name, data_object, HVI_variable_data = None, segment_type = 'render'):
+    def __init__(self, name, segment_type = 'render'):
         '''
         Args:
             name (str): name of the segment usually the channel name
-            data_object (object) : class that is used for saving the data type.
-            HVI_variable_data (segment_HVI_variables) : segment used to keep variables that can be used in HVI.
             segment_type (str) : type of the segment (e.g. 'render' --> to be rendered, 'virtual'--> no not render.)
         '''
         self.type = segment_type
         self.name = name
-        self.render_mode = False
-        # variable specifing the laetest change to the waveforms,
-        self._last_edit = last_edit.ToRender
 
         # store data in numpy looking object for easy operator access.
-        self.data = data_container(data_object)
-        self._data_hvi_variable = HVI_variable_data
+        self.data = data_container(acquisition_data())
 
-        # references to other channels (for virtual gates).
-        self.reference_channels = []
-        # reference channels for IQ virtual channels
-        self.IQ_ref_channels = []
-        self.references_markers = []
         # local copy of self that will be used to count up the virtual gates.
         self._pulse_data_all = None
         # data caching variable. Used for looping and so on (with a decorator approach)
         self.data_tmp = None
-        # variable specifing the lastest time the pulse_data_all is updated
 
         # setpoints of the loops (with labels and units)
         self._setpoints = setpoint_mgr()
+        self.render_mode = False
+
+    def acquire(self, start, t_measure, ref=None, threshold=None,
+                zero_on_high=False):
+        '''
+        Adds an acquisition.
+        Args:
+            start (float or loopobj): start time
+            t_measure (float or loopobj): measurement time
+            ref (Optional[str or MeasurementRef]): optional reference to retrieve measurement by name
+            threshold (Optional[float or loopobj]): optional threshold
+            zero_on_high (bool): if True then result = 0 if value>threshold
+        '''
+        self._acquire(start, t_measure, ref, threshold, zero_on_high)
+
+    @loop_controller
+    def _acquire(self, start, t_measure, ref=None, threshold=None, zero_on_high=False):
+        acq = acquisition(ref, start, t_measure, threshold, zero_on_high)
+        self.data_tmp.add_acquisition(acq)
+        return self.data_tmp
+
 
     def _copy(self, cpy):
         cpy.type = copy.copy(self.type)
         cpy.data = copy.copy(self.data)
-        # not full sure if this should be copied. Depends a bit on the usage scenario.
-        cpy._data_hvi_variable = copy.copy(self._data_hvi_variable)
-
-        # note that the container objecet needs to take care of these. By default it will refer to the old references.
-        cpy.reference_channels = copy.copy(self.reference_channels)
-        cpy.IQ_ref_channels = copy.copy(self.IQ_ref_channels)
-        cpy.references_markers = copy.copy(self.references_markers)
 
         # setpoints of the loops (with labels and units)
         cpy._setpoints = copy.copy(self._setpoints)
 
         return cpy
 
-    @last_edited
     @loop_controller
     def reset_time(self, time=None, extend_only = False):
         '''
@@ -100,7 +82,6 @@ class segment_base():
         self.data_tmp.reset_time(time, extend_only)
         return self.data_tmp
 
-    @last_edited
     @loop_controller
     def wait(self, time):
         '''
@@ -116,46 +97,6 @@ class segment_base():
     def setpoints(self):
         return self._setpoints
 
-    def __add__(self, other):
-        '''
-        define addition operator for segment_single
-        '''
-        new_segment = copy.copy(self)
-        if isinstance(other, segment_base):
-            shape1 = new_segment.data.shape
-            shape2 = other.data.shape
-            new_shape = get_union_of_shapes(shape1, shape2)
-            other.data = update_dimension(other.data, new_shape)
-            new_segment.data= update_dimension(new_segment.data, new_shape)
-            new_segment.data += other.data
-
-        elif type(other) == int or type(other) == float:
-            new_segment.data += other
-        else:
-            raise TypeError("Please add up segment_single type or a number ")
-
-        return new_segment
-
-    def __sub__(self, other):
-        return self.__add__(other*-1)
-
-    def __mul__(self, other):
-        '''
-        muliplication operator for segment_single
-        '''
-        new_segment = copy.copy(self)
-
-        if isinstance(other, segment_base):
-            raise TypeError("muliplication of two segments not supported. Please multiply by a number.")
-        elif type(other) == int or type(other) == float or type(other) == np.double:
-            new_segment.data *= other
-        else:
-            raise TypeError("Please add up segment_single type or a number ")
-
-        return new_segment
-
-    def __truediv__(self, other):
-        raise NotImplemented
 
     def __getitem__(self, *key):
         '''
@@ -178,7 +119,6 @@ class segment_base():
         self.data = data_org
         return item
 
-    @last_edited
     def append(self, other, time = None):
         '''
         Put the other segment behind this one.
@@ -196,7 +136,6 @@ class segment_base():
 
         return self
 
-    @last_edited
     @loop_controller
     def repeat(self, number):
         '''
@@ -222,31 +161,7 @@ class segment_base():
         '''
         return self.data_tmp
 
-    def add_HVI_marker(self, marker_name, t_off = 0):
-        '''
-        Add a HVI marker that corresponds to the current time of the segment (defined by reset_time).
 
-        Args:
-            marker_name (str) : name of the marker to add
-            t_off (str) : offset to be given from the marker
-        '''
-        times = loop_obj(no_setpoints=True)
-        times.add_data(self.data.start_time, axis=list(range(self.data.ndim -1,-1,-1)))
-
-        self.add_HVI_variable(marker_name, times + t_off, True)
-
-    def add_HVI_variable(self, marker_name, value, time=False):
-        """
-        Add time for the marker.
-
-        Args:
-            name (str) : name of the variable
-
-            value (double) : value to assign to the variable
-
-            time (bool) : if the value is a timestamp (determines behaviour when the variable is used in a sequence) (coresponding to a master clock)
-        """
-        self._data_hvi_variable._add_HVI_variable(marker_name, value, time)
 
     @loop_controller
     def __append(self, other, time):
@@ -264,7 +179,6 @@ class segment_base():
         self.data_tmp.append(other, time)
         return self.data_tmp
 
-    @last_edited
     @loop_controller
     def slice_time(self, start_time, stop_time):
         """
@@ -293,27 +207,8 @@ class segment_base():
         '''
         pulse data object that contains the counted op data of all the reference channels (e.g. IQ and virtual gates).
         '''
-        if self.last_edit == last_edit.ToRender or self._pulse_data_all is None:
+        if self._pulse_data_all is None:
             self._pulse_data_all = copy.copy(self.data)
-            for ref_chan in self.reference_channels:
-                # make sure both have the same size.
-                my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.segment.shape)
-                self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape)
-                ref_chan.data = update_dimension(ref_chan.segment.data, my_shape)
-
-                self._pulse_data_all += ref_chan.segment.data*ref_chan.multiplication_factor
-                ref_chan.segment._last_edit = last_edit.Rendered
-            for ref_chan in self.IQ_ref_channels:
-                # todo -- update dim functions
-                my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.virtual_channel_pointer.shape)# Luca modification
-                self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape) # Luca modification
-                self._pulse_data_all += ref_chan.virtual_channel_pointer.get_IQ_data(ref_chan.LO, ref_chan.IQ_render_option, ref_chan.image_render_option)
-            for ref_chan in self.references_markers:
-                my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.IQ_channel_ptr.shape)# Luca modification
-                self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape) # Luca modification
-                self._pulse_data_all += ref_chan.IQ_channel_ptr.get_marker_data()
-
-            self._last_edit = last_edit.Rendered
 
         return self._pulse_data_all
 
@@ -351,38 +246,11 @@ class segment_base():
         index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
         return self.pulse_data_all.flat[index]
 
-    def get_segment(self, index, sample_rate=1e9, ref_channel_states=None):
+    def get_acquisitions(self, index):
         '''
-        get the numpy output of as segment
-
-        Args:
-            index of segment (list) : which segment to render (e.g. [0] if dimension is 1 or [2,5,10] if dimension is 3)
-            sample_rate (float) : #/s (number of samples per second)
-
-        Returns:
-            A numpy array that contains the points for each ns
-            points is the expected lenght.
         '''
-        return self._get_data_all_at(index).render(sample_rate, ref_channel_states)
+        return self._get_data_all_at(index).acquisitions() # @@@ handle in digitizer wrapper
 
-    def v_max(self, index, sample_rate = 1e9):
-        return self._get_data_all_at(index).get_vmax(sample_rate)
-
-    def v_min(self, index, sample_rate = 1e9):
-        return self._get_data_all_at(index).get_vmin(sample_rate)
-
-    def integrate(self, index, sample_rate = 1e9):
-        '''
-        Get integral value of the waveform (e.g. to calculate an automatic compensation)
-
-        Args:
-            index (tuple) : index of the concerning waveform
-            sample_rate (double) : rate at which to render the pulse
-
-        Returns:
-            integral (float) : integral of the pulse
-        '''
-        return self._get_data_all_at(index).integrate_waveform(sample_rate)
 
     def plot_segment(self, index = [0], render_full = True, sample_rate = 1e9):
         '''
@@ -406,18 +274,4 @@ class segment_base():
         plt.ylabel("amplitude (mV)")
         plt.legend()
         # plt.show()
-
-    @property
-    def last_edit(self):
-        for i in self.reference_channels:
-            if i.segment._last_edit == last_edit.ToRender:
-                self._last_edit = last_edit.ToRender
-        for i in self.IQ_ref_channels:
-            if i.virtual_channel_pointer  == last_edit.ToRender:
-                self._last_edit = last_edit.ToRender
-        for i in self.references_markers:
-            if i.IQ_channel_ptr  == last_edit.ToRender:
-                self._last_edit = last_edit.ToRender
-
-        return self._last_edit
 

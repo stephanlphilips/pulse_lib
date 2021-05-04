@@ -9,7 +9,6 @@ from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 def init_pulse_lib():
     # minimalistic init
 	pulse = pulselib()
-	pulse.add_awgs('AWG1',None)
 	pulse.define_channel('B2','AWG1', 1)
 	pulse.define_channel('B4','AWG1', 2)
 

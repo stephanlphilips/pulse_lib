@@ -22,7 +22,7 @@ import copy
 
 from pulse_lib.segments.segment_base import last_edited, segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, update_dimension
-from pulse_lib.segments.data_classes.data_pulse import pulse_data
+from pulse_lib.segments.data_classes.data_pulse import pulse_data, PhaseShift
 from pulse_lib.segments.data_classes.data_IQ import envelope_generator, IQ_data_single, make_chirp
 from pulse_lib.segments.data_classes.data_markers import marker_data
 from pulse_lib.segments.data_classes.data_generic import data_container
@@ -34,7 +34,7 @@ class segment_IQ(segment_base):
     Standard single segment for IQ purposes
     todo --> add global phase and time shift in the data class instead of this one (cleaner and more generic).
     """
-    def __init__(self, name, HVI_variable_data = None): # TODO @@@ add reference_frequency (larmor_frequency?)??
+    def __init__(self, name, HVI_variable_data = None):
         '''
         Args:
             name : name of the IQ segment
@@ -45,8 +45,6 @@ class segment_IQ(segment_base):
         # TODO @@@: improve render copying...
         super().__init__(name, pulse_data(), HVI_variable_data)# ,segment_type = 'IQ_virtual')
 
-        # generator to be set for automated phase compenstation in between pulses. @TODO!!
-        self.qubit_freq = 0
 
     @loop_controller
     def add_global_phase(self,phase):
@@ -63,7 +61,7 @@ class segment_IQ(segment_base):
     @last_edited
     @loop_controller
     def add_phase_shift(self, t, phase):
-        self.data_tmp.add_phase_shift(t, phase)
+        self.data_tmp.add_phase_shift(PhaseShift(t + self.data_tmp.start_time, phase, self.name))
         return self.data_tmp
 
     @last_edited

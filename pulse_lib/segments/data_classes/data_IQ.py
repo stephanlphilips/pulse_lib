@@ -44,10 +44,10 @@ class envelope_generator():
 
         n_points = delta_t*sample_rate
         if n_points < 1: #skip
-            return np.asarray([0])
+            return 0 
 
         if self.AM_envelope_function is None:
-            envelope = np.ones([int(n_points)]) #assume rectangular envelope
+            envelope = 1.0  #assume constant envelope
         elif isinstance(self.AM_envelope_function, tuple) or isinstance(self.AM_envelope_function, str):
             envelope = signal.get_window(self.AM_envelope_function, int(n_points*10))[::10][:int(n_points)] #ugly fix
         else:
@@ -69,10 +69,10 @@ class envelope_generator():
 
         n_points = delta_t*sample_rate
         if n_points < 1: #skip
-            return np.asarray([0])
+            return 0
 
         if self.PM_envelope_function is None:
-            envelope = np.zeros([int(n_points)])
+            envelope = 0
         elif isinstance(self.PM_envelope_function, tuple) or isinstance(self.PM_envelope_function, str):
             envelope = signal.get_window(self.PM_envelope_function, int(n_points*10))[::10]
         else:

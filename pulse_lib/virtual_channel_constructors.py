@@ -74,7 +74,7 @@ class virtual_gates_constructor(object):
         """
         for i in args:
             if i not in self.pulse_lib_obj.awg_channels:
-                raise ValueError("{} not declared in the pulse_lib object. Make sure to specify the channel.".format(i))
+                raise ValueError(f"Channel {i} not defined in the pulse_lib object.")
 
         self.real_gate_names = args
 
