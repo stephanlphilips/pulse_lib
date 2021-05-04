@@ -3,7 +3,6 @@ File containing the parent class where all segment objects are derived from.
 """
 
 import numpy as np
-from dataclasses import dataclass
 
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, get_union_of_shapes, update_dimension, find_common_dimension
 from pulse_lib.segments.data_classes.data_generic import data_container
