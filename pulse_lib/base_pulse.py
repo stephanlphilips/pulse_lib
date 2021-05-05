@@ -6,7 +6,6 @@ from pulse_lib.sequencer import sequencer
 from pulse_lib.configuration.physical_channels import (
         awg_channel, marker_channel, digitizer_channel, digitizer_channel_iq)
 from pulse_lib.configuration.iq_channels import IQ_channel, qubit_channel
-from pulse_lib.configuration.iq_channels import IQ_channel, qubit_channel
 
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 
