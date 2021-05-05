@@ -9,6 +9,7 @@ from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.data_classes.data_acquisition import acquisition_data, acquisition
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
+from pulse_lib.segments.segment_measurements import segment_measurements
 import copy
 
 import matplotlib.pyplot as plt
@@ -21,7 +22,7 @@ class segment_acquisition():
 
     For an example, look in the data classes files.
     '''
-    def __init__(self, name, segment_type = 'render'):
+    def __init__(self, name, measurement_segment:segment_measurements, segment_type = 'render'):
         '''
         Args:
             name (str): name of the segment usually the channel name
@@ -29,6 +30,8 @@ class segment_acquisition():
         '''
         self.type = segment_type
         self.name = name
+        self._measurement_segment = measurement_segment
+        self._measurement_index = 0
 
         # store data in numpy looking object for easy operator access.
         self.data = data_container(acquisition_data())
@@ -43,7 +46,7 @@ class segment_acquisition():
         self.render_mode = False
 
     def acquire(self, start, t_measure, ref=None, threshold=None,
-                zero_on_high=False):
+                zero_on_high=False, accept_if=None):
         '''
         Adds an acquisition.
         Args:
@@ -53,6 +56,11 @@ class segment_acquisition():
             threshold (Optional[float or loopobj]): optional threshold
             zero_on_high (bool): if True then result = 0 if value>threshold
         '''
+        # TODO: measurements are not sorted in time. So, this works as long as they are added in right order.
+        index = self._measurement_index
+        self._measurement_index += 1
+        self._measurement_segment.add_acquisition(self.name, index, threshold is not None,
+                                                  ref=ref, accept_if=accept_if)
         self._acquire(start, t_measure, ref, threshold, zero_on_high)
 
     @loop_controller
