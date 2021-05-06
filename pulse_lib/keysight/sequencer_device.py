@@ -20,7 +20,7 @@ class SequencerDevice:
 
     def __post_init__(self):
         self.iq_channels = [None]*2
-        self.sequencers = [None]*8
+        self.sequencers = [None]*12
 
     def add_iq_channel(self, IQ_channel, channel_numbers):
         if not channel_numbers in [[1,2], [2,1], [3,4], [4,3]]:
@@ -33,7 +33,7 @@ class SequencerDevice:
         phases = [self._get_phase(iq_out_channel) for iq_out_channel in iq_pair]
 
         self.iq_channels[index] = IQ_channel
-        sequencer_numbers = [1,2,5,6] if index == 0 else [3,4,7,8]
+        sequencer_numbers = [1,2,5,6,9,10] if index == 0 else [3,4,7,8,11,12]
         sequencers = []
         for i, qubit_channel in enumerate(IQ_channel.qubit_channels):
             if channel_numbers[1] > channel_numbers[0]:
