@@ -199,13 +199,11 @@ class pulselib:
             for virtual_gate_set in hardware.virtual_gates:
                 vgc = virtual_gates_constructor(self)
                 vgc.load_via_hardware_new(virtual_gate_set)
-
+            
+            hardware.awg2dac_ratios.add(list(self.awg_channels.keys())) 
+            
             for channel, attenuation in hardware.awg2dac_ratios.items():
-                self.awg_channels[channel].attenuation = attenuation
-
-            for channel in self.awg_channels.values():
-                if channel.name not in hardware.awg2dac_ratios.keys():
-                    hardware.awg2dac_ratios[channel.name] = channel.attenuation 
+                    self.awg_channels[channel].attenuation = attenuation
 
         else:
             for virtual_gate_set in hardware.virtual_gates:
