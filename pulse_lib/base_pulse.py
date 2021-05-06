@@ -196,7 +196,7 @@ class pulselib:
             hardware (harware_parent) : harware class.
         '''
         if isinstance(hardware, hw_cls):
-            for virtual_gate_setin in hardware.virtual:
+            for virtual_gate_set in hardware.virtual_gates:
                 vgc = virtual_gates_constructor(self)
                 vgc.load_via_hardware_new(virtual_gate_set)
 
