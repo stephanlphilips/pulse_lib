@@ -7,6 +7,10 @@ from pulse_lib.configuration.physical_channels import awg_channel, marker_channe
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
 
+try:
+    from core_tools.drivers.hardware.hardware import hardware as hw_cls
+except:
+    print('old version of core_tools detected ..')
 class pulselib:
     '''
     Global class that is an organisational element in making the pulses.
@@ -191,23 +195,36 @@ class pulselib:
         Args:
             hardware (harware_parent) : harware class.
         '''
-        for virtual_gate_set in hardware.virtual_gates:
-            vgc = virtual_gates_constructor(self)
-            vgc.load_via_harware(virtual_gate_set)
+        if isinstance(hardware, hw_cls):
+            for virtual_gate_setin in hardware.virtual:
+                vgc = virtual_gates_constructor(self)
+                vgc.load_via_hardware_new(virtual_gate_set)
 
-        # set output ratio's of the channels from the harware file.
+            for channel, attenuation in hardware.awg2dac_ratios.items():
+                self.awg_channels[channel].attenuation = attenuation
 
-        # copy all named channels from harware file to awg_channels
-        for channel, attenuation in hardware.AWG_to_dac_conversion.items():
-            self.awg_channels[channel].attenuation = attenuation
+            for channel in self.awg_channels.values():
+                if channel.name not in hardware.awg2dac_ratios.keys():
+                    hardware.awg2dac_ratios[channel.name] = channel.attenuation 
 
-        sync = False
-        for channel in self.awg_channels.values():
-            if channel.name not in hardware.AWG_to_dac_conversion:
-                hardware.AWG_to_dac_conversion[channel.name] = channel.attenuation
-                sync = True
-        if sync:
-            hardware.sync_data()
+        else:
+            for virtual_gate_set in hardware.virtual_gates:
+                vgc = virtual_gates_constructor(self)
+                vgc.load_via_harware(virtual_gate_set)
+
+            # set output ratio's of the channels from the harware file.
+
+            # copy all named channels from harware file to awg_channels
+            for channel, attenuation in hardware.AWG_to_dac_conversion.items():
+                self.awg_channels[channel].attenuation = attenuation
+
+            sync = False
+            for channel in self.awg_channels.values():
+                if channel.name not in hardware.AWG_to_dac_conversion:
+                    hardware.AWG_to_dac_conversion[channel.name] = channel.attenuation
+                    sync = True
+            if sync:
+                hardware.sync_data()
 
 
     def _check_uniqueness_of_channel_name(self, channel_name):
