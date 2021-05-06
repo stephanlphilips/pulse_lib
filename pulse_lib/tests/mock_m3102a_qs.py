@@ -18,7 +18,6 @@ class InstructionBase:
 @dataclass
 class DigitizerInstruction(InstructionBase):
     t_measure: Optional[float] = None
-    multiplier: Optional[float] = None
     n_cycles: int = 1
     threshold: Optional[float] = None
     pxi: Optional[int] = None
