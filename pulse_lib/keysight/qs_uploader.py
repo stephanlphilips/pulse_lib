@@ -201,17 +201,17 @@ class QsUploader:
 
 # TODO @@@ clear AWG queues
 
-        for qubit_channel in self.sequencer_channels.values():
-            awg = self.AWGs[qubit_channel.module_name]
-            seq = awg.get_sequencer(qubit_channel.sequencer_index)
+        for awg_sequencer in self.sequencer_channels.values():
+            awg = self.AWGs[awg_sequencer.module_name]
+            seq = awg.get_sequencer(awg_sequencer.sequencer_index)
             seq.flush_waveforms()
-            for number,wvf in enumerate(job.sequencer_waveforms[qubit_channel.channel_name]):
+            for number,wvf in enumerate(job.sequencer_waveforms[awg_sequencer.channel_name]):
                 seq.upload_waveform(number, wvf.offset, wvf.duration,
                                     wvf.amplitude, wvf.am_envelope,
                                     wvf.frequency, wvf.pm_envelope,
                                     wvf.prephase, wvf.postphase, wvf.restore_frequency)
             schedule = []
-            for i,entry in enumerate(job.sequencer_sequences[qubit_channel.channel_name]):
+            for i,entry in enumerate(job.sequencer_sequences[awg_sequencer.channel_name]):
                 schedule.append(AwgInstruction(i, entry.time_after, wave_number=entry.waveform_index))
             seq.load_schedule(schedule)
 
