@@ -314,37 +314,37 @@ class pulselib:
             hardware (harware_parent) : harware class.
         '''
         if isinstance(hardware, hw_cls):
-        for virtual_gate_set in hardware.virtual_gates:
-            vgcs = {vgc.name:vgc for vgc in self.virtual_channels}
-            if virtual_gate_set.name in vgcs:
-                vgc = vgcs[virtual_gate_set.name]
-            else:
-                vgc = virtual_gates_constructor(self, name=virtual_gate_set.name)
-                vgc.load_via_hardware_new(virtual_gate_set)
-            
-            hardware.awg2dac_ratios.add(list(self.awg_channels.keys())) 
-            
+            for virtual_gate_set in hardware.virtual_gates:
+                vgcs = {vgc.name:vgc for vgc in self.virtual_channels}
+                if virtual_gate_set.name in vgcs:
+                    vgc = vgcs[virtual_gate_set.name]
+                else:
+                    vgc = virtual_gates_constructor(self, name=virtual_gate_set.name)
+                    vgc.load_via_hardware_new(virtual_gate_set)
+
+            hardware.awg2dac_ratios.add(list(self.awg_channels.keys()))
+
             for channel, attenuation in hardware.awg2dac_ratios.items():
                     self.awg_channels[channel].attenuation = attenuation
 
         else:
             for virtual_gate_set in hardware.virtual_gates:
                 vgc = virtual_gates_constructor(self)
-            vgc.load_via_harware(virtual_gate_set)
+                vgc.load_via_harware(virtual_gate_set)
 
-        # set output ratio's of the channels from the harware file.
+            # set output ratio's of the channels from the harware file.
 
-        # copy all named channels from harware file to awg_channels
-        for channel, attenuation in hardware.AWG_to_dac_conversion.items():
-            self.awg_channels[channel].attenuation = attenuation
+            # copy all named channels from harware file to awg_channels
+            for channel, attenuation in hardware.AWG_to_dac_conversion.items():
+                self.awg_channels[channel].attenuation = attenuation
 
-        sync = False
-        for channel in self.awg_channels.values():
-            if channel.name not in hardware.AWG_to_dac_conversion:
-                hardware.AWG_to_dac_conversion[channel.name] = channel.attenuation
-                sync = True
-        if sync:
-            hardware.sync_data()
+            sync = False
+            for channel in self.awg_channels.values():
+                if channel.name not in hardware.AWG_to_dac_conversion:
+                    hardware.AWG_to_dac_conversion[channel.name] = channel.attenuation
+                    sync = True
+            if sync:
+                hardware.sync_data()
 
 
     def _check_uniqueness_of_channel_name(self, channel_name):
