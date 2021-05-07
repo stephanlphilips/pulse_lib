@@ -68,6 +68,21 @@ class virtual_gates_constructor(object):
         self.real_gate_names = list(np.asarray(virtual_gate_set.real_gate_names)[idx_of_valid_gates])
         self.virtual_gate_names =list( np.asarray(virtual_gate_set.virtual_gate_names)[idx_of_valid_gates])
 
+    def load_via_hardware_new(self, virtual_gate_set):
+        idx_of_valid_gates = []
+        for i in range(len(virtual_gate_set)):
+            if virtual_gate_set.gates[i] in self.pulse_lib_obj.awg_channels:
+                idx_of_valid_gates.append(i)
+
+        if len(idx_of_valid_gates) == 0:
+            warnings.warn("No valid gates found of the AWG for the virtual gate set {}. This virtual gate entry will be neglected.".format(virtual_gate_set.name))
+            return
+
+        self.valid_indices = np.array(idx_of_valid_gates, dtype=np.int)
+        self._virtual_gate_matrix = virtual_gate_set.matrix
+        self.real_gate_names = list(np.asarray(virtual_gate_set.gates)[idx_of_valid_gates])
+        self.virtual_gate_names =list( np.asarray(virtual_gate_set.v_gates)[idx_of_valid_gates])
+
     def add_real_gates(self, *args):
         """
         specify list of real gate names where to map on in the virtual gate matrix (from left to the right in the matrix)
