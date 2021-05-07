@@ -205,27 +205,29 @@ class QsUploader:
             awg = self.AWGs[awg_sequencer.module_name]
             seq = awg.get_sequencer(awg_sequencer.sequencer_index)
             seq.flush_waveforms()
-            for number,wvf in enumerate(job.sequencer_waveforms[awg_sequencer.channel_name]):
-                seq.upload_waveform(number, wvf.offset, wvf.duration,
-                                    wvf.amplitude, wvf.am_envelope,
-                                    wvf.frequency, wvf.pm_envelope,
-                                    wvf.prephase, wvf.postphase, wvf.restore_frequency)
             schedule = []
-            for i,entry in enumerate(job.sequencer_sequences[awg_sequencer.channel_name]):
-                schedule.append(AwgInstruction(i, entry.time_after, wave_number=entry.waveform_index))
+            if awg_sequencer.channel_name in job.sequencer_waveforms:
+                for number,wvf in enumerate(job.sequencer_waveforms[awg_sequencer.channel_name]):
+                    seq.upload_waveform(number, wvf.offset, wvf.duration,
+                                        wvf.amplitude, wvf.am_envelope,
+                                        wvf.frequency, wvf.pm_envelope,
+                                        wvf.prephase, wvf.postphase, wvf.restore_frequency)
+                for i,entry in enumerate(job.sequencer_sequences[awg_sequencer.channel_name]):
+                    schedule.append(AwgInstruction(i, entry.time_after, wave_number=entry.waveform_index))
             seq.load_schedule(schedule)
 
         for dig_channel in self.digitizer_channels.values():
             dig = self.digitizers[dig_channel.module_name]
-            seq_nr = (dig_channel.channel_number
-                      if isinstance(dig_channel, digitizer_channel)
-                      else dig_channel.channel_numbers[0])
-            seq = dig.get_sequencer(seq_nr)
+            if QsUploader.use_digitizer_sequencers and hasattr(dig, 'get_sequencer'):
+                seq_nr = (dig_channel.channel_number
+                          if isinstance(dig_channel, digitizer_channel)
+                          else dig_channel.channel_numbers[0])
+                seq = dig.get_sequencer(seq_nr)
 
-            schedule = []
-            for i,entry in enumerate(job.digitizer_sequences[dig_channel.name]):
-                schedule.append(DigitizerInstruction(i, entry.time_after, t_measure=entry.t_measure))
-            seq.load_schedule(schedule)
+                schedule = []
+                for i,entry in enumerate(job.digitizer_sequences[dig_channel.name]):
+                    schedule.append(DigitizerInstruction(i, entry.time_after, t_measure=entry.t_measure))
+                seq.load_schedule(schedule)
 
         # start hvi (start function loads schedule if not yet loaded)
         job.hw_schedule.set_configuration(job.schedule_params, job.n_waveforms)
@@ -601,12 +603,10 @@ class UploadAggregator:
         # loop over all qubit channels to accumulate total phase shift
         for i in range(len(job.sequence)):
             ref_channel_states.start_phases_all.append(dict())
-        print(self.qubit_channels.keys())
         for channel_name, qubit_channel in self.qubit_channels.items():
             phase = 0
             for iseg,seg in enumerate(job.sequence):
                 ref_channel_states.start_phases_all[iseg][channel_name] = phase
-                print(f'phase: {channel_name}.{iseg}: {phase}')
                 seg_ch = getattr(seg, channel_name)
                 phase += seg_ch.get_accumulated_phase(job.index)
 
@@ -806,7 +806,7 @@ class UploadAggregator:
     def _render_waveform(self, waveforms:List[Waveform], mw_pulse_data, lo_freq:float) -> int:
         # always render at 1e9 Sa/s
         duration = mw_pulse_data.stop - mw_pulse_data.start
-        offset = int(mw_pulse_data.start) % 10
+        offset = int(mw_pulse_data.start) % 5
         if mw_pulse_data.envelope is None:
             amp_envelope = 1.0
             pm_envelope = 0.0
@@ -856,7 +856,7 @@ class UploadAggregator:
                 mw_data.update({ps.time:ps for ps in data.phase_shifts if ps.phase_shift != 0})
 
                 for mw_time,mw_entry in sorted(mw_data.items()):
-                    t_pulse = seg_render.t_start + int(mw_time / 10) * 10
+                    t_pulse = seg_render.t_start + int(mw_time / 5) * 5
                     wait = t_pulse - t_start
                     # Note: special case: wait == 0 at start
                     if not (wait == 0 and len(sequence) == 0):
@@ -875,7 +875,7 @@ class UploadAggregator:
                         # print(t_pulse, 'ps', mw_entry.phase_shift)
 
                     t_start = t_pulse
-
+            entry.time_after = int(seg_render.t_end - t_start)
             job.sequencer_sequences[channel_name] = sequence
             job.sequencer_waveforms[channel_name] = waveforms
 
