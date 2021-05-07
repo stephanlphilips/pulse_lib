@@ -24,6 +24,10 @@ except ImportError:
     Tektronix_loaded = False
 
 
+try:
+    from core_tools.drivers.hardware.hardware import hardware as hw_cls
+except:
+    print('old version of core_tools detected ..')
 class pulselib:
     '''
     Global class that is an organisational element in making the pulses.
@@ -285,12 +289,23 @@ class pulselib:
         Args:
             hardware (harware_parent) : harware class.
         '''
+        if isinstance(hardware, hw_cls):
         for virtual_gate_set in hardware.virtual_gates:
             vgcs = {vgc.name:vgc for vgc in self.virtual_channels}
             if virtual_gate_set.name in vgcs:
                 vgc = vgcs[virtual_gate_set.name]
             else:
                 vgc = virtual_gates_constructor(self, name=virtual_gate_set.name)
+                vgc.load_via_hardware_new(virtual_gate_set)
+            
+            hardware.awg2dac_ratios.add(list(self.awg_channels.keys())) 
+            
+            for channel, attenuation in hardware.awg2dac_ratios.items():
+                    self.awg_channels[channel].attenuation = attenuation
+
+        else:
+            for virtual_gate_set in hardware.virtual_gates:
+                vgc = virtual_gates_constructor(self)
             vgc.load_via_harware(virtual_gate_set)
 
         # set output ratio's of the channels from the harware file.
