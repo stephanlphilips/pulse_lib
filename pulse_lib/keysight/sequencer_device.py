@@ -50,9 +50,9 @@ class SequencerDevice:
         image = iq_out_channel.image
         phase_shift = 0
         if I_or_Q == 'I':
-            phase_shift += np.pi/2
+            phase_shift += 90
         if image == '-':
-            phase_shift += np.pi
+            phase_shift += 180
         return phase_shift
 
     def add_bb_channel(self, channel_number, channel_name):
@@ -97,14 +97,15 @@ def add_sequencers(obj, AWGs, awg_channels, IQ_channels):
         for iseq,seq in enumerate(qubit_sequencers):
             obj.sequencer_channels[seq.channel_name] = seq
 
-    for awg_channel in awg_channels.values():
-        if (awg_channel.awg_name in obj.sequencer_devices
-            and awg_channel.name not in obj.sequencer_out_channels):
-            seq_device = obj.sequencer_devices[awg_channel.awg_name]
-            bb_seq = seq_device.add_bb_channel(awg_channel.channel_number, awg_channel.awg_name)
-
-            obj.sequencer_channels[bb_seq.channel_name] = bb_seq
-            obj.sequencer_out_channels += [bb_seq.channel_name]
+# @@@ commented out, because base band channels do not yet work.
+#    for awg_channel in awg_channels.values():
+#        if (awg_channel.awg_name in obj.sequencer_devices
+#            and awg_channel.name not in obj.sequencer_out_channels):
+#            seq_device = obj.sequencer_devices[awg_channel.awg_name]
+#            bb_seq = seq_device.add_bb_channel(awg_channel.channel_number, awg_channel.name)
+#
+#            obj.sequencer_channels[bb_seq.channel_name] = bb_seq
+#            obj.sequencer_out_channels += [bb_seq.channel_name]
 
     for dev in obj.sequencer_devices.values():
         awg = dev.awg

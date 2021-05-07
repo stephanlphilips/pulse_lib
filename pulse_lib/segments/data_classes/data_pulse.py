@@ -554,7 +554,7 @@ class pulse_data(parent_data):
         phase = 0
         for shift in self.phase_shifts:
             phase += shift.phase_shift
-        print(f'accumulated {phase} ({len(self.phase_shifts)})')
+        # print(f'accumulated {phase} ({len(self.phase_shifts)})')
         return phase
 
 
