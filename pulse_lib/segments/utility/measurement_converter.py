@@ -109,7 +109,7 @@ class measurement_converter:
 
         self._channel_raw = {}
         # set raw values
-        for channel in digitizer_channels.items():
+        for channel in digitizer_channels.values():
             acquisitions = self._description.acquisitions[channel.name][index]
             if isinstance(channel, digitizer_channel):
                 ch_raw = data[channel.channel_number-1]
@@ -142,7 +142,7 @@ class measurement_converter:
         accepted_mask = np.ones(self.n_rep, dtype=np.int)
         for m in self._description.measurements:
             if isinstance(m, measurement_acquisition):
-                if m.has_threshold is None:
+                if not m.has_threshold:
                     # do not add to result
                     continue
 
@@ -201,8 +201,8 @@ class measurement_converter:
 
     def all_results(self):
         setpoints = setpoints_multi(self.sp_raw + self.sp_states + self.sp_selectors
-                                    + self.sp_values + self.sp_total)
-        getter = lambda: self._raw + self._states + self._selectors + self._values + self._total
+                                    + self.sp_values + [self.sp_total])
+        getter = lambda: self._raw + self._states + self._selectors + self._values + [self.total_selected]
         return _MeasurementParameter(setpoints, getter)
 
 

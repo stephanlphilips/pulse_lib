@@ -21,7 +21,7 @@ class measurements_description:
 
         for channel_name in segment.acquisitions:
             acquisition_count = self.acquisition_count.setdefault(channel_name, 0)
-            self.acquisition_count[channel_name] += 1
+            self.acquisition_count[channel_name] += len(segment[channel_name].data.flat[0].data)
             if channel_name not in self.acquisitions:
                 self.acquisitions[channel_name] = segment[channel_name].data
             else:
