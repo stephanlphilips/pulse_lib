@@ -411,7 +411,7 @@ class UploadAggregator:
             self._upload_wvf(job, channel_name, buffer, channel_info.attenuation, channel_info.amplitude)
 
     def _generate_digitizer_triggers(self, job):
-        job.digitizer_triggers = []
+        triggers = set()
 
         for name, value in job.schedule_params.items():
             if name.startswith('dig_trigger_'):
@@ -422,7 +422,11 @@ class UploadAggregator:
                 seg_ch = getattr(seg, channel_name)
                 acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
                 for acquisition in acquisition_data:
-                    job.digitizer_triggers.append(seg_render.t_start + acquisition.start)
+                    triggers.add(seg_render.t_start + acquisition.start)
+
+        job.digitizer_triggers = list(triggers)
+        job.digitizer_triggers.sort()
+        logging.info(f'digitizer triggers: {job.digitizer_triggers}')
 
     def _generate_digitzer_markers(self, job):
         pulse_duration = max(100, 1e9/job.default_sample_rate) # 1 Sample or 100 ns

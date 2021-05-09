@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Union
 
 from .sequencer_device import add_sequencers
-from pulse_lib.configuration.physical_channels import digitizer_channel
+from pulse_lib.configuration.physical_channels import digitizer_channel_iq
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
 from pulse_lib.tests.mock_m3202a_qs import AwgInstruction
 from pulse_lib.tests.mock_m3102a_qs import DigitizerInstruction
@@ -219,19 +219,24 @@ class QsUploader:
         for dig_channel in self.digitizer_channels.values():
             dig = self.digitizers[dig_channel.module_name]
             if QsUploader.use_digitizer_sequencers and hasattr(dig, 'get_sequencer'):
-                seq_nr = (dig_channel.channel_number
-                          if isinstance(dig_channel, digitizer_channel)
-                          else dig_channel.channel_numbers[0])
-                seq = dig.get_sequencer(seq_nr)
+                seq_numbers = (dig_channel.channel_numbers
+                               if isinstance(dig_channel, digitizer_channel_iq)
+                               else [dig_channel.channel_number])
+                for seq_nr in seq_numbers:
+                    seq = dig.get_sequencer(seq_nr)
 
-                schedule = []
-                for i,entry in enumerate(job.digitizer_sequences[dig_channel.name]):
-                    schedule.append(DigitizerInstruction(i, entry.time_after, t_measure=entry.t_measure))
-                seq.load_schedule(schedule)
+                    schedule = []
+                    for i,entry in enumerate(job.digitizer_sequences[dig_channel.name]):
+                        schedule.append(DigitizerInstruction(i, entry.time_after, t_measure=entry.t_measure,
+                                                             measurement_id=entry.measurement_id))
+                    seq.load_schedule(schedule)
 
         # start hvi (start function loads schedule if not yet loaded)
-        job.hw_schedule.set_configuration(job.schedule_params, job.n_waveforms)
-        job.hw_schedule.start(job.playback_time, job.n_rep, job.schedule_params)
+        acquire_triggers = {f'dig_trigger_{i+1}':t for i,t in enumerate(job.digitizer_triggers)}
+        schedule_params = job.schedule_params.copy()
+        schedule_params.update(acquire_triggers)
+        job.hw_schedule.set_configuration(schedule_params, job.n_waveforms)
+        job.hw_schedule.start(job.playback_time, job.n_rep, schedule_params)
 
         if release_job:
             job.release()
@@ -859,8 +864,8 @@ class UploadAggregator:
                     t_pulse = seg_render.t_start + int(mw_time / 5) * 5
                     wait = t_pulse - t_start
                     # Note: special case: wait == 0 at start
-                    if not (wait == 0 and len(sequence) == 0):
-                        if wait < 0:
+                    if not (wait == 0 and len(sequence) == 1):
+                        if wait <= 0:
                             raise Exception(f'wait {wait} <= 0 ({channel_name} segment:{iseg})')
                         entry.time_after = wait
                         entry = SequenceEntry()
@@ -898,6 +903,27 @@ class UploadAggregator:
 #                wvf = seg_ch.get_segment(job.index, sample_rate*1e9)
 #                duration = time.perf_counter() - start
 
+    def _generate_digitizer_triggers(self, job):
+        triggers = set()
+        has_HVI_triggers = False
+
+        for name, value in job.schedule_params.items():
+            if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
+                has_HVI_triggers = True
+
+        for channel_name, channel in self.digitizer_channels.items():
+            for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
+                seg_ch = getattr(seg, channel_name)
+                acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
+                for acquisition in acquisition_data:
+                    if has_HVI_triggers:
+                        raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
+                    triggers.add(seg_render.t_start + acquisition.start)
+
+        job.digitizer_triggers = list(triggers)
+        job.digitizer_triggers.sort()
+        logging.info(f'digitizer triggers: {job.digitizer_triggers}')
+
     def _generate_digitizer_sequences(self, job):
 
         for name, value in job.schedule_params.items():
@@ -919,7 +945,7 @@ class UploadAggregator:
                     t_acq = seg_render.t_start + int(acquisition.start / 10) * 10
                     wait = t_acq - t_start
                     # Note: special case: wait == 0 at start
-                    if not (wait == 0 and len(sequence) == 0):
+                    if not (wait == 0 and len(sequence) == 1):
                         if wait <= 0:
                             raise Exception(f'wait {wait} <= 0 ({channel_name} segment:{iseg})')
                         entry.time_after = wait
@@ -927,6 +953,7 @@ class UploadAggregator:
                         sequence.append(entry)
                     # lookup / render waveform
                     entry.t_measure = acquisition.t_measure
+                    entry.measurement_id = len(sequence)
                     t_start = t_acq
 
             job.digitizer_sequences[channel_name] = sequence
@@ -951,6 +978,8 @@ class UploadAggregator:
 
         if QsUploader.use_digitizer_sequencers:
             self._generate_digitizer_sequences(job)
+        else:
+            self._generate_digitizer_triggers(job)
 
         self._render_markers(job, awg_upload_func)
 
