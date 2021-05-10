@@ -32,19 +32,47 @@ class setpoints_multi:
         self.labels = tuple(sps.label for sps in sps_list)
         self.units = tuple(sps.unit for sps in sps_list)
         self.shapes = tuple(sps.shape for sps in sps_list)
-        self.setpoints : tuple(sps.setpoints for sps in sps_list)
-        self.setpoint_names : tuple(sps.setpoint_names for sps in sps_list)
-        self.setpoint_labels : tuple(sps.setpoint_labels for sps in sps_list)
-        self.setpoint_units : tuple(sps.setpoint_units for sps in sps_list)
-
+        self.setpoints = tuple(sps.setpoints for sps in sps_list)
+        self.setpoint_names = tuple(sps.setpoint_names for sps in sps_list)
+        self.setpoint_labels = tuple(sps.setpoint_labels for sps in sps_list)
+        self.setpoint_units = tuple(sps.setpoint_units for sps in sps_list)
 
 class _MeasurementParameter(MultiParameter):
     def __init__(self, setpoints, getter):
         super().__init__('measurement', **setpoints.__dict__)
         self._getter = getter
+        self.index = None
+        self.dig = None
+        self.mc = None
 
     def get_raw(self):
+        data = self.dig.measure.get_data()
+        print(data)
+        self.mc.set_data(data, self.index)
+        
+
         return self._getter()
+
+    def setUpParam(self, mc, dig):
+        '''
+        set up the measurment parameter
+
+        Args:
+            mc (measurement_converter) : measurement convertor objct that generated this parmeter
+            dig (dig) : digitzer used in the measurement
+        '''
+        self.mc = mc
+        self.dig = dig
+
+    def setIndex(self, idx):
+        '''
+        set index that is currenly playing
+
+        Args:
+            idx (tuple) : current index
+        '''
+        self.index = idx
+
 
 class measurement_converter:
     def __init__(self, description, n_rep):
@@ -75,8 +103,8 @@ class measurement_converter:
                     name = f'RAW_{m.name}{suffix}'
                     label = f'RAW {m.name}{suffix} ({channel_name}{suffix}:{m.index})'
                     sp_raw = setpoints_single(name, label, 'mV', shape_raw,
-                                              (np.arange(shape_raw[0]),),
-                                              ('repetition',), ('repetition'), ('',))
+                                              ((np.arange(shape_raw[0]),),),
+                                              ('repetition',), ('repetition',), ('',))
                     self.sp_raw.append(sp_raw)
 
     def generate_setpoints(self):
@@ -89,8 +117,8 @@ class measurement_converter:
             name = f'State_{m.name}'
             label = f'State {m.name}'
             sp_state = setpoints_single(name, label, '', shape_raw,
-                                        (np.arange(shape_raw[0]),),
-                                        ('repetition',), ('repetition'), ('',))
+                                        ((np.arange(shape_raw[0]),),),
+                                        ('repetition', ), ('repetition',), ('', ))
             self.sp_states.append(sp_state)
 
             if m.accept_if is not None:
@@ -106,7 +134,6 @@ class measurement_converter:
 
     def _set_channel_raw(self, data, index):
         digitizer_channels = self._description.digitizer_channels
-
         self._channel_raw = {}
         # set raw values
         for channel in digitizer_channels.values():
@@ -206,6 +233,7 @@ class measurement_converter:
         setpoints = setpoints_multi(self.sp_raw + self.sp_states + self.sp_selectors
                                     + self.sp_values + [self.sp_total])
         getter = lambda: self._raw + self._states + self._selectors + self._values + [self.total_selected]
+
         return _MeasurementParameter(setpoints, getter)
 
 

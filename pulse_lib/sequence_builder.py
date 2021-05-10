@@ -32,7 +32,7 @@ class sequence_builder:
         self._policy = policy
         self._segments = []
         self._segment = None
-
+        self.n_rep = 2000
     def _mk_segment(self):
         segment = self._pulselib.mk_segment()
         self._segments.append(segment)
