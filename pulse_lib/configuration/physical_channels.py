@@ -27,12 +27,23 @@ class marker_channel:
     amplitude: float = 1000
     invert: bool = False
 
+# TODO @@@ improve digitizer channel configuration options:
+#    I input; I output
+#    I,Q input; I,Q output
+#    I,Q input; phase shift; I+Qj output
+#    s input; LO, phase; I output
+#    s input; LO, phase; I+Qj output
+
 @dataclass
 class digitizer_channel:
     name: str
     module_name: str
     channel_number: int
     input_range: Optional[float] = None
+
+    @property
+    def channel_numbers(self):
+        return [self.channel_number]
 
 @dataclass
 class digitizer_channel_iq:

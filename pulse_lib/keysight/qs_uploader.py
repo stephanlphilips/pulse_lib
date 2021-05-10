@@ -219,9 +219,7 @@ class QsUploader:
         for dig_channel in self.digitizer_channels.values():
             dig = self.digitizers[dig_channel.module_name]
             if QsUploader.use_digitizer_sequencers and hasattr(dig, 'get_sequencer'):
-                seq_numbers = (dig_channel.channel_numbers
-                               if isinstance(dig_channel, digitizer_channel_iq)
-                               else [dig_channel.channel_number])
+                seq_numbers = dig_channel.channel_numbers
                 for seq_nr in seq_numbers:
                     seq = dig.get_sequencer(seq_nr)
 
@@ -233,8 +231,11 @@ class QsUploader:
 
         # start hvi (start function loads schedule if not yet loaded)
         acquire_triggers = {f'dig_trigger_{i+1}':t for i,t in enumerate(job.digitizer_triggers)}
+        trigger_channels = {f'dig_trigger_channels_{dig_name}':triggers
+                            for dig_name, triggers in job.digitizer_trigger_channels.items()}
         schedule_params = job.schedule_params.copy()
         schedule_params.update(acquire_triggers)
+        schedule_params.update(trigger_channels)
         job.hw_schedule.set_configuration(schedule_params, job.n_waveforms)
         job.hw_schedule.start(job.playback_time, job.n_rep, schedule_params)
 
@@ -904,13 +905,15 @@ class UploadAggregator:
 #                duration = time.perf_counter() - start
 
     def _generate_digitizer_triggers(self, job):
-        triggers = set()
+        trigger_channels = {}
+        digitizer_trigger_channels = {}
         has_HVI_triggers = False
 
         for name, value in job.schedule_params.items():
             if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
                 has_HVI_triggers = True
 
+        # TODO @@@: cleanup this messy code.
         for channel_name, channel in self.digitizer_channels.items():
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
                 seg_ch = getattr(seg, channel_name)
@@ -918,10 +921,21 @@ class UploadAggregator:
                 for acquisition in acquisition_data:
                     if has_HVI_triggers:
                         raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
-                    triggers.add(seg_render.t_start + acquisition.start)
+                    t = seg_render.t_start + acquisition.start
+                    for ch in channel.channel_numbers:
+                        trigger_channels.setdefault(t, []).append((channel.module_name, ch))
+                    # set empty list. Fill later after sorting all triggers
+                    digitizer_trigger_channels[channel.module_name] = []
 
-        job.digitizer_triggers = list(triggers)
+        job.digitizer_triggers = list(trigger_channels.keys())
         job.digitizer_triggers.sort()
+        for name, triggers in digitizer_trigger_channels.items():
+            for trigger in job.digitizer_triggers:
+                all_channels = trigger_channels[trigger]
+                triggers.append([nr for module_name, nr in all_channels if module_name == name])
+
+        print(digitizer_trigger_channels)
+        job.digitizer_trigger_channels = digitizer_trigger_channels
         logging.info(f'digitizer triggers: {job.digitizer_triggers}')
 
     def _generate_digitizer_sequences(self, job):
