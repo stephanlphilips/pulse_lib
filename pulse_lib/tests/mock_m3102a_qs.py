@@ -17,6 +17,7 @@ class InstructionBase:
 # NOTE: n_cycles > 1 cannot be combined with threshold
 @dataclass
 class DigitizerInstruction(InstructionBase):
+    address: int
     t_measure: Optional[float] = None
     n_cycles: int = 1
     threshold: Optional[float] = None

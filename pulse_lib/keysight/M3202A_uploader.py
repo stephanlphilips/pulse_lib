@@ -201,7 +201,7 @@ class M3202A_Uploader:
                 trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
 
         # start hvi (start function loads schedule if not yet loaded)
-        acquire_triggers = {f'dig_trigger_{i}':t for i,t in enumerate(job.digitizer_triggers)}
+        acquire_triggers = {f'dig_trigger_{i+1}':t for i,t in enumerate(job.digitizer_triggers)}
         schedule_params = job.schedule_params.copy()
         schedule_params.update(acquire_triggers)
         job.hw_schedule.set_configuration(schedule_params, job.n_waveforms)
@@ -658,7 +658,7 @@ class UploadAggregator:
                              section.sample_rate, awg_upload_func)
 
     def _generate_digitizer_triggers(self, job):
-        job.digitizer_triggers = []
+        triggers = set()
         has_HVI_triggers = False
 
         for name, value in job.schedule_params.items():
@@ -672,9 +672,11 @@ class UploadAggregator:
                 for acquisition in acquisition_data:
                     if has_HVI_triggers:
                         raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
-                    job.digitizer_triggers.append(seg_render.t_start + acquisition.start)
+                    triggers.add(seg_render.t_start + acquisition.start)
 
+        job.digitizer_triggers = list(triggers)
         job.digitizer_triggers.sort()
+        logging.info(f'digitizer triggers: {job.digitizer_triggers}')
 
     def _render_markers(self, job, awg_upload_func):
         for channel_name, marker_channel in self.marker_channels.items():
