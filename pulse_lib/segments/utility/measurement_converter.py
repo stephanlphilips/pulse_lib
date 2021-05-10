@@ -47,10 +47,7 @@ class _MeasurementParameter(MultiParameter):
 
     def get_raw(self):
         data = self.dig.measure.get_data()
-        print(data)
         self.mc.set_data(data, self.index)
-        
-
         return self._getter()
 
     def setUpParam(self, mc, dig):
@@ -149,10 +146,12 @@ class measurement_converter:
                     ch_raw = (ch_raw * np.exp(1j*channel.phase)).real
             else:
                 raise NotImplementedError(f'Unknown channel type {type(channel)}')
+
             self._channel_raw[channel.name] = ch_raw.reshape((-1, len(acquisitions.data))).T
 
 
     def _set_data_raw(self, data):
+        self._raw = []
         for m in self._description.measurements:
             if isinstance(m, measurement_acquisition):
                 channel_name = m.acquisition_channel
