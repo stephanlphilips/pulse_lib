@@ -49,7 +49,7 @@ class _MeasurementParameter(MultiParameter):
         data = self.dig.measure.get_data()
         print(data)
         self.mc.set_data(data, self.index)
-        
+
 
         return self._getter()
 
@@ -134,17 +134,30 @@ class measurement_converter:
 
     def _set_channel_raw(self, data, index):
         digitizer_channels = self._description.digitizer_channels
-        self._channel_raw = {}
+
+        # TODO @@@ works only for 1 digitzer
+        # get digitizer parameter result numbering
+        output_channels = []
+        for channel in digitizer_channels.values():
+            acquisitions = self._description.acquisitions[channel.name][index]
+            if len(acquisitions.data) > 0:
+                output_channels += channel.channel_numbers
+        output_channels.sort()
+
         # set raw values
+        self._channel_raw = {}
         for channel in digitizer_channels.values():
             acquisitions = self._description.acquisitions[channel.name][index]
             if len(acquisitions.data) == 0:
                 self._channel_raw[channel.name] = np.zeros(0)
                 continue
             if isinstance(channel, digitizer_channel):
-                ch_raw = data[channel.channel_number-1]
+                ch = output_channels.index(channel.channel_number)
+                ch_raw = data[ch]
             elif isinstance(channel, digitizer_channel_iq):
-                ch_raw = data[channel.channel_numbers[0]-1] + 1j * data[channel.channel_numbers[1]-1]
+                ch_I = output_channels.index(channel.channel_numbers[0])
+                ch_Q = output_channels.index(channel.channel_numbers[1])
+                ch_raw = data[ch_I] + 1j * data[ch_Q]
                 if channel.phase is not None:
                     ch_raw = (ch_raw * np.exp(1j*channel.phase)).real
             else:
