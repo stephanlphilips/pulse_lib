@@ -134,7 +134,6 @@ class measurement_converter:
 
     def _set_channel_raw(self, data, index):
         digitizer_channels = self._description.digitizer_channels
-
         self._channel_raw = {}
         # set raw values
         for channel in digitizer_channels.values():
