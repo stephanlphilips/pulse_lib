@@ -934,7 +934,6 @@ class UploadAggregator:
                 all_channels = trigger_channels[trigger]
                 triggers.append([nr for module_name, nr in all_channels if module_name == name])
 
-        print(digitizer_trigger_channels)
         job.digitizer_trigger_channels = digitizer_trigger_channels
         logging.info(f'digitizer triggers: {job.digitizer_triggers}')
 

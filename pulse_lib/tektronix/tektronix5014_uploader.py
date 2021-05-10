@@ -415,7 +415,7 @@ class UploadAggregator:
 
         for name, value in job.schedule_params.items():
             if name.startswith('dig_trigger_'):
-                job.digitizer_triggers.append(value)
+                triggers.add(value)
 
         for channel_name, channel in self.digitizer_channels.items():
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
