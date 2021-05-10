@@ -111,6 +111,9 @@ class measurement_converter:
         # set raw values
         for channel in digitizer_channels.values():
             acquisitions = self._description.acquisitions[channel.name][index]
+            if len(acquisitions.data) == 0:
+                self._channel_raw[channel.name] = np.zeros(0)
+                continue
             if isinstance(channel, digitizer_channel):
                 ch_raw = data[channel.channel_number-1]
             elif isinstance(channel, digitizer_channel_iq):
