@@ -19,13 +19,13 @@ class measurements_description:
                 m = measurement
             self.measurements.append(m)
 
-        for channel_name in segment.acquisitions:
+        for channel_name, data in segment.acquisitions.items():
             acquisition_count = self.acquisition_count.setdefault(channel_name, 0)
             self.acquisition_count[channel_name] += len(segment[channel_name].data.flat[0].data)
             if channel_name not in self.acquisitions:
-                self.acquisitions[channel_name] = segment[channel_name].data
+                self.acquisitions[channel_name] = data
             else:
-                self.acquisitions[channel_name] = self.acquisitions[channel_name] + segment[channel_name].data
+                self.acquisitions[channel_name] = self.acquisitions[channel_name] + data
 
     def describe(self):
         print('Measurements:')

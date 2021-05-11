@@ -139,7 +139,7 @@ class segment_container():
         result = {}
         for digitizer_channel in self._digitizer_channels:
             name = digitizer_channel.name
-            result[name] = self[name].data
+            result[name] = self[name].pulse_data_all
         return result
 
     @property
