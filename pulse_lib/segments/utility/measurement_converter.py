@@ -94,7 +94,10 @@ class measurement_converter:
             if isinstance(m, measurement_acquisition):
                 channel_name = m.acquisition_channel
                 channel = digitizer_channels[channel_name]
-                channel_suffixes = ['_I', '_Q'] if isinstance(channel, digitizer_channel_iq) else ['']
+                
+                channel_suffixes = ['']
+                if isinstance(channel, digitizer_channel_iq) and channel.phase is None:
+                    channel_suffixes = ['_I', '_Q']
 
                 for suffix in channel_suffixes:
                     name = f'RAW_{m.name}{suffix}'
