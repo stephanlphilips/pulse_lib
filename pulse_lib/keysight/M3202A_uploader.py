@@ -787,6 +787,8 @@ class UploadAggregator:
 
         job.upload_info = JobUploadInfo()
         job.marker_tables = {} # @@@ add to upload_info?
+        job.digitizer_triggers = {}
+        job.digitizer_trigger_channels = {}
 
         self._integrate(job)
 
