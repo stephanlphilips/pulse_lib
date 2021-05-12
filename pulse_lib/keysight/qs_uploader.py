@@ -166,24 +166,26 @@ class QsUploader:
         # queue waveforms
         for channel_name, queue in job.channel_queues.items():
             offset = 0
-            amplitude = AwgConfig.MAX_AMPLITUDE/1000
 
             if channel_name in self.awg_channels:
                 channel = self.awg_channels[channel_name]
                 awg_name = channel.awg_name
                 channel_number = channel.channel_number
+                amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.MAX_AMPLITUDE
             elif channel_name in self.marker_channels:
                 channel = self.marker_channels[channel_name]
                 awg_name = channel.module_name
                 channel_number = channel.channel_number
+                amplitude = AwgConfig.MAX_AMPLITUDE
+#                amplitude = channel.amplitude
                 if channel.invert:
-                    offset = channel.amplitude/1000
+                    offset = amplitude
                     amplitude = -amplitude
             else:
                 raise Exception(f'Undefined channel {channel_name}')
 
-            self.AWGs[awg_name].set_channel_amplitude(amplitude, channel_number)
-            self.AWGs[awg_name].set_channel_offset(offset, channel_number)
+            self.AWGs[awg_name].set_channel_amplitude(amplitude/1000, channel_number)
+            self.AWGs[awg_name].set_channel_offset(offset/1000, channel_number)
 
             # empty AWG queue
             self.AWGs[awg_name].awg_flush(channel_number)
@@ -355,10 +357,12 @@ class Job(object):
 class ChannelInfo:
     # static data
     delay_ns: float = 0
+    amplitude: float = 0
     attenuation: float = 1.0
     dc_compensation: bool = False
     dc_compensation_min: float = 0.0
     dc_compensation_max: float = 0.0
+    bias_T_RC_time: Optional[float] = None
     is_sequencer: bool = False
     # aggregation state
     integral: float = 0.0
@@ -470,6 +474,8 @@ class UploadAggregator:
 
             info.attenuation = channel.attenuation
             info.delay_ns = channel.delay
+            info.amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.MAX_AMPLITUDE
+            info.bias_T_RC_time = channel.bias_T_RC_time
             delays.append(channel.delay)
 
             # Note: Compensation limits are specified before attenuation, i.e. at AWG output level.
@@ -576,7 +582,7 @@ class UploadAggregator:
                 seg.end_section = section
 
         # add post stop samples; seg = last segment, section is last section
-        n_post = round((section.t_end - (seg.t_end + max_post_end_ns)) * section.sample_rate)
+        n_post = round(((seg.t_end + max_post_end_ns) - section.t_end) * section.sample_rate)
         section.npt += n_post
 
         # add DC compensation
@@ -625,6 +631,7 @@ class UploadAggregator:
 
             section = sections[0]
             buffer = np.zeros(section.npt)
+            bias_T_compensation_mV = 0
 
             for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
 
@@ -662,7 +669,10 @@ class UploadAggregator:
                         welding_samples = np.take(wvf, isub)
                         buffer[-n_section:] = welding_samples
 
-                    self._upload_wvf(job, channel_name, channel_info.attenuation, buffer, section.sample_rate, awg_upload_func)
+                    bias_T_compensation_mV = self._add_bias_T_compensation(buffer, bias_T_compensation_mV,
+                                                                           section.sample_rate, channel_info)
+                    self._upload_wvf(job, channel_name, buffer, channel_info.amplitude, channel_info.attenuation,
+                                     section.sample_rate, awg_upload_func)
 
                     section = seg_render.section
                     buffer = np.zeros(section.npt)
@@ -678,7 +688,10 @@ class UploadAggregator:
                     if i_start != i_end:
                         buffer[-(i_end-i_start):] = wvf[i_start:i_end]
 
-                    self._upload_wvf(job, channel_name, channel_info.attenuation, buffer, section.sample_rate, awg_upload_func)
+                    bias_T_compensation_mV = self._add_bias_T_compensation(buffer, bias_T_compensation_mV,
+                                                                           section.sample_rate, channel_info)
+                    self._upload_wvf(job, channel_name, buffer, channel_info.amplitude, channel_info.attenuation,
+                                     section.sample_rate, awg_upload_func)
 
                     section = next_section
                     buffer = np.zeros(section.npt)
@@ -701,7 +714,10 @@ class UploadAggregator:
             if job.neutralize:
                 if section != sections[-1]:
                     # Corner case, DC compensation is in a new section # @@@ can this occur??
-                    self._upload_wvf(job, channel_name, channel_info.attenuation, buffer, section.sample_rate, awg_upload_func)
+                    bias_T_compensation_mV = self._add_bias_T_compensation(buffer, bias_T_compensation_mV,
+                                                                           section.sample_rate, channel_info)
+                    self._upload_wvf(job, channel_name, buffer, channel_info.amplitude, channel_info.attenuation,
+                                     section.sample_rate, awg_upload_func)
                     section = sections[-1]
                     buffer = np.zeros(section.npt)
                     logging.info(f'DC compensation: Corner case {section}')
@@ -711,13 +727,16 @@ class UploadAggregator:
                 if compensation_npt > 0 and channel_info.dc_compensation:
                     compensation_voltage = -channel_info.integral * sample_rate / compensation_npt * 1e9
                     job.upload_info.dc_compensation_voltages[channel_name] = compensation_voltage
-                    buffer[-compensation_npt+1:-1] = compensation_voltage
+                    buffer[-(compensation_npt+1):-1] = compensation_voltage
                     logging.debug(f'DC compensation {channel_name}: {compensation_voltage:6.1f} mV {compensation_npt} Sa')
                 else:
                     job.upload_info.dc_compensation_voltages[channel_name] = 0
                     # TODO: @@@ reduce length of waveform?
 
-            self._upload_wvf(job, channel_name, channel_info.attenuation, buffer, section.sample_rate, awg_upload_func)
+            bias_T_compensation_mV = self._add_bias_T_compensation(buffer, bias_T_compensation_mV,
+                                                                   section.sample_rate, channel_info)
+            self._upload_wvf(job, channel_name, buffer, channel_info.amplitude, channel_info.attenuation,
+                             section.sample_rate, awg_upload_func)
 
     def _render_markers(self, job, awg_upload_func):
         for channel_name, marker_channel in self.marker_channels.items():
@@ -785,7 +804,8 @@ class UploadAggregator:
                     buffers[i_section][:pt_off] = amplitude
 
         for buffer, section in zip(buffers, sections):
-            self._upload_wvf(job, marker_channel.name, 1.0, buffer, section.sample_rate, awg_upload_func)
+            self._upload_wvf(job, marker_channel.name, buffer,
+                             AwgConfig.MAX_AMPLITUDE, 1.0, section.sample_rate, awg_upload_func)
 
     def _upload_fpga_markers(self, job, marker_channel, m):
         table = []
@@ -803,9 +823,9 @@ class UploadAggregator:
                 logging.debug(f'Marker: {t_on} - {t_off}')
                 table.append((t_on, t_off))
 
-    def _upload_wvf(self, job, channel_name, attenuation, waveform, sample_rate, awg_upload_func):
+    def _upload_wvf(self, job, channel_name, waveform, amplitude, attenuation, sample_rate, awg_upload_func):
         # note: numpy inplace multiplication is much faster than standard multiplication
-        waveform *= 1/(attenuation * AwgConfig.MAX_AMPLITUDE)
+        waveform *= 1/(attenuation * amplitude)
         wave_ref = awg_upload_func(channel_name, waveform)
         job.add_waveform(channel_name, wave_ref, sample_rate*1e9)
 
@@ -986,6 +1006,8 @@ class UploadAggregator:
 
         self._generate_upload(job, awg_upload_func)
 
+        self._render_markers(job, awg_upload_func)
+
         if QsUploader.use_awg_sequencers:
             self._generate_sequencer_upload(job)
 
@@ -993,8 +1015,6 @@ class UploadAggregator:
             self._generate_digitizer_sequences(job)
         else:
             self._generate_digitizer_triggers(job)
-
-        self._render_markers(job, awg_upload_func)
 
 
     def get_max_compensation_time(self):
@@ -1025,4 +1045,15 @@ class UploadAggregator:
             result = -channel_info.integral / channel_info.dc_compensation_min
         return result
 
+
+    def _add_bias_T_compensation(self, buffer, bias_T_compensation_mV, sample_rate, channel_info):
+
+        if channel_info.bias_T_RC_time:
+            compensation_factor = 1 / (sample_rate * 1e9 * channel_info.bias_T_RC_time)
+            compensation = np.cumsum(buffer) * compensation_factor + bias_T_compensation_mV
+            bias_T_compensation_mV = compensation[-1]
+            logging.info(f'bias-T compensation  min:{np.min(compensation):5.1f} max:{np.max(compensation):5.1f} mV')
+            buffer += compensation
+
+        return bias_T_compensation_mV
 

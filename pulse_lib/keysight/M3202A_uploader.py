@@ -202,8 +202,11 @@ class M3202A_Uploader:
 
         # start hvi (start function loads schedule if not yet loaded)
         acquire_triggers = {f'dig_trigger_{i+1}':t for i,t in enumerate(job.digitizer_triggers)}
+        trigger_channels = {f'dig_trigger_channels_{dig_name}':triggers
+                            for dig_name, triggers in job.digitizer_trigger_channels.items()}
         schedule_params = job.schedule_params.copy()
         schedule_params.update(acquire_triggers)
+        schedule_params.update(trigger_channels)
         job.hw_schedule.set_configuration(schedule_params, job.n_waveforms)
         job.hw_schedule.start(job.playback_time, job.n_rep, schedule_params)
 
@@ -388,8 +391,8 @@ class UploadAggregator:
     def __init__(self, awg_channels, marker_channels, qubit_channels, digitizer_channels):
         self.npt = 0
         self.marker_channels = marker_channels
-        self.qubit_channels = qubit_channels
         self.digitizer_channels = digitizer_channels
+        self.qubit_channels = qubit_channels
         self.channels = dict()
 
         delays = []
@@ -657,27 +660,6 @@ class UploadAggregator:
             self._upload_wvf(job, channel_name, buffer, channel_info.amplitude, channel_info.attenuation,
                              section.sample_rate, awg_upload_func)
 
-    def _generate_digitizer_triggers(self, job):
-        triggers = set()
-        has_HVI_triggers = False
-
-        for name, value in job.schedule_params.items():
-            if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
-                has_HVI_triggers = True
-
-        for channel_name, channel in self.digitizer_channels.items():
-            for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
-                seg_ch = getattr(seg, channel_name)
-                acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
-                for acquisition in acquisition_data:
-                    if has_HVI_triggers:
-                        raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
-                    triggers.add(seg_render.t_start + acquisition.start)
-
-        job.digitizer_triggers = list(triggers)
-        job.digitizer_triggers.sort()
-        logging.info(f'digitizer triggers: {job.digitizer_triggers}')
-
     def _render_markers(self, job, awg_upload_func):
         for channel_name, marker_channel in self.marker_channels.items():
             logging.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV)')
@@ -766,6 +748,39 @@ class UploadAggregator:
         waveform *= 1/(attenuation * amplitude)
         wave_ref = awg_upload_func(channel_name, waveform)
         job.add_waveform(channel_name, wave_ref, sample_rate*1e9)
+
+    def _generate_digitizer_triggers(self, job):
+        trigger_channels = {}
+        digitizer_trigger_channels = {}
+        has_HVI_triggers = False
+
+        for name, value in job.schedule_params.items():
+            if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
+                has_HVI_triggers = True
+
+        # TODO @@@: cleanup this messy code.
+        for channel_name, channel in self.digitizer_channels.items():
+            for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
+                seg_ch = getattr(seg, channel_name)
+                acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
+                for acquisition in acquisition_data:
+                    if has_HVI_triggers:
+                        raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
+                    t = seg_render.t_start + acquisition.start
+                    for ch in channel.channel_numbers:
+                        trigger_channels.setdefault(t, []).append((channel.module_name, ch))
+                    # set empty list. Fill later after sorting all triggers
+                    digitizer_trigger_channels[channel.module_name] = []
+
+        job.digitizer_triggers = list(trigger_channels.keys())
+        job.digitizer_triggers.sort()
+        for name, triggers in digitizer_trigger_channels.items():
+            for trigger in job.digitizer_triggers:
+                all_channels = trigger_channels[trigger]
+                triggers.append([nr for module_name, nr in all_channels if module_name == name])
+
+        job.digitizer_trigger_channels = digitizer_trigger_channels
+        logging.info(f'digitizer triggers: {job.digitizer_triggers}')
 
 
     def upload_job(self, job, awg_upload_func):
