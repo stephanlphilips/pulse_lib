@@ -999,6 +999,8 @@ class UploadAggregator:
         job.sequencer_sequences = {}
         job.sequencer_waveforms = {}
         job.digitizer_sequences = {}
+        job.digitizer_triggers = {}
+        job.digitizer_trigger_channels = {}
 
         self._integrate(job)
 
