@@ -138,24 +138,48 @@ class pulselib:
                                                            setup_ns, hold_ns, amplitude, invert)
 
 
-    def define_digitizer_channel(self, name, digitizer_name, channel_number):
+    def define_digitizer_channel(self, name, digitizer_name, channel_number, iq_out=False):
+        ''' Defines a digitizer channel.
+        Args:
+            channel_name (str): name of the channel.
+            digitizer_name (str): name of digitizer
+            channel_number (int): channel number
+            iq_out (bool): if True convert imaginary component of channel to Q data
+        '''
         self._check_uniqueness_of_channel_name(name)
-        self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, channel_number)
+        self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, channel_number, iq_out=iq_out)
 
-    def define_digitizer_channel_iq(self, name, digitizer_name, channel_numbers):
+    def define_digitizer_channel_iq(self, name, digitizer_name, channel_numbers, phase=0.0, iq_out=False):
+        ''' Defines a digitizer I/Q input pair.
+        Args:
+            channel_name (str): name of the channel.
+            digitizer_name (str): name of digitizer
+            channel_numbers (List[int]): channel numbers: [I-channel, Q-channel]
+            phase (float): phase shift in rad.
+            iq_out (bool): if True output I+Q data, else output I data only.
+        '''
         self._check_uniqueness_of_channel_name(name)
-        self.digitizer_channels[name] = digitizer_channel_iq(name, digitizer_name, channel_numbers)
+        self.digitizer_channels[name] = digitizer_channel_iq(name, digitizer_name, channel_numbers, iq_out=iq_out)
 
     def set_digitizer_phase(self, channel_name, phase):
         '''
         Sets phase of digitizer channel.
         Args:
             channel_name (str): name of the channel.
-            phase (float): LO phase in rad.
+            phase (float): phase shift in rad.
 
-        Note: currently only used for phase correction of I/Q input
+        Note: only used for phase correction of I/Q input
         '''
         self.digitizer_channels[channel_name].phase = phase
+
+    def set_digitizer_iq_out(self, channel_name, iq_out):
+        '''
+        Enables/disables IQ output of digitizer channel.
+        Args:
+            channel_name (str): name of the channel.
+            iq_out (bool): if True output I+Q data, else output I data only.
+        '''
+        self.digitizer_channels[channel_name].iq_out = iq_out
 
     def add_channel_delay(self, channel, delay):
         '''
@@ -170,6 +194,8 @@ class pulselib:
         '''
         if channel in self.awg_channels:
             self.awg_channels[channel].delay = delay
+        elif channel in self.marker_channels:
+            self.marker_channels[channel].delay = delay
         else:
             raise ValueError(f"Channel delay error: Channel '{channel}' is not defined")
 
