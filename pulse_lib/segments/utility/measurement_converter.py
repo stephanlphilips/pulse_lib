@@ -41,7 +41,7 @@ class _MeasurementParameter(MultiParameter):
     def __init__(self, setpoints, getter):
         super().__init__('measurement', **setpoints.__dict__)
         self._getter = getter
-        self.index = None
+        self.index = (0,)
         self.dig = None
         self.mc = None
 
@@ -94,10 +94,8 @@ class measurement_converter:
             if isinstance(m, measurement_acquisition):
                 channel_name = m.acquisition_channel
                 channel = digitizer_channels[channel_name]
-                
-                channel_suffixes = ['']
-                if isinstance(channel, digitizer_channel_iq) and channel.phase is None:
-                    channel_suffixes = ['_I', '_Q']
+
+                channel_suffixes = ['_I', '_Q'] if channel.iq_out else ['']
 
                 for suffix in channel_suffixes:
                     name = f'RAW_{m.name}{suffix}'
@@ -149,20 +147,22 @@ class measurement_converter:
         for channel in digitizer_channels.values():
             acquisitions = self._description.acquisitions[channel.name][index]
             if len(acquisitions.data) == 0:
-                self._channel_raw[channel.name] = np.zeros(0)
+                self._channel_raw[channel.name] = np.zeros(0, dtype=np.complex if channel.iq_out else np.float)
                 continue
             if isinstance(channel, digitizer_channel):
+                # this can be complex valued output with LO modulation or phase shift in digitizer (FPGA)
                 ch = output_channels.index(channel.channel_number)
                 ch_raw = data[ch]
             elif isinstance(channel, digitizer_channel_iq):
                 ch_I = output_channels.index(channel.channel_numbers[0])
                 ch_Q = output_channels.index(channel.channel_numbers[1])
-                ch_raw = data[ch_I] + 1j * data[ch_Q]
-                if channel.phase is not None:
-                    ch_raw = (ch_raw * np.exp(1j*channel.phase)).real
+                ch_raw = (data[ch_I] + 1j * data[ch_Q]) * np.exp(1j*channel.phase)
             else:
                 raise NotImplementedError(f'Unknown channel type {type(channel)}')
 
+            if not channel.iq_out:
+                ch_raw = ch_raw.real
+            print(channel.name, len(acquisitions.data))
             self._channel_raw[channel.name] = ch_raw.reshape((-1, len(acquisitions.data))).T
 
 
