@@ -265,8 +265,8 @@ class UploadAggregator:
             info.dc_compensation = info.dc_compensation_min < 0 and info.dc_compensation_max > 0
 
         for channel in marker_channels.values():
-            delays.append(-channel.setup_ns)
-            delays.append(channel.hold_ns)
+            delays.append(channel.delay - channel.setup_ns)
+            delays.append(channel.delay + channel.hold_ns)
 
         self.max_pre_start_ns = -min(0, *delays)
         self.max_post_end_ns = max(0, *delays)
@@ -358,7 +358,7 @@ class UploadAggregator:
         # loop over all qubit channels to accumulate total phase shift
         for i in range(len(job.sequence)):
             ref_channel_states.start_phases_all.append(dict())
-        for channel_name, qubit_channel in self.qubit_channels.items(): # @@@ FIX qubit channels
+        for channel_name, qubit_channel in self.qubit_channels.items():
             phase = 0
             for iseg,seg in enumerate(job.sequence):
                 ref_channel_states.start_phases_all[iseg][channel_name] = phase
@@ -437,7 +437,7 @@ class UploadAggregator:
 
     def _render_markers(self, job):
         for channel_name, marker_channel in self.marker_channels.items():
-            logging.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV)')
+            logging.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV, {marker_channel.delay:+2.0f} ns)')
             start_stop = []
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
 
@@ -446,16 +446,18 @@ class UploadAggregator:
                 ch_data = seg_ch._get_data_all_at(job.index)
 
                 for pulse in ch_data.my_marker_data:
-                    start_stop.append((seg_render.t_start + pulse.start - marker_channel.setup_ns, +1))
-                    start_stop.append((seg_render.t_start + pulse.stop + marker_channel.hold_ns, -1))
+                    offset = seg_render.t_start + marker_channel.delay
+                    start_stop.append((offset + pulse.start - marker_channel.setup_ns, +1))
+                    start_stop.append((offset + pulse.stop + marker_channel.hold_ns, -1))
 
             if channel_name in self.digitizer_markers.values():
                 pulses = self._generate_digitzer_markers(job)
                 logging.info(f'dig trigger: {pulses}')
                 for pulse in pulses:
                     # trigger time is relative to sequence start, not segment start
-                    start_stop.append((pulse.start - marker_channel.setup_ns, +1))
-                    start_stop.append((pulse.stop + marker_channel.hold_ns, -1))
+                    offset = marker_channel.delay
+                    start_stop.append((offset + pulse.start - marker_channel.setup_ns, +1))
+                    start_stop.append((offset + pulse.stop + marker_channel.hold_ns, -1))
 
             if len(start_stop) > 0:
                 m = np.array(start_stop)

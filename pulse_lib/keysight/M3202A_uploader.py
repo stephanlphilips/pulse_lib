@@ -412,6 +412,10 @@ class UploadAggregator:
             info.dc_compensation_max = channel.compensation_limits[1] * info.attenuation
             info.dc_compensation = info.dc_compensation_min < 0 and info.dc_compensation_max > 0
 
+        for channel in marker_channels.values():
+            delays.append(channel.delay - channel.setup_ns)
+            delays.append(channel.delay + channel.hold_ns)
+
         self.max_pre_start_ns = -min(0, *delays)
         self.max_post_end_ns = max(0, *delays)
 
@@ -662,7 +666,7 @@ class UploadAggregator:
 
     def _render_markers(self, job, awg_upload_func):
         for channel_name, marker_channel in self.marker_channels.items():
-            logging.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV)')
+            logging.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV, {marker_channel.delay:+2.0f} ns)')
             start_stop = []
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
 
@@ -671,8 +675,9 @@ class UploadAggregator:
                 ch_data = seg_ch._get_data_all_at(job.index)
 
                 for pulse in ch_data.my_marker_data:
-                    start_stop.append((seg_render.t_start + pulse.start - marker_channel.setup_ns, +1))
-                    start_stop.append((seg_render.t_start + pulse.stop + marker_channel.hold_ns, -1))
+                    offset = seg_render.t_start + marker_channel.delay
+                    start_stop.append((offset + pulse.start - marker_channel.setup_ns, +1))
+                    start_stop.append((offset + pulse.stop + marker_channel.hold_ns, -1))
 
             if len(start_stop) > 0:
                 m = np.array(start_stop)
@@ -708,7 +713,7 @@ class UploadAggregator:
                 section = sections[i_section]
                 pt_on = int((t_on - section.t_start) * section.sample_rate)
                 if pt_on < 0:
-                    logging.info(f'Warning: Marker setup before waveform; aligned with start')
+                    logging.info(f'Warning: Marker setup before waveform; aligning with start')
                     pt_on = 0
                 if t_off < section.t_end:
                     pt_off = int((t_off - section.t_start) * section.sample_rate)
@@ -730,6 +735,7 @@ class UploadAggregator:
     def _upload_fpga_markers(self, job, marker_channel, m):
         table = []
         job.marker_tables[marker_channel.name] = table
+        offset = int(self.max_pre_start_ns)
         s = 0
         t_on = 0
         for on_off in m:
@@ -741,7 +747,7 @@ class UploadAggregator:
             if s == 0 and on_off[1] == -1:
                 t_off = int(on_off[0])
                 logging.debug(f'Marker: {t_on} - {t_off}')
-                table.append((t_on, t_off))
+                table.append((t_on + offset, t_off + offset))
 
     def _upload_wvf(self, job, channel_name, waveform, amplitude, attenuation, sample_rate, awg_upload_func):
         # note: numpy inplace multiplication is much faster than standard multiplication
