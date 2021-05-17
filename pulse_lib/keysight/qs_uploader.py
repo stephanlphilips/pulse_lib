@@ -53,9 +53,9 @@ class QsUploader:
                         )
             else:
                 offset = 0
-                amplitude = AwgConfig.MAX_AMPLITUDE/1000
+                amplitude = channel.amplitude/1000
                 if channel.invert:
-                    offset = channel.amplitude/1000
+                    offset = amplitude
                     amplitude = -amplitude
 
                 awg.set_channel_amplitude(amplitude, channel.channel_number)
@@ -176,8 +176,7 @@ class QsUploader:
                 channel = self.marker_channels[channel_name]
                 awg_name = channel.module_name
                 channel_number = channel.channel_number
-                amplitude = AwgConfig.MAX_AMPLITUDE
-#                amplitude = channel.amplitude
+                amplitude = channel.amplitude
                 if channel.invert:
                     offset = amplitude
                     amplitude = -amplitude
@@ -201,7 +200,7 @@ class QsUploader:
                         trigger_mode, start_delay, cycles, prescaler)
                 trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
 
-# TODO @@@ clear AWG queues
+# TODO @@@ clear AWG queues of sequenced channels
 
         for awg_sequencer in self.sequencer_channels.values():
             awg = self.AWGs[awg_sequencer.module_name]
@@ -485,6 +484,10 @@ class UploadAggregator:
             info.dc_compensation = info.dc_compensation_min < 0 and info.dc_compensation_max > 0
             info.is_sequencer = channel.name in self.sequencer_out_channels
 
+        for channel in marker_channels.values():
+            delays.append(channel.delay - channel.setup_ns)
+            delays.append(channel.delay + channel.hold_ns)
+
         self.max_pre_start_ns = -min(0, *delays)
         self.max_post_end_ns = max(0, *delays)
 
@@ -740,7 +743,7 @@ class UploadAggregator:
 
     def _render_markers(self, job, awg_upload_func):
         for channel_name, marker_channel in self.marker_channels.items():
-            logging.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV)')
+            logging.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV, {marker_channel.delay:+2.0f} ns)')
             start_stop = []
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
 
@@ -749,8 +752,9 @@ class UploadAggregator:
                 ch_data = seg_ch._get_data_all_at(job.index)
 
                 for pulse in ch_data.my_marker_data:
-                    start_stop.append((seg_render.t_start + pulse.start - marker_channel.setup_ns, +1))
-                    start_stop.append((seg_render.t_start + pulse.stop + marker_channel.hold_ns, -1))
+                    offset = seg_render.t_start + marker_channel.delay
+                    start_stop.append((offset + pulse.start - marker_channel.setup_ns, +1))
+                    start_stop.append((offset + pulse.stop + marker_channel.hold_ns, -1))
 
             if len(start_stop) > 0:
                 m = np.array(start_stop)
@@ -767,7 +771,6 @@ class UploadAggregator:
     def _upload_awg_markers(self, job, marker_channel, m, awg_upload_func):
         # TODO @@@ : round section length to 100 ns and use max 1e8 Sa/s rendering?
         sections = job.upload_info.sections
-        amplitude = marker_channel.amplitude
         buffers = [np.zeros(section.npt) for section in sections]
         i_section = 0
         s = 0
@@ -787,29 +790,29 @@ class UploadAggregator:
                 section = sections[i_section]
                 pt_on = int((t_on - section.t_start) * section.sample_rate)
                 if pt_on < 0:
-                    logging.info(f'Warning: Marker setup before waveform; aligned with start')
+                    logging.info(f'Warning: Marker setup before waveform; aligning with start')
                     pt_on = 0
                 if t_off < section.t_end:
                     pt_off = int((t_off - section.t_start) * section.sample_rate)
-                    buffers[i_section][pt_on:pt_off] = amplitude
+                    buffers[i_section][pt_on:pt_off] = 1.0
                 else:
-                    buffers[i_section][pt_on:] = amplitude
+                    buffers[i_section][pt_on:] = 1.0
                     i_section += 1
                     # search end section
                     while t_off >= sections[i_section].t_end:
-                        buffers[i_section][:] = amplitude
+                        buffers[i_section][:] = 1.0
                         i_section += 1
                     section = sections[i_section]
                     pt_off = int((t_off - section.t_start) * section.sample_rate)
-                    buffers[i_section][:pt_off] = amplitude
+                    buffers[i_section][:pt_off] = 1.0
 
         for buffer, section in zip(buffers, sections):
-            self._upload_wvf(job, marker_channel.name, buffer,
-                             AwgConfig.MAX_AMPLITUDE, 1.0, section.sample_rate, awg_upload_func)
+            self._upload_wvf(job, marker_channel.name, buffer, 1.0, 1.0, section.sample_rate, awg_upload_func)
 
     def _upload_fpga_markers(self, job, marker_channel, m):
         table = []
         job.marker_tables[marker_channel.name] = table
+        offset = int(self.max_pre_start_ns)
         s = 0
         t_on = 0
         for on_off in m:
@@ -821,7 +824,7 @@ class UploadAggregator:
             if s == 0 and on_off[1] == -1:
                 t_off = int(on_off[0])
                 logging.debug(f'Marker: {t_on} - {t_off}')
-                table.append((t_on, t_off))
+                table.append((t_on + offset, t_off + offset))
 
     def _upload_wvf(self, job, channel_name, waveform, amplitude, attenuation, sample_rate, awg_upload_func):
         # note: numpy inplace multiplication is much faster than standard multiplication
@@ -868,9 +871,18 @@ class UploadAggregator:
 
         for channel_name, qubit_channel in self.qubit_channels.items():
             lo_freq = qubit_channel.iq_channel.LO
+            delays = []
+            for i in range(2):
+                awg_channel_name = qubit_channel.iq_channel.IQ_out_channels[i].awg_channel_name
+                delays.append(self.channels[awg_channel_name].delay_ns)
+            if delays[0] != delays[1]:
+                raise Exception(f'I/Q Channel delays must be equal ({channel_name})')
+
             waveforms = []
             sequence = []
-            t_start = 0
+            # TODO improve for alignment on 1 ns.
+            # subtract 10 ns, because it's started 10 ns before 'classical' queued waveform
+            t_start = int((-self.max_pre_start_ns - delays[0]) / 5) * 5 -10
             entry = SequenceEntry()
             sequence.append(entry)
 
@@ -882,6 +894,7 @@ class UploadAggregator:
                 mw_data.update({ps.time:ps for ps in data.phase_shifts if ps.phase_shift != 0})
 
                 for mw_time,mw_entry in sorted(mw_data.items()):
+                    # TODO check whether t_start is always aligned on 5 ns boundary
                     t_pulse = seg_render.t_start + int(mw_time / 5) * 5
                     wait = t_pulse - t_start
                     # Note: special case: wait == 0 at start
