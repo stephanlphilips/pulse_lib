@@ -34,6 +34,7 @@ try:
     from core_tools.drivers.hardware.hardware import hardware as hw_cls
 except:
     print('old version of core_tools detected ..')
+
 class pulselib:
     '''
     Global class that is an organisational element in making the pulses.
@@ -250,6 +251,9 @@ class pulselib:
         qubit = qubit_channel(qubit_channel_name, reference_frequency, iq_channel)
         iq_channel.qubit_channels.append(qubit)
         self.qubit_channels[qubit_channel_name] = qubit
+
+    def set_qubit_idle_frequency(self, qubit_channel_name, idle_frequency):
+        self.qubit_channels[qubit_channel_name].reference_frequency = idle_frequency
 
     def finish_init(self):
         # function that finishes the initialisation

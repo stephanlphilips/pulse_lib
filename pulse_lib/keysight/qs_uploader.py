@@ -208,6 +208,11 @@ class QsUploader:
             seq.flush_waveforms()
             schedule = []
             if awg_sequencer.channel_name in job.sequencer_waveforms:
+                # TODO @@@ cleanup frequency update hack
+                qubit_channel = self.qubit_channels[awg_sequencer.channel_name]
+                seq._frequency = qubit_channel.reference_frequency - qubit_channel.iq_channel.LO
+
+
                 for number,wvf in enumerate(job.sequencer_waveforms[awg_sequencer.channel_name]):
                     seq.upload_waveform(number, wvf.offset, wvf.duration,
                                         wvf.amplitude, wvf.am_envelope,
