@@ -50,6 +50,15 @@ class sequence_builder:
         if reset:
             self.reset_time()
 
+    def add_segment(self, *segments):
+        '''
+        add raw segments to the sequence builder
+
+        Args:
+            *segments (segment_container) : segments that you want to add
+        '''
+        self._segments += segments
+
     def add_cond(self, register, *templates):
         ### for now we do not support replacement arguments with the templates
         kwargs = dict()
