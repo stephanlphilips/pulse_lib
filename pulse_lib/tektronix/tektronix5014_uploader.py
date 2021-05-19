@@ -17,7 +17,7 @@ class Tektronix5014_Uploader:
     verbose = False
 
     def __init__(self, awgs, awg_channels, marker_channels, digitizer_markers,
-                 digitizer_channels):
+                 digitizer_channels, sync_markers):
         '''
         Initialize the Tektronix uploader.
         Args:
@@ -26,6 +26,7 @@ class Tektronix5014_Uploader:
             marker_channels: Dict[name, marker_channel]: dict with names and properties
             digitizer_markers: Dict[digitizer, marker_channel]: dict with digitizer names and linked marker
             digitizer_channels: Dict[name, digitizer_channel]: dict with names and properties
+            sync_markers: Dict[name, marker_channel]: markers to trigger slave awg
         Returns:
             None
         '''
@@ -35,9 +36,20 @@ class Tektronix5014_Uploader:
         self.marker_channels = marker_channels
         self.digitizer_channels = digitizer_channels
         self.digitizer_markers = digitizer_markers
+        self.sync_markers = sync_markers
 
         self.job = None
 
+        self.setup_slaves()
+
+
+    def setup_slaves(self):
+        for awg in self.awgs.values():
+            if awg not in self.sync_markers:
+                awg.trigger_source('EXT')
+                awg.trigger_impedance(1000)
+                awg.trigger_level(1.6)
+                awg.trigger_slope('POS')
 
     def get_effective_sample_rate(self, sample_rate):
         """
@@ -61,7 +73,8 @@ class Tektronix5014_Uploader:
 
         job.hw_schedule.stop()
         aggregator = UploadAggregator(self.awgs, self.awg_channels, self.marker_channels,
-                                      self.digitizer_channels, self.digitizer_markers)
+                                      self.digitizer_channels, self.digitizer_markers,
+                                      self.sync_markers)
 
         aggregator.upload_job(job)
 
@@ -226,11 +239,13 @@ class SegmentRenderInfo:
 class UploadAggregator:
     verbose = False
 
-    def __init__(self, awgs, awg_channels, marker_channels, digitizer_channels, digitizer_markers):
+    def __init__(self, awgs, awg_channels, marker_channels, digitizer_channels,
+                 digitizer_markers, sync_markers):
         self.npt = 0
         self.marker_channels = marker_channels
         self.digitizer_channels = digitizer_channels
         self.digitizer_markers = digitizer_markers
+        self.sync_markers = sync_markers
         self.channels = dict()
         self.waveforms = dict()
         self.awgs = dict()
@@ -399,7 +414,7 @@ class UploadAggregator:
                 for acquisition in acquisition_data:
                     job.digitizer_triggers.append(seg_render.t_start + acquisition.start)
 
-    def _generate_digitzer_markers(self, job):
+    def _generate_digitizer_markers(self, job):
         pulse_duration = max(100, 1e9/job.default_sample_rate) # 1 Sample or 100 ns
         marker_data = []
         for t in job.digitizer_triggers:
@@ -421,12 +436,18 @@ class UploadAggregator:
                     start_stop.append((seg_render.t_start + pulse.stop + marker_channel.hold_ns, -1))
 
             if channel_name in self.digitizer_markers.values():
-                pulses = self._generate_digitzer_markers(job)
+                pulses = self._generate_digitizer_markers(job)
                 logging.info(f'dig trigger: {pulses}')
                 for pulse in pulses:
                     # trigger time is relative to sequence start, not segment start
                     start_stop.append((pulse.start - marker_channel.setup_ns, +1))
                     start_stop.append((pulse.stop + marker_channel.hold_ns, -1))
+
+            if channel_name in self.sync_markers.values():
+                # TODO @@@ fix offset, marker delay
+                # trigger time is relative to sequence start, not segment start
+                start_stop.append((0-marker_channel.setup_ns, +1))
+                start_stop.append((0 + marker_channel.hold_ns, -1))
 
             if len(start_stop) > 0:
                 m = np.array(start_stop)
@@ -435,7 +456,7 @@ class UploadAggregator:
             else:
                 m = []
 
-        self._upload_awg_markers(job, marker_channel, m)
+            self._upload_awg_markers(job, marker_channel, m)
 
     def _upload_awg_markers(self, job, marker_channel, m):
         sections = job.upload_info.sections

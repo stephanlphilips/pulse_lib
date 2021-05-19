@@ -28,10 +28,12 @@ try:
     from core_tools.drivers.hardware.hardware import hardware as hw_cls
 except:
     print('old version of core_tools detected ..')
+
+
 class pulselib:
     '''
     Global class that is an organisational element in making the pulses.
-    The idea is that you first make individula segments,
+    The idea is that you first make individual segments,
     you can than later combine them into a sequence, this sequence will be uploaded
     '''
     def __init__(self, backend = "M3202A"):
@@ -42,8 +44,9 @@ class pulselib:
         self.digitizer_channels = dict()
         self.virtual_channels = []
         self.IQ_channels = [] # TODO: add to name check
-        # Tektronix-Spectrum feature
+        # Tektronix feature
         self.digitizer_markers = dict()
+        self.sync_markers = dict()
 
         self._backend = backend
 
@@ -88,10 +91,19 @@ class pulselib:
         '''
         Assign a marker as digitizer trigger
         Args:
-            digitizer_name: name of the digizer
+            digitizer_name: name of the digitizer
             marker_name: name of the marker channel
         '''
         self.digitizer_markers[digitizer_name] = marker_name
+
+    def add_sync_marker(self, awg_name, marker_name):
+        '''
+        Assign a marker as awg sync trigger
+        Args:
+            awg_name: name of the awg
+            marker_name: name of the marker channel
+        '''
+        self.sync_markers[awg_name] = marker_name
 
     def define_channel(self, channel_name, AWG_name, channel_number, amplitude=None):
         '''
@@ -214,7 +226,7 @@ class pulselib:
                 raise Exception('Tektronix5014_Uploader import failed')
             self.uploader = Tektronix5014_Uploader(self.awg_devices, self.awg_channels,
                                                    self.marker_channels, self.digitizer_markers,
-                                                   self.digitizer_channels)
+                                                   self.digitizer_channels, self.sync_markers)
 
 
     def mk_segment(self, name=None, sample_rate=None):
@@ -281,9 +293,9 @@ class pulselib:
                 else:
                     vgc = virtual_gates_constructor(self, name=virtual_gate_set.name)
                     vgc.load_via_hardware_new(virtual_gate_set)
-            
+
             hardware.awg2dac_ratios.add(list(self.awg_channels.keys()))
-            
+
             for channel, attenuation in hardware.awg2dac_ratios.items():
                     self.awg_channels[channel].attenuation = attenuation
 
