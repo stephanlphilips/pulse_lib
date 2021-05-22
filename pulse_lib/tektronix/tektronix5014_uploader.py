@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import logging
+import copy
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -11,6 +12,17 @@ from .wrapped_5014 import Wrapped5014
 
 class AwgConfig:
     DEFAULT_AMPLITUDE = 1500 # mV
+
+def Tektronix_sync_latency(sample_rate:float):
+    '''
+    Calculates the sync latency for a Tektronix slave AWG triggered with marker of master Tektronix AWG.
+    '''
+    decimation = 1.1999e9 / sample_rate
+    period_ns = 1e9 / sample_rate
+    n = int(np.log2(decimation))
+    latency = 22//period_ns*period_ns + period_ns * int(36 + 420 * 2**-n)
+    logging.debug(f'Tektronix sync latency {sample_rate/1e6:5.1f} MHz: {latency:5.1f} ns')
+    return latency
 
 
 class Tektronix5014_Uploader:
@@ -44,12 +56,13 @@ class Tektronix5014_Uploader:
         self.setup_slaves()
 
     def setup_slaves(self):
-        for awg in self.awgs.values():
-            if awg in self.awg_sync:
-                awg.trigger_source('EXT')
-                awg.trigger_impedance(1000)
-                awg.trigger_level(1.6)
-                awg.trigger_slope('POS')
+        logging.info(f'Configure slave AWGs: {self.awg_sync}')
+        for slave in self.awg_sync.values():
+            awg = self.awgs[slave.awg_name]
+            awg.trigger_source('EXT')
+            awg.trigger_impedance(1000)
+            awg.trigger_level(1.6)
+            awg.trigger_slope('POS')
 
     def get_effective_sample_rate(self, sample_rate):
         """
@@ -72,9 +85,16 @@ class Tektronix5014_Uploader:
         start = time.perf_counter()
 
         job.hw_schedule.stop()
+
+        # calculate sync latency if not set
+        awg_sync = copy.deepcopy(self.awg_sync)
+        for slave in awg_sync.values():
+            if slave.sync_latency is None:
+                slave.sync_latency = Tektronix_sync_latency(job.default_sample_rate)
+
         aggregator = UploadAggregator(self.awgs, self.awg_channels, self.marker_channels,
                                       self.digitizer_channels, self.digitizer_markers,
-                                      self.awg_sync)
+                                      awg_sync)
 
         aggregator.upload_job(job)
 
