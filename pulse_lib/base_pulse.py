@@ -5,7 +5,7 @@ from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
 from pulse_lib.configuration.physical_channels import (
         awg_channel, marker_channel, digitizer_channel, digitizer_channel_iq)
-
+from pulse_lib.configuration.devices import awg_slave
 
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 
@@ -46,7 +46,7 @@ class pulselib:
         self.IQ_channels = [] # TODO: add to name check
         # Tektronix feature
         self.digitizer_markers = dict()
-        self.sync_markers = dict()
+        self.awg_sync = dict()
 
         self._backend = backend
 
@@ -96,14 +96,20 @@ class pulselib:
         '''
         self.digitizer_markers[digitizer_name] = marker_name
 
-    def add_sync_marker(self, awg_name, marker_name):
+    def add_awg_sync(self, awg_name, marker_name, sync_latency=None):
         '''
-        Assign a marker as awg sync trigger
+        Add synchronization for a slave AWG with a marker.
+        Currently only used for Tektronix AWGs.
+
         Args:
             awg_name: name of the awg
             marker_name: name of the marker channel
+            sync_latency (Optional[float]): latency in AWG triggering. If None it will be calculated from sample rate.
+
+        Note:
+            sync_latency of Tektronix AWG is sample frequency dependent.
         '''
-        self.sync_markers[awg_name] = marker_name
+        self.awg_sync[awg_name] = awg_slave(awg_name, marker_name, sync_latency)
 
     def define_channel(self, channel_name, AWG_name, channel_number, amplitude=None):
         '''
@@ -164,6 +170,8 @@ class pulselib:
         '''
         if channel in self.awg_channels:
             self.awg_channels[channel].delay = delay
+        elif channel in self.marker_channels:
+            self.marker_channels[channel].delay = delay
         else:
             raise ValueError(f"Channel delay error: Channel '{channel}' is not defined")
 
@@ -226,7 +234,7 @@ class pulselib:
                 raise Exception('Tektronix5014_Uploader import failed')
             self.uploader = Tektronix5014_Uploader(self.awg_devices, self.awg_channels,
                                                    self.marker_channels, self.digitizer_markers,
-                                                   self.digitizer_channels, self.sync_markers)
+                                                   self.digitizer_channels, self.awg_sync)
 
 
     def mk_segment(self, name=None, sample_rate=None):

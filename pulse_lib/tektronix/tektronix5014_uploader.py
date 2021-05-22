@@ -3,6 +3,7 @@ import numpy as np
 import logging
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
+from concurrent.futures.thread import ThreadPoolExecutor
 
 from pulse_lib.segments.data_classes.data_markers import marker_pulse
 
@@ -17,7 +18,7 @@ class Tektronix5014_Uploader:
     verbose = False
 
     def __init__(self, awgs, awg_channels, marker_channels, digitizer_markers,
-                 digitizer_channels, sync_markers):
+                 digitizer_channels, awg_sync):
         '''
         Initialize the Tektronix uploader.
         Args:
@@ -26,7 +27,7 @@ class Tektronix5014_Uploader:
             marker_channels: Dict[name, marker_channel]: dict with names and properties
             digitizer_markers: Dict[digitizer, marker_channel]: dict with digitizer names and linked marker
             digitizer_channels: Dict[name, digitizer_channel]: dict with names and properties
-            sync_markers: Dict[name, marker_channel]: markers to trigger slave awg
+            awg_sync: Dict[name, awg_slave]: properties for slave AWGs: marker and latency.
         Returns:
             None
         '''
@@ -36,16 +37,15 @@ class Tektronix5014_Uploader:
         self.marker_channels = marker_channels
         self.digitizer_channels = digitizer_channels
         self.digitizer_markers = digitizer_markers
-        self.sync_markers = sync_markers
+        self.awg_sync = awg_sync
 
         self.job = None
 
         self.setup_slaves()
 
-
     def setup_slaves(self):
         for awg in self.awgs.values():
-            if awg not in self.sync_markers:
+            if awg in self.awg_sync:
                 awg.trigger_source('EXT')
                 awg.trigger_impedance(1000)
                 awg.trigger_level(1.6)
@@ -74,7 +74,7 @@ class Tektronix5014_Uploader:
         job.hw_schedule.stop()
         aggregator = UploadAggregator(self.awgs, self.awg_channels, self.marker_channels,
                                       self.digitizer_channels, self.digitizer_markers,
-                                      self.sync_markers)
+                                      self.awg_sync)
 
         aggregator.upload_job(job)
 
@@ -82,7 +82,6 @@ class Tektronix5014_Uploader:
 
         duration = time.perf_counter() - start
         logging.debug(f'generated upload data ({duration*1000:6.3f} ms)')
-
 
 
     def __get_job(self, seq_id, index):
@@ -240,12 +239,12 @@ class UploadAggregator:
     verbose = False
 
     def __init__(self, awgs, awg_channels, marker_channels, digitizer_channels,
-                 digitizer_markers, sync_markers):
+                 digitizer_markers, awg_sync):
         self.npt = 0
         self.marker_channels = marker_channels
         self.digitizer_channels = digitizer_channels
         self.digitizer_markers = digitizer_markers
-        self.sync_markers = sync_markers
+        self.awg_sync = awg_sync
         self.channels = dict()
         self.waveforms = dict()
         self.awgs = dict()
@@ -257,11 +256,14 @@ class UploadAggregator:
             info = ChannelInfo()
             self.channels[channel.name] = info
 
+            slave = self.awg_sync.get(channel.awg_name, None)
+            sync_latency = 0 if slave is None else slave.sync_latency
+
             info.amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.DEFAULT_AMPLITUDE
             info.attenuation = channel.attenuation
             info.bias_T_RC_time = channel.bias_T_RC_time
-            info.delay_ns = channel.delay
-            delays.append(channel.delay)
+            info.delay_ns = channel.delay - sync_latency
+            delays.append(channel.delay - sync_latency)
 
             # Note: Compensation limits are specified before attenuation, i.e. at AWG output level.
             #       Convert compensation limit to device level.
@@ -269,9 +271,12 @@ class UploadAggregator:
             info.dc_compensation_max = channel.compensation_limits[1] * info.attenuation
             info.dc_compensation = info.dc_compensation_min < 0 and info.dc_compensation_max > 0
 
+        slave_markers = {slave.marker_name:slave for slave in self.awg_sync.values()}
         for channel in marker_channels.values():
-            delays.append(-channel.setup_ns)
-            delays.append(channel.hold_ns)
+            slave = slave_markers.get(channel.name, None)
+            sync_latency = 0 if slave is None else slave.sync_latency
+            delays.append(channel.delay - sync_latency - channel.setup_ns)
+            delays.append(channel.delay - sync_latency + channel.hold_ns)
 
         self.max_pre_start_ns = -min(0, *delays)
         self.max_post_end_ns = max(0, *delays)
@@ -308,21 +313,22 @@ class UploadAggregator:
             if seg.sample_rate and seg.sample_rate != job.default_sample_rate:
                 raise Exception('multipe sample rates is not supported for Tektronix')
             duration = seg.total_time[tuple(job.index)]
-            npt =  int(round(duration * sample_rate))
+            npt =  int(duration * sample_rate + 0.5)
             info = SegmentRenderInfo(sample_rate, t_start, npt)
             segments.append(info)
             t_start = info.t_end
 
         # sections
         sections = job.upload_info.sections
-        # add at least 1 zero in front, because Tek outputs first sample when waiting for start trigger.
-        start_samples = 1
+        # add at least 2 zero in front, because Tek outputs first sample when waiting for start trigger.
+        # add the second to compensate for rounding errors in rendering.
+        start_samples = 2
         t_start = -max_pre_start_ns - start_samples/segments[0].sample_rate
 
         section = RenderSection(segments[0].sample_rate, t_start)
         sections.append(section)
         section.npt += start_samples
-        section.npt += round(max_pre_start_ns * section.sample_rate)
+        section.npt += int(max_pre_start_ns * section.sample_rate + 0.5)
 
         for iseg,seg in enumerate(segments):
             seg.section = section
@@ -330,7 +336,7 @@ class UploadAggregator:
             section.npt += seg.npt
 
         # add post stop samples; seg = last segment, section is last section
-        n_post = round(((seg.t_end + max_post_end_ns) - section.t_end) * section.sample_rate)
+        n_post = int(((seg.t_end + max_post_end_ns) - section.t_end) * section.sample_rate + 0.5)
         section.npt += n_post
 
         # add DC compensation
@@ -367,7 +373,7 @@ class UploadAggregator:
             for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
 
                 sample_rate = seg_render.sample_rate
-                n_delay = round(channel_info.delay_ns * sample_rate)
+                n_delay = int(channel_info.delay_ns * sample_rate + 0.5)
 
                 seg_ch = getattr(seg, channel_name)
                 start = time.perf_counter()
@@ -422,8 +428,10 @@ class UploadAggregator:
         return marker_data
 
     def _render_markers(self, job):
+        slave_markers = {slave.marker_name:slave for slave in self.awg_sync.values()}
+
         for channel_name, marker_channel in self.marker_channels.items():
-            logging.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV)')
+            logging.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV, {marker_channel.delay:+2.0f} ns)')
             start_stop = []
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
 
@@ -432,22 +440,26 @@ class UploadAggregator:
                 ch_data = seg_ch._get_data_all_at(job.index)
 
                 for pulse in ch_data.my_marker_data:
-                    start_stop.append((seg_render.t_start + pulse.start - marker_channel.setup_ns, +1))
-                    start_stop.append((seg_render.t_start + pulse.stop + marker_channel.hold_ns, -1))
+                    offset = seg_render.t_start + marker_channel.delay
+                    start_stop.append((offset + pulse.start - marker_channel.setup_ns, +1))
+                    start_stop.append((offset + pulse.stop + marker_channel.hold_ns, -1))
 
             if channel_name in self.digitizer_markers.values():
                 pulses = self._generate_digitizer_markers(job)
                 logging.info(f'dig trigger: {pulses}')
                 for pulse in pulses:
                     # trigger time is relative to sequence start, not segment start
-                    start_stop.append((pulse.start - marker_channel.setup_ns, +1))
-                    start_stop.append((pulse.stop + marker_channel.hold_ns, -1))
+                    offset = marker_channel.delay
+                    start_stop.append((offset + pulse.start - marker_channel.setup_ns, +1))
+                    start_stop.append((offset + pulse.stop + marker_channel.hold_ns, -1))
 
-            if channel_name in self.sync_markers.values():
-                # TODO @@@ fix offset, marker delay
+
+            if channel_name in slave_markers:
+                slave = slave_markers[channel_name]
+                offset = marker_channel.delay - slave.sync_latency
                 # trigger time is relative to sequence start, not segment start
-                start_stop.append((0-marker_channel.setup_ns, +1))
-                start_stop.append((0 + marker_channel.hold_ns, -1))
+                start_stop.append((offset - marker_channel.setup_ns, +1))
+                start_stop.append((offset + marker_channel.hold_ns, -1))
 
             if len(start_stop) > 0:
                 m = np.array(start_stop)
@@ -472,7 +484,7 @@ class UploadAggregator:
                 t_on = on_off[0]
             if s == 0 and on_off[1] == -1:
                 t_off = on_off[0]
-                logging.debug(f'Marker: {t_on} - {t_off}')
+                logging.debug(f'Marker: {t_on} - {t_off} ({section.t_start:+}ns)')
                 # search start section
                 if t_on >= section.t_end:
                     logging.error(f'Failed to render marker t_on < start')
@@ -553,11 +565,22 @@ class UploadAggregator:
         return bias_T_compensation_mV
 
 
+    def _upload_waveforms(self, job, awg):
+        awg.set_sample_rate(job.default_sample_rate)
+        # awg filters waveforms on name
+        awg.upload_waveforms(self.waveforms)
+
     def upload(self, job):
-        for awg in self.awgs.values():
-            awg.set_sample_rate(job.default_sample_rate)
-            # awg filters waveforms on name
-            awg.upload_waveforms(self.waveforms)
+        use_concurrent_upload = True
+        if use_concurrent_upload:
+            with ThreadPoolExecutor() as p:
+                p.map(
+                    lambda awg: self._upload_waveforms(job, awg),
+                    self.awgs.values()
+                    )
+        else:
+            for awg in self.awgs.values():
+                self._upload_waveforms(job, awg)
 
 
 

@@ -26,6 +26,7 @@ class marker_channel:
     hold_ns: float
     amplitude: float = 1000
     invert: bool = False
+    delay: float = 0 # ns
 
 @dataclass
 class digitizer_channel:

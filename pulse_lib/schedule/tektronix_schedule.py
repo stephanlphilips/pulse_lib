@@ -11,7 +11,7 @@ class TektronixSchedule(HardwareSchedule):
             raise Exception('There should be 1 digitizer in pulselib. '
                             f'Found {len(pulselib.digitizers)} digitizers')
         self.awgs:List['Tektronix_AWG5014'] = list(pulselib.awg_devices.values())
-        self.awg_is_slave = {awg.name:awg.name in pulselib.sync_markers for awg in self.awgs}
+        self.awg_is_slave = {awg.name:awg.name in pulselib.awg_sync for awg in self.awgs}
         print(f'slaves: {self.awg_is_slave}')
         self.digitizer = list(pulselib.digitizers.values())[0]
         self.running = False
