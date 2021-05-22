@@ -69,7 +69,7 @@ class Wrapped5014:
                 channel_data.m2 = waveform_data
 
         self.delete_sequence()
-        self.delete_waveforms()
+#        self.delete_waveforms()
         if len(upload_list) == 0:
             logging.info('no data for AWG')
             return
