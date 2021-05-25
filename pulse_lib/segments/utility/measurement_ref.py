@@ -45,9 +45,15 @@ class MeasurementExpressionBase(ABC):
 
 
 class MeasurementRef(MeasurementExpressionBase):
-    def __init__(self, name):
-        super().__init__([name], np.array([False, True]))
+    def __init__(self, name, invert=False):
+        values = np.array([False, True])
+        if invert:
+            values = ~values
+        super().__init__([name], values)
         self._name = name
+
+    def inverted(self):
+        self._matrix = np.array([True, False])
 
     def __str__(self):
         return self._name
@@ -110,6 +116,22 @@ if __name__ == '__main__':
             }
     print(mm.evaluate(res))
 
+    read12 = MeasurementRef('read12')
+    read12_cnot1 = MeasurementRef('read12_cnot1')
+    read1 = read12 ^ read12_cnot1 # q1 = 1 if parity changed
+    read2 = read12 & read12_cnot1 # q2 = 1 if odd parity in both measurements
+
+    res = {
+        'read12': np.array([0,0,1,1]),
+        'read12_cnot1': np.array([0,1,0,1]),
+            }
+    print(read1.evaluate(res))
+    print(read2.evaluate(res))
+
+    print(2*read1.evaluate(res) + read2.evaluate(res))
+
+# np.array2string(read1.matrix.astype(int)).replace('\n','')
+# str(read1.matrix.astype(int)).replace('\n','')
 
 '''
 seq.add_cond(_read3, q3.I, q3.X180)

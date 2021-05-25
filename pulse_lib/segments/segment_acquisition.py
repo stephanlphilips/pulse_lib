@@ -9,6 +9,7 @@ from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.data_classes.data_acquisition import acquisition_data, acquisition
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
+from pulse_lib.segments.utility.measurement_ref import MeasurementRef
 from pulse_lib.segments.segment_measurements import segment_measurements
 import copy
 
@@ -56,6 +57,8 @@ class segment_acquisition():
             threshold (Optional[float or loopobj]): optional threshold
             zero_on_high (bool): if True then result = 0 if value>threshold
         '''
+        if isinstance(ref, MeasurementRef) and zero_on_high:
+            ref.inverted()
         # TODO: measurements are not sorted in time. So, this works as long as they are added in right order.
         index = self._measurement_index
         self._measurement_index += 1
