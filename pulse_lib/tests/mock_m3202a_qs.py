@@ -1,6 +1,6 @@
 import logging
-from dataclasses import dataclass
 from typing import List, Optional, Tuple, Union
+from dataclasses import dataclass, field
 
 import numpy as np
 import matplotlib.pyplot as pt
@@ -43,7 +43,11 @@ class InstructionBase:
 @dataclass
 class AwgInstruction(InstructionBase):
     wave_number: Optional[int] = None
-    index_register: Optional[int] = None
+
+@dataclass
+class AwgConditionalInstruction(InstructionBase):
+    wave_numbers: List[int] = field(default_factory=list)
+    condition_register: Optional[int] = None
 
 
 @dataclass
@@ -139,8 +143,9 @@ class SequencerChannel:
         print(f'{label}:{len(self._schedule)}')
         for inst in self._schedule:
             duration = inst.wait_after
-            if inst.wave_number is not None:
-                waveform = self._waveforms[inst.wave_number]
+            wvf_nr = inst.wave_numbers[0] if isinstance(inst, AwgConditionalInstruction) else inst.wave_number
+            if wvf_nr is not None:
+                waveform = self._waveforms[wvf_nr]
                 data = waveform.render(starttime, phase)
                 if duration == 0:
                     duration = len(data)

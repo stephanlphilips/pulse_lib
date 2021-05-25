@@ -7,14 +7,21 @@ class measurements_description:
         self.acquisitions = {}
         self.acquisition_count = {}
         self.digitizer_channels = digitizer_channels
+        self.end_times = {}
 
-    def add_segment(self, segment):
-
+    def add_segment(self, segment, seg_start_times):
         for measurement in segment.measurements:
             if isinstance(measurement, measurement_acquisition):
                 m = copy.copy(measurement)
                 acquisition_count = self.acquisition_count.setdefault(m.acquisition_channel, 0)
                 m.index += acquisition_count
+
+                times = seg_start_times.flatten()
+                acq_channel = segment[m.acquisition_channel]
+                for i in range(len(times)):
+                    acq_data = acq_channel.pulse_data_all.flat[i].data[measurement.index]
+                    times[i] += acq_data.start + acq_data.t_measure
+                self.end_times[m.name] = times.reshape(seg_start_times.shape)
             else:
                 m = measurement
             self.measurements.append(m)

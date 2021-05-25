@@ -398,6 +398,7 @@ class segment_base():
             flat_index = np.ravel_multi_index(tuple(index), self.data.shape)
             pulse_data_curr_seg = self.data.flat[flat_index]
 
+        # TODO @@@ determine render type
         y = pulse_data_curr_seg.render(sample_rate)
         x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))
         # print(x, y)

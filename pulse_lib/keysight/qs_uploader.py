@@ -5,9 +5,10 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Union
 
 from .sequencer_device import add_sequencers
-from pulse_lib.configuration.physical_channels import digitizer_channel_iq
+from .qs_conditional import get_conditional_channel, get_acquisition_names
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
-from pulse_lib.tests.mock_m3202a_qs import AwgInstruction
+from pulse_lib.segments.conditional_segment import conditional_segment
+from pulse_lib.tests.mock_m3202a_qs import AwgInstruction, AwgConditionalInstruction
 from pulse_lib.tests.mock_m3102a_qs import DigitizerInstruction
 
 from keysightSD1 import SD_TriggerExternalSources, SD_FpgaTriggerDirection, SD_TriggerPolarity
@@ -70,6 +71,17 @@ class QsUploader:
         awg = list(self.AWGs.values())[0]
         return awg.convert_prescaler_to_sample_rate(awg.convert_sample_rate_to_prescaler(sample_rate))
 
+    def get_roundtrip_latency(self):
+        # TODO @@@ put in configuration file.
+        # awg FPGA processing latency
+        awg_latency = 75
+        # awg fpga ch out -> dig fpga ch in
+        awg2dig = 310
+        # dig FPGA processing latency
+        dig_latency = 210
+        margin = 20
+
+        return awg_latency + awg2dig + dig_latency + margin
 
     def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True):
         # remove any old job with same sequencer and index
@@ -214,7 +226,12 @@ class QsUploader:
                                         wvf.frequency, wvf.pm_envelope,
                                         wvf.prephase, wvf.postphase, wvf.restore_frequency)
                 for i,entry in enumerate(job.sequencer_sequences[awg_sequencer.channel_name]):
-                    schedule.append(AwgInstruction(i, entry.time_after, wave_number=entry.waveform_index))
+                    if isinstance(entry, SequenceConditionalEntry):
+                        schedule.append(AwgConditionalInstruction(i, entry.time_after,
+                                                                  wave_numbers=entry.waveform_indices,
+                                                                  condition_register=entry.cr))
+                    else:
+                        schedule.append(AwgInstruction(i, entry.time_after, wave_number=entry.waveform_index))
             seq.load_schedule(schedule)
 
         for dig_channel in self.digitizer_channels.values():
@@ -227,7 +244,8 @@ class QsUploader:
                     schedule = []
                     for i,entry in enumerate(job.digitizer_sequences[dig_channel.name]):
                         schedule.append(DigitizerInstruction(i, entry.time_after, t_measure=entry.t_measure,
-                                                             measurement_id=entry.measurement_id))
+                                                             measurement_id=entry.measurement_id,
+                                                             pxi=entry.pxi_trigger))
                     seq.load_schedule(schedule)
 
         # start hvi (start function loads schedule if not yet loaded)
@@ -446,10 +464,18 @@ class SequenceEntry:
     waveform_index: Optional[int] = None
 
 @dataclass
+class SequenceConditionalEntry:
+    time_after: float = 0
+    cr: int = 0
+    waveform_indices: List[int] = field(default_factory=list)
+
+@dataclass
 class DigitizerSequenceEntry:
     time_after: float = 0
     t_measure: Optional[float] = None
     measurement_id: Optional[int] = None
+    name: Optional[str] = None
+    pxi_trigger: Optional[int] = None
 
 class UploadAggregator:
     verbose = False
@@ -521,7 +547,7 @@ class UploadAggregator:
             # work with sample rate in GSa/s
             sample_rate = (seg.sample_rate if seg.sample_rate is not None else job.default_sample_rate) * 1e-9
             duration = seg.total_time[tuple(job.index)]
-            npt =  int(round(duration * sample_rate))
+            npt =  int((duration * sample_rate)+0.5)
             info = SegmentRenderInfo(sample_rate, t_start, npt)
             segments.append(info)
             t_start = info.t_end
@@ -619,10 +645,14 @@ class UploadAggregator:
         for i in range(len(job.sequence)):
             ref_channel_states.start_phases_all.append(dict())
         for channel_name, qubit_channel in self.qubit_channels.items():
+            if (QsUploader.use_awg_sequencers
+                and channel_name in self.sequencer_channels):
+                # skip sequencer channels
+                continue
             phase = 0
             for iseg,seg in enumerate(job.sequence):
                 ref_channel_states.start_phases_all[iseg][channel_name] = phase
-                seg_ch = getattr(seg, channel_name)
+                seg_ch = seg[channel_name]
                 phase += seg_ch.get_accumulated_phase(job.index)
 
         for channel_name, channel_info in self.channels.items():
@@ -641,7 +671,11 @@ class UploadAggregator:
                 sample_rate = seg_render.sample_rate
                 n_delay = round(channel_info.delay_ns * sample_rate)
 
-                seg_ch = getattr(seg, channel_name)
+                if isinstance(seg, conditional_segment):
+                    logging.debug(f'conditional for {channel_name}')
+                    seg_ch = get_conditional_channel(seg, channel_name)
+                else:
+                    seg_ch = seg[channel_name]
                 ref_channel_states.start_time = seg_render.t_start
                 ref_channel_states.start_phase = ref_channel_states.start_phases_all[iseg]
                 start = time.perf_counter()
@@ -747,7 +781,11 @@ class UploadAggregator:
             start_stop = []
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
 
-                seg_ch = getattr(seg, channel_name)
+                if isinstance(seg, conditional_segment):
+                    logging.debug(f'conditional for {channel_name}')
+                    seg_ch = get_conditional_channel(seg, channel_name)
+                else:
+                    seg_ch = seg[channel_name]
 
                 ch_data = seg_ch._get_data_all_at(job.index)
 
@@ -832,10 +870,9 @@ class UploadAggregator:
         wave_ref = awg_upload_func(channel_name, waveform)
         job.add_waveform(channel_name, wave_ref, sample_rate*1e9)
 
-    def _render_waveform(self, waveforms:List[Waveform], mw_pulse_data, lo_freq:float) -> int:
+    def _render_waveform(self, mw_pulse_data, lo_freq:float, offset:float, prephase=0, postphase=0) -> Waveform:
         # always render at 1e9 Sa/s
         duration = mw_pulse_data.stop - mw_pulse_data.start
-        offset = int(mw_pulse_data.start) % 5
         if mw_pulse_data.envelope is None:
             amp_envelope = 1.0
             pm_envelope = 0.0
@@ -844,21 +881,19 @@ class UploadAggregator:
             pm_envelope = mw_pulse_data.envelope.get_PM_envelope(duration, 1.0)
 # @@@ restore_frequency adds 1 sample (without post_phase)
 # @@@ post_phase adds 2 samples
-# @@@ pm_envelope also add 1 sample
+# @@@@@ pm_envelope also add 1 sample if last sample != 0
 # sample of restore_frequency and last sample of post_phase can be overwritten by next pulse without consequences.
         waveform = Waveform('', mw_pulse_data.amplitude, amp_envelope,
                             mw_pulse_data.frequency - lo_freq, pm_envelope,
-                            mw_pulse_data.start_phase, -mw_pulse_data.start_phase,
+                            mw_pulse_data.start_phase + prephase,
+                            -mw_pulse_data.start_phase + postphase,
                             int(duration), offset)
-        try:
-            index = waveforms.index(waveform)
-        except ValueError:
-            index = len(waveforms)
-            waveforms.append(waveform)
-        return index
+        return waveform
 
-    def _render_phase_shift(self, waveforms:List[Waveform], phase_shift) -> int:
-        waveform = Waveform('', prephase=phase_shift.phase_shift)
+    def _render_phase_shift(self, phase_shift) -> Waveform:
+        return Waveform('', prephase=phase_shift)
+
+    def _get_waveform_index(self, waveforms:List[Waveform], waveform:Waveform):
         try:
             index = waveforms.index(waveform)
         except ValueError:
@@ -880,40 +915,84 @@ class UploadAggregator:
 
             waveforms = []
             sequence = []
-            # TODO improve for alignment on 1 ns.
+            # TODO improve for alignment on 1 ns. -> set channel delay in FPGA
             # subtract 10 ns, because it's started 10 ns before 'classical' queued waveform
             t_start = int((-self.max_pre_start_ns - delays[0]) / 5) * 5 -10
             entry = SequenceEntry()
             sequence.append(entry)
 
             for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
-                # print(channel_name)
-                seg_ch = getattr(seg, channel_name)
-                data = seg_ch._get_data_all_at(job.index)
-                mw_data = {pulse.start:pulse for pulse in data.MW_pulse_data}
-                mw_data.update({ps.time:ps for ps in data.phase_shifts if ps.phase_shift != 0})
+                if not isinstance(seg, conditional_segment):
+                    seg_ch = seg[channel_name]
+                    data = seg_ch._get_data_all_at(job.index)
+                    mw_data = {pulse.start:pulse for pulse in data.MW_pulse_data}
+                    mw_data.update({ps.time:ps for ps in data.phase_shifts if ps.phase_shift != 0})
 
-                for mw_time,mw_entry in sorted(mw_data.items()):
-                    # TODO check whether t_start is always aligned on 5 ns boundary
-                    t_pulse = seg_render.t_start + int(mw_time / 5) * 5
-                    wait = t_pulse - t_start
-                    # Note: special case: wait == 0 at start
-                    if not (wait == 0 and len(sequence) == 1):
-                        if wait <= 0:
-                            raise Exception(f'wait {wait} <= 0 ({channel_name} segment:{iseg})')
-                        entry.time_after = wait
-                        entry = SequenceEntry()
+                    for mw_time,mw_entry in sorted(mw_data.items()):
+                        t_pulse = seg_render.t_start + mw_time
+
+                        # TODO @@@@ check t_end of previous pulse
+
+                        wait = t_pulse - t_start
+                        # align on 5 ns boundary
+                        wait_i = int(wait / 5) * 5
+                        offset = int(wait - wait_i)
+                        t_start += wait_i
+
+                        # Note: special case: wait == 0 at start
+                        if not (wait_i == 0 and len(sequence) == 1):
+                            if wait_i <= 0:
+                                raise Exception(f'wait {wait_i} <= 0 ({channel_name} segment:{iseg})')
+                            entry.time_after = wait_i
+                            entry = SequenceEntry()
+                            sequence.append(entry)
+                        if isinstance(mw_entry, IQ_data_single):
+                            wvf = self._render_waveform(mw_entry, lo_freq, offset)
+                            entry.waveform_index = self._get_waveform_index(waveforms, wvf)
+                            # TODO: split long pulses in start + stop pulse (Rabi)
+                            # TODO: Frequency chirp with prescaler: pass as FM i.s.o. PM, or Chirp?
+                        else:
+                            wvf = self._render_phase_shift(mw_entry.phase_shift)
+                            entry.waveform_index = self._get_waveform_index(waveforms, wvf)
+
+                else:
+                    logging.debug(f'conditional for {channel_name}:{iseg} start:{seg_render.t_start}')
+                    cond_ch = get_conditional_channel(seg, channel_name, sequenced=True, index=job.index)
+                    for instr in cond_ch.conditional_instructions:
+                        t_instr = seg_render.t_start + instr.start
+
+                        # TODO @@@@ check t_end of previous pulse
+
+                        wait = t_instr - t_start
+                        # align on 5 ns boundary
+                        wait_i = int(wait / 5) * 5
+                        t_start += wait_i
+
+                        if wait_i <= 0:
+                            raise Exception(f'wait {wait_i} <= 0 ({channel_name} segment:{iseg})')
+                        entry.time_after = wait_i
+                        entry = SequenceConditionalEntry(cr=3)
                         sequence.append(entry)
-                    if isinstance(mw_entry, IQ_data_single):
-                        # lookup / render waveform
-                        entry.waveform_index = self._render_waveform(waveforms, mw_entry, lo_freq)
-                        # print(t_pulse, 'MW', mw_entry.stop-mw_entry.start)
-                    else:
-                        # lookup / render waveform
-                        entry.waveform_index = self._render_phase_shift(waveforms, mw_entry)
-                        # print(t_pulse, 'ps', mw_entry.phase_shift)
 
-                    t_start = t_pulse
+                        wvf_indices = []
+                        for pulse in instr.pulses:
+                            if pulse is None:
+                                # a do nothing pulse
+                                wvf = self._render_phase_shift(0)
+                            elif pulse.mw_pulse is not None:
+                                mw_entry = pulse.mw_pulse
+                                t_pulse = seg_render.t_start + mw_entry.start
+                                wvf_offset = int(t_pulse - t_start)
+                                wvf = self._render_waveform(mw_entry, lo_freq, wvf_offset,
+                                                            prephase=pulse.prephase, postphase=pulse.postphase)
+                            else:
+                                wvf = self._render_phase_shift(pulse.prephase)
+                            wvf_index = self._get_waveform_index(waveforms, wvf)
+                            wvf_indices.append(wvf_index)
+
+                        for ibranch in cond_ch.order:
+                            entry.waveform_indices.append(wvf_indices[ibranch])
+
             entry.time_after = int(seg_render.t_end - t_start)
             job.sequencer_sequences[channel_name] = sequence
             job.sequencer_waveforms[channel_name] = waveforms
@@ -949,7 +1028,11 @@ class UploadAggregator:
         # TODO @@@: cleanup this messy code.
         for channel_name, channel in self.digitizer_channels.items():
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
-                seg_ch = getattr(seg, channel_name)
+                if isinstance(seg, conditional_segment):
+                    logging.debug(f'conditional for {channel_name}')
+                    seg_ch = get_conditional_channel(seg, channel_name)
+                else:
+                    seg_ch = seg[channel_name]
                 acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
                 for acquisition in acquisition_data:
                     if has_HVI_triggers:
@@ -976,8 +1059,18 @@ class UploadAggregator:
             if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
                 raise Exception('HVI triggers not supported with QS')
 
-        segments = self.segments
+        pxi_triggers = {}
+        for seg in job.sequence:
+            if isinstance(seg, conditional_segment):
+                acq_names = get_acquisition_names(seg)
+                pxi = 6
+                for acq in acq_names:
+                    pxi_triggers[acq] = pxi
+                    pxi += 1
 
+        logging.debug(f'PXI triggers: {pxi_triggers}')
+
+        segments = self.segments
         for channel_name, channel in self.digitizer_channels.items():
             sequence = []
             t_start = 0
@@ -985,7 +1078,12 @@ class UploadAggregator:
             sequence.append(entry)
 
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, segments)):
-                seg_ch = getattr(seg, channel_name)
+                if isinstance(seg, conditional_segment):
+                    logging.debug(f'conditional for {channel_name}')
+                    # TODO @@@@ lookup acquisitions and set pxi trigger.
+                    seg_ch = get_conditional_channel(seg, channel_name)
+                else:
+                    seg_ch = seg[channel_name]
                 acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
                 for acquisition in acquisition_data:
                     t_acq = seg_render.t_start + int(acquisition.start / 10) * 10
@@ -1000,6 +1098,8 @@ class UploadAggregator:
                     # lookup / render waveform
                     entry.t_measure = acquisition.t_measure
                     entry.measurement_id = len(sequence)
+                    entry.pxi_trigger = pxi_triggers.get(str(acquisition.ref), None)
+                    logging.debug(f'Acq: {acquisition.ref}: {entry.pxi_trigger}')
                     t_start = t_acq
 
             job.digitizer_sequences[channel_name] = sequence

@@ -9,20 +9,11 @@ Ideas for reuse:
 '''
 from dataclasses import dataclass, field
 from typing import List
-
+from .segments.conditional_segment import conditional_segment
 
 class builder_policy:
     TinySegments = 0
     BigSegments = 1
-
-@dataclass
-class conditional_segment:
-    register: str
-    n_options: int
-    segments: List[any] = field(default_factory=list)
-
-    def __post_init__(self):
-        self.segments = [None]*self.n_options
 
 
 class sequence_builder:
@@ -33,6 +24,7 @@ class sequence_builder:
         self._segments = []
         self._segment = None
         self.n_rep = 2000
+
     def _mk_segment(self):
         segment = self._pulselib.mk_segment()
         self._segments.append(segment)
@@ -44,14 +36,36 @@ class sequence_builder:
         return self._segment
 
     def add(self, template, reset=True, **kwargs):
-        segment = self._get_segment()
-        template.build(segment, reset=False, **kwargs) # @@@ internal reset_time should/could create new segment
+        template.build(self, reset=False, **kwargs)
 
         if reset:
             self.reset_time()
 
-    def add_cond(self, register, *templates):
-        ### for now we do not support replacement arguments with the templates
+    ## mimic segment_container
+
+    def __getitem__(self, index):
+        segment = self._get_segment()
+        return segment[index]
+
+    def __getattr__(self, name):
+        segment = self._get_segment()
+        return segment[name]
+
+    def add_measurement_expression(self, expression=None, name=None, accept_if=None):
+        segment = self._get_segment()
+        segment.add_measurement_expression(expression, accept_if=accept_if, name=name)
+
+    def reset_time(self):
+        if self._policy == builder_policy.TinySegments:
+            # force start of new segment
+            self._segment = None
+        elif self._segment is not None:
+            self._segment.reset_time()
+
+    ## sequence builder extra's
+
+    def add_conditional(self, condition, templates):
+        ### for now we do not support replacement arguments with conditionals
         kwargs = dict()
 
         if len(templates) not in [2,4]:
@@ -60,31 +74,17 @@ class sequence_builder:
         self._segment = None
 
         # create conditional segment
-        cond_seg = conditional_segment(register, len(templates))
+        n_branches = len(templates)
+        branches = [self._pulselib.mk_segment() for i in range(n_branches)]
+        cond_seg = conditional_segment(condition, branches)
         for i,template in enumerate(templates):
-            segment = cond_seg.segments[i]
+            if template is None:
+                # empty
+                continue
+            segment = cond_seg.branches[i]
+            # note: building on segment, not on sequence_builder !!
             template.build(segment, reset=False, **kwargs)
         self._segments.append(cond_seg)
-
-        # @@@ how to handle base band?
-        #     Render all and compare? Compare before rendering?
-
-        # @@@ handle conditional in mk_sequence => give them all equal length
-        # @@@ handle conditional in qs_uploader
-
-
-    def append(self, other):
-        # close active segments in both sequences
-        self._segment = None
-        other._segment = None
-        self._segments += other._segments
-
-    def reset_time(self):
-        if self._policy == builder_policy.TinySegments:
-            # force start of new segment
-            self._segment = None
-        else:
-            self._segment.reset_time()
 
     def wait(self, channels, t, amplitudes, reset_time=True):
         '''
@@ -135,6 +135,12 @@ class sequence_builder:
 
         if reset_time == True:
             self.reset_time()
+
+    def append(self, other):
+        # close active segments in both sequences
+        self._segment = None
+        other._segment = None
+        self._segments += other._segments
 
     def forge(self):
         return self._pulselib.mk_sequence(self._segments)

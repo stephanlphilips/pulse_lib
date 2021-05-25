@@ -2,16 +2,20 @@ from qcodes import Parameter
 
 from .schedule.hardware_schedule import HardwareSchedule
 from .schedule.hvi_compatibility import HviCompatibilityWrapper
+from .segments.conditional_segment import conditional_segment
 from .segments.data_classes.data_HVI_variables import marker_HVI_variable
 from .segments.data_classes.data_generic import data_container, parent_data
 from .segments.segment_container import segment_container
 from .segments.utility.data_handling_functions import find_common_dimension, update_dimension
 from .segments.utility.setpoint_mgr import setpoint_mgr
 from .segments.utility.looping import loop_obj
+from .segments.utility.measurement_ref import MeasurementRef
 from .measurements_description import measurements_description
 
 from si_prefix import si_format
 
+from typing import List, Any, Union
+from collections.abc import Iterable
 import numpy as np
 import uuid
 import logging
@@ -122,7 +126,7 @@ class sequencer():
         '''
         # check input
         for entry in sequence:
-            if isinstance(entry, segment_container):
+            if isinstance(entry, segment_container) or isinstance(entry, conditional_segment):
                 self.sequence.append(entry)
             else:
                 raise ValueError('The provided element in the sequence seems to be of the wrong data type.'
@@ -144,9 +148,15 @@ class sequencer():
         # The cache will than be big enough for 1D iterations along every axis. This gives best performance
         total_axis_length = 0
         for seg_container in self.sequence:
-            for channel_name in seg_container.channels:
-                shape = getattr(seg_container, channel_name).data.shape
-                total_axis_length += max(shape)
+            if not isinstance(seg_container, conditional_segment):
+                for channel_name in seg_container.channels:
+                    shape = seg_container[channel_name].data.shape
+                    total_axis_length += max(shape) # @@@ not GOOD !!
+            else:
+                for branch in seg_container.branches:
+                    for channel_name in branch.channels:
+                        shape = branch[channel_name].data.shape
+                        total_axis_length += max(shape)
         parent_data.set_waveform_cache_size(total_axis_length)
 
         self._shape = tuple(self._shape)
@@ -165,8 +175,10 @@ class sequencer():
             lp_time = loop_obj(no_setpoints=True)
             lp_time.add_data(t_tot, axis=list(range(self.ndim -1,-1,-1)))
             seg_container.add_master_clock(lp_time)
-            self._HVI_variables += seg_container._software_markers.pulse_data_all
-            self._measurements_description.add_segment(seg_container)
+            self._HVI_variables += seg_container.software_markers.pulse_data_all
+            if isinstance(seg_container, conditional_segment):
+                self._check_conditional(seg_container, t_tot)
+            self._measurements_description.add_segment(seg_container, t_tot)
 
             t_tot += seg_container.total_time
 
@@ -177,6 +189,41 @@ class sequencer():
             set_param = index_param(par_name, self, dim = i)
             self.params.append(set_param)
             setattr(self, par_name, set_param)
+
+    def _check_conditional(self, conditional:conditional_segment, total_time):
+
+        condition = conditional.condition
+        refs = condition if isinstance(condition, Iterable) else [condition]
+
+        # Lookup acquistions for condition
+        acquisition_names = self._get_acquisition_names(refs)
+        logging.info(f'acquisitions: {acquisition_names}')
+
+        # check start of conditional pulse
+        min_slack = self._get_min_slack(acquisition_names, total_time)
+        logging.info(f'min slack for conditional {min_slack} ns. (Must be < 0)')
+        if min_slack > 0:
+            raise Exception(f'condition triggered {-min_slack} ns too early')
+
+        pass
+
+    def _get_acquisition_names(self, refs:List[MeasurementRef]):
+        acquisition_names = set()
+        for ref in refs:
+            acquisition_names.update(ref.keys)
+
+        return list(acquisition_names)
+
+    def _get_min_slack(self, acquisition_names, seg_start_times):
+        # calculate slack for all sequence indices
+        slack = np.empty((len(acquisition_names), ) + seg_start_times.shape)
+
+        for i, name in enumerate(acquisition_names):
+            slack[i] = seg_start_times - self._measurements_description.end_times[name]
+
+        slack -= self.uploader.get_roundtrip_latency()
+
+        return np.min(slack)
 
     def voltage_compensation(self, compensate):
         '''

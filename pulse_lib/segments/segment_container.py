@@ -179,8 +179,8 @@ class segment_container():
 
         time_data = np.empty([n_channels] + shape)
 
-        for i in range(len(self.channels)):
-            time_data[i] = upconvert_dimension(getattr(self, self.channels[i]).total_time, shape)
+        for i, channel in enumerate(self.channels):
+            time_data[i] = upconvert_dimension(self[channel].total_time, shape)
 
         times = np.amax(time_data, axis = 0)
 
@@ -211,8 +211,8 @@ class segment_container():
 
         comb_setpoints = copy.deepcopy(self._setpoints)
 
-        for i in self.channels:
-            segment = getattr(self, i)
+        for channel in self.channels:
+            segment = self[channel]
             comb_setpoints += segment.setpoints
 
         return comb_setpoints
