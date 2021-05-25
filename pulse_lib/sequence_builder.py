@@ -41,6 +41,16 @@ class sequence_builder:
         if reset:
             self.reset_time()
 
+    def add_segment(self, *segments):
+        '''
+        add raw segments to the sequence builder
+
+        Args:
+            *segments (segment_container) : segments that you want to add
+        '''
+        self._segments += segments
+
+
     ## mimic segment_container
 
     def __getitem__(self, index):
