@@ -214,22 +214,26 @@ class QsUploader:
 
 # TODO @@@ clear AWG queues of sequenced channels
 
+        start = time.perf_counter()
         for awg_sequencer in self.sequencer_channels.values():
             awg = self.AWGs[awg_sequencer.module_name]
             seq = awg.get_sequencer(awg_sequencer.sequencer_index)
             seq.flush_waveforms()
             schedule = []
             if awg_sequencer.channel_name in job.sequencer_waveforms:
+                logging.debug(f'loading awg waveforms {awg_sequencer.channel_name} {(time.perf_counter() - start)*1000:6.3f} ms')
+
                 # TODO @@@ cleanup frequency update hack
                 qubit_channel = self.qubit_channels[awg_sequencer.channel_name]
                 seq._frequency = qubit_channel.reference_frequency - qubit_channel.iq_channel.LO
-
 
                 for number,wvf in enumerate(job.sequencer_waveforms[awg_sequencer.channel_name]):
                     seq.upload_waveform(number, wvf.offset, wvf.duration,
                                         wvf.amplitude, wvf.am_envelope,
                                         wvf.frequency, wvf.pm_envelope,
                                         wvf.prephase, wvf.postphase, wvf.restore_frequency)
+
+                logging.debug(f'loading awg schedule {awg_sequencer.channel_name} {(time.perf_counter() - start)*1000:6.3f} ms')
                 for i,entry in enumerate(job.sequencer_sequences[awg_sequencer.channel_name]):
                     if isinstance(entry, SequenceConditionalEntry):
                         schedule.append(AwgConditionalInstruction(i, entry.time_after,
@@ -238,7 +242,9 @@ class QsUploader:
                     else:
                         schedule.append(AwgInstruction(i, entry.time_after, wave_number=entry.waveform_index))
             seq.load_schedule(schedule)
+        logging.debug(f'loaded awg sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
 
+        start = time.perf_counter()
         for dig_channel in self.digitizer_channels.values():
             dig = self.digitizers[dig_channel.module_name]
             if QsUploader.use_digitizer_sequencers and hasattr(dig, 'get_sequencer'):
@@ -250,8 +256,11 @@ class QsUploader:
                     for i,entry in enumerate(job.digitizer_sequences[dig_channel.name]):
                         schedule.append(DigitizerInstruction(i, entry.time_after, t_measure=entry.t_measure,
                                                              measurement_id=entry.measurement_id,
-                                                             pxi=entry.pxi_trigger))
+                                                             pxi=entry.pxi_trigger,
+                                                             threshold=entry.threshold))
                     seq.load_schedule(schedule)
+
+        logging.debug(f'loaded dig sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
 
         # start hvi (start function loads schedule if not yet loaded)
         acquire_triggers = {f'dig_trigger_{i+1}':t for i,t in enumerate(job.digitizer_triggers)}
@@ -478,6 +487,7 @@ class SequenceConditionalEntry:
 class DigitizerSequenceEntry:
     time_after: float = 0
     t_measure: Optional[float] = None
+    threshold: Optional[float] = None
     measurement_id: Optional[int] = None
     name: Optional[str] = None
     pxi_trigger: Optional[int] = None
@@ -896,7 +906,7 @@ class UploadAggregator:
         return waveform
 
     def _render_phase_shift(self, phase_shift) -> Waveform:
-        return Waveform('', prephase=phase_shift)
+        return Waveform('', prephase=phase_shift, duration=2)
 
     def _get_waveform_index(self, waveforms:List[Waveform], waveform:Waveform):
         try:
@@ -1103,6 +1113,7 @@ class UploadAggregator:
                     # lookup / render waveform
                     entry.t_measure = acquisition.t_measure
                     entry.measurement_id = len(sequence)
+                    entry.threshold = acquisition.threshold
                     entry.pxi_trigger = pxi_triggers.get(str(acquisition.ref), None)
                     logging.debug(f'Acq: {acquisition.ref}: {entry.pxi_trigger}')
                     t_start = t_acq
