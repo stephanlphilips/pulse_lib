@@ -202,7 +202,7 @@ class sequencer():
         # check start of conditional pulse
         min_slack = self._get_min_slack(acquisition_names, total_time)
         logging.info(f'min slack for conditional {min_slack} ns. (Must be < 0)')
-        if min_slack > 0:
+        if min_slack < 0:
             raise Exception(f'condition triggered {-min_slack} ns too early')
 
         pass
