@@ -3,12 +3,7 @@ data class to store IQ based signals.
 """
 from scipy import signal
 import numpy as np
-import copy
 
-
-import pulse_lib.segments.utility.segments_c_func as seg_func
-from pulse_lib.segments.utility.segments_c_func import py_calc_value_point_in_between, get_effective_point_number
-from pulse_lib.segments.data_classes.data_generic import parent_data, data_container
 from dataclasses import dataclass
 
 class envelope_generator():
@@ -44,7 +39,7 @@ class envelope_generator():
 
         n_points = delta_t*sample_rate
         if n_points < 1: #skip
-            return 0 
+            return 0
 
         if self.AM_envelope_function is None:
             envelope = 1.0  #assume constant envelope
@@ -129,7 +124,6 @@ if __name__ == '__main__':
     """
     Example on how the envelope generator works.
     """
-    from scipy import signal
     import matplotlib.pyplot as plt
 
     # empty envelope
