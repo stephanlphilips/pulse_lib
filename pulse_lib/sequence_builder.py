@@ -7,23 +7,29 @@ Ideas for reuse:
     * cache based on template IDs
 
 '''
-from dataclasses import dataclass, field
-from typing import List
 from .segments.conditional_segment import conditional_segment
 
 class builder_policy:
     TinySegments = 0
+    ''' Start a new segment when reset_time() is called. '''
     BigSegments = 1
+    ''' Build 1 big segment '''
+    RootSegments = 2
+    '''
+    Start a new segment when a template is added to the sequence builder.
+    Nested templates do not start a new segment.
+    '''
 
 
 class sequence_builder:
 
-    def __init__(self, pulselib, policy=builder_policy.BigSegments):
+    def __init__(self, pulselib, policy=builder_policy.RootSegments):
         self._pulselib = pulselib
         self._policy = policy
         self._segments = []
         self._segment = None
         self.n_rep = 2000
+        self._nested_templates = 0
 
     def _mk_segment(self):
         segment = self._pulselib.mk_segment()
@@ -36,7 +42,9 @@ class sequence_builder:
         return self._segment
 
     def add(self, template, reset=True, **kwargs):
+        self._nested_templates += 1
         template.build(self, reset=False, **kwargs)
+        self._nested_templates -= 1
 
         if reset:
             self.reset_time()
@@ -69,7 +77,12 @@ class sequence_builder:
         if self._policy == builder_policy.TinySegments:
             # force start of new segment
             self._segment = None
-        elif self._segment is not None:
+
+        if self._policy == builder_policy.RootSegments and self._nested_templates == 0:
+            # force start of new segment
+            self._segment = None
+
+        if self._segment is not None:
             self._segment.reset_time()
 
     ## sequence builder extra's
