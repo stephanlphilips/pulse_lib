@@ -125,9 +125,9 @@ class segment_base():
             shape1 = new_segment.data.shape
             shape2 = other.data.shape
             new_shape = get_union_of_shapes(shape1, shape2)
-            other.data = update_dimension(other.data, new_shape)
+            other_data = update_dimension(other.data, new_shape)
             new_segment.data= update_dimension(new_segment.data, new_shape)
-            new_segment.data += other.data
+            new_segment.data += other_data
 
         elif type(other) == int or type(other) == float:
             new_segment.data += other
@@ -299,18 +299,16 @@ class segment_base():
                 # make sure both have the same size.
                 my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.segment.shape)
                 self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape)
-                ref_chan.data = update_dimension(ref_chan.segment.data, my_shape)
-
                 self._pulse_data_all += ref_chan.segment.data*ref_chan.multiplication_factor
                 ref_chan.segment._last_edit = last_edit.Rendered
             for ref_chan in self.IQ_ref_channels:
                 # todo -- update dim functions
-                my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.virtual_channel_pointer.shape)# Luca modification
-                self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape) # Luca modification
+                my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.virtual_channel_pointer.shape)
+                self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape)
                 self._pulse_data_all += ref_chan.virtual_channel_pointer.get_IQ_data(ref_chan.LO, ref_chan.IQ_render_option, ref_chan.image_render_option)
             for ref_chan in self.references_markers:
-                my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.IQ_channel_ptr.shape)# Luca modification
-                self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape) # Luca modification
+                my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.IQ_channel_ptr.shape)
+                self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape)
                 self._pulse_data_all += ref_chan.IQ_channel_ptr.get_marker_data()
 
             self._last_edit = last_edit.Rendered
@@ -363,6 +361,15 @@ class segment_base():
             A numpy array that contains the points for each ns
             points is the expected lenght.
         '''
+        if ref_channel_states:
+            # Filter reference channels for use in data_pulse cache
+            ref_channel_states = copy.copy(ref_channel_states)
+            ref_channel_states.start_phases_all = None
+            ref_names = [ref.virtual_channel_name for ref in self.IQ_ref_channels]
+            ref_channel_states.start_phase = {key:value
+                                              for (key,value) in ref_channel_states.start_phase.items()
+                                              if key in ref_names}
+
         return self._get_data_all_at(index).render(sample_rate, ref_channel_states)
 
     def v_max(self, index, sample_rate = 1e9):

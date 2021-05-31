@@ -4,7 +4,6 @@ Generic data class where all others should be derived from.
 import uuid
 from abc import ABC, abstractmethod
 import numpy as np
-from pulse_lib.segments.utility.segments_c_func import get_effective_point_number
 from pulse_lib.segments.data_classes.lru_cache import LruCache
 
 import copy
@@ -121,14 +120,17 @@ class parent_data(ABC):
         returns
             pulse (np.ndarray) : numpy array of the pulse
         '''
-
-        # If no render performed, generate full waveform, we will cut out the right size if needed
+        # Render only when there is no matching cached waveform
         cache_entry = self._get_cached_data_entry()
-        if cache_entry.data is None or cache_entry.data['sample_rate'] != sample_rate:
+
+        if (cache_entry.data is None
+            or cache_entry.data['sample_rate'] != sample_rate
+            or cache_entry.data['ref_states'] != ref_channel_states):
             waveform = self._render(sample_rate, ref_channel_states)
             cache_entry.data = {
                 'sample_rate' : sample_rate,
                 'waveform' : waveform,
+                'ref_states' : ref_channel_states
             }
         else:
             waveform = cache_entry.data['waveform']
