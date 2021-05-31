@@ -2,7 +2,7 @@
 data class for markers.
 """
 from pulse_lib.segments.data_classes.data_generic import parent_data
-from pulse_lib.segments.utility.segments_c_func import get_effective_point_number
+from pulse_lib.segments.utility.rounding import iround
 
 import numpy as np
 import copy
@@ -186,22 +186,22 @@ class marker_data(parent_data):
         '''
         # express in Gs/s
         sample_rate = sample_rate*1e-9
-        sample_time_step = 1/sample_rate
 
         t_tot = self.total_time
 
         # get number of points that need to be rendered
-        t_tot_pt = get_effective_point_number(t_tot, sample_time_step) + 1
+        t_tot_pt = iround(t_tot * sample_rate) + 1
 
-        my_sequence = np.zeros([int(t_tot_pt)])
+        my_sequence = np.zeros(t_tot_pt)
 
         for data_points in self.my_marker_data:
-            start = get_effective_point_number(data_points.start, sample_time_step)
-            stop = get_effective_point_number(data_points.stop, sample_time_step)
+            start = iround(data_points.start * sample_rate)
+            stop = iround(data_points.stop * sample_rate)
 
             my_sequence[start:stop] = 1*self.pulse_amplitude
 
         return my_sequence[:-1]
+
 
 def slice_out_marker_single(start, stop, start_stop_pulse):
     """
