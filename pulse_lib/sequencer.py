@@ -14,7 +14,7 @@ from .measurements_description import measurements_description
 
 from si_prefix import si_format
 
-from typing import List, Any, Union
+from typing import List
 from collections.abc import Iterable
 import numpy as np
 import uuid
@@ -151,7 +151,7 @@ class sequencer():
             if not isinstance(seg_container, conditional_segment):
                 for channel_name in seg_container.channels:
                     shape = seg_container[channel_name].data.shape
-                    total_axis_length += max(shape) # @@@ not GOOD !!
+                    total_axis_length += max(shape)
             else:
                 for branch in seg_container.branches:
                     for channel_name in branch.channels:
@@ -277,7 +277,7 @@ class sequencer():
         start multiple uploads at once (during upload you can do playback, when the first one is finihsed)
         (note that this is only possible if you AWG supports upload while doing playback)
         '''
-
+        self._validate_index(index)
         upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep, self._sample_rate, self.neutralize)
 
         if self.hw_schedule is not None:
@@ -297,6 +297,7 @@ class sequencer():
 
         Note that the playback will not start until you have uploaded the waveforms.
         '''
+        self._validate_index(index)
         self.uploader.play(self.id, index, release)
 
     def close(self):
@@ -321,6 +322,8 @@ class sequencer():
         Args:
             index (tuple) : index if wich you want to release. If none release memory for all indexes.
         '''
+        if index is not None:
+            self._validate_index(index)
         self.uploader.release_memory(self.id, index)
 
 
@@ -332,6 +335,14 @@ class sequencer():
         logging.debug(f'destructor seq: {self.id}')
         self.release_memory()
 
+    def _validate_index(self, index):
+        '''
+        Raises an exception when the index is not valid.
+        '''
+        if len(index) != len(self._shape):
+            raise Exception(f'Index {index} does not match sequence shape {self._shape}')
+        if any(i >= s for i,s in zip(index, self._shape)):
+            raise IndexError(f'Index {index} out of range; sequence shape {self._shape}')
 
 class index_param(Parameter):
     def __init__(self, name, my_seq, dim):
