@@ -3,24 +3,17 @@ File contains an object that mananges segments. E.g. you are dealing with mutipl
 This object also allows you to do operations on all segments at the same time.
 """
 
-from pulse_lib.segments.segment_pulse import segment_pulse
-from pulse_lib.segments.segment_IQ import segment_IQ
-from pulse_lib.segments.segment_markers import segment_marker
 from pulse_lib.segments.segment_HVI_variables import segment_HVI_variables
-from pulse_lib.segments.segment_acquisition import segment_acquisition
 from pulse_lib.segments.segment_measurements import segment_measurements
 from pulse_lib.segments.segment_container import segment_container
 
 import pulse_lib.segments.utility.looping as lp
-from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension, reduce_arr, upconvert_dimension
+from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, reduce_arr, upconvert_dimension
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
-import uuid
 
 import numpy as np
-import datetime
 import logging
 import copy
-from dataclasses import dataclass
 from typing import List
 
 
