@@ -45,6 +45,7 @@ class segment_container():
         # physical + virtual channels + digitizer channels
         self.channels = []
         self.render_mode = False
+        self._total_times = None
         self.id = uuid.uuid4()
         self._Vmin_max_data = dict()
         self._software_markers = segment_HVI_variables("HVI_markers")
@@ -173,6 +174,8 @@ class segment_container():
         Returns:
             times (np.ndarray) : numpy array with the total time (maximum of all the channels), for all the different loops executed.
         '''
+        if self.render_mode and self._total_times is not None:
+            return self._total_times
 
         shape = list(self.shape)
         n_channels = len(self.channels)
@@ -183,6 +186,9 @@ class segment_container():
             time_data[i] = upconvert_dimension(self[channel].total_time, shape)
 
         times = np.amax(time_data, axis = 0)
+
+        if self.render_mode:
+            self._total_times = times
 
         return times
 
@@ -426,6 +432,7 @@ class segment_container():
         exit rendering mode and clear all the ram that was used for the rendering.
         '''
         self.render_mode = False
+        self._total_times = None
         for i in self.channels:
             getattr(self, i).render_mode =  False
             getattr(self, i)._pulse_data_all = None
@@ -524,7 +531,8 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
 
             for j in range(virtual_gates.size):
                 multiplier = virtual_gates_values[j]
-                if multiplier != 0:
+                # only add reference when it has a significant contribution
+                if abs(multiplier) > 2E-4:
                     virtual_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j],
                         multiplier, segment_container_obj)
                     real_channel.add_reference_channel(virtual_channel_reference_info)
