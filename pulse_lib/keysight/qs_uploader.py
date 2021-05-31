@@ -221,7 +221,7 @@ class QsUploader:
             seq.flush_waveforms()
             schedule = []
             if awg_sequencer.channel_name in job.sequencer_waveforms:
-                logging.debug(f'loading awg waveforms {awg_sequencer.channel_name} {(time.perf_counter() - start)*1000:6.3f} ms')
+                t1 = time.perf_counter()
 
                 # TODO @@@ cleanup frequency update hack
                 qubit_channel = self.qubit_channels[awg_sequencer.channel_name]
@@ -233,7 +233,7 @@ class QsUploader:
                                         wvf.frequency, wvf.pm_envelope,
                                         wvf.prephase, wvf.postphase, wvf.restore_frequency)
 
-                logging.debug(f'loading awg schedule {awg_sequencer.channel_name} {(time.perf_counter() - start)*1000:6.3f} ms')
+                t2 = time.perf_counter()
                 for i,entry in enumerate(job.sequencer_sequences[awg_sequencer.channel_name]):
                     if isinstance(entry, SequenceConditionalEntry):
                         schedule.append(AwgConditionalInstruction(i, entry.time_after,
@@ -241,6 +241,8 @@ class QsUploader:
                                                                   condition_register=entry.cr))
                     else:
                         schedule.append(AwgInstruction(i, entry.time_after, wave_number=entry.waveform_index))
+                t3 = time.perf_counter()
+                logging.debug(f'{awg_sequencer.channel_name} create waves:{(t2-t1)*1000:6.3f}, seq:{(t3-t2)*1000:6.3f} ms')
             seq.load_schedule(schedule)
         logging.debug(f'loaded awg sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
 
