@@ -100,7 +100,7 @@ def make_chirp(f_start, f_stop, time0, time1):
 
         n_points = int(delta_t*sample_rate + 0.9)
         t = np.linspace(0, n_points/sample_rate*1e-9, n_points)
-        out = [2*np.pi*chirp_constant*x*x for x in t]
+        out = 2*np.pi*chirp_constant*t*t
         return out
 
     return my_chirp
