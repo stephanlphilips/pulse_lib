@@ -123,11 +123,11 @@ class QsConditionalChannel:
         # 2 measurements: result contains 0,1,2,3
 
         # 0, 1, 2, 3 in binary representation on 2 acquisitions
-        all_values = np.array([[0,0,1,1],[0,1,0,1]])
+        all_values = np.array([[0,1,0,1],[0,0,1,1]])
         values = {key:all_values[i] for i,key in enumerate(self.acquisition_names)}
 
         order = np.zeros(4, dtype=np.int)
-        for ref in refs:
+        for ref in refs[::-1]:
             order = 2 * order + ref.evaluate(values)
         logging.info(f'reordered branches: {order}')
         return order
@@ -230,7 +230,7 @@ class QsConditionalMW(QsConditionalChannel):
         # check pulse overlaps.
         last_end = -1
         for instr in self.conditional_instructions:
-            if instr.start <= last_end:
+            if instr.start < last_end:
                 raise Exception(f'Overlapping conditional instructions')
             last_end = instr.end
 
