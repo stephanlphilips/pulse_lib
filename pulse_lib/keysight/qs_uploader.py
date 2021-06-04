@@ -18,10 +18,12 @@ class AwgConfig:
     MAX_AMPLITUDE = 1500 # mV
     ALIGNMENT = 10 # waveform must be multiple 10 bytes
 
+
 class QsUploader:
     verbose = True
     # Option to disable use of sequencers to test with fully generated waveforms.
-    use_awg_sequencers = True
+    use_iq_sequencers = True
+    use_baseband_sequencers = False
     use_digitizer_sequencers = True
 
     def __init__(self, awg_devices, awg_channels, marker_channels,
@@ -41,6 +43,10 @@ class QsUploader:
         add_sequencers(self, awg_devices, awg_channels, IQ_channels)
 
         self._config_marker_channels()
+
+    @property
+    def supports_conditionals(self):
+        return True
 
     def _config_marker_channels(self):
         for channel in self.marker_channels.values():
@@ -175,6 +181,12 @@ class QsUploader:
         for channel_name, marker_table in job.marker_tables.items():
             self.__upload_markers(channel_name, marker_table)
 
+        for awg_channel in self.awg_channels.values():
+            awg_name = awg_channel.awg_name
+            channel_number = awg_channel.channel_number
+            # empty AWG queue
+            self.AWGs[awg_name].awg_flush(channel_number)
+
         # queue waveforms
         for channel_name, queue in job.channel_queues.items():
             offset = 0
@@ -195,24 +207,19 @@ class QsUploader:
             else:
                 raise Exception(f'Undefined channel {channel_name}')
 
-            self.AWGs[awg_name].set_channel_amplitude(amplitude/1000, channel_number)
-            self.AWGs[awg_name].set_channel_offset(offset/1000, channel_number)
-
-            # empty AWG queue
-            self.AWGs[awg_name].awg_flush(channel_number)
+            awg = self.AWGs[awg_name]
+            awg.set_channel_amplitude(amplitude/1000, channel_number)
+            awg.set_channel_offset(offset/1000, channel_number)
 
             start_delay = 0 # no start delay
             trigger_mode = 1 # software/HVI trigger
             cycles = 1
             for queue_item in queue:
-                awg = self.AWGs[awg_name]
                 prescaler = awg.convert_sample_rate_to_prescaler(queue_item.sample_rate)
                 awg.awg_queue_waveform(
                         channel_number, queue_item.wave_reference,
                         trigger_mode, start_delay, cycles, prescaler)
                 trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
-
-# TODO @@@ clear AWG queues of sequenced channels
 
         start = time.perf_counter()
         for awg_sequencer in self.sequencer_channels.values():
@@ -653,7 +660,7 @@ class UploadAggregator:
                 logging.info(f'section: {section}')
 
 
-    def _generate_upload(self, job, awg_upload_func):
+    def _generate_upload_wvf(self, job, awg_upload_func):
         segments = self.segments
         sections = job.upload_info.sections
         ref_channel_states = RefChannels(0)
@@ -662,9 +669,9 @@ class UploadAggregator:
         for i in range(len(job.sequence)):
             ref_channel_states.start_phases_all.append(dict())
         for channel_name, qubit_channel in self.qubit_channels.items():
-            if (QsUploader.use_awg_sequencers
+            if (QsUploader.use_iq_sequencers
                 and channel_name in self.sequencer_channels):
-                # skip sequencer channels
+                # skip IQ sequencer channels
                 continue
             phase = 0
             for iseg,seg in enumerate(job.sequence):
@@ -673,10 +680,13 @@ class UploadAggregator:
                 phase += seg_ch.get_accumulated_phase(job.index)
 
         for channel_name, channel_info in self.channels.items():
-            if (QsUploader.use_awg_sequencers
-                and (channel_name in self.sequencer_channels
-                     or channel_name in self.sequencer_out_channels)):
-                # skip sequencer channels
+            if (QsUploader.use_iq_sequencers
+                and channel_name in self.sequencer_out_channels):
+                # skip IQ sequencer channels
+                continue
+            if (QsUploader.use_baseband_sequencers
+                and channel_name in self.sequencer_channels):
+                # skip baseband sequencer channels
                 continue
 
             section = sections[0]
@@ -918,7 +928,7 @@ class UploadAggregator:
             waveforms.append(waveform)
         return index
 
-    def _generate_sequencer_upload(self, job):
+    def _generate_sequencer_iq_upload(self, job):
         segments = self.segments
 
         for channel_name, qubit_channel in self.qubit_channels.items():
@@ -1014,6 +1024,7 @@ class UploadAggregator:
             job.sequencer_sequences[channel_name] = sequence
             job.sequencer_waveforms[channel_name] = waveforms
 
+#    def _generate_sequencer_baseband_upload(self, job):
 # TODO @@@ baseband pulses
 #        for channel_name, channel_info in self.channels.items():
 #            if channel_name not in self.sequencer_channels:
@@ -1137,12 +1148,15 @@ class UploadAggregator:
 
         self._generate_sections(job)
 
-        self._generate_upload(job, awg_upload_func)
+        self._generate_upload_wvf(job, awg_upload_func)
 
         self._render_markers(job, awg_upload_func)
 
-        if QsUploader.use_awg_sequencers:
-            self._generate_sequencer_upload(job)
+        if QsUploader.use_iq_sequencers:
+            self._generate_sequencer_iq_upload(job)
+
+#        if QsUploader.use_baseband_sequencers:
+#            self._generate_sequencer_baseband_upload(job)
 
         if QsUploader.use_digitizer_sequencers:
             self._generate_digitizer_sequences(job)
