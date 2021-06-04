@@ -127,7 +127,7 @@ class QsConditionalChannel:
         values = {key:all_values[i] for i,key in enumerate(self.acquisition_names)}
 
         order = np.zeros(4, dtype=np.int)
-        for ref in refs[::-1]:
+        for ref in refs:
             order = 2 * order + ref.evaluate(values)
         logging.info(f'reordered branches: {order}')
         return order
