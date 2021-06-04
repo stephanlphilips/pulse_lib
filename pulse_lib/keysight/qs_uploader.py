@@ -85,7 +85,7 @@ class QsUploader:
         awg2dig = 310
         # dig FPGA processing latency
         dig_latency = 210
-        margin = 20
+        margin = 10
 
         return awg_latency + awg2dig + dig_latency + margin
 
@@ -1045,6 +1045,7 @@ class UploadAggregator:
 #                duration = time.perf_counter() - start
 
     def _generate_digitizer_triggers(self, job):
+        offset = int(self.max_pre_start_ns)
         trigger_channels = {}
         digitizer_trigger_channels = {}
         has_HVI_triggers = False
@@ -1065,7 +1066,7 @@ class UploadAggregator:
                 for acquisition in acquisition_data:
                     if has_HVI_triggers:
                         raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
-                    t = seg_render.t_start + acquisition.start
+                    t = seg_render.t_start + acquisition.start + offset
                     for ch in channel.channel_numbers:
                         trigger_channels.setdefault(t, []).append((channel.module_name, ch))
                     # set empty list. Fill later after sorting all triggers
@@ -1098,10 +1099,11 @@ class UploadAggregator:
 
         logging.debug(f'PXI triggers: {pxi_triggers}')
 
+        offset = int(self.max_pre_start_ns)
         segments = self.segments
         for channel_name, channel in self.digitizer_channels.items():
             sequence = []
-            t_start = 0
+            t_start = -offset
             entry = DigitizerSequenceEntry()
             sequence.append(entry)
 
@@ -1114,8 +1116,8 @@ class UploadAggregator:
                     seg_ch = seg[channel_name]
                 acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
                 for acquisition in acquisition_data:
-                    t_acq = seg_render.t_start + int(acquisition.start / 10) * 10
-                    wait = t_acq - t_start
+                    t_acq = seg_render.t_start + acquisition.start
+                    wait = int((t_acq - t_start)/10)*10
                     # Note: special case: wait == 0 at start
                     if not (wait == 0 and len(sequence) == 1):
                         if wait <= 0:
@@ -1129,7 +1131,7 @@ class UploadAggregator:
                     entry.threshold = acquisition.threshold
                     entry.pxi_trigger = pxi_triggers.get(str(acquisition.ref), None)
                     logging.debug(f'Acq: {acquisition.ref}: {entry.pxi_trigger}')
-                    t_start = t_acq
+                    t_start += wait
 
             job.digitizer_sequences[channel_name] = sequence
 
