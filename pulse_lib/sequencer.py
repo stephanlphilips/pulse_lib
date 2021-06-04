@@ -192,6 +192,9 @@ class sequencer():
 
     def _check_conditional(self, conditional:conditional_segment, total_time):
 
+        if not getattr(self.uploader, 'supports_conditionals', False):
+            raise Exception(f'Backend does not support conditional segments')
+
         condition = conditional.condition
         refs = condition if isinstance(condition, Iterable) else [condition]
 
