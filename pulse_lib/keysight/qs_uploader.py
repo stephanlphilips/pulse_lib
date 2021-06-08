@@ -555,7 +555,10 @@ class UploadAggregator:
                     channel_info.integral = 0
 
                 if channel_info.dc_compensation:
-                    seg_ch = getattr(seg, channel_name)
+                    if isinstance(seg, conditional_segment):
+                        seg_ch = get_conditional_channel(seg, channel_name)
+                    else:
+                        seg_ch = seg[channel_name]
                     channel_info.integral += seg_ch.integrate(job.index, sample_rate)
                     logging.debug(f'Integral seg:{iseg} {channel_name} integral:{channel_info.integral}')
 

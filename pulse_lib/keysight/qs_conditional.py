@@ -58,6 +58,10 @@ class ConditionalMarker:
 
         return data
 
+    def integrate(self, index, sample_rate=1e9):
+        # Marker channels are not connected to bias-T. No charge accumulation.
+        return 0
+
 
 err_wvfs = None
 
@@ -79,6 +83,9 @@ class ConditionalWaveform:
 
         return wvfs[0]
 
+    def integrate(self, index, sample_rate=1e9):
+        integrals = [seg_ch.integrate(index, sample_rate) for seg_ch in self.seg_channels]
+        return integrals[0]
 
 def get_acquisition_names(conditional:conditional_segment):
     condition = conditional.condition
@@ -234,6 +241,10 @@ class QsConditionalMW(QsConditionalChannel):
                 raise Exception(f'Overlapping conditional instructions')
             last_end = instr.end
 
+    def integrate(self, index, sample_rate=1e9):
+        # MW channels are not connected to bias-T. No charge accumulation.
+        return 0
+
 
 def get_conditional_channel(conditional:conditional_segment, channel_name:str, index=None,
                             sequenced:bool=False):
@@ -242,6 +253,7 @@ def get_conditional_channel(conditional:conditional_segment, channel_name:str, i
 
     if isinstance(seg_channels[0], segment_marker):
         return ConditionalMarker(seg_channels)
+
     if isinstance(seg_channels[0], segment_acquisition):
         return ConditionalAcquisition(seg_channels)
 
