@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Union
 
 from .sequencer_device import add_sequencers
-from .qs_conditional import get_conditional_channel, get_acquisition_names
+from .qs_conditional import get_conditional_channel, get_acquisition_names, QsConditionalSegment
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
 from pulse_lib.segments.conditional_segment import conditional_segment
 from pulse_lib.tests.mock_m3202a_qs import AwgInstruction, AwgConditionalInstruction
@@ -900,6 +900,12 @@ class UploadAggregator:
         wave_ref = awg_upload_func(channel_name, waveform)
         job.add_waveform(channel_name, wave_ref, sample_rate*1e9)
 
+    def _preprocess_conditional_segments(self, job):
+        self.conditional_segments = [None] * len(job.sequence)
+        for iseg,seg in enumerate(job.sequence):
+            if isinstance(seg, conditional_segment):
+                self.conditional_segments[iseg] = QsConditionalSegment(seg)
+
     def _render_waveform(self, mw_pulse_data, lo_freq:float, offset:float, prephase=0, postphase=0) -> Waveform:
         # always render at 1e9 Sa/s
         duration = mw_pulse_data.stop - mw_pulse_data.start
@@ -935,6 +941,7 @@ class UploadAggregator:
         segments = self.segments
 
         for channel_name, qubit_channel in self.qubit_channels.items():
+            start = time.perf_counter()
             lo_freq = qubit_channel.iq_channel.LO
             delays = []
             for i in range(2):
@@ -988,6 +995,8 @@ class UploadAggregator:
                 else:
                     logging.debug(f'conditional for {channel_name}:{iseg} start:{seg_render.t_start}')
                     cond_ch = get_conditional_channel(seg, channel_name, sequenced=True, index=job.index)
+                    qs_cond = self.conditional_segments[iseg]
+
                     for instr in cond_ch.conditional_instructions:
                         t_instr = seg_render.t_start + instr.start
 
@@ -1020,12 +1029,19 @@ class UploadAggregator:
                             wvf_index = self._get_waveform_index(waveforms, wvf)
                             wvf_indices.append(wvf_index)
 
-                        for ibranch in cond_ch.order:
+                        for ibranch in qs_cond.order:
                             entry.waveform_indices.append(wvf_indices[ibranch])
 
             entry.time_after = int(seg_render.t_end - t_start)
+            # remove useless entries from the end
+            while (len(sequence) > 0 and isinstance(sequence[-1], SequenceEntry)
+                   and sequence[-1].waveform_index is None):
+                sequence.pop()
+
             job.sequencer_sequences[channel_name] = sequence
             job.sequencer_waveforms[channel_name] = waveforms
+            duration = time.perf_counter() - start
+            logging.debug(f'generated iq sequence {channel_name} {duration*1000:6.3f} ms')
 
 #    def _generate_sequencer_baseband_upload(self, job):
 # TODO @@@ baseband pulses
@@ -1152,6 +1168,8 @@ class UploadAggregator:
         self._integrate(job)
 
         self._generate_sections(job)
+
+        self._preprocess_conditional_segments(job)
 
         self._generate_upload_wvf(job, awg_upload_func)
 
