@@ -54,23 +54,23 @@ class parent_data(ABC):
     def wait(time):
         raise NotImplemented
 
-    @abstractmethod
-    def get_vmax(self,sample_rate):
-        '''
-        Calculate the maximum voltage in the current segment_single.
-        Args:
-            sample_rate (double) :  rate at which is samples (in Hz)
-        '''
-        raise NotImplemented
-
-    @abstractmethod
-    def get_vmin(self,sample_rate):
-        '''
-        Calculate the maximum voltage in the current segment_single.
-        Args:
-            sample_rate (double) :  rate at which is samples (in Hz)
-        '''
-        raise NotImplemented
+#    @abstractmethod
+#    def get_vmax(self,sample_rate):
+#        '''
+#        Calculate the maximum voltage in the current segment_single.
+#        Args:
+#            sample_rate (double) :  rate at which is samples (in Hz)
+#        '''
+#        raise NotImplemented
+#
+#    @abstractmethod
+#    def get_vmin(self,sample_rate):
+#        '''
+#        Calculate the maximum voltage in the current segment_single.
+#        Args:
+#            sample_rate (double) :  rate at which is samples (in Hz)
+#        '''
+#        raise NotImplemented
 
     @abstractmethod
     def integrate_waveform(self, sample_rate):

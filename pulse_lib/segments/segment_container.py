@@ -3,8 +3,13 @@ File contains an object that mananges segments. E.g. you are dealing with mutipl
 This object also allows you to do operations on all segments at the same time.
 """
 
-from pulse_lib.segments.segment_pulse import segment_pulse
-from pulse_lib.segments.segment_IQ import segment_IQ
+use_old = False
+if use_old:
+    from pulse_lib.segments.segment_pulse_old import segment_pulse
+    from pulse_lib.segments.segment_IQ_old import segment_IQ
+else:
+    from pulse_lib.segments.segment_pulse import segment_pulse
+    from pulse_lib.segments.segment_IQ import segment_IQ
 from pulse_lib.segments.segment_markers import segment_marker
 from pulse_lib.segments.segment_HVI_variables import segment_HVI_variables
 from pulse_lib.segments.segment_acquisition import segment_acquisition
