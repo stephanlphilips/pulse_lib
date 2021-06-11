@@ -10,6 +10,7 @@ from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
 from pulse_lib.segments.conditional_segment import conditional_segment
 from pulse_lib.tests.mock_m3202a_qs import AwgInstruction, AwgConditionalInstruction
 from pulse_lib.tests.mock_m3102a_qs import DigitizerInstruction
+from pulse_lib.segments.utility.rounding import iround
 
 from keysightSD1 import SD_TriggerExternalSources, SD_FpgaTriggerDirection, SD_TriggerPolarity
 
@@ -263,7 +264,9 @@ class QsUploader:
 
                     schedule = []
                     for i,entry in enumerate(job.digitizer_sequences[dig_channel.name]):
-                        schedule.append(DigitizerInstruction(i, entry.time_after, t_measure=entry.t_measure,
+                        schedule.append(DigitizerInstruction(i, entry.time_after,
+                                                             t_measure=entry.t_measure,
+                                                             n_cycles=entry.n_cycles,
                                                              measurement_id=entry.measurement_id,
                                                              pxi=entry.pxi_trigger,
                                                              threshold=entry.threshold))
@@ -500,6 +503,7 @@ class DigitizerSequenceEntry:
     measurement_id: Optional[int] = None
     name: Optional[str] = None
     pxi_trigger: Optional[int] = None
+    n_cycles : int = 1
 
 class UploadAggregator:
     verbose = False
@@ -1141,11 +1145,20 @@ class UploadAggregator:
                     if not (wait == 0 and len(sequence) == 1):
                         if wait <= 0:
                             raise Exception(f'wait {wait} <= 0 ({channel_name} segment:{iseg})')
+                        if entry.t_measure and wait <= entry.t_measure * entry.n_cycles:
+                            total_measure = entry.t_measure * entry.n_cycles
+                            raise Exception(f'Overlapping acquisitions wait {wait} <= t_measure {total_measure}'
+                                            f' ({channel_name} t:{int(t_acq)})')
                         entry.time_after = wait
                         entry = DigitizerSequenceEntry()
                         sequence.append(entry)
-                    # lookup / render waveform
-                    entry.t_measure = acquisition.t_measure
+                    # lookup / render acquisition trigger
+                    if channel.downsample_rate is not None:
+                        period_ns = iround(1e8/channel.downsample_rate) * 10
+                        entry.n_cycles = int(acquisition.t_measure / period_ns)
+                        entry.t_measure = period_ns
+                    else:
+                        entry.t_measure = acquisition.t_measure
                     entry.measurement_id = len(sequence)
                     entry.threshold = acquisition.threshold
                     entry.pxi_trigger = pxi_triggers.get(str(acquisition.ref), None)

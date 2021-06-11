@@ -3,6 +3,7 @@ from typing import Tuple, List
 import numpy as np
 from pulse_lib.configuration.physical_channels import digitizer_channel, digitizer_channel_iq
 from pulse_lib.segments.segment_measurements import measurement_acquisition, measurement_expression
+from pulse_lib.segments.utility.rounding import iround
 
 from qcodes import MultiParameter
 
@@ -145,6 +146,7 @@ class measurement_converter:
         # set raw values
         self._channel_raw = {}
         for channel in digitizer_channels.values():
+
             acquisitions = self._description.acquisitions[channel.name][index]
             if len(acquisitions.data) == 0:
                 self._channel_raw[channel.name] = np.zeros(0, dtype=np.complex if channel.iq_out else np.float)
@@ -162,8 +164,13 @@ class measurement_converter:
 
             if not channel.iq_out:
                 ch_raw = ch_raw.real
-            print(channel.name, len(acquisitions.data))
-            self._channel_raw[channel.name] = ch_raw.reshape((-1, len(acquisitions.data))).T
+
+            if channel.downsample_rate is None:
+                self._channel_raw[channel.name] = ch_raw.reshape((-1, len(acquisitions.data))).T
+            else:
+                period_ns = iround(1e8/channel.downsample_rate) * 10
+                n_samples = sum(int(acq.t_measure / period_ns) for acq in acquisitions.data)
+                self._channel_raw[channel.name] = ch_raw.reshape((-1, n_samples)).T
 
 
     def _set_data_raw(self, data):
