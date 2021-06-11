@@ -20,6 +20,7 @@ def to_loop_obj(obj, joined_loops):
     res = copy(joined_loops)
     res_axis = []
     selected_loop_axis = []
+
     for idim, l in enumerate(obj.shape):
         if l == 1:
             continue
@@ -38,8 +39,14 @@ def to_loop_obj(obj, joined_loops):
 
 def to_loop_objs(objs, loop_objs):
     joined_loops = sum(loop_objs)
+
     if isinstance(objs, Iterable):
-        res = (to_loop_obj(obj, joined_loops) for obj in objs)
+        res = tuple()
+        for obj in objs:
+            if isinstance(obj, np.ndarray):
+                res += (to_loop_obj(obj, joined_loops),)
+            else:
+                res += (obj,)
     else:
         res = to_loop_obj(objs, joined_loops)
     return res
@@ -66,6 +73,9 @@ def loops_to_numpy(func):
                 kwargs[key] = to_numpy(kwargs[key])
 
         res = func(*arg_list, **kwargs)
+
+        if len(loop_objs) == 0:
+            return res
         return to_loop_objs(res, loop_objs)
 
     return wrapper
@@ -94,7 +104,6 @@ if __name__ == '__main__':
     height = 400
 
     t_ramp1, t_ramp2 = triangle(height, slope1, slope2)
-
     s = p.mk_segment()
     s.P1.add_ramp_ss(0, t_ramp1, 0, height)
     s.reset_time()
@@ -103,3 +112,5 @@ if __name__ == '__main__':
     s.plot([0,0])
     s.plot([0,5])
     s.plot([1,0])
+    import matplotlib.pyplot as plt
+    plt.show()
