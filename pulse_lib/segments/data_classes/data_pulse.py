@@ -529,7 +529,7 @@ class pulse_data(parent_data):
                 IQ_data_single_object.envelope = envelope_generator()
 
             amp_envelope = IQ_data_single_object.envelope.get_AM_envelope((stop_pulse - start_pulse), sample_rate)
-            phase_envelope = IQ_data_single_object.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate)
+            phase_envelope = np.asarray(IQ_data_single_object.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate))
 
             #self.baseband_pulse_data[-1,0] convert to point numbers
             n_pt = int((stop_pulse - start_pulse) * sample_rate) if isinstance(amp_envelope, float) else len(amp_envelope)
