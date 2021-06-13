@@ -5,11 +5,12 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Union
 
 from .sequencer_device import add_sequencers
-from .qs_conditional import get_conditional_channel, get_acquisition_names
+from .qs_conditional import get_conditional_channel, get_acquisition_names, QsConditionalSegment
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
 from pulse_lib.segments.conditional_segment import conditional_segment
 from pulse_lib.tests.mock_m3202a_qs import AwgInstruction, AwgConditionalInstruction
 from pulse_lib.tests.mock_m3102a_qs import DigitizerInstruction
+from pulse_lib.segments.utility.rounding import iround
 
 from keysightSD1 import SD_TriggerExternalSources, SD_FpgaTriggerDirection, SD_TriggerPolarity
 
@@ -263,7 +264,9 @@ class QsUploader:
 
                     schedule = []
                     for i,entry in enumerate(job.digitizer_sequences[dig_channel.name]):
-                        schedule.append(DigitizerInstruction(i, entry.time_after, t_measure=entry.t_measure,
+                        schedule.append(DigitizerInstruction(i, entry.time_after,
+                                                             t_measure=entry.t_measure,
+                                                             n_cycles=entry.n_cycles,
                                                              measurement_id=entry.measurement_id,
                                                              pxi=entry.pxi_trigger,
                                                              threshold=entry.threshold))
@@ -500,6 +503,7 @@ class DigitizerSequenceEntry:
     measurement_id: Optional[int] = None
     name: Optional[str] = None
     pxi_trigger: Optional[int] = None
+    n_cycles : int = 1
 
 class UploadAggregator:
     verbose = False
@@ -555,7 +559,10 @@ class UploadAggregator:
                     channel_info.integral = 0
 
                 if channel_info.dc_compensation:
-                    seg_ch = getattr(seg, channel_name)
+                    if isinstance(seg, conditional_segment):
+                        seg_ch = get_conditional_channel(seg, channel_name)
+                    else:
+                        seg_ch = seg[channel_name]
                     channel_info.integral += seg_ch.integrate(job.index, sample_rate)
                     logging.debug(f'Integral seg:{iseg} {channel_name} integral:{channel_info.integral}')
 
@@ -897,6 +904,12 @@ class UploadAggregator:
         wave_ref = awg_upload_func(channel_name, waveform)
         job.add_waveform(channel_name, wave_ref, sample_rate*1e9)
 
+    def _preprocess_conditional_segments(self, job):
+        self.conditional_segments = [None] * len(job.sequence)
+        for iseg,seg in enumerate(job.sequence):
+            if isinstance(seg, conditional_segment):
+                self.conditional_segments[iseg] = QsConditionalSegment(seg)
+
     def _render_waveform(self, mw_pulse_data, lo_freq:float, offset:float, prephase=0, postphase=0) -> Waveform:
         # always render at 1e9 Sa/s
         duration = mw_pulse_data.stop - mw_pulse_data.start
@@ -932,6 +945,7 @@ class UploadAggregator:
         segments = self.segments
 
         for channel_name, qubit_channel in self.qubit_channels.items():
+            start = time.perf_counter()
             lo_freq = qubit_channel.iq_channel.LO
             delays = []
             for i in range(2):
@@ -985,6 +999,8 @@ class UploadAggregator:
                 else:
                     logging.debug(f'conditional for {channel_name}:{iseg} start:{seg_render.t_start}')
                     cond_ch = get_conditional_channel(seg, channel_name, sequenced=True, index=job.index)
+                    qs_cond = self.conditional_segments[iseg]
+
                     for instr in cond_ch.conditional_instructions:
                         t_instr = seg_render.t_start + instr.start
 
@@ -1017,12 +1033,19 @@ class UploadAggregator:
                             wvf_index = self._get_waveform_index(waveforms, wvf)
                             wvf_indices.append(wvf_index)
 
-                        for ibranch in cond_ch.order:
+                        for ibranch in qs_cond.order:
                             entry.waveform_indices.append(wvf_indices[ibranch])
 
             entry.time_after = int(seg_render.t_end - t_start)
+            # remove useless entries from the end
+            while (len(sequence) > 0 and isinstance(sequence[-1], SequenceEntry)
+                   and sequence[-1].waveform_index is None):
+                sequence.pop()
+
             job.sequencer_sequences[channel_name] = sequence
             job.sequencer_waveforms[channel_name] = waveforms
+            duration = time.perf_counter() - start
+            logging.debug(f'generated iq sequence {channel_name} {duration*1000:6.3f} ms')
 
 #    def _generate_sequencer_baseband_upload(self, job):
 # TODO @@@ baseband pulses
@@ -1122,11 +1145,20 @@ class UploadAggregator:
                     if not (wait == 0 and len(sequence) == 1):
                         if wait <= 0:
                             raise Exception(f'wait {wait} <= 0 ({channel_name} segment:{iseg})')
+                        if entry.t_measure and wait <= entry.t_measure * entry.n_cycles:
+                            total_measure = entry.t_measure * entry.n_cycles
+                            raise Exception(f'Overlapping acquisitions wait {wait} <= t_measure {total_measure}'
+                                            f' ({channel_name} t:{int(t_acq)})')
                         entry.time_after = wait
                         entry = DigitizerSequenceEntry()
                         sequence.append(entry)
-                    # lookup / render waveform
-                    entry.t_measure = acquisition.t_measure
+                    # lookup / render acquisition trigger
+                    if channel.downsample_rate is not None:
+                        period_ns = iround(1e8/channel.downsample_rate) * 10
+                        entry.n_cycles = int(acquisition.t_measure / period_ns)
+                        entry.t_measure = period_ns
+                    else:
+                        entry.t_measure = acquisition.t_measure
                     entry.measurement_id = len(sequence)
                     entry.threshold = acquisition.threshold
                     entry.pxi_trigger = pxi_triggers.get(str(acquisition.ref), None)
@@ -1149,6 +1181,8 @@ class UploadAggregator:
         self._integrate(job)
 
         self._generate_sections(job)
+
+        self._preprocess_conditional_segments(job)
 
         self._generate_upload_wvf(job, awg_upload_func)
 

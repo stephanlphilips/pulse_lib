@@ -1,14 +1,14 @@
+import time
 import numpy as np
 import logging
 from dataclasses import dataclass, field
-from typing import List, Any, Union
+from typing import List
 from collections.abc import Iterable
 
 from pulse_lib.segments.conditional_segment import conditional_segment
 from pulse_lib.segments.segment_base import segment_base
 from pulse_lib.segments.segment_acquisition import segment_acquisition
 from pulse_lib.segments.segment_IQ import segment_IQ
-from pulse_lib.segments.segment_pulse import segment_pulse
 from pulse_lib.segments.segment_markers import segment_marker
 
 from pulse_lib.segments.utility.measurement_ref import MeasurementRef
@@ -58,6 +58,10 @@ class ConditionalMarker:
 
         return data
 
+    def integrate(self, index, sample_rate=1e9):
+        # Marker channels are not connected to bias-T. No charge accumulation.
+        return 0
+
 
 err_wvfs = None
 
@@ -79,6 +83,9 @@ class ConditionalWaveform:
 
         return wvfs[0]
 
+    def integrate(self, index, sample_rate=1e9):
+        integrals = [seg_ch.integrate(index, sample_rate) for seg_ch in self.seg_channels]
+        return integrals[0]
 
 def get_acquisition_names(conditional:conditional_segment):
     condition = conditional.condition
@@ -92,18 +99,20 @@ def get_acquisition_names(conditional:conditional_segment):
     return acquisition_names
 
 
-class QsConditionalChannel:
-    def __init__(self, seg_channels:List[segment_base], conditional:conditional_segment):
-        self.seg_channels = seg_channels
+class QsConditionalSegment:
+    def __init__(self, conditional:conditional_segment):
         self.conditional = conditional
-        self.n_branches = len(seg_channels)
+        self.n_branches = len(conditional.branches)
         condition = conditional.condition
+        start = time.perf_counter()
         refs = condition if isinstance(condition, Iterable) else [condition]
 
         # Lookup acquistions for condition
         self.acquisition_names = self.get_acquisition_names(refs)
 
         self.order = self.get_branch_order(refs)
+        duration = time.perf_counter() - start
+        logging.debug(f'duration {duration*1000:6.3f} ms')
 
     def get_acquisition_names(self, refs:List[MeasurementRef]):
         acquisition_names = set()
@@ -133,7 +142,51 @@ class QsConditionalChannel:
         return order
 
 
-class QsConditionalMW(QsConditionalChannel):
+class QsConditionalChannel:
+    def __init__(self, seg_channels:List[segment_base], conditional:conditional_segment):
+        self.seg_channels = seg_channels
+        self.conditional = conditional
+        self.n_branches = len(seg_channels)
+        condition = conditional.condition
+        start = time.perf_counter()
+        refs = condition if isinstance(condition, Iterable) else [condition]
+
+        # Lookup acquistions for condition
+        self.acquisition_names = self.get_acquisition_names(refs)
+
+        self.order = self.get_branch_order(refs)
+        duration = time.perf_counter() - start
+        logging.debug(f'duration {duration*1000:6.3f} ms')
+
+    def get_acquisition_names(self, refs:List[MeasurementRef]):
+        acquisition_names = set()
+        for ref in refs:
+            acquisition_names.update(ref.keys)
+
+        acquisition_names = list(acquisition_names)
+        logging.info(f'acquisitions: {acquisition_names}')
+        return acquisition_names
+
+    def get_branch_order(self, refs):
+        # Assumes max 4 branches
+
+        # special case: 1 measurement, 2 acquisitions (and 2 options) => expand to 4 options
+        # this is handled gracefully by this code:
+        # 1 measurement: result contains only 0 and 1
+        # 2 measurements: result contains 0,1,2,3
+
+        # 0, 1, 2, 3 in binary representation on 2 acquisitions
+        all_values = np.array([[0,1,0,1],[0,0,1,1]])
+        values = {key:all_values[i] for i,key in enumerate(self.acquisition_names)}
+
+        order = np.zeros(4, dtype=np.int)
+        for ref in refs:
+            order = 2 * order + ref.evaluate(values)
+        logging.info(f'reordered branches: {order}')
+        return order
+
+
+class QsConditionalMW():
     # sequencer: find common offset per sequencer, generate waveforms
     # when uploading, generate extra entries in index table for conditional waveforms
     # upload waveforms as usual. Store start/stop
@@ -158,9 +211,9 @@ class QsConditionalMW(QsConditionalChannel):
         end: float
         pulses: List['QsConditionalMW.BranchPulse'] = field(default_factory=list)
 
-    def __init__(self, seg_channels:List[segment_IQ],
-                 conditional:conditional_segment, index):
-        super().__init__(seg_channels, conditional)
+    def __init__(self, seg_channels:List[segment_IQ],index):
+        self.seg_channels = seg_channels
+        self.n_branches = len(seg_channels)
         self.index = index
         self.conditional_instructions:List['QsConditionalMW.ConditionalInstruction'] = []
         self.combine_branches()
@@ -210,22 +263,22 @@ class QsConditionalMW(QsConditionalChannel):
         # find time + duration of MW pulses
         for ibranch, branch in enumerate(self.seg_channels):
             pulse_data = branch._get_data_all_at(self.index).MW_pulse_data
-            logging.debug(f'Adding MW pulses branch {ibranch} {pulse_data}')
+            # logging.debug(f'Adding MW pulses branch {ibranch} {pulse_data}')
             for pulse in pulse_data:
                 self.add_pulse(pulse, ibranch)
 
         self.conditional_instructions.sort(key=lambda x:x.start)
-        logging.debug(f'Conditional instructions: {self.conditional_instructions}')
+        # logging.debug(f'Conditional instructions: {self.conditional_instructions}')
 
         # add phase shifts to pulses, pre-phase of post-phase. Sum phase-shifts
         for ibranch, branch in enumerate(self.seg_channels):
             phase_data = branch._get_data_all_at(self.index).phase_shifts
-            logging.debug(f'Adding phase shifts branch {ibranch} {phase_data}')
+            # logging.debug(f'Adding phase shifts branch {ibranch} {phase_data}')
             for phase_shift in phase_data:
                 if phase_shift.phase_shift != 0.0:
                     self.add_phase(phase_shift, ibranch)
 
-        logging.debug(f'Conditional instructions: {self.conditional_instructions}')
+        # logging.debug(f'Conditional instructions: {self.conditional_instructions}')
 
         # check pulse overlaps.
         last_end = -1
@@ -233,6 +286,10 @@ class QsConditionalMW(QsConditionalChannel):
             if instr.start < last_end:
                 raise Exception(f'Overlapping conditional instructions')
             last_end = instr.end
+
+    def integrate(self, index, sample_rate=1e9):
+        # MW channels are not connected to bias-T. No charge accumulation.
+        return 0
 
 
 def get_conditional_channel(conditional:conditional_segment, channel_name:str, index=None,
@@ -242,11 +299,12 @@ def get_conditional_channel(conditional:conditional_segment, channel_name:str, i
 
     if isinstance(seg_channels[0], segment_marker):
         return ConditionalMarker(seg_channels)
+
     if isinstance(seg_channels[0], segment_acquisition):
         return ConditionalAcquisition(seg_channels)
 
     if sequenced and isinstance(seg_channels[0], segment_IQ):
-        return QsConditionalMW(seg_channels, conditional, index)
+        return QsConditionalMW(seg_channels, index)
 
     if isinstance(seg_channels[0], segment_base):
         return ConditionalWaveform(seg_channels)

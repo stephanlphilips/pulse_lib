@@ -11,13 +11,13 @@ from cython.operator import postincrement, dereference
 import numbers
 import copy
 
-# note on linux is is long ... 
+# note on linux is is long ...
 ctypedef long long longlong
 
 cdef struct s_pulse_info:
 	double start
 	double stop
-	
+
 	double v_start
 	double v_stop
 
@@ -26,10 +26,17 @@ cdef struct s_pulse_info:
 
 ctypedef s_pulse_info pulse_info
 
+total_pulses = 0
+
+def get_total():
+	return total_pulses
+
 cdef class base_pulse_element:
 	cdef pulse_info my_pulse_info
 
 	def __init__(self, start, stop, v_start, v_stop):
+		global total_pulses
+		total_pulses += 1
 		self.my_pulse_info.start = start
 		self.my_pulse_info.stop = stop
 		self.my_pulse_info.v_start = v_start
@@ -56,7 +63,7 @@ cdef class pulse_data_single_sequence():
 
 	def add_pulse(self, base_pulse_element pulse):
 		self.localdata.push_back(pulse.my_pulse_info)
-		
+
 		# extra check if workin with -1 times
 		if self._total_time < pulse.my_pulse_info.start:
 			self._total_time = pulse.my_pulse_info.start
@@ -66,7 +73,7 @@ cdef class pulse_data_single_sequence():
 
 
 		self.re_render = True
-	
+
 	def append(self, other):
 		"""
 		append other pulse object to this one
@@ -84,13 +91,13 @@ cdef class pulse_data_single_sequence():
 	def repeat(self, n):
 		"""
 		repeat n times the current segment.
-		Args : 
+		Args :
 			n (int) : number of times to repeat the current segment.
 		"""
 
 		cdef pulse_data_single_sequence pulse_data = copy.copy(self)
 		cdef double total_time = self.total_time
-		
+
 		for i in range(n):
 			pulse_data.shift_time(total_time)
 			self._add_pulse(pulse_data)
@@ -105,7 +112,7 @@ cdef class pulse_data_single_sequence():
 
 			if dereference(it_localdata).stop != -1.:
 				dereference(it_localdata).stop = dereference(it_localdata).stop + time
-			
+
 			postincrement(it_localdata)
 
 		self._total_time += time
@@ -168,7 +175,7 @@ cdef class pulse_data_single_sequence():
 		cdef longlong[:] index_inverse
 		cdef int j
 		time_steps = np.empty([self.localdata.size()*4], dtype = np.double)
-		# if putting too low, sometimes not nough 
+		# if putting too low, sometimes not nough
 		cdef double t_offset = 1e-6
 		# not typed, this might slowdown, but performance is good enough atm.
 
@@ -194,7 +201,7 @@ cdef class pulse_data_single_sequence():
 		time_steps_np, index_inverse = np.unique(time_steps, return_inverse=True)
 
 		j = 0
-		
+
 		# 5 ms
 		it_localdata = self.localdata.begin()
 
@@ -210,7 +217,7 @@ cdef class pulse_data_single_sequence():
 		cdef double[:] time_step
 		cdef double delta_v
 		cdef double min_time
-		cdef double max_time 
+		cdef double max_time
 		cdef double rescaler
 
 		# 20 ms
@@ -222,7 +229,7 @@ cdef class pulse_data_single_sequence():
 			max_time = time_steps_np[dereference(it_localdata).index_stop]
 
 			rescaler = delta_v/(max_time-min_time)
-			
+
 			for j in range(dereference(it_localdata).index_start, dereference(it_localdata).index_stop+1):
 				voltage_data[j] += dereference(it_localdata).v_start + (time_steps_np[j] - min_time)*rescaler
 
@@ -250,7 +257,7 @@ cdef class pulse_data_single_sequence():
 			j+= 1
 			k+= 1
 		if j < len_time_steps:
-			new_data_time[k] = time_steps_np[j] 
+			new_data_time[k] = time_steps_np[j]
 			new_data_voltage[k] = voltage_data[j]
 			k+= 1
 
@@ -262,7 +269,7 @@ cdef class pulse_data_single_sequence():
 		self._total_time = 0.
 		it_localdata = self.localdata.begin()
 		while(it_localdata != self.localdata.end()):
-			
+
 			if dereference(it_localdata).start < start:
 				dereference(it_localdata).start = start
 			if dereference(it_localdata).stop > stop:

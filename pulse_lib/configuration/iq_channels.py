@@ -35,7 +35,7 @@ class IQ_channel:
         if isinstance(self.LO_parameter, float):
             return self.LO_parameter
         elif isinstance(self.LO_parameter, Parameter):
-            return self.LO_parameter.get()
+            return self.LO_parameter.cache.get()
         else:
             raise ValueError("Local oscillator not set in the IQ_channel.")
 

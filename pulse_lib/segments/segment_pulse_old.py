@@ -1,13 +1,13 @@
 """
 Class that is used to make DC pulses.
 """
-import numpy as np
 
 from pulse_lib.segments.segment_base import last_edited, segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller
-from pulse_lib.segments.data_classes.data_pulse import pulse_data, custom_pulse_element, pulse_delta
+from pulse_lib.segments.data_classes.data_pulse_old import pulse_data, custom_pulse_element
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
-from pulse_lib.segments.segment_IQ import segment_IQ
+from pulse_lib.segments.data_classes.data_pulse_core import base_pulse_element
+from pulse_lib.segments.segment_IQ_old import segment_IQ
 from dataclasses import dataclass
 
 # @@@ TODO: This is very similar to IQ_out_channel_info + qubit_channel
@@ -43,10 +43,11 @@ class segment_pulse(segment_base):
         '''
         add a block pulse on top of the existing pulse.
         '''
-        self.data_tmp.add_delta(pulse_delta(start + self.data_tmp.start_time,
-                                            step=amplitude))
-        self.data_tmp.add_delta(pulse_delta(stop + self.data_tmp.start_time if stop != -1 else np.inf,
-                                            step=-amplitude))
+        pulse = base_pulse_element(start + self.data_tmp.start_time,stop + self.data_tmp.start_time, amplitude, amplitude)
+        if stop == -1:
+            pulse = base_pulse_element(start + self.data_tmp.start_time,stop , amplitude, amplitude)
+
+        self.data_tmp.add_pulse_data(pulse)
         return self.data_tmp
 
     @last_edited
@@ -60,7 +61,14 @@ class segment_pulse(segment_base):
             amplitude : total hight of the ramp, starting from the base point
             keep_amplitude : when pulse is done, keep reached amplitude for time infinity
         '''
-        return self._add_ramp(start, stop, 0, amplitude, keep_amplitude)
+
+        pulse = base_pulse_element(start + self.data_tmp.start_time,stop + self.data_tmp.start_time, 0, amplitude)
+        self.data_tmp.add_pulse_data(pulse)
+
+        if keep_amplitude == True:
+            pulse = base_pulse_element(stop + self.data_tmp.start_time,-1., amplitude, amplitude)
+            self.data_tmp.add_pulse_data(pulse)
+        return self.data_tmp
 
     @last_edited
     @loop_controller
@@ -73,39 +81,13 @@ class segment_pulse(segment_base):
             amplitude : total hight of the ramp, starting from the base point
             keep_amplitude : when pulse is done, keep reached amplitude for time infinity
         '''
-        return self._add_ramp(start, stop, start_amplitude, stop_amplitude, keep_amplitude)
+        if keep_amplitude == True:
+            pulse = base_pulse_element(start + self.data_tmp.start_time,-1, start_amplitude, stop_amplitude)
+        else:
+            pulse = base_pulse_element(start + self.data_tmp.start_time,stop + self.data_tmp.start_time, start_amplitude, stop_amplitude)
 
-    def _add_ramp(self, start, stop, start_amplitude, stop_amplitude, keep_amplitude=False):
-        '''
-        Makes a linear ramp (with start and stop amplitude)
-        Args:
-            start (double) : starting time of the ramp
-            stop (double) : stop time of the ramp
-            amplitude : total hight of the ramp, starting from the base point
-            keep_amplitude : when pulse is done, keep reached amplitude for time infinity
-        '''
-        if start != stop:
-            ramp = (stop_amplitude-start_amplitude) / (stop-start)
-            self.data_tmp.add_delta(pulse_delta(start + self.data_tmp.start_time,
-                                                step=start_amplitude,
-                                                ramp=ramp))
-            if keep_amplitude:
-                self.data_tmp.add_delta(pulse_delta(stop + self.data_tmp.start_time,
-                                                    ramp=-ramp))
-                self.data_tmp.add_delta(pulse_delta(np.inf,
-                                                    step=-stop_amplitude))
-            else:
-                self.data_tmp.add_delta(pulse_delta(stop + self.data_tmp.start_time,
-                                                    step=-stop_amplitude,
-                                                    ramp=-ramp))
-        elif keep_amplitude:
-            self.data_tmp.add_delta(pulse_delta(stop + self.data_tmp.start_time,
-                                                step=stop_amplitude))
-            self.data_tmp.add_delta(pulse_delta(np.inf,
-                                                step=-stop_amplitude))
-
+        self.data_tmp.add_pulse_data(pulse)
         return self.data_tmp
-
 
     @last_edited
     @loop_controller
@@ -115,7 +97,10 @@ class segment_pulse(segment_base):
         Args:
             wait (double) : time in ns to wait
         '''
-        self.data_tmp.wait(wait)
+        t0 = self.data_tmp.total_time
+
+        pulse = base_pulse_element(t0,wait+t0, 0, 0)
+        self.data_tmp.add_pulse_data(pulse)
         return self.data_tmp
 
     @last_edited
@@ -207,10 +192,6 @@ class segment_pulse(segment_base):
 
 
 if __name__ == '__main__':
-    # @@@ test timing of 200 * 200 2D loop with 100 pulse segments
-    # a) adding pulses
-    # b) rendering pulse segments
-
     import matplotlib.pyplot as plt
 
     from pulse_lib.segments.segment_HVI_variables import segment_HVI_variables

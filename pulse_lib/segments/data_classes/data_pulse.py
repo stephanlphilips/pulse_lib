@@ -1,16 +1,76 @@
 """
 data class to make pulses.
 """
+import logging
 import numpy as np
 import copy
 from dataclasses import dataclass
+from numbers import Number
 from typing import Any, Dict, Callable, List
 
-from pulse_lib.segments.utility.segments_c_func import py_calc_value_point_in_between, get_effective_point_number
+from pulse_lib.segments.utility.rounding import iround
 from pulse_lib.segments.data_classes.data_generic import parent_data
 from pulse_lib.segments.data_classes.data_IQ import envelope_generator
-from pulse_lib.segments.data_classes.data_pulse_core import pulse_data_single_sequence, base_pulse_element
-# import time as tm
+
+total_pulse_deltas = 0
+
+def get_total_deltas():
+    return total_pulse_deltas
+
+@dataclass
+class pulse_delta:
+    time: float
+    step: float = 0.0
+    ramp: float = 0.0
+
+    def __post_init__(self):
+        global total_pulse_deltas
+        total_pulse_deltas += 1
+
+    def __add__(self, other):
+        if isinstance(other, Number):
+            return pulse_delta(self.time,
+                               self.step + other,
+                               self.ramp)
+        elif isinstance(other, pulse_delta):
+            return pulse_delta(self.time,
+                               self.step + other.step,
+                               self.ramp + other.ramp)
+        else:
+            raise Exception(f'Cannot add pulse_data to {type(other)}')
+
+    def __iadd__(self, other):
+        if isinstance(other, Number):
+           self.step += other
+        elif isinstance(other, pulse_delta):
+           self.step += other.step
+           self.ramp += other.ramp
+        else:
+            raise Exception(f'Cannot add pulse_data to {type(other)}')
+        return self
+
+    def __mul__(self, other):
+        if isinstance(other, Number):
+            return pulse_delta(self.time,
+                               self.step * other,
+                               self.ramp * other)
+        else:
+            raise Exception(f'Cannot multiply pulse_data with {type(other)}')
+
+    def __imul__(self, other):
+        if isinstance(other, Number):
+           self.step *= other
+           self.ramp *= other
+        else:
+            raise Exception(f'Cannot multiply pulse_data with {type(other)}')
+        return self
+
+    @property
+    def is_near_zero(self):
+        # near zero if |step| < 1 uV and |ramp| < 1e-9 mV/ns (= 1 mV/s)
+        # note: max ramp: 2V/ns = 2000 mV/ns, min ramp: 1 mV/s = 1e-9 mV/ns. ~ 12 orders of magnitude.
+        # Regular floats have 16 digits precision.
+        return -1e-3 < self.step < 1e-3 and -1e-9 < self.ramp < 1e-9
 
 @dataclass
 class custom_pulse_element:
@@ -19,6 +79,13 @@ class custom_pulse_element:
     amplitude: float
     func: Callable[..., np.ndarray]
     kwargs: Dict[str,Any]
+
+@dataclass
+class rendered_element:
+    start: int
+    stop: int
+    wvf: np.ndarray = None
+
 
 def shift_start_stop(data:List[Any], delta) -> None:
     for element in data:
@@ -42,24 +109,42 @@ class PhaseShift:
     phase_shift: float
     channel_name: str
 
+# keep till end: start = np.inf
+# slicing:
+    # consolidate all in slice on `end`, keep `inf`. delta_new = sum(p.delta for p in slice), ...
+# rendering:
+    # cumsum ramp and step.
+    # if abs(ramp) < 1e-9: ramp=0
+
+
 class pulse_data(parent_data):
     """
     class defining base (utility) operations for baseband and microwave pulses.
     """
     def __init__(self):
         super().__init__()
-        self.baseband_pulse_data = pulse_data_single_sequence()
+#        self.baseband_pulse_data = pulse_data_single_sequence()
+        self.pulse_deltas = list()
         self.MW_pulse_data = list()
         self.custom_pulse_data = list()
         self.phase_shifts = list()
 
         self.start_time = 0
-        self.MW_end_time = 0
+        self._end_time = 0
         self.global_phase = 0
-        self.custom_end_time = 0
+        self._consolidated = False
+        self._preprocessed = False
 
-    def add_pulse_data(self, my_input):
-        self.baseband_pulse_data.add_pulse(my_input)
+    def add_delta(self, delta):
+        if not delta.is_near_zero:
+            self.pulse_deltas.append(delta)
+            self._consolidated = False
+        # always update end time
+        self._update_end_time(delta.time)
+
+    def _update_end_time(self, t):
+        if t != np.inf and t > self._end_time:
+            self._end_time = t
 
     def add_MW_data(self, MW_data_object):
         """
@@ -69,16 +154,15 @@ class pulse_data(parent_data):
             MW_data_object (IQ_data_single) : description MW pulse (see pulse_lib.segments.data_classes.data_IQ)
         """
         self.MW_pulse_data.append(MW_data_object)
-        if self.MW_end_time < MW_data_object.stop:
-            self.MW_end_time = MW_data_object.stop
+        self._update_end_time(MW_data_object.stop)
 
     def add_custom_pulse_data(self, custom_pulse:custom_pulse_element):
         self.custom_pulse_data.append(custom_pulse)
-        if self.custom_end_time < custom_pulse.stop:
-            self.custom_end_time = custom_pulse.stop
+        self._update_end_time(custom_pulse.stop)
 
     def add_phase_shift(self, phase_shift:PhaseShift):
         self.phase_shifts.append(phase_shift)
+        self._update_end_time(phase_shift.time)
 
     @property
     def total_time(self):
@@ -88,7 +172,7 @@ class pulse_data(parent_data):
         Returns:
             total_time (float) : total time of the segment.
         '''
-        return max(self.baseband_pulse_data.total_time, self.MW_end_time, self.custom_end_time)
+        return self._end_time
 
     def reset_time(self, time,  extend_only = False):
         '''
@@ -99,9 +183,8 @@ class pulse_data(parent_data):
         '''
         if time is None:
             time = self.total_time
-
-        pulse = base_pulse_element(0,time,0,0)
-        self.add_pulse_data(pulse)
+        else:
+            self._update_end_time(time)
 
         if extend_only == False:
             self.start_time = time
@@ -113,10 +196,7 @@ class pulse_data(parent_data):
         Args:
             time (double) : time in ns to wait
         """
-        wait_time = self.total_time + time
-        pulse = base_pulse_element(0,wait_time,0,0)
-
-        self.add_pulse_data(pulse)
+        self._end_time += time
 
     def append(self, other, time = None):
         '''
@@ -132,19 +212,23 @@ class pulse_data(parent_data):
         else:
             self.slice_time(0, time)
 
-
         other_MW_pulse_data = copy.deepcopy(other.MW_pulse_data)
         shift_start_stop(other_MW_pulse_data, time)
         other_custom_pulse_data = copy.deepcopy(other.custom_pulse_data)
         shift_start_stop(other_custom_pulse_data, time)
 
-        self.baseband_pulse_data.append(other.baseband_pulse_data)
+        other_phase_shifts = copy.deepcopy(other.phase_shifts)
+        shift_time(other_phase_shifts, time)
+        other_pulse_deltas = copy.deepcopy(other.pulse_deltas)
+        shift_time(other_pulse_deltas, time)
+
+        self.pulse_deltas += other_pulse_deltas
         self.MW_pulse_data += other_MW_pulse_data
         self.custom_pulse_data += other_custom_pulse_data
-        self.phase_shifts += copy.deepcopy(other.phase_shifts)
+        self.phase_shifts += other_phase_shifts
 
-        self.MW_end_time = get_max_time(self.MW_pulse_data)
-        self.custom_end_time = get_max_time(self.custom_pulse_data)
+        self._consolidated = False
+        self._update_end_time(time + other.total_time)
 
     def repeat(self, n):
         """
@@ -153,11 +237,17 @@ class pulse_data(parent_data):
             n (int) : number of times to repeat
         """
         time = self.total_time
+
+        new_pulse_deltas = copy.copy(self.pulse_deltas)
         new_MW_pulse_data =  copy.copy(self.MW_pulse_data)
         new_custom_pulse_data =  copy.copy(self.custom_pulse_data)
         new_phase_shifts =  copy.copy(self.phase_shifts)
 
         for i in range(n):
+            shifted_pulse_deltas = copy.deepcopy(self.pulse_deltas)
+            shift_time(shifted_pulse_deltas, (i+1)*time)
+            new_pulse_deltas += shifted_pulse_deltas
+
             shifted_MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
             shift_start_stop(shifted_MW_pulse_data, (i+1)*time)
             new_MW_pulse_data +=  shifted_MW_pulse_data
@@ -170,14 +260,13 @@ class pulse_data(parent_data):
             shift_time(shifted_phase_shifts, (i+1)*time)
             new_phase_shifts += shifted_phase_shifts
 
+        self.pulse_deltas = new_pulse_deltas
         self.MW_pulse_data = new_MW_pulse_data
         self.custom_pulse_data = new_custom_pulse_data
-
-        self.MW_end_time = get_max_time(self.MW_pulse_data)
-        self.custom_end_time = get_max_time(self.custom_pulse_data)
         self.phase_shifts = new_phase_shifts
 
-        self.baseband_pulse_data.repeat(n)
+        self._consolidated = False
+        self.total_time = (n+1) * time
 
 
     def slice_time(self, start, end):
@@ -187,61 +276,14 @@ class pulse_data(parent_data):
             Start (double) : enforced minimal starting time
             End (double) : enforced max time
         '''
-        self.baseband_pulse_data.slice_time(start, end)
+        self.__slice_pulse_delta_data(start, end)
         self.__slice_MW_data(start, end)
         self.__slice_custom_pulse_data(start, end)
         self.__slice_phase_shift_data(start, end)
 
-    '''
-    Properties of the waveform
-    '''
+        self._consolidated = False
+        self._end_time = end - start
 
-    def get_vmax(self,sample_rate = 1e9):
-        '''
-        calculate the maximum voltage in the current segment_single.
-
-        If sine waves included, will take the maximum of the total render. If not, it just takes the max of the pulse data.
-        '''
-        if len(self.MW_pulse_data) == 0 and len(self.custom_pulse_data) == 0:
-            return self.baseband_pulse_data.v_max
-        else:
-            return np.max(self.render(sample_rate=1e9))
-
-    def get_vmin(self,sample_rate = 1e9):
-        '''
-        calculate the maximum voltage in the current segment_single.
-
-        If sine waves included, will take the minimum of the total render. If not, it just takes the min of the pulse data.
-        '''
-        if len(self.MW_pulse_data) == 0 and len(self.custom_pulse_data) == 0:
-            return self.baseband_pulse_data.v_min
-        else:
-            return np.min(self.render(sample_rate=1e9))
-
-    def integrate_waveform(self, sample_rate):
-        '''
-        takes a full integral of the currently scheduled waveform.
-        Args:
-            sample_rate (double) : rate at which the AWG will be run
-        Returns:
-            integrate (double) : the integrated value of the waveform (unit is mV/sec).
-        '''
-        integrated_value = 0
-
-        times, voltages = self.baseband_pulse_data.pulse_data
-        baseband_pulse = np.empty([len(times), 2])
-        baseband_pulse[:,0] = times
-        baseband_pulse[:,1] = voltages
-
-        for i in range(len(baseband_pulse)-1):
-            integrated_value += (baseband_pulse[i,1] + baseband_pulse[i+1,1])/2*(baseband_pulse[i+1,0] - baseband_pulse[i,0])
-
-        for custom_pulse in self.custom_pulse_data:
-            integrated_value += np.sum(self._render_custom_pulse(custom_pulse, sample_rate))
-
-        integrated_value *= 1e-9
-
-        return integrated_value
 
     '''
     details of pulse data methods
@@ -308,6 +350,40 @@ class pulse_data(parent_data):
 
         self.phase_shifts = new_phase_shifts
 
+    def __slice_pulse_delta_data(self, start, end):
+        '''
+        slice pulse delta data
+
+        Args:
+            start (double) : enforced minimal starting time
+            end (double) : enforced max time
+        '''
+        new_pulse_deltas = []
+
+        start_delta = pulse_delta(start, 0.0, 0.0)
+        end_delta = pulse_delta(end, 0.0, 0.0)
+        inf_delta = pulse_delta(np.inf, 0.0, 0.0)
+
+        for entry in self.new_pulse_deltas:
+            if entry.time <= start:
+                start_delta.step += entry.step + (start-entry.time) * entry.ramp
+                start_delta.ramp += entry.ramp
+            elif entry.time < end:
+                new_pulse_deltas.append(entry)
+            elif entry.time != np.inf:
+                end_delta += entry
+            else:
+                inf_delta += entry
+
+        if not start_delta.is_near_zero:
+            new_pulse_deltas.insert(0,start_delta)
+        if not end_delta.is_near_zero:
+            new_pulse_deltas.append(end_delta)
+        if not inf_delta.is_near_zero:
+            new_pulse_deltas.append(inf_delta)
+
+        self.pulse_deltas = new_pulse_deltas
+
     def shift_MW_frequency(self, frequency):
         '''
         shift the frequency of a MW signal that is defined. This is needed for dealing with the upconverion of a IQ signal.
@@ -331,56 +407,23 @@ class pulse_data(parent_data):
         for IQ_data_single_object in self.MW_pulse_data:
             IQ_data_single_object.start_phase += phase_shift
 
-    def _shift_all_time_MW(self, time_shift):
-        '''
-        Shift time of all microwave pulses in memory.
-
-        Args:
-            time_shift (double) : shift the time
-        '''
-
-        for IQ_data_single_object in self.MW_pulse_data:
-            IQ_data_single_object.start += time_shift
-            IQ_data_single_object.stop += time_shift
-
-
-
-    @staticmethod
-    def _insert_pulse_arrays(src_array, to_insert, insert_position):
-        '''
-        insert pulse points in array
-        Args:
-            src_array : 2D pulse table
-            to_insert : 2D pulse table to be inserted in the source
-            insert_position: after which point the insertion needs to happen
-        '''
-
-        # calculate how long the piece is you want to insert
-        dim_insert = len(to_insert)
-        insert_position += 1
-
-        new_arr = np.zeros([src_array.shape[0]+dim_insert, src_array.shape[1]])
-
-        new_arr[:insert_position, :] = src_array[:insert_position, :]
-        new_arr[insert_position:(insert_position + dim_insert), :] = to_insert
-        new_arr[(insert_position + dim_insert):] = src_array[insert_position :]
-
-        return new_arr
 
     '''
     operators for the data object.
     '''
     def __copy__(self):
+        # NOTE: copy is called in pulse_data_all, before adding virtual channels.
+        self._consolidate()
         my_copy = pulse_data()
-        my_copy.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
+        my_copy.pulse_deltas = copy.deepcopy(self.pulse_deltas)
         my_copy.MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
         my_copy.phase_shifts = copy.copy(self.phase_shifts)
         my_copy.custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
         my_copy.start_time = copy.copy(self.start_time)
         my_copy.software_marker_data = copy.copy(self.software_marker_data)
         my_copy.global_phase = copy.copy(self.global_phase)
-        my_copy.MW_end_time = get_max_time(my_copy.MW_pulse_data)
-        my_copy.custom_end_time = get_max_time(my_copy.custom_pulse_data)
+        my_copy._end_time = self._end_time
+        my_copy._consolidated = self._consolidated
 
         return my_copy
 
@@ -389,53 +432,167 @@ class pulse_data(parent_data):
         define addition operator for pulse_data object
         '''
         new_data = pulse_data()
-        if type(other) is pulse_data:
-            # is there a need for copy command  -- investigate is this would start effecting performance.
-            new_data.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
-            new_data.baseband_pulse_data += other.baseband_pulse_data
+        if isinstance(other, pulse_data):
+            new_data.pulse_deltas = self.pulse_deltas + other.pulse_deltas
             new_data.MW_pulse_data = self.MW_pulse_data + other.MW_pulse_data
             new_data.phase_shifts = self.phase_shifts + other.phase_shifts
             new_data.custom_pulse_data = self.custom_pulse_data + other.custom_pulse_data
+            new_data._end_time = max(self._end_time, other._end_time)
 
-        elif type(other) == int or type(other) == float:
-            new_pulse = copy.copy(self.baseband_pulse_data)
-            new_pulse.add_pulse(base_pulse_element(0,-1, other, other))
-            new_data.baseband_pulse_data = new_pulse
+        elif isinstance(other, Number):
+            # copy, because only new elements added to list
+            new_pulse = copy.copy(self.pulse_deltas)
+            new_pulse.insert(0, pulse_delta(0, other, 0))
+            new_pulse.append(pulse_delta(np.inf, -other, 0))
+            new_data.pulse_deltas = new_pulse
 
             new_data.MW_pulse_data = copy.copy(self.MW_pulse_data)
             new_data.phase_shifts = copy.copy(self.phase_shifts)
             new_data.custom_pulse_data = copy.copy(self.custom_pulse_data)
+            new_data._end_time = self._end_time
 
         else:
-            raise TypeError("Please add up pulse_data object (or pulse/IQ segment type) type or a number ")
+            raise TypeError(f'Cannot add pulse_data to {type(other)}')
 
         return new_data
+
+    def __iadd__(self, other):
+        '''
+        define addition operator for pulse_data object
+        '''
+        if isinstance(other, pulse_data):
+            self.pulse_deltas += other.pulse_deltas
+            self.MW_pulse_data += other.MW_pulse_data
+            self.phase_shifts += other.phase_shifts
+            self.custom_pulse_data += other.custom_pulse_data
+            self._end_time = max(self._end_time, other._end_time)
+
+        elif isinstance(other, Number):
+            # copy, because only new elements added to list
+            self.pulse_deltas.insert(0, pulse_delta(0, other, 0))
+            self.pulse_deltas.append(pulse_delta(np.inf, -other, 0))
+
+        else:
+            raise TypeError(f'Cannot add pulse_data to {type(other)}')
+
+        self._consolidated = False
+        return self
 
     def __mul__(self, other):
         '''
-        muliplication operator for segment_single
+        multiplication operator for segment_single
         '''
+        self._consolidate()
         new_data = pulse_data()
 
-        if type(other) == int or type(other) == float or type(other) == np.float64:
-            new_data.baseband_pulse_data = copy.copy(self.baseband_pulse_data)
-            new_data.baseband_pulse_data *= other
+        if isinstance(other, Number):
+            # deepcopy, because elements are modified
+            new_data.pulse_deltas = copy.deepcopy(self.pulse_deltas)
+            for delta in new_data.pulse_deltas:
+                delta *= other
 
-            for IQ_data_single_object in self.MW_pulse_data:
-                IQ_data_single_object_cpy = copy.copy(IQ_data_single_object)
-                IQ_data_single_object_cpy.amplitude *=other
-                new_data.MW_pulse_data.append(IQ_data_single_object_cpy)
+            new_data.MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
+            for IQ_data_single_object in new_data.MW_pulse_data:
+                IQ_data_single_object.amplitude *=other
 
-            for custom_pulse in self.custom_pulse_data:
-                new = copy.copy(custom_pulse)
-                new.amplitude *= other
-                new_data.custom_pulse_data.append(new)
+            new_data.custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
+            for custom_pulse in new_data.custom_pulse_data:
+                custom_pulse.amplitude *= other
 
             new_data.phase_shifts = copy.copy(self.phase_shifts)
+            new_data._end_time = self._end_time
         else:
-            raise TypeError("multiplication should be done with a number, type {} not supported".format(type(other)))
+            raise TypeError(f'Cannot multiply pulse_data with {type(other)}')
 
         return new_data
+
+    def _consolidate(self):
+        # merge deltas with same time.
+        if self._consolidated:
+            return
+        if len(self.pulse_deltas) == 1:
+            logging.error(f'Asjemenou {self.pulse_deltas}')
+            raise Exception(f'Error in pulse data: {self.pulse_deltas}')
+
+        if len(self.pulse_deltas) > 1:
+            self.pulse_deltas.sort(key=lambda p:p.time)
+#            logging.debug(f'consolidating: {self.pulse_deltas}')
+            new_deltas = []
+            last = self.pulse_deltas[0]
+            for delta in self.pulse_deltas[1:]:
+                if delta.time == last.time:
+                    last = last + delta
+                else:
+                    if not last.is_near_zero:
+                        new_deltas.append(last)
+                    last = delta
+            if not last.is_near_zero:
+                new_deltas.append(last)
+
+            self.pulse_deltas = new_deltas
+#            logging.debug(f'consolidated: {self.pulse_deltas}')
+
+        self._consolidated = True
+        self._preprocessed = False
+
+    def _pre_process(self):
+        self._consolidate()
+        if not self._preprocessed:
+            n = len(self.pulse_deltas)
+            if n == 0:
+                times = np.zeros(0)
+                intervals = np.zeros(0)
+                amplitudes = np.zeros(0)
+                amplitudes_end = np.zeros(0)
+                ramps = np.zeros(0)
+            else:
+                times = np.zeros(n)
+                intervals = np.zeros(n)
+                steps = np.zeros(n)
+                ramps = np.zeros(n)
+                amplitudes = np.zeros(n)
+                for i,delta in enumerate(self.pulse_deltas):
+                    times[i] = delta.time
+                    steps[i] = delta.step
+                    ramps[i] = delta.ramp
+                if times[-1] == np.inf:
+                    times[-1] = self._end_time
+                intervals[:-1] = times[1:] - times[:-1]
+                ramps = np.cumsum(ramps)
+                amplitudes[1:] = ramps[:-1] * intervals[:-1]
+                amplitudes = np.cumsum(amplitudes) + np.cumsum(steps)
+                amplitudes_end = amplitudes - steps
+    #            logging.debug(f'points: {list(zip(times, amplitudes))}')
+            self._times = times
+            self._intervals = intervals
+            self._amplitudes = amplitudes
+            self._amplitudes_end = amplitudes_end
+            self._ramps = ramps
+        self._preprocessed = True
+
+    def integrate_waveform(self, sample_rate):
+        '''
+        takes a full integral of the currently scheduled waveform.
+        Args:
+            sample_rate (double) : rate at which the AWG will be run
+        Returns:
+            integrate (double) : the integrated value of the waveform (unit is mV/sec).
+        '''
+        self._pre_process()
+
+        integrated_value = 0
+
+        if len(self.pulse_deltas) > 0:
+            integrated_value = 0.5*np.dot((self._amplitudes[:-1] + self._amplitudes_end[1:]),
+                                          self._intervals[:-1])
+
+        for custom_pulse in self.custom_pulse_data:
+            integrated_value += np.sum(self._render_custom_pulse(custom_pulse, sample_rate))
+
+        integrated_value *= 1e-9
+
+        return integrated_value
+
 
     def _render_custom_pulse(self, custom_pulse, sample_rate):
         duration = custom_pulse.stop - custom_pulse.start
@@ -446,49 +603,28 @@ class pulse_data(parent_data):
         '''
         make a full rendering of the waveform at a predetermined sample rate.
         '''
+        self._pre_process()
 
         # express in Gs/s
         sample_rate = sample_rate*1e-9
-        sample_time_step = 1/sample_rate
 
         t_tot = self.total_time
 
         # get number of points that need to be rendered
-        t_tot_pt = get_effective_point_number(t_tot, sample_time_step) + 1
+        t_tot_pt = iround(t_tot * sample_rate) + 1
 
-        my_sequence = np.zeros([int(t_tot_pt)])
-        # start rendering pulse data
+        wvf = np.zeros([int(t_tot_pt)])
 
-        # TODO upgrade to new format -- put in the cython part for better performance..
-        times, voltages = self.baseband_pulse_data.pulse_data
-        baseband_pulse = np.empty([len(times), 2])
-        baseband_pulse[:,0] = times
-        baseband_pulse[:,1] = voltages
+        t_pt = iround(self._times * sample_rate)
 
-        for i in range(0,len(baseband_pulse)-1):
-            t0_pt = get_effective_point_number(baseband_pulse[i,0], sample_time_step)
-            t1_pt = get_effective_point_number(baseband_pulse[i+1,0], sample_time_step) + 1
-            t0 = t0_pt*sample_time_step
-            t1 = t1_pt*sample_time_step
-            if t0 > t_tot:
-                continue
-            elif t1 > t_tot + sample_time_step:
-                if baseband_pulse[i,1] == baseband_pulse[i+1,1]:
-                    my_sequence[t0_pt: t_tot_pt] = baseband_pulse[i,1]
+        for i in range(len(t_pt)-1):
+            pt0 = t_pt[i]
+            pt1 = t_pt[i+1]
+            if pt0 != pt1:
+                if self._ramps[i] != 0:
+                    wvf[pt0:pt1] = np.linspace(self._amplitudes[i], self._amplitudes_end[i+1], pt1-pt0+1)[:-1]
                 else:
-                    val = py_calc_value_point_in_between(baseband_pulse[i,:], baseband_pulse[i+1,:], t_tot)
-                    my_sequence[t0_pt: t_tot_pt] = np.linspace(
-                        baseband_pulse[i,1],
-                        val, t_tot_pt-t0_pt)
-            else:
-                if baseband_pulse[i,1] == baseband_pulse[i+1,1]:
-                    my_sequence[t0_pt: t1_pt] = baseband_pulse[i,1]
-                else:
-                    my_sequence[t0_pt: t1_pt] = np.linspace(baseband_pulse[i,1], baseband_pulse[i+1,1], t1_pt-t0_pt)
-        # top off the sequence -- default behavior, extend the last value
-        if len(baseband_pulse) > 1:
-            pt = get_effective_point_number(baseband_pulse[i+1,0], sample_time_step)
-            my_sequence[pt:] = baseband_pulse[i+1,1]
+                    wvf[pt0:pt1] = self._amplitudes[i]
 
         # render MW pulses.
         # create list with phase shifts per ref_channel
@@ -533,22 +669,22 @@ class pulse_data(parent_data):
 
             #self.baseband_pulse_data[-1,0] convert to point numbers
             n_pt = int((stop_pulse - start_pulse) * sample_rate) if isinstance(amp_envelope, float) else len(amp_envelope)
-            start_pt = get_effective_point_number(start_pulse, sample_time_step)
+            start_pt = iround(start_pulse * sample_rate)
             stop_pt = start_pt + n_pt
 
             # add the sin pulse
             total_phase = phase_shift + phase + phase_envelope + ref_start_phase
             t = start_pt+ref_start_time/sample_rate + np.arange(n_pt)
-            my_sequence[start_pt:stop_pt] += amp*amp_envelope*np.sin(2*np.pi*freq/sample_rate*1e-9*t + total_phase)
+            wvf[start_pt:stop_pt] += amp*amp_envelope*np.sin(2*np.pi*freq/sample_rate*1e-9*t + total_phase)
 
         for custom_pulse in self.custom_pulse_data:
             data = self._render_custom_pulse(custom_pulse, sample_rate*1e9)
-            start_pt = get_effective_point_number(custom_pulse.start, sample_time_step)
+            start_pt = iround(custom_pulse.start * sample_rate)
             stop_pt = start_pt + len(data)
-            my_sequence[start_pt:stop_pt] += data
+            wvf[start_pt:stop_pt] += data
 
-        # remove last value. t_tot_pt = t_tot + 1. Last value is always 0. It is only needed in the loop on the baseband pulses.
-        return my_sequence[:-1]
+        # remove last value. t_tot_pt = t_tot + 1. Last value is always 0. It is only needed in the loop on the pulses.
+        return wvf[:-1]
 
     def get_accumulated_phase(self):
         phase = 0
@@ -556,6 +692,95 @@ class pulse_data(parent_data):
             phase += shift.phase_shift
         # print(f'accumulated {phase} ({len(self.phase_shifts)})')
         return phase
+
+    def _merge_elements(self, elements):
+        if len(elements) < 1:
+            return elements
+        elements.sort(key=lambda e:e.start)
+        result = []
+        last = elements[0]
+        for element in elements[1:]:
+            if element.start < last.stop:
+                nw_wvf = np.zeros(element.stop - last.start)
+                nw_wvf[:len(last.wvf)] = last.wvf
+                nw_wvf[-len(element.wvf):] += element.wvf
+                last = rendered_element(last.start, element.stop, nw_wvf)
+            else:
+                result.append(last)
+                last = element
+        result.append(last)
+        return result
+
+    def render_MW_and_custom(self, sample_rate, ref_channel_states):
+        '''
+        Render MW pulses and custom data in 'rendered_elements'.
+        '''
+        elements = []
+
+        self._pre_process()
+
+        # express in Gs/s
+        sample_rate = sample_rate*1e-9
+
+        # render MW pulses.
+        # create list with phase shifts per ref_channel
+        phase_shifts_channels = {}
+        for ps in self.phase_shifts:
+            ps_ch = phase_shifts_channels.setdefault(ps.channel_name, [])
+            ps_ch.append(ps)
+
+        for IQ_data_single_object in self.MW_pulse_data:
+            # start stop time of MW pulse
+
+            start_pulse = IQ_data_single_object.start
+            stop_pulse = IQ_data_single_object.stop
+
+            # max amp, freq and phase.
+            amp  =  IQ_data_single_object.amplitude
+            freq =  IQ_data_single_object.frequency
+            phase = IQ_data_single_object.start_phase
+            if ref_channel_states and IQ_data_single_object.ref_channel in ref_channel_states.start_phase:
+                ref_start_time = ref_channel_states.start_time
+                ref_start_phase = ref_channel_states.start_phase[IQ_data_single_object.ref_channel]
+                if IQ_data_single_object.ref_channel in phase_shifts_channels:
+                    phase_shifts = [
+                            ps.phase_shift
+                            for ps in phase_shifts_channels[IQ_data_single_object.ref_channel]
+                            if ps.time <= start_pulse
+                            ]
+                    phase_shift = sum(phase_shifts)
+                else:
+                    phase_shift = 0
+            else:
+                ref_start_time = 0
+                ref_start_phase = 0
+                phase_shift = 0
+
+            # envelope data of the pulse
+            if IQ_data_single_object.envelope is None:
+                IQ_data_single_object.envelope = envelope_generator()
+
+            amp_envelope = IQ_data_single_object.envelope.get_AM_envelope((stop_pulse - start_pulse), sample_rate)
+            phase_envelope = IQ_data_single_object.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate)
+
+            #self.baseband_pulse_data[-1,0] convert to point numbers
+            n_pt = int((stop_pulse - start_pulse) * sample_rate) if isinstance(amp_envelope, float) else len(amp_envelope)
+            start_pt = iround(start_pulse * sample_rate)
+            stop_pt = start_pt + n_pt
+
+            # add the sin pulse
+            total_phase = phase_shift + phase + phase_envelope + ref_start_phase
+            t = start_pt+ref_start_time/sample_rate + np.arange(n_pt)
+            wvf = amp*amp_envelope*np.sin(2*np.pi*freq/sample_rate*1e-9*t + total_phase)
+            elements.append(rendered_element(start_pt, stop_pt, wvf))
+
+        for custom_pulse in self.custom_pulse_data:
+            wvf = self._render_custom_pulse(custom_pulse, sample_rate*1e9)
+            start_pt = iround(custom_pulse.start * sample_rate)
+            stop_pt = start_pt + len(wvf)
+            elements.append(rendered_element(start_pt, stop_pt, wvf))
+
+        return self._merge_elements(elements)
 
 
 if __name__ == '__main__':
