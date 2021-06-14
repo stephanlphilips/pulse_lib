@@ -22,7 +22,7 @@ import copy
 
 from pulse_lib.segments.segment_base import last_edited, segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, update_dimension
-from pulse_lib.segments.data_classes.data_pulse import pulse_data, PhaseShift
+from pulse_lib.segments.data_classes.data_pulse_old import pulse_data, PhaseShift
 from pulse_lib.segments.data_classes.data_IQ import envelope_generator, IQ_data_single, make_chirp
 from pulse_lib.segments.data_classes.data_markers import marker_data
 from pulse_lib.segments.data_classes.data_generic import data_container

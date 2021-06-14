@@ -266,7 +266,7 @@ class pulse_data(parent_data):
         self.phase_shifts = new_phase_shifts
 
         self._consolidated = False
-        self.total_time = (n+1) * time
+        self._end_time = (n+1) * time
 
 
     def slice_time(self, start, end):
