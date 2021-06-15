@@ -594,10 +594,14 @@ class UploadAggregator:
         use_concurrent_upload = True
         if use_concurrent_upload:
             with ThreadPoolExecutor() as p:
-                p.map(
+                result = p.map(
                     lambda awg: self._upload_waveforms(job, awg),
                     self.awgs.values()
                     )
+            for r in result:
+                # loop through the results to raise exceptions caught by Executor
+                if result is not None:
+                    logging.debug(f'upload result {r}')
         else:
             for awg in self.awgs.values():
                 self._upload_waveforms(job, awg)
