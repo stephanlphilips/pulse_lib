@@ -309,8 +309,12 @@ class pulselib:
 
         else:
             for virtual_gate_set in hardware.virtual_gates:
-                vgc = virtual_gates_constructor(self)
-                vgc.load_via_harware(virtual_gate_set)
+                vgcs = {vgc.name:vgc for vgc in self.virtual_channels}
+                if virtual_gate_set.name in vgcs:
+                    vgc = vgcs[virtual_gate_set.name]
+                else:
+                    vgc = virtual_gates_constructor(self, name=virtual_gate_set.name)
+                    vgc.load_via_harware(virtual_gate_set)
 
             # set output ratio's of the channels from the harware file.
 
