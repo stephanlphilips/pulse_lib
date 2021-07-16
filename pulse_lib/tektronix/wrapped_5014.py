@@ -69,7 +69,7 @@ class Wrapped5014:
                 channel_data.m2 = waveform_data
 
         self.delete_sequence()
-        self.delete_waveforms()
+#        self.delete_waveforms()
         if len(upload_list) == 0:
             logging.info('no data for AWG')
             return
@@ -121,10 +121,14 @@ class Wrapped5014:
 
         for channel in self._awg_channels.values():
             if channel.awg_name == awg.name:
+                if channel.amplitude > 4500 or channel.amplitude < 20:
+                    raise ValueError(f'amplitude ({channel.amplitude}) out of range [20, 4500] mV')
                 amplitudes[channel.channel_number-1] = channel.amplitude
 
         for channel in self._marker_channels.values():
             if channel.module_name == awg.name:
+                if channel.amplitude > 2700 or channel.amplitude < -900:
+                    raise ValueError(f'marker amplitude ({channel.amplitude}) out of range [-900, 1700] mV')
                 if isinstance(channel.channel_number, tuple):
                     channel_number = channel.channel_number[0]
                     marker_number = channel.channel_number[1]
