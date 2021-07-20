@@ -38,8 +38,6 @@ class QsUploader:
         self.digitizer_channels = digitizer_channels
 
         self.jobs = []
-        # hvi is used by scheduler to check whether another hvi must be loaded.
-        self.hvi = None
 
         add_sequencers(self, awg_devices, awg_channels, IQ_channels)
 
