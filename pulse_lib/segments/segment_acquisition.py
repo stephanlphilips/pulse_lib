@@ -257,11 +257,6 @@ class segment_acquisition():
         index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
         return self.pulse_data_all.flat[index]
 
-    def get_acquisitions(self, index):
-        '''
-        '''
-        return self._get_data_all_at(index).acquisitions() # @@@ handle in digitizer wrapper
-
 
     def plot_segment(self, index = [0], render_full = True, sample_rate = 1e9):
         '''

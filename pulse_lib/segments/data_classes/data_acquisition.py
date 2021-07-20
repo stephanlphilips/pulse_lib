@@ -33,7 +33,7 @@ class acquisition_data(parent_data):
 
     def add_acquisition(self, acquisition):
         """
-        add an acqsuitision
+        add an acquisition
         Args:
             acquisition (acquisition): acquisition data object
         """
