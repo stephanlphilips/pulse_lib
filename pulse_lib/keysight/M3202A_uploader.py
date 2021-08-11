@@ -36,8 +36,6 @@ class M3202A_Uploader:
         self.digitizer_channels = digitizer_channels
 
         self.jobs = []
-        # hvi is used by scheduler to check whether another hvi must be loaded.
-        self.hvi = None
 
         self._config_marker_channels()
 

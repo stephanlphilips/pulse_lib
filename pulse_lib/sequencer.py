@@ -1,7 +1,6 @@
 from qcodes import Parameter
 
 from .schedule.hardware_schedule import HardwareSchedule
-from .schedule.hvi_compatibility import HviCompatibilityWrapper
 from .segments.conditional_segment import conditional_segment
 from .segments.data_classes.data_HVI_variables import marker_HVI_variable
 from .segments.data_classes.data_generic import data_container, parent_data
@@ -235,30 +234,6 @@ class sequencer():
             compensate (bool) : compensate yes or no (default is True)
         '''
         self.neutralize = compensate
-
-    # TODO: deprecate
-    def add_HVI(self, HVI_ID, HVI_to_load, compile_function, start_function, **kwargs):
-        '''
-        Add HVI code to the AWG.
-        Args:
-            HVI_ID (str) : string that gives an ID to the HVI that is currently loaded.
-            HVI_to_load (function) : function that returns a HVI file.
-            compile_function (function) : Not used anymore.
-            start_function (function) : function to be executed to start the HVI
-            kwargs : keyword arguments for the HVI script (see usage in the examples (e.g. when you want to provide your digitizer card))
-        '''
-        if self.uploader.hvi is None or self.uploader.hvi.hvi_id != HVI_ID:
-            if self.uploader.hvi is not None:
-                self.uploader.hvi.close()
-
-            channel_map = {key:(value.awg_name,value.channel_number) for key,value in self.uploader.awg_channels.items()}
-            self.hw_schedule = HviCompatibilityWrapper(HVI_ID, self.uploader.AWGs, channel_map,
-                                                       HVI_to_load, start_function)
-            self.uploader.hvi = self.hw_schedule
-        else:
-            self.hw_schedule = self.uploader.hvi
-
-        self.hw_schedule.set_schedule_parameters(**kwargs)
 
     def set_hw_schedule(self, hw_schedule: HardwareSchedule, **kwargs):
         '''

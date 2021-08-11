@@ -38,8 +38,6 @@ class QsUploader:
         self.digitizer_channels = digitizer_channels
 
         self.jobs = []
-        # hvi is used by scheduler to check whether another hvi must be loaded.
-        self.hvi = None
 
         add_sequencers(self, awg_devices, awg_channels, IQ_channels)
 
@@ -987,6 +985,7 @@ class UploadAggregator:
                             entry.time_after = wait_i
                             entry = SequenceEntry()
                             sequence.append(entry)
+                        
                         if isinstance(mw_entry, IQ_data_single):
                             wvf = self._render_waveform(mw_entry, lo_freq, offset)
                             entry.waveform_index = self._get_waveform_index(waveforms, wvf)
