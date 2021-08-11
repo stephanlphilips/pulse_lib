@@ -6,6 +6,7 @@ from pulse_lib.sequencer import sequencer
 from pulse_lib.configuration.physical_channels import (
         awg_channel, marker_channel, digitizer_channel, digitizer_channel_iq)
 from pulse_lib.configuration.iq_channels import IQ_channel, qubit_channel
+from pulse_lib.configuration.devices import awg_slave
 
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 
@@ -38,7 +39,7 @@ except:
 class pulselib:
     '''
     Global class that is an organisational element in making the pulses.
-    The idea is that you first make individula segments,
+    The idea is that you first make individual segments,
     you can than later combine them into a sequence, this sequence will be uploaded
     '''
     def __init__(self, backend = "M3202A"):
@@ -50,8 +51,9 @@ class pulselib:
         self.virtual_channels = []
         self.qubit_channels = dict()
         self.IQ_channels = dict()
-        # Tektronix-Spectrum feature
+        # Tektronix feature
         self.digitizer_markers = dict()
+        self.awg_sync = dict()
 
         self._backend = backend
 
@@ -96,10 +98,25 @@ class pulselib:
         '''
         Assign a marker as digitizer trigger
         Args:
-            digitizer_name: name of the digizer
+            digitizer_name: name of the digitizer
             marker_name: name of the marker channel
         '''
         self.digitizer_markers[digitizer_name] = marker_name
+
+    def add_awg_sync(self, awg_name, marker_name, sync_latency=None):
+        '''
+        Add synchronization for a slave AWG with a marker.
+        Currently only used for Tektronix AWGs.
+
+        Args:
+            awg_name: name of the awg
+            marker_name: name of the marker channel
+            sync_latency (Optional[float]): latency in AWG triggering. If None it will be calculated from sample rate.
+
+        Note:
+            sync_latency of Tektronix AWG is sample frequency dependent.
+        '''
+        self.awg_sync[awg_name] = awg_slave(awg_name, marker_name, sync_latency)
 
     def define_channel(self, channel_name, AWG_name, channel_number, amplitude=None):
         '''
@@ -273,7 +290,7 @@ class pulselib:
                 raise Exception('Tektronix5014_Uploader import failed')
             self.uploader = Tektronix5014_Uploader(self.awg_devices, self.awg_channels,
                                                    self.marker_channels, self.digitizer_markers,
-                                                   self.qubit_channels, self.digitizer_channels)
+                                                   self.qubit_channels, self.digitizer_channels, self.awg_sync)
 
         elif self._backend == "Keysight_QS":
             if not KeysightQS_loaded:
@@ -359,7 +376,11 @@ class pulselib:
 
         else:
             for virtual_gate_set in hardware.virtual_gates:
-                vgc = virtual_gates_constructor(self)
+                vgcs = {vgc.name:vgc for vgc in self.virtual_channels}
+                if virtual_gate_set.name in vgcs:
+                    vgc = vgcs[virtual_gate_set.name]
+                else:
+                    vgc = virtual_gates_constructor(self, name=virtual_gate_set.name)
                 vgc.load_via_harware(virtual_gate_set)
 
             # set output ratio's of the channels from the harware file.

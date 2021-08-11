@@ -5,8 +5,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import matplotlib.pyplot as pt
 
-from qcodes.instrument.base import Instrument
-
+from .mock_m3202a import MockM3202A
 
 '''
 SequencerInstrument
@@ -177,30 +176,20 @@ class SequencerChannel:
             if wvf is not None:
                 wvf.describe()
 
-class MockM3202A_QS(Instrument):
+class MockM3202A_QS(MockM3202A):
     '''
     Quantum Sequencer version of M3202A mock
     '''
     def __init__(self, name, chassis, slot, marker_amplitude=1000):
-        super().__init__(name)
-        self._slot_number = slot
-        self._chassis_numnber = chassis
-
-        self.chassis = chassis
-        self.slot = slot
+        super().__init__(name, chassis, slot)
 
         self._sequencers = {}
-        for i in range(1,9):
+        for i in range(1,13):
             self._sequencers[i] = SequencerChannel(self, i)
 
         self.marker_table = []
         self._marker_amplitude = marker_amplitude
 
-    def slot_number(self):
-        return self._slot_number
-
-    def chassis_number(self):
-        return self._chassis_numnber
 
     def get_sequencer(self, number):
         return self._sequencers[number]
@@ -217,6 +206,7 @@ class MockM3202A_QS(Instrument):
             pt.plot(t, values, ':', label=f'{self.name}-T')
 
     def plot(self):
+        super().plot()
         for seq in self._sequencers.values():
             seq.plot()
         self.plot_marker()
