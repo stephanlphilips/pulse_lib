@@ -106,6 +106,7 @@ class measurement_converter:
                                               ('repetition',), ('repetition',), ('',))
                     self.sp_raw.append(sp_raw)
 
+
     def generate_setpoints(self):
         shape_raw = (self.n_rep,)
         for m in self._description.measurements:
@@ -127,7 +128,9 @@ class measurement_converter:
                 sp_result = setpoints_single(m.name, m.name, '%')
                 self.sp_values.append(sp_result)
 
-        self.sp_mask = setpoints_single('mask', 'mask', '') ####
+        self.sp_mask = setpoints_single('mask', 'mask', '', shape_raw,
+                                        ((np.arange(shape_raw[0]),),),
+                                        ('repetition', ), ('repetition',), ('', ))
         self.sp_total = setpoints_single('total_selected', 'total_selected', '#')
 
 
@@ -249,7 +252,23 @@ class measurement_converter:
 
     def values(self):
         return _MeasurementParameter(setpoints_multi(self.sp_values),
-                                     lambda: self._values)
+                                     lambda: self._selectors)
+
+    def accepted(self):
+        return _MeasurementParameter(setpoints_multi(self.sp_accepted),
+                                     lambda: self._accepted)
+
+    def less_results(self):
+        setpoints = setpoints_multi(self.sp_raw + [self.sp_total]+ self.sp_values)
+        getter = lambda: self._raw  + [self.total_selected] + self._values
+
+        return _MeasurementParameter(setpoints, getter)
+
+    def state_tomography_results(self):
+        setpoints = setpoints_multi(self.sp_states + [self.sp_mask]+ [self.sp_total]+ self.sp_values)
+        getter = lambda: self._states + [self._accepted]  + [self.total_selected] + self._values
+
+        return _MeasurementParameter(setpoints, getter)
 
     def all_results(self):
         setpoints = setpoints_multi(self.sp_raw + self.sp_states + self.sp_selectors

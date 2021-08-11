@@ -102,12 +102,13 @@ if __name__ == '__main__':
     m1 = MeasurementRef('m1')
     m2 = MeasurementRef('m2')
     m3 = MeasurementRef('m3')
+    m4 = MeasurementRef('m4')
 
     show('m1 ^ m2', m1 ^ m2)
     show('m1 & m2', m1 & m2)
     show('~(m1 & m2)', ~(m1 & m2))
-
     show('~(m1 & m2) | m3', ~(m1 & m2) | m3)
+    show('m1 ^ m2 ^ m3 & m3', (m1 ^ m2) & m2 ^ m3)
 
     mm = m1 & m2
     res = {

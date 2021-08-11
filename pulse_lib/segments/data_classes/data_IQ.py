@@ -127,7 +127,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     # empty envelope
-
+    from pulse_lib.segments.data_classes.data_IQ import envelope_generator
     env = envelope_generator('blackman')
     env.get_AM_envelope(50)
 
@@ -139,14 +139,14 @@ if __name__ == '__main__':
     data_3 = env.get_AM_envelope(50.4)
     data_4 = env.get_AM_envelope(50.6)
 
-    plt.figure("general windowing function")
-    plt.plot(data_1, label = "50.0 ns pulse")
-    plt.plot(data_2, label = "50.2 ns pulse")
-    plt.plot(data_3, label = "50.4 ns pulse")
-    plt.plot(data_4, label = "50.6 ns pulse")
-    plt.legend()
-    plt.xlabel("time (ns)")
-    plt.ylabel("amp (a.u.)")
+    # plt.figure("general windowing function")
+    # plt.plot(data_1, label = "50.0 ns pulse")
+    # plt.plot(data_2, label = "50.2 ns pulse")
+    # plt.plot(data_3, label = "50.4 ns pulse")
+    # plt.plot(data_4, label = "50.6 ns pulse")
+    # plt.legend()
+    # plt.xlabel("time (ns)")
+    # plt.ylabel("amp (a.u.)")
 
     # make your own envelope
     def gaussian_sloped_envelope(delta_t, sample_rate = 1):

@@ -163,9 +163,41 @@ class segment_IQ(segment_base):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
+    from pulse_lib.segments.data_classes.data_IQ import envelope_generator
+    from scipy import signal
+
+    def gaussian_sloped_envelope(delta_t, sample_rate = 1):
+        """
+        function that has blackman slopes at the start and at the end (first 8 and last 8 ns)
+
+        Args:
+            delta_t (double) : time in ns of the pulse.
+            sample_rate (double) : sampling rate of the pulse (GS/s).
+
+        Returns:
+            evelope (np.ndarray) : array of the evelope.
+        """
+
+        n_points = int(delta_t*sample_rate + 0.9)
+        envelope = np.ones([n_points], np.double)
+        if delta_t < 20:
+            envelope = signal.get_window('blackman', n_points*10)[::10]
+        else:
+            time_slope = (20 + delta_t)*sample_rate - int(delta_t*sample_rate)
+            envelope_left_right = signal.get_window('blackman', int(time_slope*10))[::10]
+
+            half_pt_gauss = int(time_slope/2)
+
+            envelope[:half_pt_gauss] = envelope_left_right[:half_pt_gauss]
+            envelope[half_pt_gauss:half_pt_gauss+n_points-int(time_slope)] = 1
+            envelope[n_points-len(envelope_left_right[half_pt_gauss:]):] = envelope_left_right[half_pt_gauss:]
+
+        return envelope
+
     s1 = segment_IQ("test")
-    s1.add_MW_pulse(0,1000,1,1e7,0, "flattop")
+
+    s1.add_MW_pulse(0,100,1,1e9,0, gaussian_sloped_envelope)
     s1.reset_time()
-    s1.add_chirp(1500,2500,0e7,1e7,1)
-    s1.plot_segment(sample_rate = 1e9)
+    # s1.add_chirp(1500,2500,0e7,1e7,1)
+    s1.plot_segment(sample_rate = 1e10)
     plt.show()

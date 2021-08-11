@@ -99,10 +99,37 @@ class segment_container():
 
         self._setpoints = setpoint_mgr()
 
-    def __getitem__(self, index:str):
-        if index not in self.channels:
-            raise ValueError(f'Unknown channel {index}')
-        return getattr(self, index)
+    def __getitem__(self, index):
+        if isinstance(index, str):
+            if index not in self.channels:
+                raise ValueError(f'Unknown channel {index}')
+            return getattr(self, index)
+        elif isinstance(index, int):
+            new = segment_container([])
+
+            new._virtual_gates_objs = self._virtual_gates_objs
+            new._IQ_channel_objs = self._IQ_channel_objs
+
+            new.channels = self.channels
+            
+            self.extend_dim(self.shape)
+
+            for chan_name in self.channels:
+                chan = getattr(self, chan_name)
+                new_chan = chan[index]
+                setattr(new, chan_name,new_chan)
+
+            new.render_mode = copy.copy(self.render_mode)
+            new._Vmin_max_data = copy.copy(self._Vmin_max_data)
+            new._software_markers =self._software_markers
+            new._setpoints = self._setpoints
+
+            # update the references in of all the channels
+            add_reference_channels(new, self._virtual_gates_objs, self._IQ_channel_objs)
+
+            return new
+
+
 
     def __copy__(self):
         new = segment_container([])
