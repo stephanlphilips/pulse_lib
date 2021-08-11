@@ -75,9 +75,10 @@ class MeasurementUnaryExpression(MeasurementExpressionBase):
 
 class MeasurementBinaryExpression(MeasurementExpressionBase):
     def __init__(self, lhs, rhs, op):
+        new_axis = tuple(lhs.matrix.ndim + i for i in range(rhs.matrix.ndim))
         super().__init__(
                 lhs.keys + rhs.keys,
-                op(lhs.matrix[...,None], rhs.matrix)
+                op(np.expand_dims(lhs.matrix, axis=new_axis), rhs.matrix)
                 )
         self._lhs = lhs
         self._rhs = rhs
@@ -130,6 +131,36 @@ if __name__ == '__main__':
 
     print(2*read1.evaluate(res) + read2.evaluate(res))
 
+    print()
+    res = {
+        'm0': np.array([0,0,0,0,1,1,1,1]),
+        'm1': np.array([0,0,1,1,0,0,1,1]),
+        'm2': np.array([0,1,0,1,0,1,0,1])
+        }
+
+    m0 = MeasurementRef('m0')
+    m1 = MeasurementRef('m1')
+    m2 = MeasurementRef('m2')
+    r_0 = m0 & m1 & m2
+    r_1 = ~m0 & m1 & m2
+    r_2 = m0 & ~m1 & m2
+    r_3 = m0 & m1 & ~m2
+
+    print('r0')
+    print(r_0.evaluate(res))
+    print('r1')
+    print(r_1.evaluate(res))
+    print('r2')
+    print(r_2.evaluate(res))
+    print('r3')
+    print(r_3.evaluate(res))
+
+    print('qnd')
+    qnd = r_0 | r_1 | r_2 | r_3
+    print(qnd)
+    print(qnd.evaluate(res))
+
+
 # np.array2string(read1.matrix.astype(int)).replace('\n','')
 # str(read1.matrix.astype(int)).replace('\n','')
 
@@ -138,7 +169,7 @@ seq.add_cond(_read3, q3.I, q3.X180)
 
 q3 == 1 -> q3.X180 else q3.I
 
-m1,m1
+m1,m2
 0,0 -> q3.I
 1,0 -> q3.X180
 1,0
