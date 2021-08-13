@@ -1,5 +1,5 @@
 import operator
-from abc import ABC
+from abc import ABC, abstractmethod
 import numpy as np
 
 oper2str = {
@@ -11,9 +11,13 @@ oper2str = {
 
 
 class MeasurementExpressionBase(ABC):
-    def __init__(self, keys, matrix):
-        self._keys = keys
-        self._matrix = matrix
+
+    def __init__(self, keys):
+        self._keys = set(keys)
+
+    @property
+    def keys(self):
+        return self._keys
 
     def __and__(self, other):
         return MeasurementBinaryExpression(self, other, operator.__and__)
@@ -27,33 +31,30 @@ class MeasurementExpressionBase(ABC):
     def __invert__(self):
         return MeasurementUnaryExpression(self, operator.__invert__)
 
-    @property
-    def keys(self):
-        return self._keys
-
+    @abstractmethod
     def evaluate(self, results):
-        values = tuple(results[key] for key in self.keys)
-        return self._matrix[values].astype(int)
-
-    @property
-    def matrix(self):
-        return self._matrix
-
-    @property
-    def ndim(self):
-        return self._matrix.ndim
+        raise NotImplementedError()
 
 
 class MeasurementRef(MeasurementExpressionBase):
     def __init__(self, name, invert=False):
-        values = np.array([False, True])
-        if invert:
-            values = ~values
-        super().__init__([name], values)
+        super().__init__([name])
         self._name = name
+        self._inverted = invert
 
     def inverted(self):
-        self._matrix = np.array([True, False])
+        self._inverted = True
+
+    @property
+    def name(self):
+        return self._name
+
+    def evaluate(self, results):
+        key = self._name
+        values = results[key].astype(bool)
+        if self._inverted:
+            values = ~values
+        return values.astype(int)
 
     def __str__(self):
         return self._name
@@ -63,9 +64,14 @@ class MeasurementRef(MeasurementExpressionBase):
 
 class MeasurementUnaryExpression(MeasurementExpressionBase):
     def __init__(self, a, op):
-        super().__init__(a.keys, op(a.matrix))
+        super().__init__(a.keys)
         self._a = a
         self._op = op
+
+    def evaluate(self, results):
+        values = self._a.evaluate(results).astype(bool)
+        values = self._op(values)
+        return values.astype(int)
 
     def __str__(self):
         return f'{oper2str[self._op]}({self._a})'
@@ -75,14 +81,16 @@ class MeasurementUnaryExpression(MeasurementExpressionBase):
 
 class MeasurementBinaryExpression(MeasurementExpressionBase):
     def __init__(self, lhs, rhs, op):
-        new_axis = tuple(lhs.matrix.ndim + i for i in range(rhs.matrix.ndim))
-        super().__init__(
-                lhs.keys + rhs.keys,
-                op(np.expand_dims(lhs.matrix, axis=new_axis), rhs.matrix)
-                )
+        super().__init__(lhs.keys | rhs.keys)
         self._lhs = lhs
         self._rhs = rhs
         self._op = op
+
+    def evaluate(self, results):
+        values_lhs = self._lhs.evaluate(results).astype(bool)
+        values_rhs = self._rhs.evaluate(results).astype(bool)
+        values = self._op(values_lhs, values_rhs)
+        return values.astype(int)
 
     def __str__(self):
         return f'({self._lhs}) {oper2str[self._op]} ({self._rhs})'
@@ -92,12 +100,11 @@ class MeasurementBinaryExpression(MeasurementExpressionBase):
 
 
 if __name__ == '__main__':
-    def show(text, expr):
-        print(f'{text}: {expr}')
-        print(expr.matrix.astype(int))
-        for i in range(2**expr.ndim):
-            results = {f'm{j+1}':(i>>j)&1 for j in range(expr.ndim)}
-            print(f'{i:0{expr.ndim}b}: {expr.evaluate(results)} {results}')
+    def show(text, expr, nmeasurements):
+        print(f'{text}: {expr} ({expr.keys})')
+        for i in range(2**nmeasurements):
+            results = {f'm{j+1}':np.array([(i>>j)&1]) for j in range(nmeasurements)}
+            print(f'{i:0{nmeasurements}b}: {expr.evaluate(results)}')
 
 
     m1 = MeasurementRef('m1')
@@ -105,11 +112,11 @@ if __name__ == '__main__':
     m3 = MeasurementRef('m3')
     m4 = MeasurementRef('m4')
 
-    show('m1 ^ m2', m1 ^ m2)
-    show('m1 & m2', m1 & m2)
-    show('~(m1 & m2)', ~(m1 & m2))
-    show('~(m1 & m2) | m3', ~(m1 & m2) | m3)
-    show('m1 ^ m2 ^ m3 & m3', (m1 ^ m2) & m2 ^ m3)
+    show('m1 ^ m2', m1 ^ m2, 2)
+    show('m1 & m2', m1 & m2, 2)
+    show('~(m1 & m2)', ~(m1 & m2), 2)
+    show('~(m1 & m2) | m3', ~(m1 & m2) | m3, 3)
+    show('(m1 ^ m2) & m2 ^ m3', (m1 ^ m2) & m2 ^ m3, 3)
 
     mm = m1 & m2
     res = {

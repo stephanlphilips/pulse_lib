@@ -36,7 +36,7 @@ class segment_measurements:
         if ref is None:
             name = f'<unnamed> {channel},{index}'
         else:
-            name = ref.keys[0]
+            name = ref.name
         self._measurements.append(measurement_acquisition(name, accept_if, channel, index, has_threshold, ref))
 
     def add_expression(self, expression:MeasurementExpressionBase, accept_if=None, name:str=None):
