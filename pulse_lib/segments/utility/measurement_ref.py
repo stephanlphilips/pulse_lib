@@ -99,7 +99,36 @@ class MeasurementBinaryExpression(MeasurementExpressionBase):
         return f'({self._lhs}) {oper2str[self._op]} ({self._rhs})'
 
 
+class MeasurementMajority(MeasurementExpressionBase):
+    def __init__(self, measurements, threshold=0.5):
+        self._measurements = measurements
+        self._threshold = threshold
+
+    def evaluate(self, results):
+        count = None
+        for m in self._measurements:
+            value = m.evaluate(results).astype(int)
+            if count is None:
+                count = value
+            else:
+                count += value
+        values = count > (self._threshold * len(self._measurements))
+        return values.astype(int)
+
+    def __str__(self):
+        return f'majority({self._measurements})'
+
+    def __repr__(self):
+        return f'majority({self._measurements})'
+
+
 if __name__ == '__main__':
+    def generate_resultset(nmeasurements):
+        results = {}
+        for m in range(nmeasurements):
+            results[f'm{m+1}'] = np.array([(i>>m)&1 for i in range(2**nmeasurements)])
+        return results
+
     def show(text, expr, nmeasurements):
         print(f'{text}: {expr} ({expr.keys})')
         for i in range(2**nmeasurements):
@@ -140,19 +169,15 @@ if __name__ == '__main__':
     print(2*read1.evaluate(res) + read2.evaluate(res))
 
     print()
-    res = {
-        'm0': np.array([0,0,0,0,1,1,1,1]),
-        'm1': np.array([0,0,1,1,0,0,1,1]),
-        'm2': np.array([0,1,0,1,0,1,0,1])
-        }
+    res = generate_resultset(3)
 
-    m0 = MeasurementRef('m0')
     m1 = MeasurementRef('m1')
     m2 = MeasurementRef('m2')
-    r_0 = m0 & m1 & m2
-    r_1 = ~m0 & m1 & m2
-    r_2 = m0 & ~m1 & m2
-    r_3 = m0 & m1 & ~m2
+    m3 = MeasurementRef('m3')
+    r_0 = m1 & m2 & m3
+    r_1 = ~m1 & m2 & m3
+    r_2 = m1 & ~m2 & m3
+    r_3 = m1 & m2 & ~m3
 
     print('r0')
     print(r_0.evaluate(res))
@@ -168,6 +193,14 @@ if __name__ == '__main__':
     print(qnd)
     print(qnd.evaluate(res))
 
+    m4 = MeasurementRef('m4')
+    m5 = MeasurementRef('m5')
+    res = generate_resultset(5)
+
+    print('majority')
+    maj = MeasurementMajority([m1, m2, m3, m4, m5])
+    print(maj)
+    print(maj.evaluate(res))
 
 # np.array2string(read1.matrix.astype(int)).replace('\n','')
 # str(read1.matrix.astype(int)).replace('\n','')

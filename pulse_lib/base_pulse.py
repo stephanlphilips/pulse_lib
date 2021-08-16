@@ -360,7 +360,12 @@ class pulselib:
         Args:
             hardware (harware_parent) : harware class.
         '''
-        if isinstance(hardware, hw_cls):
+        try:
+            new_hardware_class = isinstance(hardware, hw_cls)
+        except:
+           new_hardware_class = False
+
+        if new_hardware_class:
             for virtual_gate_set in hardware.virtual_gates:
                 vgcs = {vgc.name:vgc for vgc in self.virtual_channels}
                 if virtual_gate_set.name in vgcs:
