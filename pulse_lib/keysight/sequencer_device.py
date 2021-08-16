@@ -1,13 +1,13 @@
 import numpy as np
 from dataclasses import dataclass, field
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 @dataclass
 class SequencerInfo:
     module_name: str
     sequencer_index: int
     channel_name: str # awg_channel or qubit_channel
-    frequency: float
+    frequency: Optional[float]
     phases: List[float]
 
 # TODO @@@ split into generic Sequencer and implementation specific.
@@ -62,7 +62,7 @@ class SequencerDevice:
         if self.sequencers[channel_number] is not None:
             raise Exception(f'sequencer cannot have multiple BB channels on same output')
         phases = [90,0] if channel_number % 2 == 1 else [0,90]
-        sequencer = SequencerInfo(self.name, channel_number, channel_name, 0, phases)
+        sequencer = SequencerInfo(self.name, channel_number, channel_name, None, phases)
         self.sequencers[channel_number] = sequencer
         return sequencer
 
@@ -113,7 +113,7 @@ def add_sequencers(obj, AWGs, awg_channels, IQ_channels):
             if seq_info is None:
                 continue
             seq = awg.get_sequencer(i+1)
-            if seq_info.frequency == 0:
+            if seq_info.frequency is None:
                 seq.set_baseband(True)
             else:
                 seq.configure_oscillators(seq_info.frequency, seq_info.phases[0], seq_info.phases[1])
