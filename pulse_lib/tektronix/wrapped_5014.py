@@ -128,7 +128,7 @@ class Wrapped5014:
         for channel in self._marker_channels.values():
             if channel.module_name == awg.name:
                 if channel.amplitude > 2700 or channel.amplitude < -900:
-                    raise ValueError(f'marker amplitude ({channel.amplitude}) out of range [-900, 1700] mV')
+                    raise ValueError(f'marker amplitude ({channel.amplitude}) out of range [-900, 2700] mV')
                 if isinstance(channel.channel_number, tuple):
                     channel_number = channel.channel_number[0]
                     marker_number = channel.channel_number[1]
