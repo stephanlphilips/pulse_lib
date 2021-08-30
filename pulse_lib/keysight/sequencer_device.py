@@ -9,8 +9,9 @@ class SequencerInfo:
     channel_name: str # awg_channel or qubit_channel
     frequency: Optional[float]
     phases: List[float]
+    channel_numbers: List[int]
 
-# TODO @@@ split into generic Sequencer and implementation specific.
+# TODO @@@ retrieve sequencer configuration from M3202A_QS object
 @dataclass
 class SequencerDevice:
     awg: object
@@ -40,7 +41,7 @@ class SequencerDevice:
                 phases.reverse()
             f = qubit_channel.reference_frequency - IQ_channel.LO
             sequencer = SequencerInfo(self.name, sequencer_numbers[i],
-                                      qubit_channel.channel_name, f, phases)
+                                      qubit_channel.channel_name, f, phases, channel_numbers)
             self.sequencers[sequencer_numbers[i]-1] = sequencer
             sequencers.append(sequencer)
         return sequencers
@@ -62,7 +63,7 @@ class SequencerDevice:
         if self.sequencers[channel_number] is not None:
             raise Exception(f'sequencer cannot have multiple BB channels on same output')
         phases = [90,0] if channel_number % 2 == 1 else [0,90]
-        sequencer = SequencerInfo(self.name, channel_number, channel_name, None, phases)
+        sequencer = SequencerInfo(self.name, channel_number, channel_name, None, phases, [channel_number])
         self.sequencers[channel_number] = sequencer
         return sequencer
 
@@ -114,7 +115,9 @@ def add_sequencers(obj, AWGs, awg_channels, IQ_channels):
                 continue
             seq = awg.get_sequencer(i+1)
             if seq_info.frequency is None:
-                seq.set_baseband(True)
+                # sequencer output is A for channels 1 and 3 and B for 2 and 4
+                output = 'BA'[seq_info.channel_numbers[0] % 2]
+                seq.set_baseband(output)
             else:
                 seq.configure_oscillators(seq_info.frequency, seq_info.phases[0], seq_info.phases[1])
 
