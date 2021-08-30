@@ -1,5 +1,6 @@
 import copy
 from .segments.segment_measurements import measurement_acquisition
+from .segments.conditional_segment import conditional_segment
 
 class measurements_description:
     def __init__(self, digitizer_channels):
@@ -10,6 +11,10 @@ class measurements_description:
         self.end_times = {}
 
     def add_segment(self, segment, seg_start_times):
+        if isinstance(segment, conditional_segment):
+            # Currently conditional branches must all have the same measurement.
+            # use 1st branch of conditional segment.
+            segment = segment.branches[0]
         for measurement in segment.measurements:
             if isinstance(measurement, measurement_acquisition):
                 m = copy.copy(measurement)
