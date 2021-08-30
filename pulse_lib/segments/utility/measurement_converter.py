@@ -138,13 +138,15 @@ class measurement_converter:
         digitizer_channels = self._description.digitizer_channels
 
         # TODO @@@ works only for 1 digitzer
+        # FIX @@@ this numbering assumes that the channels in the pulselib configuration is equal to
+        #         the active channels of the digitizer. Unfortunately, this doesn't have to be true.
         # get digitizer parameter result numbering
         output_channels = []
         for channel in digitizer_channels.values():
             acquisitions = self._description.acquisitions[channel.name][index]
-            if len(acquisitions.data) > 0:
-                output_channels += channel.channel_numbers
+            output_channels += channel.channel_numbers
         output_channels.sort()
+
 
         # set raw values
         self._channel_raw = {}
