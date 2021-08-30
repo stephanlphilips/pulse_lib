@@ -63,11 +63,11 @@ class conditional_segment:
 
     @property
     def measurements(self):
-        return self._segment_measurements.measurements
+        return self.branches[0].measurements
 
     @property
     def acquisitions(self):
-        return {}
+        return self.branches[0].acquisitions
 
     @property
     def shape(self):
