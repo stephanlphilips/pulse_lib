@@ -919,7 +919,7 @@ class UploadAggregator:
             pm_envelope = mw_pulse_data.envelope.get_PM_envelope(duration, 1.0)
 # @@@ restore_frequency adds 1 sample (without post_phase)
 # @@@ post_phase adds 2 samples
-# @@@@@ pm_envelope also add 1 sample if last sample != 0
+# @@@ pm_envelope also adds 2 samples if last pm_envelope value != 0
 # sample of restore_frequency and last sample of post_phase can be overwritten by next pulse without consequences.
         waveform = Waveform('', mw_pulse_data.amplitude, amp_envelope,
                             mw_pulse_data.frequency - lo_freq, pm_envelope,
@@ -985,7 +985,7 @@ class UploadAggregator:
                             entry.time_after = wait_i
                             entry = SequenceEntry()
                             sequence.append(entry)
-                        
+
                         if isinstance(mw_entry, IQ_data_single):
                             wvf = self._render_waveform(mw_entry, lo_freq, offset)
                             entry.waveform_index = self._get_waveform_index(waveforms, wvf)
