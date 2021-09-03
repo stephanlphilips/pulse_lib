@@ -181,15 +181,15 @@ class MockM3202A_fpga(MockM3202A):
         self.marker_table = []
         self._marker_amplitude = marker_amplitude
 
+    def configure_marker_output(self, invert: bool = False):
+        pass
+
     def load_marker_table(self, table:List[Tuple[int,int]]):
         '''
         Args:
             table: list with tuples (time on, time off)
         '''
         self.marker_table = table.copy()
-
-    def config_fpga_trigger(self, source, direction, polarity):
-        pass
 
     def plot_marker(self):
         if len(self.marker_table) > 0:

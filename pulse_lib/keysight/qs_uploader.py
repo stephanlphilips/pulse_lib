@@ -12,8 +12,6 @@ from pulse_lib.tests.mock_m3202a_qs import AwgInstruction, AwgConditionalInstruc
 from pulse_lib.tests.mock_m3102a_qs import DigitizerInstruction
 from pulse_lib.segments.utility.rounding import iround
 
-from keysightSD1 import SD_TriggerExternalSources, SD_FpgaTriggerDirection, SD_TriggerPolarity
-
 
 class AwgConfig:
     MAX_AMPLITUDE = 1500 # mV
@@ -52,11 +50,7 @@ class QsUploader:
             awg_name = channel.module_name
             awg = self.AWGs[awg_name]
             if channel.channel_number == 0:
-                awg.config_fpga_trigger(
-                        SD_TriggerExternalSources.TRIGGER_EXTERN,
-                        SD_FpgaTriggerDirection.INOUT,
-                        SD_TriggerPolarity.ACTIVE_HIGH if not channel.invert else SD_TriggerPolarity.ACTIVE_LOW
-                        )
+                awg.configure_marker_output(invert=channel.invert)
             else:
                 offset = 0
                 amplitude = channel.amplitude/1000

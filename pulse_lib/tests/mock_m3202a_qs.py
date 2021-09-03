@@ -217,8 +217,7 @@ class MockM3202A_QS(MockM3202A):
             seq.describe()
         print('Markers:', self.marker_table)
 
-
-    def config_fpga_trigger(self, source, direction, polarity):
+    def configure_marker_output(self, invert: bool = False):
         pass
 
     def load_marker_table(self, table:List[Tuple[int,int]]):
