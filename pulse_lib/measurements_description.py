@@ -1,4 +1,5 @@
 import copy
+import numpy as np
 from .segments.segment_measurements import measurement_acquisition
 from .segments.conditional_segment import conditional_segment
 
@@ -21,12 +22,12 @@ class measurements_description:
                 acquisition_count = self.acquisition_count.setdefault(m.acquisition_channel, 0)
                 m.index += acquisition_count
 
-                times = seg_start_times.flatten()
                 acq_channel = segment[m.acquisition_channel]
-                for i in range(len(times)):
-                    acq_data = acq_channel.pulse_data_all.flat[i].data[measurement.index]
-                    times[i] += acq_data.start + acq_data.t_measure
-                self.end_times[m.name] = times.reshape(seg_start_times.shape)
+                end_times = seg_start_times.copy()
+                for index in np.ndindex(seg_start_times.shape):
+                    acq_data = acq_channel._get_data_all_at(index).data[measurement.index]
+                    end_times[index] += acq_data.start + acq_data.t_measure
+                self.end_times[m.name] = end_times
             else:
                 m = measurement
             self.measurements.append(m)
