@@ -10,26 +10,6 @@ from pulse_lib.configuration.devices import awg_slave
 
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 
-try:
-    from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
-    M3202A_loaded = True
-except (ImportError, OSError):
-    logging.info('Import of Keysight M3202A uploader failed', exc_info=True)
-    M3202A_loaded = False
-
-try:
-    from pulse_lib.tektronix.tektronix5014_uploader import Tektronix5014_Uploader
-    Tektronix_loaded = True
-except ImportError:
-    logging.info('Import of Tektronix uploader failed', exc_info=True)
-    Tektronix_loaded = False
-
-try:
-    from pulse_lib.keysight.qs_uploader import QsUploader
-    KeysightQS_loaded = True
-except ImportError:
-    logging.info('Import of KeysightQS uploader failed', exc_info=True)
-    KeysightQS_loaded = False
 
 try:
     from core_tools.drivers.hardware.hardware import hardware as hw_cls
@@ -42,7 +22,7 @@ class pulselib:
     The idea is that you first make individual segments,
     you can than later combine them into a sequence, this sequence will be uploaded
     '''
-    def __init__(self, backend = "M3202A"):
+    def __init__(self, backend = "Keysight"):
         self.awg_devices = dict()
         self.digitizers = dict()
         self.awg_channels = dict()
@@ -51,7 +31,8 @@ class pulselib:
         self.virtual_channels = []
         self.qubit_channels = dict()
         self.IQ_channels = dict()
-        # Tektronix feature
+
+        # Tektronix features
         self.digitizer_markers = dict()
         self.awg_sync = dict()
 
@@ -272,36 +253,52 @@ class pulselib:
     def set_qubit_idle_frequency(self, qubit_channel_name, idle_frequency):
         self.qubit_channels[qubit_channel_name].reference_frequency = idle_frequency
 
+    def _create_M3202A_uploader(self):
+        try:
+            from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
+        except (ImportError, OSError):
+            logging.error('Import of Keysight M3202A uploader failed', exc_info=True)
+            raise
+
+        self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels,
+                                        self.marker_channels, self.qubit_channels,
+                                        self.digitizer_channels)
+
+    def _create_Tektronix5014_uploader(self):
+        try:
+            from pulse_lib.tektronix.tektronix5014_uploader import Tektronix5014_Uploader
+        except ImportError:
+            logging.error('Import of Tektronix uploader failed', exc_info=True)
+            raise
+
+        self.uploader = Tektronix5014_Uploader(self.awg_devices, self.awg_channels,
+                                               self.marker_channels, self.digitizer_markers,
+                                               self.qubit_channels, self.digitizer_channels, self.awg_sync)
+    def _create_KeysightQS_uploader(self):
+        try:
+            from pulse_lib.keysight.qs_uploader import QsUploader
+        except ImportError:
+            logging.error('Import of KeysightQS uploader failed', exc_info=True)
+            raise
+
+        self.uploader = QsUploader(self.awg_devices, self.awg_channels,
+                                   self.marker_channels,
+                                   self.IQ_channels, self.qubit_channels,
+                                   self.digitizers, self.digitizer_channels)
+
     def finish_init(self):
-        # function that finishes the initialisation
-
-        if self._backend == "keysight":
-            raise Exception('Old keysight driver is not supported anymore. Use M3202A driver and backend="M3202A"')
-
-        elif self._backend == "M3202A":
-            if not M3202A_loaded:
-                raise Exception('M3202A_Uploader import failed')
-            self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels,
-                                            self.marker_channels, self.qubit_channels,
-                                            self.digitizer_channels)
+        if self._backend in ["Keysight", "M3202A"]:
+            self._create_M3202A_uploader()
 
         elif self._backend == "Tektronix5014":
-            if not Tektronix_loaded:
-                raise Exception('Tektronix5014_Uploader import failed')
-            self.uploader = Tektronix5014_Uploader(self.awg_devices, self.awg_channels,
-                                                   self.marker_channels, self.digitizer_markers,
-                                                   self.qubit_channels, self.digitizer_channels, self.awg_sync)
+            self._create_Tektronix5014_uploader()
 
         elif self._backend == "Keysight_QS":
-            if not KeysightQS_loaded:
-                raise Exception('QsUploader import failed')
-            self.uploader = QsUploader(self.awg_devices, self.awg_channels,
-                                       self.marker_channels,
-                                       self.IQ_channels, self.qubit_channels,
-                                       self.digitizers, self.digitizer_channels)
+            self._create_KeysightQS_uploader()
 
         elif self._backend in ["Demo", "None", None]:
             logging.info('No backend defined')
+            TODO('define demo backend')
         else:
             raise Exception(f'Unknown backend: {self._backend}')
 
@@ -322,6 +319,7 @@ class pulselib:
         '''
         seq_obj = sequencer(self.uploader, self.digitizer_channels)
         seq_obj.add_sequence(seq)
+        # TODO move to sequencer class
         seq_obj.metadata = {}
         for (i,pc) in enumerate(seq):
             md = pc.get_metadata()
