@@ -157,7 +157,7 @@ class segment_pulse(segment_base):
                 n_points = int(round(duration / sample_rate * 1e9))
                 return signal.windows.tukey(n_points, alpha) * amplitude
 
-            seg.add_custom_pulse(0, 10, 142.0, tukey_pulse, alpha=0.5)
+            seg.P1.add_custom_pulse(0, 10, 142.0, tukey_pulse, alpha=0.5)
 
         """
         pulse_data = custom_pulse_element(start + self.data_tmp.start_time, stop + self.data_tmp.start_time,
