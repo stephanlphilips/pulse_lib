@@ -107,7 +107,6 @@ class sequence_builder:
             segment = cond_seg.branches[i]
             # note: building on segment, not on sequence_builder !!
             template.build(segment, reset=False, **kwargs)
-        print('adding', cond_seg)
         self._segments.append(cond_seg)
 
     def wait(self, channels, t, amplitudes, reset_time=True):
