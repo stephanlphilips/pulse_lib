@@ -202,6 +202,9 @@ class marker_data(parent_data):
 
         return my_sequence[:-1]
 
+    def get_metadata(self, name):
+        # TODO: add all pulses ??
+        return {}
 
 def slice_out_marker_single(start, stop, start_stop_pulse):
     """
