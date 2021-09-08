@@ -106,7 +106,7 @@ class segment_container():
             new._IQ_channel_objs = self._IQ_channel_objs
 
             new.channels = self.channels
-            
+
             self.extend_dim(self.shape)
 
             for chan_name in self.channels:
@@ -486,39 +486,7 @@ class segment_container():
         metadata = {}
         metadata['_total_time'] = self.total_time
         for ch in self.channels:
-            try:
-                data = getattr(self,ch).data_tmp.baseband_pulse_data.localdata
-                bb_d = {}
-                j = 0
-                for d in data:
-                    if not (d['stop'] - d['start'] < 1 or (d['v_start'] == 0 and d['v_stop'] == 0)):
-                        if (not bb_d) and d['start'] > 0:
-                            d0 = {'start': 0, 'stop': d['start'], 'v_start': 0, 'v_stop': 0, 'index_start': 0, 'index_stop': 0}
-                            bb_d['p0'] = d0
-                            j += 1
-                        bb_d[('p%i' %j)] = d
-                        j += 1
-                if bb_d:
-                    metadata[ch+'_baseband'] = bb_d
-            except:
-                pass
-            try:
-                pulsedata = getattr(self,ch).data_tmp.MW_pulse_data
-                if pulsedata:
-                    all_pulse = {}
-                    for (i,pulse) in enumerate(pulsedata):
-                        pd = {}
-                        pd['start'] = pulse.start
-                        pd['stop'] = pulse.stop
-                        pd['amplitude'] = pulse.amplitude
-                        pd['frequency'] = pulse.frequency
-                        pd['start_phase'] = pulse.start_phase
-                        pd['AM_envelope'] = pulse.envelope.AM_envelope_function.__repr__()
-                        pd['PM_envelope'] = pulse.envelope.PM_envelope_function.__repr__()
-                        all_pulse[('p%i' %i)] = pd
-                    metadata[ch+'_pulses'] = all_pulse
-            except:
-                pass
+            metadata.update(self[ch].get_metadata())
         return metadata
 
 @dataclass

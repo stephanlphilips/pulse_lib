@@ -398,7 +398,6 @@ class segment_base():
             render full (bool) : do full render (e.g. also get data form virtual channels). Put True if you want to see the waveshape send to the AWG.
             sample_rate (float): standard 1 Gs/s
         '''
-
         if render_full == True:
             pulse_data_curr_seg = self._get_data_all_at(index)
         else:
@@ -429,3 +428,6 @@ class segment_base():
 
         return self._last_edit
 
+    def get_metadata(self):
+        # Uses highest index of sequencer array (data_tmp)
+        return self.data_tmp.get_metadata(self.name)

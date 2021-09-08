@@ -281,3 +281,5 @@ class segment_acquisition():
         plt.legend()
         # plt.show()
 
+    def get_metadata(self):
+        return self.data_tmp.get_metadata(self.name)

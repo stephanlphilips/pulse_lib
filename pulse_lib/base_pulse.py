@@ -319,17 +319,6 @@ class pulselib:
         '''
         seq_obj = sequencer(self.uploader, self.digitizer_channels)
         seq_obj.add_sequence(seq)
-        # TODO move to sequencer class
-        seq_obj.metadata = {}
-        for (i,pc) in enumerate(seq):
-            md = pc.get_metadata()
-            seq_obj.metadata[('pc%i'%i)] = md
-        LOdict = {}
-        for iq in self.IQ_channels.values():
-            for vm in iq.qubit_channels:
-                name = vm.channel_name
-                LOdict[name] = iq.LO
-        seq_obj.metadata['LOs'] = LOdict
         return seq_obj
 
     def release_awg_memory(self, wait_idle=True):

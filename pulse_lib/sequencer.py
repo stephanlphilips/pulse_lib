@@ -189,6 +189,21 @@ class sequencer():
             self.params.append(set_param)
             setattr(self, par_name, set_param)
 
+        self._create_metadata()
+
+    def _create_metadata(self):
+        self.metadata = {}
+        for (i,pc) in enumerate(self.sequence):
+            md = pc.get_metadata()
+            self.metadata[('pc%i'%i)] = md
+        LOdict = {}
+        for iq in self.sequence[0]._IQ_channel_objs.values():
+            for vm in iq.qubit_channels:
+                name = vm.channel_name
+                LOdict[name] = iq.LO
+        self.metadata['LOs'] = LOdict
+
+
     def _check_conditional(self, conditional:conditional_segment, total_time):
 
         if not getattr(self.uploader, 'supports_conditionals', False):
