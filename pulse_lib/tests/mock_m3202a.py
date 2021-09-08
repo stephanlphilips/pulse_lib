@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import List, Tuple
 
 import numpy as np
+import scipy.signal as signal
 import matplotlib.pyplot as pt
 
 from qcodes.instrument.base import Instrument
@@ -133,10 +134,10 @@ class MockM3202A(Instrument):
                 continue
 
             wave_data = []
-            corr_data = []
-            corr_sum = 0
+            biased_data = []
             t = []
             t0 = 0
+            zi = [0]
             for d,p in zip(data, prescaler):
                 sr = MockM3202A.convert_prescaler_to_sample_rate(p)
                 if p == 0:
@@ -152,21 +153,21 @@ class MockM3202A(Instrument):
                 t.append(ts)
                 wave_data.append(wd)
                 if bias_T_rc_time:
-                    corr = np.cumsum(wd) / sr / bias_T_rc_time
-                    if p > 0:
-                        corr /= 2
-                    corr += corr_sum
-                    corr_sum = corr[-1]
-                    print(corr_sum)
-                    corr_data.append(corr)
+                    alpha = bias_T_rc_time / (bias_T_rc_time + 1/sr)
+                    a = [1.0, -alpha]
+                    b = [alpha, -alpha]
+                    biased,zi = signal.lfilter(b, a, d, zi=zi)
+                    if p:
+                        biased = np.repeat(biased,2)
+                    biased_data.append(biased)
 
             wave = np.concatenate(wave_data)
 
             t = np.concatenate(t)*1e9
             pt.plot(t, wave, label=f'{self.name}-{channel}')
             if bias_T_rc_time:
-                corr = np.concatenate(corr_data)
-                pt.plot(t, wave+corr, ':', label=f'{self.name}-{channel} COR')
+                biased = np.concatenate(biased_data)
+                pt.plot(t, biased, ':', label=f'{self.name}-{channel} bias-T')
 
 
 class MockM3202A_fpga(MockM3202A):
