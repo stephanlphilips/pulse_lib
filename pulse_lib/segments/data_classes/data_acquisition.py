@@ -185,7 +185,7 @@ class acquisition_data(parent_data):
             start = round_pt(acq.start, sample_time_step)
             stop = round_pt(acq.start + acq.t_measure, sample_time_step)
 
-            my_sequence[start:stop] = 30 + 10*np.sin(np.arange(stop-start)*(0.2*sample_rate/np.pi))
+            my_sequence[start:stop] = 100
 
         return my_sequence[:-1]
 
