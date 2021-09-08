@@ -569,7 +569,7 @@ class UploadAggregator:
         for seg in job.sequence:
             # work with sample rate in GSa/s
             sample_rate = (seg.sample_rate if seg.sample_rate is not None else job.default_sample_rate) * 1e-9
-            duration = seg.total_time[tuple(job.index)]
+            duration = seg.get_total_time(job.index)
             npt =  int((duration * sample_rate)+0.5)
             info = SegmentRenderInfo(sample_rate, t_start, npt)
             segments.append(info)

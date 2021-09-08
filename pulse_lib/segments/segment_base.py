@@ -3,15 +3,17 @@ File containing the parent class where all segment objects are derived from.
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, get_union_of_shapes, update_dimension, find_common_dimension
 from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
+from pulse_lib.segments.data_classes.data_generic import map_index
+
 from functools import wraps
 import copy
 
-import matplotlib.pyplot as plt
 
 
 def last_edited(f):
@@ -336,6 +338,9 @@ class segment_base():
         else:
             return self.pulse_data_all.total_time
 
+    def get_total_time(self, index):
+        return self.total_time[map_index(index, self.shape)]
+
     @property
     def start_time(self):
         if self.render_mode == False:
@@ -346,8 +351,7 @@ class segment_base():
     # ==== operations working on an index
 
     def _get_data_all_at(self, index):
-        index = self._mask_index(index)
-        return self.pulse_data_all[index]
+        return self.pulse_data_all[map_index(index, self.shape)]
 
     def get_segment(self, index, sample_rate=1e9, ref_channel_states=None):
         '''
@@ -391,15 +395,6 @@ class segment_base():
         '''
         return self._get_data_all_at(index).integrate_waveform(sample_rate)
 
-    def _mask_index(self, index):
-        shape = self.shape
-        result = list(index)
-        result = result[-len(shape):]
-        for i,n in enumerate(shape):
-            if n == 1:
-                result[i] = 0
-        return tuple(result)
-
     def plot_segment(self, index = [0], render_full = True, sample_rate = 1e9):
         '''
         Args:
@@ -410,8 +405,7 @@ class segment_base():
         if render_full == True:
             pulse_data_curr_seg = self._get_data_all_at(index)
         else:
-            index = self._mask_index(index)
-            pulse_data_curr_seg = self.data[index]
+            pulse_data_curr_seg = self.data[map_index(index, self.shape)]
 
         line = '-' if self.type == 'render' else ':'
         y = pulse_data_curr_seg.render(sample_rate)

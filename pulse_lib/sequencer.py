@@ -167,7 +167,8 @@ class sequencer():
         t_tot = np.zeros(self.shape)
 
         for seg_container in self.sequence:
-            seg_container.extend_dim(self._shape, ref=True)
+# Due to index masking it is not needed anymore to extend the dimensions of the segments.
+#            seg_container.extend_dim(self._shape, ref=True)
 
             # NOTE: the time shift applies only to HVI markers.
             #       A segment with HVI markers can only be added once to the sequence.
@@ -197,7 +198,7 @@ class sequencer():
             md = pc.get_metadata()
             self.metadata[('pc%i'%i)] = md
         LOdict = {}
-        for iq in self.sequence[0]._IQ_channel_objs.values():
+        for iq in self.sequence[0]._IQ_channel_objs:
             for vm in iq.qubit_channels:
                 name = vm.channel_name
                 LOdict[name] = iq.LO

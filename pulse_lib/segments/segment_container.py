@@ -13,13 +13,13 @@ from pulse_lib.segments.segment_measurements import segment_measurements
 import pulse_lib.segments.utility.looping as lp
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension, reduce_arr, upconvert_dimension
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
-import uuid
+from pulse_lib.segments.data_classes.data_generic import map_index
 
+import uuid
 import numpy as np
 import datetime
 import copy
 from dataclasses import dataclass
-
 
 class segment_container():
     '''
@@ -218,6 +218,9 @@ class segment_container():
             self._total_times = times
 
         return times
+
+    def get_total_time(self, index):
+        return self.total_time[map_index(index, self.shape)]
 
     @property
     def _start_time(self):

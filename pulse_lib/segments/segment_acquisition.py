@@ -11,6 +11,8 @@ from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.utility.measurement_ref import MeasurementRef
 from pulse_lib.segments.segment_measurements import segment_measurements
+from pulse_lib.segments.data_classes.data_generic import map_index
+
 import copy
 
 import matplotlib.pyplot as plt
@@ -244,6 +246,9 @@ class segment_acquisition():
         else:
             return self.pulse_data_all.total_time
 
+    def get_total_time(self, index):
+        return self.total_time[map_index(index, self.shape)]
+
     @property
     def start_time(self):
         if self.render_mode == False:
@@ -254,9 +259,7 @@ class segment_acquisition():
     # ==== operations working on an index
 
     def _get_data_all_at(self, index):
-        index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
-        return self.pulse_data_all.flat[index]
-
+        return self.pulse_data_all[map_index(index, self.shape)]
 
     def plot_segment(self, index = [0], render_full = True, sample_rate = 1e9):
         '''
@@ -269,8 +272,7 @@ class segment_acquisition():
         if render_full == True:
             pulse_data_curr_seg = self._get_data_all_at(index)
         else:
-            flat_index = np.ravel_multi_index(tuple(index), self.data.shape)
-            pulse_data_curr_seg = self.data.flat[flat_index]
+            pulse_data_curr_seg = self.data[map_index(index, self.shape)]
 
         y = pulse_data_curr_seg.render(sample_rate)
         x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))

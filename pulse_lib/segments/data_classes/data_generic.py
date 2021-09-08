@@ -141,9 +141,33 @@ class parent_data(ABC):
     def _get_cached_data_entry(self):
         return self.waveform_cache[self.id]
 
-    def get_metadata(self):
-        logging.warning(f'metadata not implemented for {type(self)}')
+    def get_metadata(self, name):
+        logging.warning(f'metadata not implemented for {name}')
         return {}
+
+
+def map_index(index, shape):
+    '''
+    Maps an index on a potentially smaller shape.
+
+    This works similar to the numpy broadcasting rules.
+    However, instead of creating a read-only array with broader shape it
+    reduces the index to get the element in the array.
+
+    Args:
+        index (tuple or list): index in array
+        shape (tuple): shape of the array
+
+    Returns:
+        (tuple) mapped index in an array of specified shape
+    '''
+    # TODO investigate numpy solution: np.broadcast_to using the broader shape.
+    result = list(index)
+    result = result[-len(shape):]
+    for i,n in enumerate(shape):
+        if n == 1:
+            result[i] = 0
+    return tuple(result)
 
 
 class data_container(np.ndarray):

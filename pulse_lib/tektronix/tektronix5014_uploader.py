@@ -340,7 +340,7 @@ class UploadAggregator:
             # work with sample rate in GSa/s
             if seg.sample_rate and seg.sample_rate != job.default_sample_rate:
                 raise Exception('multipe sample rates is not supported for Tektronix')
-            duration = seg.total_time[tuple(job.index)]
+            duration = seg.get_total_time(job.index)
             npt =  int(duration * sample_rate + 0.5)
             info = SegmentRenderInfo(sample_rate, t_start, npt)
             segments.append(info)
