@@ -373,7 +373,7 @@ class segment_container():
         else:
             self._software_markers._pulse_data_all = update_dimension(self._software_markers.pulse_data_all, shape, ref)
 
-    def add_block(self, start, stop, channels, amplitudes):
+    def add_block(self, start, stop, channels, amplitudes, reset_time=False):
         '''
         Adds a block to each of the specified channels.
         Args:
@@ -381,11 +381,14 @@ class segment_container():
            stop (float, loop_obj): stop of the block
            channels (List[str]): channels to apply the block to
            amplitudes (List[float, loop_obj]): amplitude per channel
+           reset_time (bool): reset time after adding pulses
         '''
         for channel, amplitude in zip(channels, amplitudes):
             self[channel].add_block(start, stop, amplitude)
+        if reset_time:
+            self.reset_time()
 
-    def add_ramp(self, start, stop, channels, start_amplitudes, stop_amplitudes):
+    def add_ramp(self, start, stop, channels, start_amplitudes, stop_amplitudes, reset_time=False):
         '''
         Adds a ramp to each of the specified channels.
         Args:
@@ -394,9 +397,12 @@ class segment_container():
            channels (List[str]): channels to apply the block to
            start_amplitudes (List[float, loop_obj]): start amplitude per channel
            stop_amplitudes (List[float, loop_obj]): stop amplitude per channel
+           reset_time (bool): reset time after adding pulses
         '''
         for channel, start_amp, stop_amp in zip(channels, start_amplitudes, stop_amplitudes):
             self[channel].add_ramp_ss(start, stop, start_amp, stop_amp)
+        if reset_time:
+            self.reset_time()
 
     def add_HVI_marker(self, marker_name, t_off = 0):
         '''
