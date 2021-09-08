@@ -189,6 +189,21 @@ class acquisition_data(parent_data):
 
         return my_sequence[:-1]
 
+    def get_metadata(self, name):
+        metadata = {}
+        acq_d = {}
+
+        for i,acq in enumerate(self.data):
+            acq_d[f'acq{i}'] = {
+                'start':acq.start,
+                't_measure':acq.t_measure,
+                }
+
+        if acq_d:
+            metadata[name+'_acq'] = acq_d
+
+        return metadata
+
 def round_pt(t, t_sample):
     return int(np.trunc(t / t_sample + 0.5))
 

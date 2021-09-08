@@ -2,6 +2,7 @@
 Generic data class where all others should be derived from.
 """
 import uuid
+import logging
 from abc import ABC, abstractmethod
 import numpy as np
 from pulse_lib.segments.data_classes.lru_cache import LruCache
@@ -139,6 +140,10 @@ class parent_data(ABC):
 
     def _get_cached_data_entry(self):
         return self.waveform_cache[self.id]
+
+    def get_metadata(self):
+        logging.warning(f'metadata not implemented for {type(self)}')
+        return {}
 
 
 class data_container(np.ndarray):

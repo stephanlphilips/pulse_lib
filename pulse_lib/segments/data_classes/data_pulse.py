@@ -742,15 +742,11 @@ class pulse_data(parent_data):
             if ref_channel_states and IQ_data_single_object.ref_channel in ref_channel_states.start_phase:
                 ref_start_time = ref_channel_states.start_time
                 ref_start_phase = ref_channel_states.start_phase[IQ_data_single_object.ref_channel]
+                phase_shift = 0
                 if IQ_data_single_object.ref_channel in phase_shifts_channels:
-                    phase_shifts = [
-                            ps.phase_shift
-                            for ps in phase_shifts_channels[IQ_data_single_object.ref_channel]
-                            if ps.time <= start_pulse
-                            ]
-                    phase_shift = sum(phase_shifts)
-                else:
-                    phase_shift = 0
+                    for ps in phase_shifts_channels[IQ_data_single_object.ref_channel]:
+                         if ps.time <= start_pulse:
+                             phase_shift += ps.phase_shift
             else:
                 ref_start_time = 0
                 ref_start_phase = 0
@@ -782,6 +778,56 @@ class pulse_data(parent_data):
 
         return self._merge_elements(elements)
 
+    def get_metadata(self, name):
+        metadata = {}
+
+        self._pre_process()
+
+        # TODO: add custom pulses
+
+        j = 0
+        bb_d = {}
+        for i in range(len(self._times)-1):
+            start = self._times[i]
+            stop = self._times[i+1]
+            v_start = self._amplitudes[i]
+            v_stop = self._amplitudes_end[i+1]
+            if stop == np.inf:
+                stop = self._end_time
+            if stop - start < 1 or (v_start == 0 and v_stop == 0):
+                continue
+            bb_d[f'p{j}'] = {
+                'start':start,
+                'stop':stop,
+                'v_start':v_start,
+                'v_stop':v_stop
+                }
+            j += 1
+
+        if bb_d:
+            metadata[name+'_baseband'] = bb_d
+
+        pulsedata = self.MW_pulse_data
+        all_pulse = {}
+        for (i,pulse) in enumerate(pulsedata):
+            phase_shift = 0
+            for ps in self.phase_shifts:
+                 if ps.time <= pulse.start:
+                     phase_shift += ps.phase_shift
+            pd = {}
+            pd['start'] = pulse.start
+            pd['stop'] = pulse.stop
+            pd['amplitude'] = pulse.amplitude
+            pd['frequency'] = pulse.frequency
+            pd['start_phase'] = pulse.start_phase + phase_shift
+            pd['AM_envelope'] = repr(pulse.envelope.AM_envelope_function)
+            pd['PM_envelope'] = repr(pulse.envelope.PM_envelope_function)
+            all_pulse[('p%i' %i)] = pd
+
+        if all_pulse:
+            metadata[name+'_pulses'] = all_pulse
+
+        return metadata
 
 if __name__ == '__main__':
     """
