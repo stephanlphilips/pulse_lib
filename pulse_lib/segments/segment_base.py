@@ -346,8 +346,8 @@ class segment_base():
     # ==== operations working on an index
 
     def _get_data_all_at(self, index):
-        index = np.ravel_multi_index(tuple(index), self.pulse_data_all.shape)
-        return self.pulse_data_all.flat[index]
+        index = self._mask_index(index)
+        return self.pulse_data_all[index]
 
     def get_segment(self, index, sample_rate=1e9, ref_channel_states=None):
         '''
@@ -391,6 +391,15 @@ class segment_base():
         '''
         return self._get_data_all_at(index).integrate_waveform(sample_rate)
 
+    def _mask_index(self, index):
+        shape = self.shape
+        result = list(index)
+        result = result[-len(shape):]
+        for i,n in enumerate(shape):
+            if n == 1:
+                result[i] = 0
+        return tuple(result)
+
     def plot_segment(self, index = [0], render_full = True, sample_rate = 1e9):
         '''
         Args:
@@ -401,18 +410,16 @@ class segment_base():
         if render_full == True:
             pulse_data_curr_seg = self._get_data_all_at(index)
         else:
-            flat_index = np.ravel_multi_index(tuple(index), self.data.shape)
-            pulse_data_curr_seg = self.data.flat[flat_index]
+            index = self._mask_index(index)
+            pulse_data_curr_seg = self.data[index]
 
-        # TODO @@@ determine render type
+        line = '-' if self.type == 'render' else ':'
         y = pulse_data_curr_seg.render(sample_rate)
         x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))
-        # print(x, y)
-        plt.plot(x,y, label=self.name)
+        plt.plot(x, y, line, label=self.name)
         plt.xlabel("time (ns)")
         plt.ylabel("amplitude (mV)")
         plt.legend()
-        # plt.show()
 
     @property
     def last_edit(self):

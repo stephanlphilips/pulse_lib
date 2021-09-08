@@ -274,12 +274,11 @@ class segment_acquisition():
 
         y = pulse_data_curr_seg.render(sample_rate)
         x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))
-        # print(x, y)
-        plt.plot(x,y, label=self.name)
+        # plot with dashed line
+        plt.plot(x, y, '--', label=self.name)
         plt.xlabel("time (ns)")
         plt.ylabel("amplitude (mV)")
         plt.legend()
-        # plt.show()
 
     def get_metadata(self):
         return self.data_tmp.get_metadata(self.name)

@@ -470,20 +470,28 @@ class segment_container():
             getattr(self, i).render_mode =  False
             getattr(self, i)._pulse_data_all = None
 
-    def plot(self, index=(0,), channels=None, sample_rate=1e9):
+    def plot(self, index=(0,), channels=None, sample_rate=1e9, render_full=True):
         '''
         Plots selected channels.
         Args:
             index (tuple): loop index
             channels (list[str]): channels to plot, if None plot all channels.
             sample_rate (float): sample rate to use in rendering.
+            render full (bool) : do full render (e.g. also add data form virtual channels).
         '''
-        if channels is None:
-            channels = self.channels
-        self.enter_rendering_mode()
-        for channel in channels:
-            self[channel].plot_segment(index, sample_rate=sample_rate)
-        self.exit_rendering_mode()
+        if render_full:
+            if channels is None:
+                channels = [name for name in self.channels if self[name].type == 'render']
+            self.enter_rendering_mode()
+            for channel_name in channels:
+                self[channel_name].plot_segment(index, sample_rate=sample_rate, render_full=render_full)
+            self.exit_rendering_mode()
+
+        else:
+            if channels is None:
+                channels = self.channels
+            for channel_name in channels:
+                self[channel_name].plot_segment(index, sample_rate=sample_rate, render_full=render_full)
 
     def get_metadata(self):
         '''
