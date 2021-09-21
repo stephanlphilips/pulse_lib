@@ -1,114 +1,74 @@
 import numpy as np
-import logging
-from pprint import pprint
 import matplotlib.pyplot as pt
 
-import qcodes
-import qcodes.logger as logger
-from qcodes.logger import start_all_logging
-
-from pulse_lib.base_pulse import pulselib
-from pulse_lib.tests.mock_m3202a import MockM3202A
 from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
 
-from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
+from configuration.small import init_hardware, init_pulselib
+
+from utils.plot import plot_awgs
 
 
-start_all_logging()
-logger.get_file_handler().setLevel(logging.DEBUG)
+def create_2D_scan(pulse_lib, gate1, sweep1_mv, gate2, sweep2_mv, n_steps, t_measure,
+                   bias_T_corr=False):
 
-
-try:
-    qcodes.Instrument.close_all()
-except: pass
-
-
-def set_channel_props(pulse, channel_name, compensation_limits=(0,0), attenuation=1.0, delay=0):
-    pulse.add_channel_compensation_limit(channel_name, compensation_limits)
-    pulse.awg_channels[channel_name].attenuation = attenuation
-    pulse.add_channel_delay(channel_name, delay)
-
-
-
-def init_pulselib(awg1):
-    p = pulselib()
-    p.add_awg(awg1)
-
-    p.define_channel('P1', awg1.name, 1)
-    p.define_channel('P2', awg1.name, 2)
-    p.define_channel('P3', awg1.name, 3)
-    p.define_channel('P4', awg1.name, 4)
-
-    set_channel_props(p, 'P1', compensation_limits=(-100,100), attenuation=1.0, delay=0)
-    set_channel_props(p, 'P2', compensation_limits=(-50,50), attenuation=1.0, delay=0)
-    set_channel_props(p, 'P3', compensation_limits=(-80,80), attenuation=0.5, delay=0)
-
-    p.finish_init()
-
-    # add virtual channels.
-    virtual_gate_set_1 = virtual_gates_constructor(p)
-    virtual_gate_set_1.add_real_gates('P1','P2','P3','P4')
-    virtual_gate_set_1.add_virtual_gates('vP1','vP2','vP3','vP4')
-    # Virtual matrix with 1.0 on diagonal and 0.1 elsewhere
-    virtual_gate_set_1.add_virtual_gate_matrix(0.9*np.eye(4) + 0.1)
-
-    return p
-
-
-def create_seq(pulse_lib):
-
-    n = 8
-    t_measure = 10
-    v1 = 100
-    v2 = 50
 
     seg = pulse_lib.mk_segment()
-    p1 = seg.P1
-    p2 = seg.P2
+    p1 = seg[gate1]
+    p2 = seg[gate2]
 
-    for i in range(n):
-        p1.add_ramp_ss(0, n*t_measure, -v1, v1)
+    t_sweep = n_steps*t_measure*1000
+
+    for i in range(n_steps):
+        p1.add_ramp_ss(0, t_sweep, -sweep1_mv, sweep1_mv)
         p1.reset_time()
 
-    for v_step in np.linspace(-v2, v2, n):
-        p2.add_block(0, n*t_measure, v_step)
+    v_steps = np.linspace(-sweep2_mv, sweep2_mv, n_steps)
+    if bias_T_corr:
+        v2 = np.zeros((n_steps))
+        mid = (n_steps+1)//2
+        v2[::2] = v_steps[:mid]
+        v2[1::2] = v_steps[mid:][::-1]
+    else:
+        v2 = v_steps
+
+    for v_step in v2:
+        p2.add_block(0, t_sweep, v_step)
         p2.reset_time()
 
     # generate the sequence from segments
     my_seq = pulse_lib.mk_sequence([seg])
     my_seq.set_hw_schedule(HardwareScheduleMock())
     my_seq.n_rep = 1
-    my_seq.sample_rate = 1e9
+    # 2 points per voltage step
+    my_seq.sample_rate = 2 / (t_measure * 1e-6)
 
     return my_seq
 
-def plot(seq, job, awgs):
-#    uploader = seq.uploader
-    print(f'sequence: {seq.shape}')
-    print(f'job index:{job.index}, sequences:{len(job.sequence)}')
-    print(f'  sample_rate:{job.default_sample_rate} playback_time:{job.playback_time}')
 
-    fig = pt.figure(1)
-    fig.clear()
+# create "AWG1"
+awgs = init_hardware()
 
-    for awg in awgs:
-        awg.plot()
-
-    pt.legend()
-    pt.show()
+# create channels P1, P2
+p = init_pulselib(awgs, virtual_gates=True)
 
 
-awg1 = MockM3202A("A1", 0, 2)
+my_seq = create_2D_scan(
+        p,
+        'P1', 100,
+        'P2', 100,
+        100, 50.0,
+        bias_T_corr=True
+        )
 
-pulse = init_pulselib(awg1)
-
-my_seq = create_seq(pulse)
-
-job = my_seq.upload()
-
+my_seq.upload()
 my_seq.play()
 
-plot(my_seq, job, [awg1] )
-pprint(job.upload_info)
+# RC = 100 ms:  cut-off frequency, fc = 1/(2 pi RC) = 1.6 Hz
+bias_T_rc_time = 0.1
+#bias_T_rc_time = None
+
+plot_awgs(awgs, bias_T_rc_time=bias_T_rc_time)
+pt.title('AWG upload (with DC compensation)')
+pt.grid(True)
 
 

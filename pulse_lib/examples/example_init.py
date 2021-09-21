@@ -10,10 +10,10 @@ def return_pulse_lib():
 	pulse = pulselib()
 
 	# add to pulse_lib
-	pulse.add_awgs('AWG1',None)
-	pulse.add_awgs('AWG2',None)
-	pulse.add_awgs('AWG3',None)
-	pulse.add_awgs('AWG4',None)
+#	pulse.add_awgs('AWG1',None)
+#	pulse.add_awgs('AWG2',None)
+#	pulse.add_awgs('AWG3',None)
+#	pulse.add_awgs('AWG4',None)
 
 	# define channels
 	pulse.define_channel('B3','AWG1', 1)
@@ -70,9 +70,9 @@ def return_pulse_lib():
 	# IQ_chan_set_1.add_virtual_IQ_channel("MW_qubit_2")
 
 	# finish initialisation (! important if using keysight uploader)
-	pulse.finish_init()
+#	pulse.finish_init()
 
-	return pulse, virtual_gate_set_1
+	return pulse
 
 if __name__ == '__main__':
 	pulse = return_pulse_lib()
