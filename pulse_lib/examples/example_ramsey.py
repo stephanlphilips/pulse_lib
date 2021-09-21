@@ -67,5 +67,5 @@ for t in [0, 1, 2, 3, 10]:
 #    s = np.cos(2*np.pi*20e6*(t)*1e-9)*0.050
 #    pt.plot(t, s, ':', color='gray', label='ref')
 
-from pprint import pprint
-pprint(my_seq.metadata)
+#from pprint import pprint
+#pprint(my_seq.metadata)
