@@ -820,8 +820,11 @@ class pulse_data(parent_data):
             pd['amplitude'] = pulse.amplitude
             pd['frequency'] = pulse.frequency
             pd['start_phase'] = pulse.start_phase + phase_shift
-            pd['AM_envelope'] = repr(pulse.envelope.AM_envelope_function)
-            pd['PM_envelope'] = repr(pulse.envelope.PM_envelope_function)
+            envelope = pulse.envelope
+            if envelope is None:
+                envelope = envelope_generator()
+            pd['AM_envelope'] = repr(envelope.AM_envelope_function)
+            pd['PM_envelope'] = repr(envelope.PM_envelope_function)
             all_pulse[('p%i' %i)] = pd
 
         if all_pulse:
