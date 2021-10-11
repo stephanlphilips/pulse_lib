@@ -432,6 +432,9 @@ class pulse_data(parent_data):
         define addition operator for pulse_data object
         '''
         new_data = pulse_data()
+        new_data.start_time = copy.copy(self.start_time)
+        new_data.global_phase = copy.copy(self.global_phase)
+
         if isinstance(other, pulse_data):
             new_data.pulse_deltas = self.pulse_deltas + other.pulse_deltas
             new_data.MW_pulse_data = self.MW_pulse_data + other.MW_pulse_data
@@ -468,7 +471,6 @@ class pulse_data(parent_data):
             self._end_time = max(self._end_time, other._end_time)
 
         elif isinstance(other, Number):
-            # copy, because only new elements added to list
             self.pulse_deltas.insert(0, pulse_delta(0, other, 0))
             self.pulse_deltas.append(pulse_delta(np.inf, -other, 0))
 
@@ -516,7 +518,6 @@ class pulse_data(parent_data):
 
         if len(self.pulse_deltas) > 1:
             self.pulse_deltas.sort(key=lambda p:p.time)
-#            logging.debug(f'consolidating: {self.pulse_deltas}')
             new_deltas = []
             last = self.pulse_deltas[0]
             for delta in self.pulse_deltas[1:]:
@@ -530,7 +531,6 @@ class pulse_data(parent_data):
                 new_deltas.append(last)
 
             self.pulse_deltas = new_deltas
-#            logging.debug(f'consolidated: {self.pulse_deltas}')
 
         self._consolidated = True
         self._preprocessed = False
