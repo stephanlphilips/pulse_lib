@@ -534,7 +534,7 @@ class UploadAggregator:
                 logging.debug(f'Marker: {t_on} - {t_off} ({section.t_start:+}ns)')
                 # search start section
                 if t_on >= section.t_end:
-                    logging.error(f'Failed to render marker t_on < start')
+                    logging.error(f'Failed to render marker t_on > start')
                 pt_on = int((t_on - section.t_start) * section.sample_rate)
                 if pt_on < 0:
                     logging.info(f'Warning: Marker setup before waveform; aligned with start')
