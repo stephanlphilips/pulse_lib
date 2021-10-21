@@ -515,7 +515,7 @@ class UploadAggregator:
             else:
                 m = []
 
-        self._upload_awg_markers(job, marker_channel, m)
+            self._upload_awg_markers(job, marker_channel, m)
 
     def _upload_awg_markers(self, job, marker_channel, m):
         sections = job.upload_info.sections
@@ -542,6 +542,7 @@ class UploadAggregator:
                 if t_off < section.t_end:
                     pt_off = int((t_off - section.t_start) * section.sample_rate)
                     buffer[pt_on:pt_off] = 1.0
+                    logging.info(f'on/off: {pt_on}, {pt_off} ({section.npt})')
                 else:
                     logging.error(f'Failed to render marker t_off > end')
 
