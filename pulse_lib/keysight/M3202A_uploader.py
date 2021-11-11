@@ -698,7 +698,7 @@ class UploadAggregator:
                 t_on = on_off[0]
             if s == 0 and on_off[1] == -1:
                 t_off = on_off[0]
-                logging.debug(f'Marker: {t_on} - {t_off}')
+                # logging.debug(f'Marker: {t_on} - {t_off}')
                 # search start section
                 while t_on >= sections[i_section].t_end:
                     i_section += 1
@@ -738,7 +738,7 @@ class UploadAggregator:
                 t_on = int(on_off[0])
             if s == 0 and on_off[1] == -1:
                 t_off = int(on_off[0])
-                logging.debug(f'Marker: {t_on} - {t_off}')
+                # logging.debug(f'Marker: {t_on} - {t_off}')
                 table.append((t_on + offset, t_off + offset))
 
     def _upload_wvf(self, job, channel_name, waveform, amplitude, attenuation, sample_rate, awg_upload_func):
