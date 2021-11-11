@@ -49,7 +49,7 @@ my_seq.upload()
 
 my_seq.play()
 
-plot_awgs(awgs, bias_T_rc_time=0.001)
+plot_awgs(awgs, bias_T_rc_time=bias_T_rc_time)
 pt.title('AWG upload (with DC compensation)')
 pt.grid(True)
 pt.ylim(-0.25, 0.25)

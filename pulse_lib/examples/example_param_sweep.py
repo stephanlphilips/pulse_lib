@@ -39,7 +39,7 @@ for index in ([(0,8), (2,2)]):
 
 pt.figure()
 pt.title('segment 1')
-seg1.plot()
+seg1.plot((0,10))
 
 for index in [(0,0), (0,2), (4,8)]:
     pt.figure()
