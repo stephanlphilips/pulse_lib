@@ -33,3 +33,7 @@ class HardwareScheduleMock:
     def close(self):
         logging.info(f'close()')
 
+    def stop(self):
+        logging.info(f'stop()')
+
+
