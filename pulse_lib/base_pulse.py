@@ -364,7 +364,10 @@ class pulselib:
             hardware.awg2dac_ratios.add(list(self.awg_channels.keys()))
 
             for channel, attenuation in hardware.awg2dac_ratios.items():
-                    self.awg_channels[channel].attenuation = attenuation
+                if channel not in self.awg_channels:
+                    logging.info(f'Channel {channel} defined in hardware, but not in pulselib; skipping channel')
+                    continue
+                self.awg_channels[channel].attenuation = attenuation
 
         else:
             for virtual_gate_set in hardware.virtual_gates:
