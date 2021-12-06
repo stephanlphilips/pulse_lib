@@ -96,3 +96,34 @@ class TektronixAtsSchedule(TektronixSchedule):
         logging.info('set trigger in ATS acquisition controller')
         self.acquisition_controller.pre_acquire = self._pre_acquire
 
+class TektronixUHFLISchedule(TektronixSchedule):
+    def __init__(self, pulselib, lockin, n_reps, timeout = 20e3):
+        '''
+        Schedule for the UHFLI lockin. This is only usable with a modified
+        UHFLI driver, where a pre_acquire method is called before the acquisition,
+        similar to the ATS measurement. By default there is no way to have the
+        UHFLI DAQ perform code between arming and acquiring. n_reps specifies
+        the number of repetitions on the Tek. This is particularly useful for
+        the UHFLI due to the large (~300 ms) overhead in acquisition.
+        '''
+        super().__init__(pulselib)
+        self.lockin = lockin
+        self._timeout = timeout
+        self.n_reps = n_reps
+
+    def _get_digitizer_timeout(self):
+        # Weird design in driver. Timeout is an argument in the measure method.
+        # This function is kept to stay compatible. Default is 20 s. If you
+        # specify a different timeout in the measure method, you need to
+        # manually also change it in the schedule... Not ideal.
+        return self._timeout
+
+    def _pre_acquire(self):
+        for awg in self.awgs:
+            awg.set_sqel_loopcnt(self.n_reps)
+            if not self.awg_is_slave[awg.name]:
+                awg.force_trigger()
+
+    def _trigger_instr(self):
+        logging.info('set trigger in modified lockin driver')
+        self.lockin.daq._daq_module.pre_acquire = self._pre_acquire
