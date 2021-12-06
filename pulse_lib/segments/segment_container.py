@@ -537,11 +537,11 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
 
     for virtual_gates in virtual_gates_objs:
         # add reference in real gates.
-        for i in range(virtual_gates.size):
+        for i in range(virtual_gates.size_row):
             real_channel = getattr(segment_container_obj, virtual_gates.real_gate_names[i])
             virtual_gates_values = virtual_gates.virtual_gate_matrix_inv[i,:]
 
-            for j in range(virtual_gates.size):
+            for j in range(virtual_gates.size_col):
                 multiplier = virtual_gates_values[j]
                 # only add reference when it has a significant contribution
                 if abs(multiplier) > 2E-4:

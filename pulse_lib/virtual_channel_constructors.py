@@ -7,11 +7,21 @@ class virtual_gates_constructor(object):
     """
     Construtor to initialize virtual gate matrixes.
     """
-    def __init__(self, pulse_lib_obj, name=None):
+    def __init__(self, pulse_lib_obj, name = None, inverse = True, square = True):
         """
         init object
         Args:
             pulse_lib_obj (pulse_lib) : add a pulse lib object to whom properties need to be added.
+            name (string) : name of the virtual gates constructor
+            inverse (Bool) : defines whether the virtual gate matrix np object
+                            is provided as an inverse or regular matrix. Default
+                            is True, compatible with the 'old style' virtual gates
+            square (Bool): defines whether the virtual gate matrix needs to be 
+                            (and will be made) square. This is True for a real
+                            virtual gate matrix, but could be set False to define
+                            combined gates. Default is True, and cannot be
+                            True if inverse is also True.
+            
         """
         self.pulse_lib_obj = pulse_lib_obj
         self.pulse_lib_obj.virtual_channels.append(self)
@@ -20,28 +30,59 @@ class virtual_gates_constructor(object):
         self.virtual_gate_names = []
         self._virtual_gate_matrix = None
         self.valid_indices = None
+        self.square = square
+        if inverse:
+            if square:
+                raise ValueError('Cannot have inverse and square true.')
+            self.vgm = self._fetch_virtual_gate_matrix
+            self.vgmi = self._inv_virtual_gate_matrix
+        else:
+            self.vgm = self._inv_virtual_gate_matrix
+            self.vgmi = self._fetch_virtual_gate_matrix
 
     @property
     def virtual_gate_matrix(self):
+        # Property for backwards compatibilty
+        return self.vgm()
+    
+    @property
+    def virtual_gate_matrix_inv(self):
+        # Property for backwards compatibilty
+        return self.vgmi()
+    
+    def _fetch_virtual_gate_matrix(self):
+        '''
+        returns the virtual gate matrix from the np object. checks which of the
+        gates exist in the pulselib and limits the matrix to these gates.
+        '''
         if self._virtual_gate_matrix is None:
-            raise ValueError("Cannot fetch virutal gate matrix, please define (see docs).")
+            raise ValueError("Cannot fetch virtual gate matrix, please define (see docs).")
 
         self.virtual_gate_matrix_tmp = np.asarray(self._virtual_gate_matrix)
         self.virtual_gate_matrix_tmp = self.virtual_gate_matrix_tmp[self.valid_indices]
-        self.virtual_gate_matrix_tmp = self.virtual_gate_matrix_tmp[:,self.valid_indices]
+        if self.square:
+            self.virtual_gate_matrix_tmp = self.virtual_gate_matrix_tmp[:,self.valid_indices]
         return self.virtual_gate_matrix_tmp
 
-    @property
-    def virtual_gate_matrix_inv(self):
-        return np.linalg.inv(self.virtual_gate_matrix)
+    def _inv_virtual_gate_matrix(self):
+        '''
+        returns the inverse of the virtual gate matrix from the np object.
+        '''
+        return np.linalg.inv(self._fetch_virtual_gate_matrix())
 
+    @property
+    def size_row(self):
+        """
+        number of rows in the virtual gate matrix
+        """
+        return self._fetch_virtual_gate_matrix().shape[0]
 
     @property
-    def size(self):
+    def size_col(self):
         """
-        size of the virtual gate matrix
+        number of columns in the virtual gate matrix
         """
-        return self.virtual_gate_matrix.shape[0]
+        return self._fetch_virtual_gate_matrix().shape[1]
 
     def load_via_harware(self, virtual_gate_set):
         '''
