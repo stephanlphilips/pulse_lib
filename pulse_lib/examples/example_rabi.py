@@ -8,10 +8,10 @@ from configuration.small_iq import init_hardware, init_pulselib
 from utils.plot import plot_awgs
 
 # create "AWG1"
-awgs = init_hardware()
+awgs, digs = init_hardware()
 
 # create channels P1, P2
-p = init_pulselib(awgs, virtual_gates=True)
+p = init_pulselib(awgs, digs, virtual_gates=True)
 
 gates = ['vP1','vP2']
 v_init = [70, 20]
@@ -19,7 +19,7 @@ v_manip = [0,0]
 v_read = [30, 25]
 t_measure = 100 # short time for visibility of other pulses
 
-t_X90 = 50
+t_X90 = 60
 amplitude = 50
 
 t_pulse = lp.linspace(100, 1000, 10, axis=0)
@@ -29,7 +29,7 @@ amplitude = 50
 # init pulse
 init = p.mk_segment()
 init.add_block(0, 100, gates, v_init, reset_time=True)
-init.add_ramp(0, 50, gates, v_init, v_manip)
+init.add_ramp(0, 60, gates, v_init, v_manip)
 
 manip = p.mk_segment()
 manip.q1.add_MW_pulse(0, t_pulse, amplitude, f_drive)

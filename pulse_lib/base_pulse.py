@@ -286,6 +286,18 @@ class pulselib:
                                    self.IQ_channels, self.qubit_channels,
                                    self.digitizers, self.digitizer_channels)
 
+    def _create_QbloxPulsar_uploader(self):
+        try:
+            from pulse_lib.qblox.pulsar_uploader import PulsarUploader
+        except ImportError:
+            logging.error('Import of QbloxPulsar uploader failed', exc_info=True)
+            raise
+
+        self.uploader = PulsarUploader(self.awg_devices, self.awg_channels,
+                                       self.marker_channels,
+                                       self.IQ_channels, self.qubit_channels,
+                                       self.digitizers, self.digitizer_channels)
+
     def finish_init(self):
         if self._backend in ["Keysight", "M3202A"]:
             self._create_M3202A_uploader()
@@ -295,6 +307,9 @@ class pulselib:
 
         elif self._backend == "Keysight_QS":
             self._create_KeysightQS_uploader()
+
+        elif self._backend == "Qblox":
+            self._create_QbloxPulsar_uploader()
 
         elif self._backend in ["Demo", "None", None]:
             logging.info('No backend defined')

@@ -46,17 +46,17 @@ def create_2D_scan(pulse_lib, gate1, sweep1_mv, gate2, sweep2_mv, n_steps, t_mea
 
 
 # create "AWG1"
-awgs = init_hardware()
+awgs, digs = init_hardware()
 
 # create channels P1, P2
-p = init_pulselib(awgs, virtual_gates=True)
+p = init_pulselib(awgs, digs, virtual_gates=True)
 
 
 my_seq = create_2D_scan(
         p,
-        'P1', 100,
-        'P2', 100,
-        100, 50.0,
+        'vP1', 100,
+        'vP2', 100,
+        200, 2.0,
         bias_T_corr=True
         )
 

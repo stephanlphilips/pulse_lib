@@ -8,10 +8,10 @@ from utils.plot import plot_awgs
 
 
 # create "AWG1"
-awgs = init_hardware()
+awgs, digs = init_hardware()
 
 # create channels P1, P2
-p = init_pulselib(awgs)
+p = init_pulselib(awgs, digs)
 
 v_param = lp.linspace(0, 200, 11, axis=0, unit = "mV", name = "vPulse")
 t_wait = lp.linspace(20, 100, 5, axis=1, unit = "mV", name = "t_wait")

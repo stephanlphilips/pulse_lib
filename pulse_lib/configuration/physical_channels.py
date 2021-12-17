@@ -21,12 +21,17 @@ class marker_channel:
     '''
     Keysight: 0 = trigger out channel, 1...4 = analogue channel
     Tektronix: tuple = (channel,marker number), int = analogue channel
+    Qblox: 0...3 = marker out.
     '''
     setup_ns: float
     hold_ns: float
     amplitude: float = 1000
     invert: bool = False
     delay: float = 0 # ns
+    sequencer_name : str = None
+    '''
+    Qblox only: name of qubit, awg or digitizer channel to use for sequencing
+    '''
 
 # NOTES on digitizer configuration options for M3102A FPGA
 #  * Input: I/Q demodulated (external demodulation) with pairing in FPGA

@@ -7,14 +7,14 @@ from utils.plot import plot_awgs
 
 
 # create "AWG1"
-awgs = init_hardware()
+awgs, digs = init_hardware()
 
 # RC time = 1 ms
 bias_T_rc_time = 0.001
 compensate_bias_T = True
 
 # create channels P1, P2
-p = init_pulselib(awgs, virtual_gates=True,
+p = init_pulselib(awgs, digs, virtual_gates=True,
                   bias_T_rc_time=bias_T_rc_time if compensate_bias_T else None)
 
 

@@ -10,7 +10,7 @@ from typing import Any, Dict, Callable, List
 
 from pulse_lib.segments.utility.rounding import iround
 from pulse_lib.segments.data_classes.data_generic import parent_data
-from pulse_lib.segments.data_classes.data_IQ import envelope_generator
+from pulse_lib.segments.data_classes.data_IQ import envelope_generator, IQ_data_single
 
 total_pulse_deltas = 0
 
@@ -108,6 +108,21 @@ class PhaseShift:
     time: float
     phase_shift: float
     channel_name: str
+
+    @property
+    def start(self):
+        return self.time
+
+@dataclass
+class OffsetRamp:
+    time: float
+    duration: float # time till next OffsetRamp
+    v_start: float
+    v_stop: float
+
+    @property
+    def start(self):
+        return self.time
 
 # keep till end: start = np.inf
 # slicing:
@@ -551,6 +566,7 @@ class pulse_data(parent_data):
                 steps = np.zeros(n)
                 ramps = np.zeros(n)
                 amplitudes = np.zeros(n)
+                amplitudes_end = np.zeros(n)
                 for i,delta in enumerate(self.pulse_deltas):
                     times[i] = delta.time
                     steps[i] = delta.step
@@ -561,7 +577,7 @@ class pulse_data(parent_data):
                 ramps = np.cumsum(ramps)
                 amplitudes[1:] = ramps[:-1] * intervals[:-1]
                 amplitudes = np.cumsum(amplitudes) + np.cumsum(steps)
-                amplitudes_end = amplitudes - steps
+                amplitudes_end[:-1] = amplitudes[1:] - steps[1:]
     #            logging.debug(f'points: {list(zip(times, amplitudes))}')
             self._times = times
             self._intervals = intervals
@@ -583,7 +599,7 @@ class pulse_data(parent_data):
         integrated_value = 0
 
         if len(self.pulse_deltas) > 0:
-            integrated_value = 0.5*np.dot((self._amplitudes[:-1] + self._amplitudes_end[1:]),
+            integrated_value = 0.5*np.dot((self._amplitudes[:-1] + self._amplitudes_end[:-1]),
                                           self._intervals[:-1])
 
         for custom_pulse in self.custom_pulse_data:
@@ -593,6 +609,28 @@ class pulse_data(parent_data):
 
         return integrated_value
 
+    def get_data_elements(self):
+        def typeorder(obj):
+            if isinstance(obj, PhaseShift):
+                return 0.1
+            if isinstance(obj, OffsetRamp):
+                return 0.2
+            if isinstance(obj, IQ_data_single):
+                return 0.3
+            if isinstance(obj, custom_pulse_element):
+                return 0.4
+
+        elements = []
+        self._pre_process()
+        for time, duration, v_start, v_stop in zip(self._times, self._intervals,
+                                                   self._amplitudes, self._amplitudes_end):
+            elements.append(OffsetRamp(time, duration, v_start, v_stop))
+        elements += self.custom_pulse_data
+        elements += self.MW_pulse_data
+        elements += self.phase_shifts
+        # Sort on rounded time, next: PhaseShift,Offset,MW_pulse,custom
+        elements.sort(key=lambda p:(int(p.start+0.5)+typeorder(p)))
+        return elements
 
     def _render_custom_pulse(self, custom_pulse, sample_rate):
         duration = custom_pulse.stop - custom_pulse.start
@@ -622,7 +660,7 @@ class pulse_data(parent_data):
             pt1 = t_pt[i+1]
             if pt0 != pt1:
                 if self._ramps[i] != 0:
-                    wvf[pt0:pt1] = np.linspace(self._amplitudes[i], self._amplitudes_end[i+1], pt1-pt0+1)[:-1]
+                    wvf[pt0:pt1] = np.linspace(self._amplitudes[i], self._amplitudes_end[i], pt1-pt0+1)[:-1]
                 else:
                     wvf[pt0:pt1] = self._amplitudes[i]
 
@@ -791,7 +829,7 @@ class pulse_data(parent_data):
             start = self._times[i]
             stop = self._times[i+1]
             v_start = self._amplitudes[i]
-            v_stop = self._amplitudes_end[i+1]
+            v_stop = self._amplitudes_end[i]
             if stop == np.inf:
                 stop = self._end_time
             if stop - start < 1 or (v_start == 0 and v_stop == 0):

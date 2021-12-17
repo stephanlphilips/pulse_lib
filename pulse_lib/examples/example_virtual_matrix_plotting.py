@@ -7,10 +7,10 @@ from utils.plot import plot_awgs
 
 
 # create "AWG1"
-awgs = init_hardware()
+awgs, digs = init_hardware()
 
 # create channels P1, P2
-p = init_pulselib(awgs, virtual_gates=True)
+p = init_pulselib(awgs, digs, virtual_gates=True)
 
 
 seg1 = p.mk_segment()

@@ -1,4 +1,3 @@
-import numpy as np
 import matplotlib.pyplot as pt
 
 from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
@@ -9,11 +8,12 @@ from configuration.small_iq import init_hardware, init_pulselib
 from utils.plot import plot_awgs
 
 # create "AWG1"
-awgs = init_hardware()
+awgs, digs = init_hardware()
 
 
 # create channels P1, P2
-p = init_pulselib(awgs, virtual_gates=True)
+p = init_pulselib(awgs, digs, virtual_gates=True)
+
 
 gates = ['vP1','vP2']
 v_init = [70, 20]
@@ -22,10 +22,12 @@ v_read = [30, 25]
 t_measure = 100 # short time for visibility of other pulses
 
 f_drive = 2.420e9
-t_X90 = 50
+t_X90 = 60
 amplitude = 50
 
-t_wait = lp.linspace(0, 200, 21, axis=0)
+p.qubit_channels['q1'].reference_frequency = 2.420e9
+
+t_wait = lp.linspace(0, 200, 11, axis=0)
 
 # init pulse
 init = p.mk_segment()

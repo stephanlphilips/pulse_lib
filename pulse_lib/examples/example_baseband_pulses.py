@@ -14,10 +14,10 @@ def tukey_pulse(duration, sample_rate, amplitude, alpha):
 
 
 # create "AWG1"
-awgs = init_hardware()
+awgs, digs = init_hardware()
 
 # create channels P1, P2
-p = init_pulselib(awgs)
+p = init_pulselib(awgs, digs)
 
 seg1 = p.mk_segment()
 seg2 = p.mk_segment()
@@ -28,9 +28,9 @@ seg1.P1.add_ramp_ss(200, 300, 340, 120)
 seg1.P1.reset_time()
 # overlapping pulses are summed
 seg1.P1.add_block(0, 200, 120)
-seg1.P1.add_ramp_ss(180, 190, 0, 50)
-seg1.P1.add_ramp_ss(190, 200, 50, 0)
-seg1.P1.add_sin(50, 150, 50, 100e6)
+seg1.P1.add_ramp_ss(180, 192, 0, 50)
+seg1.P1.add_ramp_ss(192, 200, 50, 0)
+seg1.P1.add_sin(52, 152, 50, 100e6)
 # wait 100 ns after last pulse of segment
 seg1.P1.wait(100)
 
@@ -39,7 +39,7 @@ seg2.P1 += -200
 #
 seg2.P2.add_block(100, 180, 200)
 seg2.P2.add_ramp_ss(180, 200, 200, 100)
-seg2.P2.add_ramp_ss(200, 250, 100, 0)
+seg2.P2.add_ramp_ss(200, 240, 100, 0)
 seg2.P1.add_ramp_ss(100, 200, 0, -200)
 # reset time base for SEGMENT: aligns all segments
 seg2.reset_time()

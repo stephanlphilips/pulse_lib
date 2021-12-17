@@ -51,34 +51,34 @@ def iswap_pulse(duration, sample_rate, amplitude, frequency, mw_amp):
 
 
 # create "AWG1"
-awgs = init_hardware()
+awgs, digs = init_hardware()
 
 # create channels P1, P2
-p = init_pulselib(awgs, virtual_gates=True)
+p = init_pulselib(awgs, digs, virtual_gates=True)
 
 seg  = p.mk_segment()
 
-seg.P1.wait(10)
+seg.P1.wait(20)
 seg.P1.reset_time()
 seg.P1.add_custom_pulse(0, 60, 350.0, tukey_pulse, alpha=0.5)
-seg.P1.add_sin(20, 40, 50.0, 2e8)
-seg.P1.wait(10)
+#seg.P1.add_sin(20, 40, 50.0, 2e8)
+seg.P1.wait(20)
 seg.reset_time()
 
 # looping on arguments
 alpha_loop = lp.linspace(0.3, 0.5, n_steps = 2, name = 'alpha', axis = 0)
 amplitude_loop = lp.linspace(300, 500, n_steps = 3, name = 'amplitude', unit = 'mV', axis = 1)
 
-seg.P2.wait(10)
+seg.P2.wait(20)
 seg.P2.reset_time()
 seg.P2.add_custom_pulse(0, 60, amplitude_loop, tukey_pulse, alpha=alpha_loop)
-seg.P2.add_sin(20, 40, 50.0, 2e8)
-seg.P2.wait(10)
+#seg.P2.add_sin(20, 40, 50.0, 2e8)
+seg.P2.wait(20)
 seg.reset_time()
 
 # virtual gate: compensation is visible on P1
-seg.vP2.add_custom_pulse(10, 70, 150.0, iswap_pulse, frequency=2e8, mw_amp=2.5)
-seg.vP2.wait(10)
+seg.vP2.add_custom_pulse(20, 80, 150.0, iswap_pulse, frequency=2e8, mw_amp=2.5)
+seg.vP2.wait(20)
 
 # create sequence
 seq = p.mk_sequence([seg])
