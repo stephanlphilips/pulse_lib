@@ -292,6 +292,7 @@ class segment_base():
 
     @property
     def pulse_data_all(self):
+        # TODO @@@: split virtual voltage gates from IQ channels. Combining only needed for virtual voltage.
         '''
         pulse data object that contains the counted op data of all the reference channels (e.g. IQ and virtual gates).
         '''

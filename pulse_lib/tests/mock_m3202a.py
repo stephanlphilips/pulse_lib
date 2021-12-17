@@ -62,6 +62,9 @@ class MockM3202A(Instrument):
     def chassis_number(self):
         return self._chassis_numnber
 
+    def configure_marker_output(self, invert: bool = False):
+        pass
+
     def upload_waveform(self, wave) -> WaveformReference:
         size = len(wave)
         slot = self.memory_manager.allocate(size)

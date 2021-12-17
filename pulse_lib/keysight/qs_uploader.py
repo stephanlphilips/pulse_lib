@@ -224,6 +224,8 @@ class QsUploader:
                 t1 = time.perf_counter()
 
                 # TODO @@@ cleanup frequency update hack
+                #      Always set frequency of seq before uploading.
+                #      Render with using LO-frequency
                 qubit_channel = self.qubit_channels[awg_sequencer.channel_name]
                 seq._frequency = qubit_channel.reference_frequency - qubit_channel.iq_channel.LO
 
@@ -398,7 +400,6 @@ class ChannelInfo:
     dc_compensation_min: float = 0.0
     dc_compensation_max: float = 0.0
     bias_T_RC_time: Optional[float] = None
-    is_sequencer: bool = False
     # aggregation state
     integral: float = 0.0
 
@@ -471,6 +472,7 @@ class Waveform:
                 and self.frequency == other.frequency
                 and np.all(self.pm_envelope == other.pm_envelope)
                 and self.prephase == other.prephase
+                and self.postphase == other.postphase
                 and self.duration == other.duration
                 and self.restore_frequency == other.restore_frequency
                 and self.offset == other.offset
@@ -528,7 +530,6 @@ class UploadAggregator:
             info.dc_compensation_min = channel.compensation_limits[0] * info.attenuation
             info.dc_compensation_max = channel.compensation_limits[1] * info.attenuation
             info.dc_compensation = info.dc_compensation_min < 0 and info.dc_compensation_max > 0
-            info.is_sequencer = channel.name in self.sequencer_out_channels
 
         for channel in marker_channels.values():
             delays.append(channel.delay - channel.setup_ns)
@@ -827,6 +828,7 @@ class UploadAggregator:
             else:
                 m = []
 
+            # @@@ consolidate on/off
             if marker_channel.channel_number == 0:
                 self._upload_fpga_markers(job, marker_channel, m)
             else:

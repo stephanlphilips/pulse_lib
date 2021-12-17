@@ -1,6 +1,7 @@
 import logging
 from typing import List, Optional, Tuple, Union
 from dataclasses import dataclass, field
+from numbers import Number
 
 import numpy as np
 import matplotlib.pyplot as pt
@@ -70,7 +71,12 @@ class Waveform:
         t = starttime + self.offset + np.arange(self.duration)
         phase = phase + not_none(self.prephase, 0) + not_none(self.pm_envelope, 0)
         modulated_wave = 0.001 * amplitude * np.sin(2*np.pi*self.frequency*1e-9*t + phase)
-        print(f' {t[0]:6.0f}, {phase:5.2f}, {self.frequency*1e-6:6.1f} MHz {self.duration} ns')
+        if  isinstance(phase, Number):
+            phase_str = f'{phase:5.2f}'
+        else:
+            phase_str = f'array({len(phase)}'
+
+        print(f' {t[0]:6.0f}, {phase_str}, {self.frequency*1e-6:6.1f} MHz {self.duration} ns')
         if self.offset == 0:
             return modulated_wave
         else:
@@ -205,8 +211,8 @@ class MockM3202A_QS(MockM3202A):
 
             pt.plot(t, values, ':', label=f'{self.name}-T')
 
-    def plot(self):
-        super().plot()
+    def plot(self, bias_T_rc_time=0):
+        super().plot(bias_T_rc_time=bias_T_rc_time)
         for seq in self._sequencers.values():
             seq.plot()
         self.plot_marker()
