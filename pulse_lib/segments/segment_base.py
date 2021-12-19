@@ -301,7 +301,7 @@ class segment_base():
                 # make sure both have the same size.
                 my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.segment.shape)
                 self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape)
-                self._pulse_data_all += ref_chan.segment.data*ref_chan.multiplication_factor
+                self._pulse_data_all += ref_chan.segment.pulse_data_all*ref_chan.multiplication_factor
                 ref_chan.segment._last_edit = last_edit.Rendered
             for ref_chan in self.IQ_ref_channels:
                 # todo -- update dim functions
