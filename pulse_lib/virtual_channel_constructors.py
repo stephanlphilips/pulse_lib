@@ -3,45 +3,84 @@ import numpy as np
 
 from .configuration.iq_channels import IQ_channel, IQ_out_channel_info
 
+def add_detuning_channels(pulse, gate1, gate2, detuning, average):
+    detuning_gate_set = virtual_gates_constructor(pulse, matrix_virtual2real=True)
+    detuning_gate_set.add_real_gates(gate1, gate2)
+    detuning_gate_set.add_virtual_gates(detuning, average)
+    matrix = np.array([[+0.5, +1.0], [-0.5, -1.0]])
+    detuning_gate_set.add_virtual_gate_matrix(matrix)
+
+
 class virtual_gates_constructor(object):
     """
-    Construtor to initialize virtual gate matrixes.
+    Constructor to create virtual gate matrixes.
     """
-    def __init__(self, pulse_lib_obj, name=None):
+    def __init__(self, pulse_lib_obj, name=None, matrix_virtual2real=False, square=True):
         """
         init object
         Args:
             pulse_lib_obj (pulse_lib) : add a pulse lib object to whom properties need to be added.
+            name (str): name of the matrix
+            matrix_virtual2real (bool): If True v_real = M @ v_virtual, else v_real = M^-1 @ v_virtual
+            square (bool): matrix is square and should be kept square when a real gate is missing.
         """
         self.pulse_lib_obj = pulse_lib_obj
         self.pulse_lib_obj.virtual_channels.append(self)
         self.name = name
+        self._square = square
         self.real_gate_names = []
         self.virtual_gate_names = []
-        self._virtual_gate_matrix = None
+        self.layer = 0
         self.valid_indices = None
+        # NOTE: _matrix_data is an external reference. The inverse cannot be cached.
+        self._matrix_data = None
+        self._matrix_virtual2real = matrix_virtual2real
+        # Set methods to get inverted or not inverted matrix.
+        if matrix_virtual2real:
+            self._virtual2real_matrix = self._matrix
+            self._real2virtual_matrix = self._inv_matrix
+        else:
+            self._virtual2real_matrix = self._inv_matrix
+            self._real2virtual_matrix = self._matrix
 
+
+    @property
+    def virtual2real_matrix(self):
+        return self._virtual2real_matrix()
+
+    @property
+    def real2virtual_matrix(self):
+        return self._real2virtual_matrix()
+
+    # backwards compatibility method
     @property
     def virtual_gate_matrix(self):
-        if self._virtual_gate_matrix is None:
-            raise ValueError("Cannot fetch virutal gate matrix, please define (see docs).")
+        return self._real2virtual_matrix()
 
-        self.virtual_gate_matrix_tmp = np.asarray(self._virtual_gate_matrix)
-        self.virtual_gate_matrix_tmp = self.virtual_gate_matrix_tmp[self.valid_indices]
-        self.virtual_gate_matrix_tmp = self.virtual_gate_matrix_tmp[:,self.valid_indices]
-        return self.virtual_gate_matrix_tmp
-
+    # backwards compatibility method
     @property
     def virtual_gate_matrix_inv(self):
-        return np.linalg.inv(self.virtual_gate_matrix)
+        return self._virtual2real_matrix()
 
+    def _inv_matrix(self):
+        return np.linalg.inv(self._matrix())
 
-    @property
-    def size(self):
-        """
-        size of the virtual gate matrix
-        """
-        return self.virtual_gate_matrix.shape[0]
+    def _matrix(self):
+        if self._matrix_data is None:
+            raise ValueError("Cannot fetch virtual gate matrix, please define (see docs).")
+
+        matrix_tmp = np.asarray(self._matrix_data)
+
+        if self._matrix_virtual2real:
+            matrix_tmp = matrix_tmp[:,self.valid_indices]
+            if self._square:
+                matrix_tmp = matrix_tmp[self.valid_indices]
+        else:
+            matrix_tmp = matrix_tmp[self.valid_indices]
+            if self._square:
+                matrix_tmp = matrix_tmp[:,self.valid_indices]
+        return matrix_tmp
+
 
     def load_via_harware(self, virtual_gate_set):
         '''
@@ -51,47 +90,67 @@ class virtual_gates_constructor(object):
         Args:
             virtual_gate_set (virtual_gate) : virtual_gate object
         '''
-        # fetch gates that are also present on the AWG.
-        idx_of_valid_gates = []
-        for i in range(len(virtual_gate_set)):
-            if virtual_gate_set.real_gate_names[i] in self.pulse_lib_obj.awg_channels:
-                idx_of_valid_gates.append(i)
-
-        if len(idx_of_valid_gates) == 0:
-            warnings.warn("No valid gates found of the AWG for the virtual gate set {}. This virtual gate entry will be neglected.".format(virtual_gate_set.name))
-            return
-
-        self.valid_indices = np.array(idx_of_valid_gates, dtype=np.int)
-        self._virtual_gate_matrix = virtual_gate_set.virtual_gate_matrix
-        self.real_gate_names = list(np.asarray(virtual_gate_set.real_gate_names)[idx_of_valid_gates])
-        self.virtual_gate_names =list( np.asarray(virtual_gate_set.virtual_gate_names)[idx_of_valid_gates])
+        self._load(virtual_gate_set.name,
+                   virtual_gate_set.real_gate_names,
+                   virtual_gate_set.virtual_gate_names,
+                   virtual_gate_set.virtual_gate_matrix)
 
     def load_via_hardware_new(self, virtual_gate_set):
+        self._load(virtual_gate_set.name,
+                   virtual_gate_set.gates,
+                   virtual_gate_set.v_gates,
+                   virtual_gate_set.matrix)
+
+    def _load(self, name, real_gates, virtual_gates, matrix):
+        # NOTE: loading must be done in proper order. Combination gates must be loaded after virtual gates
+
+        self.virtual_gate_names = []
+        defined_channels = self.pulse_lib_obj.channels
+
+        # select gates that are also defined in pulselib
         idx_of_valid_gates = []
-        for i in range(len(virtual_gate_set)):
-            if virtual_gate_set.gates[i] in self.pulse_lib_obj.awg_channels:
+        not_defined_gates = []
+        for i,name in enumerate(real_gates):
+            if name in defined_channels:
                 idx_of_valid_gates.append(i)
+            else:
+                not_defined_gates.append(name)
 
         if len(idx_of_valid_gates) == 0:
-            warnings.warn("No valid gates found of the AWG for the virtual gate set {}. This virtual gate entry will be neglected.".format(virtual_gate_set.name))
+            warnings.warn(f"No valid gates found of the AWG for the virtual gate set {name}."
+                          "This virtual gate entry will be neglected.")
             return
 
+        if len(not_defined_gates):
+            warnings.warn(f"Gates {not_defined_gates} of virtual gate set {name} "
+                          "are not defined in pulselib.")
+
         self.valid_indices = np.array(idx_of_valid_gates, dtype=np.int)
-        self._virtual_gate_matrix = virtual_gate_set.matrix
-        self.real_gate_names = list(np.asarray(virtual_gate_set.gates)[idx_of_valid_gates])
-        self.virtual_gate_names =list( np.asarray(virtual_gate_set.v_gates)[idx_of_valid_gates])
+        self._matrix_data = matrix
+        self.real_gate_names = [real_gates[i] for i in idx_of_valid_gates]
+        if self._square:
+            self.virtual_gate_names = [virtual_gates[i] for i in idx_of_valid_gates]
+        else:
+            self.virtual_gate_names = virtual_gates
+
+        self.layer = 1 + max(self.pulse_lib_obj.get_channel_layer(name)
+                             for name in self.real_gate_names)
 
     def add_real_gates(self, *args):
         """
-        specify list of real gate names where to map on in the virtual gate matrix (from left to the right in the matrix)
+        specify list of real gate names where to map on in the
+        virtual gate matrix (from left to the right in the matrix)
         Args:
             *args (str) : naems of AWG channels to map on to.
         """
+        defined_channels = self.pulse_lib_obj.channels
         for i in args:
-            if i not in self.pulse_lib_obj.awg_channels:
+            if i not in defined_channels:
                 raise ValueError(f"Channel {i} not defined in the pulse_lib object.")
 
         self.real_gate_names = args
+        self.layer = 1 + max(self.pulse_lib_obj.get_channel_layer(name)
+                             for name in self.real_gate_names)
 
     def add_virtual_gates(self, *args):
         """
@@ -99,26 +158,31 @@ class virtual_gates_constructor(object):
         Args:
             *args (str) : names of virtual AWG channels to map on to.
         """
+        self.virtual_gate_names = []
+        defined_channels = self.pulse_lib_obj.channels
         for i in args:
-            if i in self.pulse_lib_obj.awg_channels:
-                raise ValueError("Name error, a virtual gate should have a different name that the one of a real one {}.".format(i))
+            if i in defined_channels:
+                raise ValueError(f"Cannot add virtual gate {i}. There is another gates with the same name.")
         self.virtual_gate_names = args
 
     def add_virtual_gate_matrix(self, virtual_gate_matrix):
         """
         add the inverted virtual gate matrix.
         Args :
-            virtual_gate_matrix (np.ndarray[ndim=2, type=double]) : numpy array representing the inverted virtual gate matrix.
+            virtual_gate_matrix (np.ndarray[ndim=2, type=double]) : numpy array representing the (inverted) virtual gate matrix.
         """
-        n = virtual_gate_matrix.shape[0]
+        shape = virtual_gate_matrix.shape
+        n_real, n_virtual = (shape[0],shape[1]) if self._matrix_virtual2real else (shape[1],shape[0])
 
-        if n != len(self.real_gate_names):
-            raise ValueError("size virtual gate matrix ({}) not matching the given amount of real gates names({})".format(n, len(self.real_gate_names)))
-        if n != len(self.virtual_gate_names):
-            raise ValueError("size virtual gate matrix ({}) not matching the given amount of virutal gates names({})".format(n, len(self.virtual_gate_names)))
+        if n_real != len(self.real_gate_names):
+            raise ValueError(f"size virtual gate matrix ({n_real}) doesn't match "
+                             f"the number of real gates names({len(self.real_gate_names)})")
+        if n_virtual != len(self.virtual_gate_names):
+            raise ValueError("size virtual gate matrix ({n_virtual}) doesn't match "
+                             f"the number of virtual gates names({len(self.virtual_gate_names)})")
 
-        self.valid_indices = np.arange(n, dtype=np.int)
-        self._virtual_gate_matrix = virtual_gate_matrix.data
+        self.valid_indices = np.arange(n_real, dtype=np.int)
+        self._matrix_data = virtual_gate_matrix.data
 
 
 

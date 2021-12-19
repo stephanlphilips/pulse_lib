@@ -48,6 +48,14 @@ class pulselib:
             channels += i.virtual_gate_names
         return channels
 
+    def get_channel_layer(self, channel_name):
+        if channel_name in self.awg_channels:
+            return 0
+        for vm in self.virtual_channels:
+            if channel_name in vm.virtual_gate_names:
+                return vm.layer
+        raise ValueError(f'Unknonw channel {channel_name}')
+
     def add_awg(self, awg):
         '''
         add a awg to the library

@@ -441,15 +441,25 @@ class segment_container():
 
     def enter_rendering_mode(self):
         '''
-        put the segments into rendering mode, which means that they cannot be changed. All segments will get their final length at this moment.
+        put the segments into rendering mode, which means that they cannot be changed.
+        All segments will get their final length at this moment.
         '''
         self.reset_time()
         self.render_mode = True
-        for i in self.channels:
-            getattr(self, i).render_mode =  True
-            # make a pre-render all all the pulse data (e.g. compose channels, do not render in full).
-            if getattr(self, i).type == 'render':
-                getattr(self, i).pulse_data_all
+
+        # render referencing virtual channels in layer order
+        for name in self.render_virtual:
+            ch = self[name]
+            ch.render_mode =  True
+            # make a pre-render of all the pulse data (e.g. compose channels, do not render in full).
+            ch.pulse_data_all
+
+        for name in self.channels:
+            ch = self[name]
+            ch.render_mode =  True
+            # make a pre-render of all the pulse data (e.g. compose channels, do not render in full).
+            if ch.type == 'render':
+                ch.pulse_data_all
 
     def add_master_clock(self, time):
         '''
@@ -535,17 +545,34 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
         getattr(segment_container_obj, channel).add_reference_markers = list()
         getattr(segment_container_obj, channel)._data_hvi_variable = segment_container_obj._software_markers
 
-    for virtual_gates in virtual_gates_objs:
-        # add reference in real gates.
-        for i in range(virtual_gates.size):
-            real_channel = getattr(segment_container_obj, virtual_gates.real_gate_names[i])
-            virtual_gates_values = virtual_gates.virtual_gate_matrix_inv[i,:]
+    virtual_channel_layer = {}
 
-            for j in range(virtual_gates.size):
-                multiplier = virtual_gates_values[j]
+    for virtual_gates in virtual_gates_objs:
+        for virtual_gate_name in virtual_gates.virtual_gate_names:
+            virtual_channel_layer[virtual_gate_name] = virtual_gates.layer
+
+    referenced_virtual_channels = []
+    for virtual_gates in virtual_gates_objs:
+        for gate_name in virtual_gates.real_gate_names:
+            if gate_name in virtual_channel_layer:
+                referenced_virtual_channels.append(gate_name)
+
+    segment_container_obj.render_virtual = [
+            e[1] for e in sorted([(virtual_channel_layer[ch],ch)
+                                  for ch in referenced_virtual_channels],
+                                 reverse=True)
+            ]
+
+    for virtual_gates in virtual_gates_objs:
+        matrix = virtual_gates.virtual2real_matrix
+        # add reference in real gates.
+        for i,real_gate_name in enumerate(virtual_gates.real_gate_names):
+            real_channel = segment_container_obj[real_gate_name]
+            for j,virtual_gate_name in enumerate(virtual_gates.virtual_gate_names):
+                multiplier = matrix[i,j]
                 # only add reference when it has a significant contribution
-                if abs(multiplier) > 2E-4:
-                    virtual_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j],
+                if abs(multiplier) > 1E-4:
+                    virtual_channel_reference_info = virtual_pulse_channel_info(virtual_gate_name,
                         multiplier, segment_container_obj)
                     real_channel.add_reference_channel(virtual_channel_reference_info)
 
