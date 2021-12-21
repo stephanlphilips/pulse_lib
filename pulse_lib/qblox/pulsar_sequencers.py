@@ -197,7 +197,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
             self.seq.acquire('default', 'increment', t_offset=t)
         else:
             period = t_measure
-            self.seq.repeated_acquire(n, period, 'default', 'increment', )
+            self.seq.repeated_acquire(n, period, 'default', 'increment', t_offset=t)
 
     def close(self):
         super().close()
