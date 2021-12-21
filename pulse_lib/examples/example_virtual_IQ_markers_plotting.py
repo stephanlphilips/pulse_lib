@@ -88,14 +88,6 @@ def plot(seq, job, awgs):
     pt.legend()
     pt.show()
 
-index = 0
-def play_next():
-    global index
-    index += 1
-    job = my_seq.upload([index])
-    plot(my_seq, job)
-    print(job.upload_info)
-    my_seq.play([index], release=True)
 
 
 # create "AWG1","AWG2"
