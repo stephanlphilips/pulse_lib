@@ -9,10 +9,10 @@ from utils.plot import plot_awgs
 from pulse_lib.virtual_channel_constructors import add_detuning_channels, virtual_gates_constructor
 
 # create "AWG1"
-awgs = init_hardware()
+awgs, digs = init_hardware()
 
 # create channels P1, P2
-p = init_pulselib(awgs, virtual_gates=True)
+p = init_pulselib(awgs, digs, virtual_gates=True)
 
 custom_detuning = False
 
@@ -29,43 +29,43 @@ else:
 add_detuning_channels(p, 'vP1', 'vP2', 've12', 'vU12')
 
 
-
 seg1 = p.mk_segment()
 
 s = seg1
-s.P1.add_block(50, 200, 400)
-s.P2.add_block(250, 400, 400)
+s.P1.add_block(52, 200, 400)
+s.P2.add_block(252, 400, 400)
 s.P2.wait(200)
 
 seg2 = p.mk_segment()
 s = seg2
-s.e12.add_block(50, 200, 400)
-s.U12.add_block(250, 400, 400)
+s.e12.add_block(52, 200, 400)
+s.U12.add_block(252, 400, 400)
 s.U12.wait(200)
 s.reset_time()
-s.U12.add_block(50, 250, 400)
-s.e12.add_block(150, 250, 200)
+s.U12.add_block(52, 252, 400)
+s.e12.add_block(152, 252, 200)
 s.e12.wait(200)
 
 seg3 = p.mk_segment()
 s = seg3
-s.vP1.add_block(50, 200, 400)
-s.vP2.add_block(250, 400, 400)
+s.vP1.add_block(52, 200, 400)
+s.vP2.add_block(252, 400, 400)
 s.vP2.wait(200)
 
 seg4 = p.mk_segment()
 s = seg4
-s.ve12.add_block(50, 200, 400)
-s.vU12.add_block(250, 400, 400)
+s.ve12.add_block(52, 200, 400)
+s.vU12.add_block(252, 400, 400)
 s.vU12.wait(200)
 s.reset_time()
-s.vU12.add_block(50, 250, 400)
-s.ve12.add_block(150, 250, 200)
+s.vU12.add_block(52, 252, 400)
+s.ve12.add_block(152, 252, 200)
 s.ve12.wait(200)
 
 # generate the sequence from segments
 my_seq = p.mk_sequence([seg1, seg2, seg3, seg4])
 my_seq.set_hw_schedule(HardwareScheduleMock())
+my_seq.n_rep= 3
 
 my_seq.upload()
 
