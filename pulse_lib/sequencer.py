@@ -294,6 +294,9 @@ class sequencer():
         self._validate_index(index)
         self.uploader.play(self.id, index, release)
 
+    def get_measurement_data(self, channels=None):
+        return self.uploader.get_measurement_data(channels)
+
     def close(self):
         '''
         Closes the sequencer and releases all memory and resources. Sequencer cannot be used anymore.

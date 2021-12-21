@@ -210,6 +210,23 @@ class PulsarUploader:
         if release_job:
             job.release()
 
+    def get_measurement_data(self, channels=None):
+        if channels is None:
+            channels = self.digitizer_channels.keys()
+
+        result = {}
+        for channel_name in channels:
+            dig_ch = self.digitizer_channels[channel_name]
+            in_ch = dig_ch.channel_numbers
+            raw = self.q1instrument.get_acquisition_bins(channel_name, 'default')
+            if len(in_ch) == 1:
+                raw_ch = raw['integration'][f'path{in_ch[0]}']
+                result[f'{channel_name}'] = raw_ch
+            else:
+                for i in in_ch:
+                    raw_ch = raw['integration'][f'path{i}']
+                    result[f'{channel_name}_{i}'] = raw_ch
+        return result
 
     def release_memory(self, seq_id=None, index=None):
         """
@@ -252,6 +269,7 @@ class Job(object):
         self.default_sample_rate = sample_rate
         self.neutralize = neutralize
         self.priority = priority
+        self.schedule_params = {}
         self.playback_time = 0 #total playtime of the waveform
 
         self.released = False
@@ -620,6 +638,7 @@ class UploadAggregator:
                                                    t_measure,
                                                    n=n_cycles,
                                                    threshold=acquisition.threshold))
+
         for acq in acquisitions:
             seq.acquire(acq.start, acq.t_measure, acq.n)
 
@@ -640,6 +659,7 @@ class UploadAggregator:
         name = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         self.program = self.q1instrument.new_program(name)
         job.program = self.program
+        self.program.repetitions = job.n_rep
 
         self.program._timeline.disable_update() # @@@ Yuk
 
