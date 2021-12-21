@@ -78,7 +78,7 @@ class digitizer_channel:
     downsample_rate: Optional[float] = None
     '''
     When not None, the data should not be averaged, but downsampled with specified rate.
-    Can be used for Elzeman readout.
+    Can be used for Elzerman readout.
     '''
 
     @property
@@ -107,6 +107,6 @@ class digitizer_channel_iq:
     downsample_rate: Optional[float] = None
     '''
     When not None, the data should not be averaged, but downsampled with specified rate.
-    Can be used for Elzeman readout.
+    Can be used for Elzerman readout.
     '''
 
