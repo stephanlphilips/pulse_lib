@@ -274,8 +274,7 @@ class sequencer():
         self._validate_index(index)
         upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep, self._sample_rate, self.neutralize)
 
-        if self.hw_schedule is not None:
-            upload_job.add_hw_schedule(self.hw_schedule, self._HVI_variables.item(tuple(index)).HVI_markers)
+        upload_job.add_hw_schedule(self.hw_schedule, self._HVI_variables.item(tuple(index)).HVI_markers)
 
         self.uploader.add_upload_job(upload_job)
 

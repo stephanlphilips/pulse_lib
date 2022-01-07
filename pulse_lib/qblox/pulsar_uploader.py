@@ -287,6 +287,9 @@ class Job(object):
         self.hw_schedule = hw_schedule
         self.schedule_params = schedule_params
 
+    def get_variable(self, name, default=None):
+        return self.schedule_params.get(name, default)
+
     def release(self):
         if self.released:
             logging.warning(f'job {self.seq_id}-{self.index} already released')
@@ -611,7 +614,13 @@ class UploadAggregator:
         t_offset = int(self.max_pre_start_ns / 4) * 4
         acquisitions = []
 
+        t_average = job.get_variable('t_measure')
+        trigger_period = job.get_variable('trigger_period')
+        if trigger_period is None and digitizer_channel.downsample_rate is not None:
+            trigger_period = iround(4e9/digitizer_channel.downsample_rate) * 4
+
         seq = AcquisitionSequenceBuilder(channel_name, self.program[channel_name], job.n_rep)
+        seq.integration_time = t_average
 
         markers = self.get_markers_seq(job, channel_name)
         seq.add_markers(markers)
@@ -625,11 +634,12 @@ class UploadAggregator:
             seg_start = seg_render.t_start + t_offset
             seg_ch = seg[channel_name]
             acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
+
             for acquisition in acquisition_data:
-                if digitizer_channel.downsample_rate is not None:
-                    period_ns = iround(1e8/digitizer_channel.downsample_rate) * 10
-                    n_cycles = int(acquisition.t_measure / period_ns)
-                    t_measure = period_ns
+                if trigger_period and t_average and acquisition.t_measure > trigger_period:
+                    n_cycles = iround(acquisition.t_measure / trigger_period)
+                    # @@@ This is a bit weird...
+                    t_measure = iround(trigger_period)
                 else:
                     n_cycles = 1
                     t_measure = acquisition.t_measure

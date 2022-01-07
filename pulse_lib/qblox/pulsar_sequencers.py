@@ -191,6 +191,15 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         # allocate minim size later adjust for number of triggers
         self.seq.add_acquisition_bins('default', n_repetitions)
 
+    @property
+    def integration_time(self):
+        return self.seq.integration_length_acq
+
+    @integration_time.setter
+    def integration_time(self, value):
+        print(f'Integration time {value}')
+        self.seq.integration_length_acq = value
+
     def acquire(self, t, t_measure, n=1):
         self.n_triggers += n
         if n == 1:
