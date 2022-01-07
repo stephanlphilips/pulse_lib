@@ -18,17 +18,18 @@ class VirtualGateMatrices:
         v_gates = []
         for vm in self._virtual_matrices.values():
             v_gates += vm.virtual_gates
-            print(
-            '''this is just a stupid
-            test.''')
         return v_gates
 
     @property
-    def virtual_gate_map(self):
+    def virtual_gate_projection(self):
         '''
-
+        Returns a dictionary with per virtual gate name a dictionary
+        with real gate names and multipliers.
+        Example:
+             'vP1': {'P1': 1.0, 'P2': -0.12},
+             'vP2': {'P1': -0.10, 'P2': 1.0},
         '''
-        # create dictionary with all v_gates and their matrix
+        # first create dictionary with all v_gates and their matrix
         v_gates = {}
         for vm in self._virtual_matrices.values():
             for gate in vm.virtual_gates:
@@ -46,7 +47,21 @@ class VirtualGateMatrices:
             filter_undefined=False,
             keep_squared=False,
             awg_channels=[]):
+        '''
+        Adds a virtual gate matrix.
+        A real gate name must either be AWG channel or an already defined
+        virtual gate name of another matrix.
 
+        Args:
+            name (str): name of the virtual gate matrix.
+            real_gate_names (list[str]): names of real gates
+            virtual_gate_names (list[str]): names of virtual gates
+            matrix (2D array-like): matrix to convert voltages of virtual gates to voltages of real gates.
+            real2virtual (bool): If True v_real = M^-1 @ v_virtual else v_real = M @ v_virtual
+            filter_undefined (bool): If True removes rows with unknown real gates.
+            keep_squared (bool): matrix is square and should be kept square when valid_indices is used.
+            awg_channels (list[str]): names of the AWG channels.
+        '''
         if name in self._virtual_matrices:
             del self._virtual_matrices[name]
 
@@ -108,6 +123,9 @@ class VirtualGateMatrices:
 
 
     def _get_combination(self, gate, v_gates):
+        '''
+        Resolves virtual gate to real gate projection.
+        '''
         vm = v_gates[gate]
         iv = vm.virtual_gates.index(gate)
         multipliers = vm.v2r_matrix[:,iv]
