@@ -33,7 +33,7 @@ s.vP2.wait(500)
 # generate the sequence from segments
 my_seq = p.mk_sequence([seg1, seg2])
 my_seq.set_hw_schedule(HardwareScheduleMock())
-
+my_seq.n_rep = 10
 my_seq.upload()
 
 my_seq.play()
