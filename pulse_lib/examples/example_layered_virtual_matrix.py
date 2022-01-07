@@ -1,12 +1,21 @@
 import matplotlib.pyplot as pt
-import numpy as np
 
 from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
 
 from configuration.small import init_hardware, init_pulselib
 from utils.plot import plot_awgs
 
-from pulse_lib.virtual_channel_constructors import add_detuning_channels, virtual_gates_constructor
+def add_detuning_params(p, gate1, gate2, detuning, energy):
+    p.add_virtual_matrix(
+        name=f'detuning {gate1}-{gate2}',
+        real_gate_names=[gate1, gate2],
+        virtual_gate_names=[detuning, energy],
+        matrix=[
+            [+0.5, +1.0],
+            [-0.5, +1.0],
+            ]
+        )
+
 
 # create "AWG1"
 awgs = init_hardware()
@@ -14,19 +23,8 @@ awgs = init_hardware()
 # create channels P1, P2
 p = init_pulselib(awgs, virtual_gates=True)
 
-custom_detuning = False
-
-if custom_detuning:
-    # set a virtual gate matrix
-    detuning_gate_set = virtual_gates_constructor(p, 'detuning12', matrix_virtual2real=True)
-    detuning_gate_set.add_real_gates('P1', 'P2')
-    detuning_gate_set.add_virtual_gates('e12','U12')
-    matrix = np.array([[+0.5, +1.0], [-0.5, +1.0]])
-    detuning_gate_set.add_virtual_gate_matrix(matrix)
-else:
-    add_detuning_channels(p, 'P1', 'P2', 'e12', 'U12')
-
-add_detuning_channels(p, 'vP1', 'vP2', 've12', 'vU12')
+add_detuning_params(p, 'P1', 'P2', 'e12', 'U12')
+add_detuning_params(p, 'vP1', 'vP2', 've12', 'vU12')
 
 
 
