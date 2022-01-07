@@ -52,8 +52,11 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
     pulse.define_marker('M1', awg1, 0, setup_ns=40, hold_ns=20)
     pulse.define_marker('M2', awg2, 2, setup_ns=40, hold_ns=20)
 
+
     dig_name = digitizers[0].name if len(digitizers) > 0 else 'Dig1'
     pulse.define_digitizer_channel('SD1', dig_name, 1)
+
+    pulse.define_channel('P5', dig_name, 1 + _ch_offset)
 
     # add limits on voltages for DC channel compensation (if no limit is specified, no compensation is performed).
     pulse.add_channel_compensation_limit('P1', (-100, 100))

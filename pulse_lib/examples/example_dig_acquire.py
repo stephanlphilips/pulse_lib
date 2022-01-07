@@ -25,21 +25,22 @@ def create_seq(pulse_lib):
     s = seg2
     s.vP4.add_ramp_ss(0, 100, 50, 100)
     s.vP4.add_ramp_ss(100, 200, 100, 50)
+    s.P5.add_block(0, 200, -100)
 
 
     seg3 = pulse_lib.mk_segment('measure')
     s = seg3
-    s.P1.add_block(0, 1e5, -90)
-    s.P2.add_block(0, 1e5, 120)
+    s.P1.add_block(0, 1e4, -90)
+    s.P2.add_block(0, 1e4, 120)
     s.vP4.add_ramp_ss(1e4, 3e4, 0, 50)
-    s.vP4.add_block(3e4, 7e4, 50)
-    s.vP4.add_ramp_ss(7e4, 9e4, 50, 0)
-    s.SD1.acquire(4e4, t_measure=2e4)
+    s.vP4.add_block(3e4, 4e4, 50)
+    s.vP4.add_ramp_ss(4e4, 5e4, 50, 0)
+    s.SD1.acquire(3.5e4, t_measure=1e4)
 
     # generate the sequence and upload it.
     my_seq = pulse_lib.mk_sequence([seg1, seg2, seg3])
     my_seq.set_hw_schedule(HardwareScheduleMock())
-    my_seq.n_rep = 1
+    my_seq.n_rep = 4
     my_seq.sample_rate = 1e9
 
     return my_seq
@@ -59,15 +60,6 @@ def plot(seq, job, awgs):
     pt.legend()
     pt.show()
 
-index = 0
-def play_next():
-    global index
-    index += 1
-    job = my_seq.upload([index])
-    plot(my_seq, job)
-    print(job.upload_info)
-    my_seq.play([index], release=True)
-
 
 # create "AWG1","AWG2"
 awgs, digs = init_hardware()
@@ -83,8 +75,15 @@ job = my_seq.upload([0])
 
 my_seq.play([0], release=False)
 
-plot(my_seq, job, awgs)
-pprint(job.upload_info)
+data = my_seq.get_measurement_data()
+
+plot(my_seq, job, awgs+digs)
+
+pt.figure()
+for ch_name,values in data.items():
+    pt.plot(values, label=ch_name)
+pt.legend()
+#pprint(job.upload_info)
 
 my_seq.play([0], release=True)
 my_seq.uploader.release_jobs()
