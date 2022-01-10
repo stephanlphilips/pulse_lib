@@ -376,7 +376,7 @@ class pulselib:
                         virtual_gate_set.name,
                         virtual_gate_set.real_gate_names,
                         virtual_gate_set.virtual_gate_names,
-                        virtual_gate_set.virtual_gate_matrix,
+                        virtual_gate_set.matrix,
                         real2virtual=True,
                         filter_undefined=True,
                         keep_squared=True)
@@ -390,9 +390,9 @@ class pulselib:
             for virtual_gate_set in hardware.virtual_gates:
                 self.add_virtual_matrix(
                         virtual_gate_set.name,
-                        virtual_gate_set.gates,
-                        virtual_gate_set.v_gates,
-                        virtual_gate_set.matrix,
+                        virtual_gate_set.real_gate_names,
+                        virtual_gate_set.virtual_gate_names,
+                        virtual_gate_set.virtual_gate_matrix,
                         real2virtual=True,
                         filter_undefined=True,
                         keep_squared=True)
