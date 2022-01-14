@@ -254,6 +254,8 @@ class segment_container():
             segment = self[channel]
             comb_setpoints += segment.setpoints
 
+        comb_setpoints += self._software_markers.setpoints
+
         return comb_setpoints
 
 
