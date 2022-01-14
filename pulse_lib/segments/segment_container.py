@@ -180,6 +180,9 @@ class segment_container():
             dim = getattr(self, i).shape
             my_shape = find_common_dimension(my_shape, dim)
 
+        dim = self._software_markers.shape
+        my_shape = find_common_dimension(my_shape, dim)
+
         return my_shape
 
     @property
