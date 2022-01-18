@@ -10,6 +10,9 @@ from .segments.utility.setpoint_mgr import setpoint_mgr
 from .segments.utility.looping import loop_obj
 from .segments.utility.measurement_ref import MeasurementRef
 from .measurements_description import measurements_description
+from .acquisition.acquisition_conf import AcquisitionConf
+from .acquisition.acquisition_param import AcquisitionParam
+from .acquisition.player import SequencePlayer
 
 from si_prefix import si_format
 
@@ -42,6 +45,7 @@ class sequencer():
         self._sweep_index = [0]
         self.sequence = list()
         self.uploader = upload_module
+        self._digitizer_channels = digitizer_channels
 
         self._measurements_description = measurements_description(digitizer_channels)
 
@@ -54,6 +58,7 @@ class sequencer():
         self.n_rep = 1000
         self._sample_rate = 1e9
         self._HVI_variables = None
+        self._acquisition_conf = AcquisitionConf()
 
     @property
     def sweep_index(self):
@@ -167,9 +172,6 @@ class sequencer():
         t_tot = np.zeros(self.shape)
 
         for seg_container in self.sequence:
-# Due to index masking it is not needed anymore to extend the dimensions of the segments.
-#            seg_container.extend_dim(self._shape, ref=True)
-
             # NOTE: the time shift applies only to HVI markers.
             #       A segment with HVI markers can only be added once to the sequence.
             lp_time = loop_obj(no_setpoints=True)
@@ -261,7 +263,57 @@ class sequencer():
         self.hw_schedule = hw_schedule
         self.hw_schedule.set_schedule_parameters(**kwargs)
 
-    def upload(self, index=(0,)):
+    @property
+    def acquisition_conf(self):
+        '''
+        Returns acquisition configuration object (AcquisitionConf)
+        '''
+        return self._acquisition_conf
+
+    def set_acquisition(self,
+                        t_measure=None,
+                        downsample_rate=None,
+                        channels=[],
+                        ):
+        '''
+        Args:
+            t_measure (Union[float, loop_obj]):
+                measurement time in ns. If None it must be specified in the acquire() call.
+            downsample_rate (float):
+                Rate in Hz. When not None, the data should not be averaged,
+                but downsampled with specified rate. Useful for Elzerman readout.
+        '''
+        conf = self.acquisition_conf
+        if t_measure:
+            conf.t_measure = t_measure
+        if downsample_rate:
+            conf.downsample_rate = downsample_rate
+        if channels != []:
+            conf.channels = channels
+
+    def get_acquisition_param(self, name, upload=None, n_triggers=None):
+        if upload == 'auto':
+            reader = SequencePlayer(self)
+        else:
+            reader = self
+
+        conf = self.acquisition_conf
+        acq_channels = conf.channels if conf.channels else list(self._digitizer_channels.keys())
+
+        # TODO @@@ determine n_triggers from acquisitions (and HVI)
+
+        param = AcquisitionParam(reader, name,
+                 acq_channels,
+                 n_rep=self.n_rep if self.n_rep > 1 else None,
+                 n_triggers=n_triggers,
+                 t_measure=conf.t_measure,
+                 sample_rate=conf.downsample_rate,
+                 average_repetitions=False)
+
+        return param
+
+
+    def upload(self, index=None):
         '''
         Sends the sequence with the provided index to the uploader module. Once he is done, the play function can do its work.
         Args:
@@ -271,9 +323,12 @@ class sequencer():
         start multiple uploads at once (during upload you can do playback, when the first one is finihsed)
         (note that this is only possible if you AWG supports upload while doing playback)
         '''
+        if index is None:
+            index = self.sweep_index[::-1]
         self._validate_index(index)
-        upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep, self._sample_rate, self.neutralize)
-
+        upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep,
+                                              self._sample_rate, self.neutralize)
+        upload_job.set_acquisition_conf(self._acquisition_conf)
         upload_job.add_hw_schedule(self.hw_schedule, self._HVI_variables.item(tuple(index)).HVI_markers)
 
         self.uploader.add_upload_job(upload_job)
@@ -281,7 +336,7 @@ class sequencer():
         return upload_job
 
 
-    def play(self, index=(0,), release= True):
+    def play(self, index=None, release= True):
         '''
         Playback a certain index, assuming the index is provided.
         Args:
@@ -290,6 +345,8 @@ class sequencer():
 
         Note that the playback will not start until you have uploaded the waveforms.
         '''
+        if index is None:
+            index = self.sweep_index[::-1]
         self._validate_index(index)
         self.uploader.play(self.id, index, release)
 
@@ -325,7 +382,6 @@ class sequencer():
 
     def set_sweep_index(self,dim,value):
         self._sweep_index[dim] = value
-
 
     def __del__(self):
         logging.debug(f'destructor seq: {self.id}')

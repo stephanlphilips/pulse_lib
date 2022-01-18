@@ -200,6 +200,9 @@ class Job(object):
         self.hw_schedule = hw_schedule
         self.schedule_params = schedule_params
 
+    def set_acquisition_conf(self, conf):
+        self.acquisition_conf = conf
+
 
 
 @dataclass

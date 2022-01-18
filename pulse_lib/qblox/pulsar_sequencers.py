@@ -200,13 +200,13 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         print(f'Integration time {value}')
         self.seq.integration_length_acq = value
 
-    def acquire(self, t, t_measure, n=1):
+    def acquire(self, t):
+        self.n_triggers += 1
+        self.seq.acquire('default', 'increment', t_offset=t)
+
+    def repeated_acquire(self, t, n, t_period):
         self.n_triggers += n
-        if n == 1:
-            self.seq.acquire('default', 'increment', t_offset=t)
-        else:
-            period = t_measure
-            self.seq.repeated_acquire(n, period, 'default', 'increment', t_offset=t)
+        self.seq.repeated_acquire(n, t_period, 'default', 'increment', t_offset=t)
 
     def close(self):
         super().close()

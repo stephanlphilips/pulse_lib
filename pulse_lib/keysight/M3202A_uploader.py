@@ -283,6 +283,9 @@ class Job(object):
         self.hw_schedule = hw_schedule
         self.schedule_params = schedule_params
 
+    def set_acquisition_conf(self, conf):
+        self.acquisition_conf = conf
+
     def add_waveform(self, channel_name, wave_ref, sample_rate):
         if channel_name not in self.channel_queues:
             self.channel_queues[channel_name] = []

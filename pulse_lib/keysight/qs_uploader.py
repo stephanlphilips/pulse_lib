@@ -359,6 +359,9 @@ class Job(object):
         self.hw_schedule = hw_schedule
         self.schedule_params = schedule_params
 
+    def set_acquisition_conf(self, conf):
+        self.acquisition_conf = conf
+
     def add_waveform(self, channel_name, wave_ref, sample_rate):
         if channel_name not in self.channel_queues:
             self.channel_queues[channel_name] = []
@@ -1148,12 +1151,16 @@ class UploadAggregator:
                         entry = DigitizerSequenceEntry()
                         sequence.append(entry)
                     # lookup / render acquisition trigger
-                    if channel.downsample_rate is not None:
-                        period_ns = iround(1e8/channel.downsample_rate) * 10
-                        entry.n_cycles = int(acquisition.t_measure / period_ns)
+                    if acquisition.t_measure is not None:
+                        t_measure = acquisition.t_measure
+                    else:
+                        t_measure = job.acquisition_conf.t_measure
+                    if job.acquisition_conf.downsample_rate is not None:
+                        period_ns = iround(1e8/job.acquisition_conf.downsample_rate) * 10
+                        entry.n_cycles = int(t_measure / period_ns)
                         entry.t_measure = period_ns
                     else:
-                        entry.t_measure = acquisition.t_measure
+                        entry.t_measure = t_measure
                     entry.measurement_id = len(sequence)
                     entry.threshold = acquisition.threshold
                     entry.pxi_trigger = pxi_triggers.get(str(acquisition.ref), None)

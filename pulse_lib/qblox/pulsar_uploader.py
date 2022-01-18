@@ -28,6 +28,7 @@ class PulsarConfig:
 
 class PulsarUploader:
     verbose = True
+    output_dir = None
 
     def __init__(self, awg_devices, awg_channels, marker_channels,
                  IQ_channels, qubit_channels, digitizers, digitizer_channels):
@@ -39,7 +40,7 @@ class PulsarUploader:
 
         self.jobs = []
 
-        q1 = Q1Instrument()
+        q1 = Q1Instrument(PulsarUploader.output_dir)
         self.q1instrument = q1
 
         for awg in awg_devices.values():
@@ -70,6 +71,10 @@ class PulsarUploader:
             if marker_ch.invert:
                 raise Exception(f'Marker channel inversion not (yet) supported')
 
+
+    @staticmethod
+    def set_output_dir(path):
+        PulsarUploader.output_dir = path
 
     def _get_voltage_channels(self):
         iq_out_channels = []
@@ -139,7 +144,6 @@ class PulsarUploader:
         self.release_memory(seq_id, index)
         return Job(self.jobs, sequence, index, seq_id, n_rep, sample_rate, neutralize)
 
-
     def add_upload_job(self, job):
         '''
         add a job to the uploader.
@@ -170,7 +174,7 @@ class PulsarUploader:
 
         duration = time.perf_counter() - start
         logging.debug(f'generated upload data ({duration*1000:6.3f} ms)')
-        print(f'Generated upload data in {duration*1000:6.3f} ms')
+#        print(f'Generated upload data in {duration*1000:6.3f} ms')
 
 
     def __get_job(self, seq_id, index):
@@ -218,7 +222,10 @@ class PulsarUploader:
         for channel_name in channels:
             dig_ch = self.digitizer_channels[channel_name]
             in_ch = dig_ch.channel_numbers
-            raw = self.q1instrument.get_acquisition_bins(channel_name, 'default')
+            try:
+                raw = self.q1instrument.get_acquisition_bins(channel_name, 'default')
+            except KeyError:
+                raw = {'integration':{'path0':[], 'path1':[]}}
             if len(in_ch) == 1:
                 raw_ch = raw['integration'][f'path{in_ch[0]}']
                 result[f'{channel_name}'] = raw_ch
@@ -227,6 +234,10 @@ class PulsarUploader:
                     raw_ch = raw['integration'][f'path{i}']
                     result[f'{channel_name}_{i}'] = raw_ch
         return result
+
+    def wait_until_AWG_idle(self):
+        # @@@ TODO implement when run_program() has async version
+        pass
 
     def release_memory(self, seq_id=None, index=None):
         """
@@ -287,6 +298,9 @@ class Job(object):
         self.hw_schedule = hw_schedule
         self.schedule_params = schedule_params
 
+    def set_acquisition_conf(self, conf):
+        self.acquisition_conf = conf
+
     def get_variable(self, name, default=None):
         return self.schedule_params.get(name, default)
 
@@ -339,14 +353,6 @@ class SegmentRenderInfo:
     @property
     def t_end(self):
         return self.t_start + self.npt
-
-
-@dataclass
-class DigAcquisition:
-    start: int
-    t_measure: Optional[int] = None
-    n: int = 1
-    threshold: Optional[int] = None
 
 
 class UploadAggregator:
@@ -610,25 +616,27 @@ class UploadAggregator:
 
 
     def add_acquisition_channel(self, job, digitizer_channel):
+        for name in job.schedule_params:
+            if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
+                logging.error(f'Trigger with HVI variable is not support for Qblox')
+
         channel_name = digitizer_channel.name
         t_offset = int(self.max_pre_start_ns / 4) * 4
-        acquisitions = []
 
-        t_average = job.get_variable('t_measure')
-        trigger_period = job.get_variable('trigger_period')
-        if trigger_period is None and digitizer_channel.downsample_rate is not None:
-            trigger_period = iround(4e9/digitizer_channel.downsample_rate) * 4
+        acq_conf = job.acquisition_conf
+
+        if acq_conf.downsample_rate is not None:
+            trigger_period = iround(4e9/acq_conf.downsample_rate) * 4
+            t_integrate = trigger_period
+        else:
+            trigger_period = None
+            t_integrate = acq_conf.t_measure
 
         seq = AcquisitionSequenceBuilder(channel_name, self.program[channel_name], job.n_rep)
-        seq.integration_time = t_average
+        seq.integration_time = t_integrate
 
         markers = self.get_markers_seq(job, channel_name)
         seq.add_markers(markers)
-
-        for name, value in job.schedule_params.items():
-            if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
-                time = value + t_offset
-                acquisitions.append(DigAcquisition(time))
 
         for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
             seg_start = seg_render.t_start + t_offset
@@ -636,21 +644,15 @@ class UploadAggregator:
             acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
 
             for acquisition in acquisition_data:
-                if trigger_period and t_average and acquisition.t_measure > trigger_period:
-                    n_cycles = iround(acquisition.t_measure / trigger_period)
-                    # @@@ This is a bit weird...
-                    t_measure = iround(trigger_period)
-                else:
-                    n_cycles = 1
-                    t_measure = acquisition.t_measure
                 t = iround(acquisition.start + seg_start)
-                acquisitions.append(DigAcquisition(t,
-                                                   t_measure,
-                                                   n=n_cycles,
-                                                   threshold=acquisition.threshold))
-
-        for acq in acquisitions:
-            seq.acquire(acq.start, acq.t_measure, acq.n)
+                t_measure = acquisition.t_measure if acquisition.t_measure is not None else acq_conf.t_measure
+                if acquisition.n_repeat:
+                    seq.repeated_acquire(t, acquisition.n_repeat, iround(acquisition.interval))
+                elif trigger_period and t_measure > trigger_period:
+                    n_cycles = iround(t_measure / trigger_period)
+                    seq.acquire(t, n_cycles, trigger_period)
+                else:
+                    seq.acquire(t)
 
         seq.close()
 
@@ -713,12 +715,12 @@ class UploadAggregator:
 
         times.append(['compile', time.perf_counter()])
 
-        prev = None
-        for step,t in times:
-            if prev:
-                duration = (t - prev)*1000
-                print(f'duration {step:10} {duration:9.3f} ms')
-            prev = t
+#        prev = None
+#        for step,t in times:
+#            if prev:
+#                duration = (t - prev)*1000
+#                print(f'duration {step:10} {duration:9.3f} ms')
+#            prev = t
 
     def get_max_compensation_time(self):
         '''
