@@ -75,11 +75,6 @@ class digitizer_channel:
     '''
     Return I/Q data in complex value. If False the imaginary component will be discarded.
     '''
-    downsample_rate: Optional[float] = None
-    '''
-    When not None, the data should not be averaged, but downsampled with specified rate.
-    Can be used for Elzerman readout.
-    '''
 
     @property
     def channel_numbers(self):
@@ -103,10 +98,5 @@ class digitizer_channel_iq:
     iq_out: bool = False
     '''
     Return I/Q data in complex value. If False the imaginary component will be discarded.
-    '''
-    downsample_rate: Optional[float] = None
-    '''
-    When not None, the data should not be averaged, but downsampled with specified rate.
-    Can be used for Elzerman readout.
     '''
 

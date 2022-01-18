@@ -170,12 +170,7 @@ class measurement_converter:
             if not channel.iq_out:
                 ch_raw = ch_raw.real
 
-            if channel.downsample_rate is None:
-                self._channel_raw[channel.name] = ch_raw.reshape((-1, len(acquisitions.data))).T
-            else:
-                period_ns = iround(1e8/channel.downsample_rate) * 10
-                n_samples = sum(int(acq.t_measure / period_ns) for acq in acquisitions.data)
-                self._channel_raw[channel.name] = ch_raw.reshape((-1, n_samples)).T
+            self._channel_raw[channel.name] = ch_raw.reshape((-1, len(acquisitions.data))).T
 
 
     def _set_data_raw(self, data):
