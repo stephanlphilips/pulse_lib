@@ -13,9 +13,11 @@ from pulse_lib.segments.data_classes.data_generic import parent_data
 class acquisition:
     ref : Optional[str]
     start: float
-    t_measure: float
-    threshold : Optional[float]
-    zero_on_high: bool
+    t_measure: Optional[float]=None
+    n_repeat: Optional[int]=None
+    interval: Optional[float]=None
+    threshold : Optional[float]=None
+    zero_on_high: bool=False
 
 
 class acquisition_data(parent_data):
@@ -39,7 +41,7 @@ class acquisition_data(parent_data):
         """
         acquisition.start += self.start_time
         self.data.append(acquisition)
-        end_time = acquisition.start + acquisition.t_measure
+        end_time = acquisition.start
         if end_time > self.end_time:
             self.end_time = end_time
 
@@ -179,13 +181,12 @@ class acquisition_data(parent_data):
         # get number of points that need to be rendered
         t_tot_pt = round_pt(t_tot, sample_time_step) + 1
 
-        my_sequence = np.zeros([int(t_tot_pt)])
+        my_sequence = np.full([int(t_tot_pt)], None)
 
         for acq in self.data:
             start = round_pt(acq.start, sample_time_step)
-            stop = round_pt(acq.start + acq.t_measure, sample_time_step)
 
-            my_sequence[start:stop] = 100
+            my_sequence[start] = 100
 
         return my_sequence[:-1]
 
@@ -205,7 +206,7 @@ class acquisition_data(parent_data):
         return metadata
 
 def round_pt(t, t_sample):
-    return int(np.trunc(t / t_sample + 0.5))
+    return int(t / t_sample + 0.5)
 
 def slice_out_acquisition(start, stop, data):
     """
@@ -220,15 +221,12 @@ def slice_out_acquisition(start, stop, data):
 
     Function also fixes the time in the pointer that is given.
     """
-    if data.start + data.t_measure <= start or data.start >= stop:
+    if data.start <= start or data.start >= stop:
         return False
 
     result = copy.copy(data)
     if result.start < start:
         result.start = start
-
-    if result.start + t_measure > stop:
-        result.t_measure = stop - result.start
 
     result.start -= start
 

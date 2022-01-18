@@ -48,16 +48,22 @@ class segment_acquisition():
         self._setpoints = setpoint_mgr()
         self.render_mode = False
 
-    def acquire(self, start, t_measure, ref=None, threshold=None,
-                zero_on_high=False, accept_if=None):
+    def acquire(self, start, t_measure=None, ref=None,
+                n_repeat=None, interval=None,
+                threshold=None, zero_on_high=False, accept_if=None):
         '''
         Adds an acquisition.
         Args:
             start (float or loopobj): start time
-            t_measure (float or loopobj): measurement time
+            t_measure (None, float or loopobj): measurement time
             ref (Optional[str or MeasurementRef]): optional reference to retrieve measurement by name
+            n_repeat (Optional[int]): number of repeated triggers, e.g for video mode
+            interval (Optional[float]): repetition interval in ns when n_repeat is also set
             threshold (Optional[float or loopobj]): optional threshold
             zero_on_high (bool): if True then result = 0 if value>threshold
+            accept_if (Optional[bool]):
+                if set the result of the sequence will only be accepted if the measurement
+                equals this condition.
         '''
         if isinstance(ref, MeasurementRef) and zero_on_high:
             ref.inverted()
@@ -66,11 +72,17 @@ class segment_acquisition():
         self._measurement_index += 1
         self._measurement_segment.add_acquisition(self.name, index, threshold is not None,
                                                   ref=ref, accept_if=accept_if)
-        self._acquire(start, t_measure, ref, threshold, zero_on_high)
+        self._acquire(start, t_measure, ref=ref,
+                      n_repeat=n_repeat, interval=interval,
+                      threshold=threshold, zero_on_high=zero_on_high)
 
     @loop_controller
-    def _acquire(self, start, t_measure, ref=None, threshold=None, zero_on_high=False):
-        acq = acquisition(ref, start, t_measure, threshold, zero_on_high)
+    def _acquire(self, start, t_measure, ref=None,
+                 n_repeat=None, interval=None,
+                 threshold=None, zero_on_high=False):
+        acq = acquisition(ref, start, t_measure,
+                          n_repeat=n_repeat, interval=interval,
+                          threshold=threshold, zero_on_high=zero_on_high)
         self.data_tmp.add_acquisition(acq)
         return self.data_tmp
 
@@ -276,8 +288,8 @@ class segment_acquisition():
 
         y = pulse_data_curr_seg.render(sample_rate)
         x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))
-        # plot with dashed line
-        plt.plot(x, y, '--', label=self.name)
+        # plot with markers only
+        plt.plot(x, y, '>', label=self.name)
         plt.xlabel("time (ns)")
         plt.ylabel("amplitude (mV)")
         plt.legend()

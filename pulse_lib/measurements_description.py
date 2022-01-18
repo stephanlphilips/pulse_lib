@@ -26,7 +26,8 @@ class measurements_description:
                 end_times = seg_start_times.copy()
                 for index in np.ndindex(seg_start_times.shape):
                     acq_data = acq_channel._get_data_all_at(index).data[measurement.index]
-                    end_times[index] += acq_data.start + acq_data.t_measure
+                    t_measure = acq_data.t_measure if acq_data.t_measure is not None else 0
+                    end_times[index] += acq_data.start + t_measure
                 self.end_times[m.name] = end_times
             else:
                 m = measurement
