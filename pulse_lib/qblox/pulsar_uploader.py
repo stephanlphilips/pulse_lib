@@ -230,11 +230,11 @@ class PulsarUploader:
                 raw = {'integration':{'path0':[], 'path1':[]}}
             if len(in_ch) == 1:
                 raw_ch = raw['integration'][f'path{in_ch[0]}']
-                result[f'{channel_name}'] = raw_ch
+                result[f'{channel_name}'] = np.require(raw_ch, dtype=float)
             else:
                 for i in in_ch:
                     raw_ch = raw['integration'][f'path{i}']
-                    result[f'{channel_name}_{i}'] = raw_ch
+                    result[f'{channel_name}_{i}'] = np.require(raw_ch, dtype=float)
         return result
 
     def wait_until_AWG_idle(self):
