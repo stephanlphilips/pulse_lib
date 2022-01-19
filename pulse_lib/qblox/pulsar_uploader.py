@@ -173,7 +173,7 @@ class PulsarUploader:
         self.jobs.append(job)
 
         duration = time.perf_counter() - start
-        logging.debug(f'generated upload data ({duration*1000:6.3f} ms)')
+        logging.info(f'generated upload data {job.index} ({duration*1000:6.3f} ms)')
 #        print(f'Generated upload data in {duration*1000:6.3f} ms')
 
 
@@ -204,6 +204,8 @@ class PulsarUploader:
         """
 
         job =  self.__get_job(seq_id, index)
+
+        logging.info(f'Play {index}')
 
 #        # TODO @@@ cleanup frequency update hack
         for name, qubit_channel in self.qubit_channels.items():
@@ -710,17 +712,20 @@ class UploadAggregator:
         times.append(['done', time.perf_counter()])
 
         # NOTE: compilation is ~20% faster with listing=False, add_comments=False
-#        self.program.compile(add_comments=False, listing=False)
-        self.program.compile(listing=True)
+        if UploadAggregator.verbose:
+            self.program.compile(listing=True)
+        else:
+            self.program.compile(add_comments=False, listing=False)
 
         times.append(['compile', time.perf_counter()])
 
-#        prev = None
-#        for step,t in times:
-#            if prev:
-#                duration = (t - prev)*1000
-#                print(f'duration {step:10} {duration:9.3f} ms')
-#            prev = t
+        if UploadAggregator.verbose:
+            prev = None
+            for step,t in times:
+                if prev:
+                    duration = (t - prev)*1000
+                    logging.debug(f'duration {step:10} {duration:9.3f} ms')
+                prev = t
 
     def get_max_compensation_time(self):
         '''
