@@ -54,7 +54,8 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
 
 
     dig_name = digitizers[0].name if len(digitizers) > 0 else 'Dig1'
-    pulse.define_digitizer_channel('SD1', dig_name, 1)
+    pulse.define_digitizer_channel('SD1', dig_name, 0 + _ch_offset)
+    pulse.define_digitizer_channel('SD2', dig_name, 1 + _ch_offset)
 
     pulse.define_channel('P5', dig_name, 1 + _ch_offset)
 

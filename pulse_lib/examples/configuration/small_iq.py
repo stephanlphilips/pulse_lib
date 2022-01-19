@@ -2,8 +2,8 @@ from pulse_lib.base_pulse import pulselib
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor, IQ_channel_constructor
 import numpy as np
 
-#_backend = 'Qblox'
-_backend = 'Keysight'
+_backend = 'Qblox'
+#_backend = 'Keysight'
 #_backend = 'Keysight_QS'
 
 _ch_offset = 0
