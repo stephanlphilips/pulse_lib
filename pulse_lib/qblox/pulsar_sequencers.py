@@ -1,3 +1,4 @@
+import logging
 from numbers import Number
 from copy import copy
 import numpy as np
@@ -197,7 +198,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
 
     @integration_time.setter
     def integration_time(self, value):
-        print(f'Integration time {value}')
+        logging.info(f'{self.name}: integration time {value}')
         self.seq.integration_length_acq = value
 
     def acquire(self, t):
