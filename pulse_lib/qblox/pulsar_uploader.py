@@ -25,6 +25,18 @@ def iround(value):
 class PulsarConfig:
     ALIGNMENT = 4 # pulses must be aligned on 4 ns boundaries
 
+    @staticmethod
+    def align(value):
+        return int(value / PulsarConfig.ALIGNMENT + 0.5) * PulsarConfig.ALIGNMENT
+
+    @staticmethod
+    def ceil(value):
+        return int(np.ceil(value / PulsarConfig.ALIGNMENT) * PulsarConfig.ALIGNMENT)
+
+    @staticmethod
+    def floor(value):
+        return int(np.floor(value / PulsarConfig.ALIGNMENT) * PulsarConfig.ALIGNMENT)
+
 
 class PulsarUploader:
     verbose = True
@@ -216,25 +228,34 @@ class PulsarUploader:
         if release_job:
             job.release()
 
-    def get_measurement_data(self, channels=None):
+    def get_measurement_data(self, acq_conf):
+        channels = acq_conf.channels
         if channels is None:
             channels = self.digitizer_channels.keys()
 
         result = {}
+        # Divide by integration length. Assume it is fixed
+        t_measure = acq_conf.t_measure
         for channel_name in channels:
             dig_ch = self.digitizer_channels[channel_name]
             in_ch = dig_ch.channel_numbers
+            in_ranges = self.q1instrument.get_input_ranges(channel_name)
+            # TODO:
+            # * t_measure in acquisition
+            # * weighed integration (length only?)
+            # * number averages
             try:
                 raw = self.q1instrument.get_acquisition_bins(channel_name, 'default')
             except KeyError:
                 raw = {'integration':{'path0':[], 'path1':[]}}
             if len(in_ch) == 1:
-                raw_ch = raw['integration'][f'path{in_ch[0]}']
-                result[f'{channel_name}'] = np.require(raw_ch, dtype=float)
+                ch = in_ch[0]
+                raw_ch = np.require(raw['integration'][f'path{ch}'], dtype=float)
+                result[f'{channel_name}'] = in_ranges[ch]/2/t_measure * raw_ch
             else:
                 for i in in_ch:
-                    raw_ch = raw['integration'][f'path{i}']
-                    result[f'{channel_name}_{i}'] = np.require(raw_ch, dtype=float)
+                    raw_ch = np.require(raw['integration'][f'path{i}'], dtype=float)
+                    result[f'{channel_name}_{i}'] = in_ranges[ch]/2/t_measure * raw_ch
         return result
 
     def wait_until_AWG_idle(self):
@@ -432,7 +453,7 @@ class UploadAggregator:
 
         # add DC compensation
         compensation_time = self.get_max_compensation_time()
-        compensation_time_ns = int(np.ceil(compensation_time*1e9 / 4)) * 4 # ns @@@ add align function
+        compensation_time_ns = PulsarConfig.ceil(compensation_time*1e9)
         logging.debug(f'DC compensation time: {compensation_time_ns} ns')
 
         job.upload_info.dc_compensation_duration_ns = compensation_time_ns
@@ -456,8 +477,8 @@ class UploadAggregator:
             ch_data = seg_ch._get_data_all_at(job.index)
 
             for pulse in ch_data.my_marker_data:
-                start_stop.append((offset + pulse.start - marker_channel.setup_ns, +1))
-                start_stop.append((offset + pulse.stop + marker_channel.hold_ns, -1))
+                start_stop.append((PulsarConfig.floor(offset + pulse.start - marker_channel.setup_ns), +1))
+                start_stop.append((PulsarConfig.ceil(offset + pulse.stop + marker_channel.hold_ns), -1))
 
         # merge markers
         marker_value = 1 << marker_channel.channel_number
@@ -506,7 +527,7 @@ class UploadAggregator:
         segments = self.segments
         channel_info = self.channels[channel_name]
 
-        t_offset = int((self.max_pre_start_ns - channel_info.delay_ns) / 4) * 4
+        t_offset = PulsarConfig.align(self.max_pre_start_ns + channel_info.delay_ns)
 
         seq = VoltageSequenceBuilder(channel_name, self.program[channel_name],
                                      rc_time=channel_info.bias_T_RC_time)
@@ -522,28 +543,34 @@ class UploadAggregator:
             entries = data.get_data_elements()
             for e in entries:
                 if isinstance(e, OffsetRamp):
-                    t = iround(e.time + seg_start)
+                    t = PulsarConfig.align(e.time + seg_start)
+                    t_end = PulsarConfig.align(e.time + seg_start + e.duration)
                     v_start = scaling * e.v_start
                     v_stop = scaling * e.v_stop
-                    duration = iround(e.duration)
+                    duration = t_end - t
+                    if duration == 0:
+                        continue
                     if abs(v_start - v_stop) > 6e-5:
                         # ramp only when > 2 bits on 16-bit signed resolution
                         seq.ramp(t, duration, v_start, v_stop)
                     else:
                         seq.set_offset(t, duration, v_start)
                 elif isinstance(e, IQ_data_single):
-                    t = iround(e.start + seg_start)
-                    duration = iround(e.stop - e.start)
-                    amod, phmod = get_modulation(e.envelope, duration)
-                    sinewave = SineWaveform(duration, e.frequency, e.start_phase, amod, phmod)
+                    t = PulsarConfig.align(e.start + seg_start)
+                    t_end = PulsarConfig.align(e.stop + seg_start)
+                    duration = t_end - t
+                    wave_duration = iround(e.stop - e.start) # 1 ns resolution
+                    amod, phmod = get_modulation(e.envelope, wave_duration)
+                    sinewave = SineWaveform(wave_duration, e.frequency, e.start_phase, amod, phmod)
                     seq.pulse(t, duration, e.amplitude*scaling, sinewave)
                 elif isinstance(e, PhaseShift):
-                    t = iround(e.time + seg_start)
+                    t = PulsarConfig.align(e.time + seg_start)
                     e.phase_shift
                     raise Exception('Phase shift not supported for AWG channel')
                 elif isinstance(e, custom_pulse_element):
-                    t = iround(e.start + seg_start)
-                    duration = iround(e.stop - e.start)
+                    t = PulsarConfig.align(e.start + seg_start)
+                    t_end = PulsarConfig.align(e.stop + seg_start)
+                    duration = t_end - t
                     seq.custom_pulse(t, duration, scaling, e)
                 else:
                     raise Exception('Unknown pulse element {type(e)}')
@@ -551,7 +578,7 @@ class UploadAggregator:
         t_end = seg_render.t_end + t_offset
         seq.set_offset(t_end, 0, 0.0)
 
-        compensation_ns = round(job.upload_info.dc_compensation_duration_ns)
+        compensation_ns = job.upload_info.dc_compensation_duration_ns
         if job.neutralize and compensation_ns > 0 and channel_info.dc_compensation:
             compensation_voltage = -channel_info.integral / compensation_ns * 1e9 * scaling
             job.upload_info.dc_compensation_voltages[channel_name] = compensation_voltage
@@ -573,7 +600,7 @@ class UploadAggregator:
             delays.append(self.channels[awg_channel_name].delay_ns)
         if delays[0] != delays[1]:
             raise Exception(f'I/Q Channel delays must be equal ({channel_name})')
-        t_offset = int((self.max_pre_start_ns + delays[0]) / 4) * 4
+        t_offset = PulsarConfig.align(self.max_pre_start_ns + delays[0])
 
         # TODO @@@ LO frequency can change during sweep
         lo_freq = qubit_channel.iq_channel.LO
@@ -599,14 +626,16 @@ class UploadAggregator:
                 if isinstance(e, OffsetRamp):
                     raise Exception('Voltage steps and ramps are not supported for IQ channel')
                 elif isinstance(e, IQ_data_single):
-                    t = iround(e.start + seg_start)
-                    duration = iround(e.stop - e.start)
-                    amod, phmod = get_modulation(e.envelope, duration)
-                    sinewave = SineWaveform(duration, e.frequency-lo_freq,
+                    t = PulsarConfig.align(e.start + seg_start)
+                    t_end = PulsarConfig.align(e.stop + seg_start)
+                    duration = t_end - t
+                    wave_duration = iround(e.stop - e.start) # 1 ns resolution for waveform
+                    amod, phmod = get_modulation(e.envelope, wave_duration)
+                    sinewave = SineWaveform(wave_duration, e.frequency-lo_freq,
                                             e.start_phase, amod, phmod)
                     seq.pulse(t, duration, e.amplitude*scaling, sinewave)
                 elif isinstance(e, PhaseShift):
-                    t = iround(e.time + seg_start)
+                    t = PulsarConfig.align(e.time + seg_start)
                     seq.shift_phase(t, e.phase_shift)
                 elif isinstance(e, custom_pulse_element):
                     raise Exception('Custom pulses are not supported for IQ channel')
@@ -623,12 +652,12 @@ class UploadAggregator:
                 logging.error(f'Trigger with HVI variable is not support for Qblox')
 
         channel_name = digitizer_channel.name
-        t_offset = int(self.max_pre_start_ns / 4) * 4
+        t_offset = PulsarConfig.align(self.max_pre_start_ns)
 
         acq_conf = job.acquisition_conf
 
         if acq_conf.downsample_rate is not None:
-            trigger_period = iround(4e9/acq_conf.downsample_rate) * 4
+            trigger_period = PulsarConfig.align(1e9/acq_conf.downsample_rate)
             t_integrate = trigger_period
         else:
             trigger_period = None
@@ -646,10 +675,10 @@ class UploadAggregator:
             acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
 
             for acquisition in acquisition_data:
-                t = iround(acquisition.start + seg_start)
+                t = PulsarConfig.align(acquisition.start + seg_start)
                 t_measure = acquisition.t_measure if acquisition.t_measure is not None else acq_conf.t_measure
                 if acquisition.n_repeat:
-                    seq.repeated_acquire(t, acquisition.n_repeat, iround(acquisition.interval))
+                    seq.repeated_acquire(t, acquisition.n_repeat, PulsarConfig.align(acquisition.interval))
                 elif trigger_period and t_measure > trigger_period:
                     n_cycles = iround(t_measure / trigger_period)
                     seq.acquire(t, n_cycles, trigger_period)

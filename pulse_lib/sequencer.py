@@ -351,7 +351,7 @@ class sequencer():
         self.uploader.play(self.id, index, release)
 
     def get_measurement_data(self, channels=None):
-        return self.uploader.get_measurement_data(channels)
+        return self.uploader.get_measurement_data(self.acquisition_conf)
 
     def close(self):
         '''

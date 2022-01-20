@@ -142,7 +142,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
 
     def pulse(self, t, duration, amplitude, waveform):
         self._update_time(t, duration)
-        self.add_comment(f'MW pulse {waveform.frequency/1e6:6.2f} MHz {duration} ns')
+        self.add_comment(f'MW pulse {waveform.frequency/1e6:6.2f} MHz {waveform.duration} ns')
         waveform = copy(waveform)
         waveform.frequency -= self.nco_frequency
 
@@ -164,6 +164,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
             # phase is constant
             cycles = 2*np.pi*(waveform.phase + waveform.phmod)
             if isinstance(waveform.amod, Number):
+                # TODO @@@ add option to use waveform for short pulses
                 ampI = amplitude * waveform.amod * np.sin(cycles)
                 ampQ = amplitude * waveform.amod * np.cos(cycles)
                 # generate block pulse
@@ -181,7 +182,6 @@ class IQSequenceBuilder(SequenceBuilderBase):
     def shift_phase(self, t, phase):
         self._update_time(t, 0.0)
         self.seq.shift_phase(phase, t_offset=t)
-
 
 
 class AcquisitionSequenceBuilder(SequenceBuilderBase):
