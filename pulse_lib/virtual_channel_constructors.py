@@ -7,7 +7,7 @@ class virtual_gates_constructor(object):
     """
     Constructor to create virtual gate matrixes.
     """
-    def __init__(self, pulse_lib_obj, name=None):
+    def __init__(self, pulse_lib_obj, name = None):
         """
         init object
         Args:
