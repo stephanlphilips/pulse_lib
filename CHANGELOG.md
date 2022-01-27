@@ -7,6 +7,7 @@ All notable changes to Pulselib will be documented in this file.
   add_channel_offset, set_qubit_correction_phase, set_qubit_correction_gain
 - New interface from hardware class to pulselib: set_channel_attenuations and add_virtual_matrix
 - Virtual matrix on top of virtual gates
+- Added hw schedule for UHFLI with Tektronix
 
 ### Removed
 - pulse.add_channel_compenstation_limit. Correct method is add_channel_compensation_limit
