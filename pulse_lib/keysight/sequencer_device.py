@@ -1,15 +1,15 @@
-import numpy as np
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict
+import numpy as np
 
 @dataclass
 class SequencerInfo:
     module_name: str
     sequencer_index: int
     channel_name: str # awg_channel or qubit_channel
-    frequency: Optional[float]
     phases: List[float]
-    channel_numbers: List[int]
+    gain_correction: List[float]
+
 
 # TODO @@@ retrieve sequencer configuration from M3202A_QS object
 @dataclass
@@ -25,25 +25,51 @@ class SequencerDevice:
 
     def add_iq_channel(self, IQ_channel, channel_numbers):
         if not channel_numbers in [[1,2], [2,1], [3,4], [4,3]]:
-            raise Exception(f'sequencer requires channels 1/2 or 3/4. ({IQ_channel.channel_map})')
+            raise Exception(f'sequencer requires channels 1/2 or 3/4. ({IQ_channel.IQ_out_channels})')
         index = 1 if 3 in channel_numbers else 0
         if self.iq_channels[index] is not None:
-            raise Exception(f'sequencer can only have 1 IQ channel definition. ({IQ_channel.channel_map})')
-
-        iq_pair = IQ_channel.IQ_out_channels
-        phases = [self._get_phase(iq_out_channel) for iq_out_channel in iq_pair]
-
+            raise Exception(f'sequencer can only have 1 IQ channel definition. ({IQ_channel.IQ_out_channels})')
         self.iq_channels[index] = IQ_channel
         sequencer_numbers = [1,2,5,6,9,10] if index == 0 else [3,4,7,8,11,12]
+
+        # names of output channels for modulators A and B
+        out_channels = list(IQ_channel.IQ_out_channels)
+        if channel_numbers[0] > channel_numbers[1]:
+            out_channels.reverse()
+        IQ_comps = ''.join(out_channel.IQ_comp for out_channel in out_channels)
+        if IQ_comps not in ['IQ','QI']:
+            raise Exception(f'Expected I and Q channel, but found {IQ_comps}')
+
+        phases = [self._get_phase(out_channel) for out_channel in out_channels]
+
         sequencers = []
         for i, qubit_channel in enumerate(IQ_channel.qubit_channels):
-            if channel_numbers[1] > channel_numbers[0]:
-                phases.reverse()
-            f = qubit_channel.reference_frequency - IQ_channel.LO
-            sequencer = SequencerInfo(self.name, sequencer_numbers[i],
-                                      qubit_channel.channel_name, f, phases, channel_numbers)
-            self.sequencers[sequencer_numbers[i]-1] = sequencer
+            seq_num = sequencer_numbers[i]
+            qubit_phases = phases.copy()
+            if IQ_comps == 'IQ':
+                gain_correction = qubit_channel.correction_gain
+                qubit_phases[1] += qubit_channel.correction_phase*180/np.pi
+            else:
+                gain_correction = list(reversed(qubit_channel.correction_gain))
+                qubit_phases[0] += qubit_channel.correction_phase*180/np.pi
+
+            print(f'{qubit_channel.channel_name} {IQ_comps} {qubit_phases}')
+
+            qubit_channel.correction_phase
+            sequencer = SequencerInfo(self.name, seq_num,
+                                      qubit_channel.channel_name, qubit_phases, gain_correction)
+            self.sequencers[seq_num-1] = sequencer
             sequencers.append(sequencer)
+
+             # @@@ sequencers could be mapped differently for memory size.
+            seq = self.awg.get_sequencer(seq_num)
+
+            # TODO @@@ cleanup M3202A_QS interface
+            seq.configure_oscillators(0.0, qubit_phases[0], qubit_phases[1])
+            max_gain = max(gain_correction)
+            seq._gainA = gain_correction[0]/max_gain
+            seq._gainB = gain_correction[1]/max_gain
+            seq._init_lo()
         return sequencers
 
     def _get_phase(self, iq_out_channel):
@@ -56,16 +82,16 @@ class SequencerDevice:
             phase_shift += 180
         return phase_shift
 
-    def add_bb_channel(self, channel_number, channel_name):
-        index = 1 if channel_number in [3,4] else 0
-        if self.iq_channels[index] is not None:
-            raise Exception(f'sequencer cannot combine IQ and BB channels on same output')
-        if self.sequencers[channel_number] is not None:
-            raise Exception(f'sequencer cannot have multiple BB channels on same output')
-        phases = [90,0] if channel_number % 2 == 1 else [0,90]
-        sequencer = SequencerInfo(self.name, channel_number, channel_name, None, phases, [channel_number])
-        self.sequencers[channel_number] = sequencer
-        return sequencer
+#    def add_bb_channel(self, channel_number, channel_name):
+#        index = 1 if channel_number in [3,4] else 0
+#        if self.iq_channels[index] is not None:
+#            raise Exception(f'sequencer cannot combine IQ and BB channels on same output')
+#        if self.sequencers[channel_number] is not None:
+#            raise Exception(f'sequencer cannot have multiple BB channels on same output')
+#        phases = [90,0] if channel_number % 2 == 1 else [0,90]
+#        sequencer = SequencerInfo(self.name, channel_number, channel_name, None, phases, [channel_number])
+#        self.sequencers[channel_number] = sequencer
+#        return sequencer
 
 def add_sequencers(obj, AWGs, awg_channels, IQ_channels):
     obj.sequencer_devices = {}
@@ -82,18 +108,18 @@ def add_sequencers(obj, AWGs, awg_channels, IQ_channels):
         if len(iq_pair) != 2:
             raise Exception(f'IQ-channel should have 2 awg channels '
                             f'({iq_pair})')
-        iq_out_channels = [awg_channels[iq_channel_info.awg_channel_name] for iq_channel_info in iq_pair]
-        awg_names = [awg_channel.awg_name for awg_channel in iq_out_channels]
+        iq_awg_channels = [awg_channels[iq_channel_info.awg_channel_name] for iq_channel_info in iq_pair]
+        awg_names = [awg_channel.awg_name for awg_channel in iq_awg_channels]
         if not any(awg_name in obj.sequencer_devices for awg_name in awg_names):
             continue
 
         if awg_names[0] != awg_names[1]:
             raise Exception(f'IQ channels should be on 1 awg: {iq_pair}')
 
-        obj.sequencer_out_channels += [iq_channel_info.awg_channel_name for iq_channel_info in iq_pair]
+        obj.sequencer_out_channels += [awg_channel.name for awg_channel in iq_awg_channels]
 
         seq_device = obj.sequencer_devices[awg_names[0]]
-        channel_numbers = [awg_channel.channel_number for awg_channel in iq_out_channels]
+        channel_numbers = [awg_channel.channel_number for awg_channel in iq_awg_channels]
         qubit_sequencers = seq_device.add_iq_channel(IQ_channel, channel_numbers)
         for iseq,seq in enumerate(qubit_sequencers):
             obj.sequencer_channels[seq.channel_name] = seq
@@ -108,17 +134,17 @@ def add_sequencers(obj, AWGs, awg_channels, IQ_channels):
 #            obj.sequencer_channels[bb_seq.channel_name] = bb_seq
 #            obj.sequencer_out_channels += [bb_seq.channel_name]
 
-    for dev in obj.sequencer_devices.values():
-        awg = dev.awg
-        for i,seq_info in enumerate(dev.sequencers):
-            if seq_info is None:
-                continue
-            seq = awg.get_sequencer(i+1)
-            if seq_info.frequency is None:
-                # sequencer output is A for channels 1 and 3 and B for 2 and 4
-                output = 'BA'[seq_info.channel_numbers[0] % 2]
-                seq.set_baseband(output)
-            else:
-                seq.configure_oscillators(seq_info.frequency, seq_info.phases[0], seq_info.phases[1])
-
-
+#    for dev in obj.sequencer_devices.values():
+#        awg = dev.awg
+#        for i,seq_info in enumerate(dev.sequencers):
+#            if seq_info is None:
+#                continue
+#            seq = awg.get_sequencer(i+1)
+#            if seq_info.frequency is None:
+#                # sequencer output is A for channels 1 and 3 and B for 2 and 4
+#                output = 'BA'[seq_info.channel_numbers[0] % 2]
+#                seq.set_baseband(output)
+#            else:
+#                seq.configure_oscillators(seq_info.frequency, seq_info.phases[0], seq_info.phases[1])
+#
+#

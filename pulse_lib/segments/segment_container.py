@@ -561,8 +561,7 @@ def add_reference_channels(segment_container_obj, virtual_gate_matrices, IQ_chan
             real_channel = getattr(segment_container_obj, IQ_out_channel.awg_channel_name)
             for qubit_channel in IQ_channels_obj.qubit_channels:
                 virtual_channel = getattr(segment_container_obj, qubit_channel.channel_name)
-                real_channel.add_IQ_channel(IQ_channels_obj.LO, qubit_channel.channel_name,
-                                            virtual_channel, IQ_out_channel.IQ_comp, IQ_out_channel.image)
+                real_channel.add_IQ_channel(virtual_channel, qubit_channel, IQ_out_channel, IQ_channels_obj.LO)
 
         # set up markers
         for marker_name in IQ_channels_obj.marker_channels:
@@ -575,11 +574,12 @@ def add_reference_channels(segment_container_obj, virtual_gate_matrices, IQ_chan
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+    from pulse_lib.configuration.iq_channels import IQ_out_channel_info, QubitChannel
 
     seg = segment_container(["a", "b", "c", "d"])
     # b = segment_container(["a", "b"])
-    chan = segment_IQ("q1")
-    setattr(seg, "q1", chan)
+    chan_q1 = segment_IQ("q1")
+    setattr(seg, "q1", chan_q1)
 
     chan_M = segment_marker("M1")
     setattr(seg, "M1", chan_M)
@@ -587,22 +587,24 @@ if __name__ == '__main__':
     seg.channels.append("M1")
     # print(seg.channels)
     # print(seg.q1)
-    seg.a.add_IQ_channel(1e9, "q1", chan, "I", "0")
-    seg.b.add_IQ_channel(1e9, "q1", chan, "Q", "0")
+    q1_channel = QubitChannel('q1', None, None)
+    I_out = IQ_out_channel_info('AWG1_I', 'I', '+')
+    Q_out = IQ_out_channel_info('AWG1_Q', 'Q', '+')
+    seg.a.add_IQ_channel(seg.q1, q1_channel, I_out, 1.0e9)
+    seg.b.add_IQ_channel(seg.q1, q1_channel, Q_out, 1.0e9)
 
-    seg.M1.add_reference_marker_IQ(chan)
+    seg.M1.add_reference_marker_IQ(seg.q1)
 
     seg['c'].add_block(0, 10, 100)
-    seg.add_block(10, 20, ['c', 'd'], [-100, -50])
-    seg.add_ramp(10, 20, ['d', 'c'], [50, -100], [100, 250])
-    seg.add_ramp(0, 20, ['c', 'd'], [250, 100], [0,0])
-
+    seg.add_block(10, 50, ['c', 'd'], [50, -50])
+    seg.add_ramp(10, 50, ['d', 'c'], [-100, 50], [-50, 150], reset_time=True)
+    seg.add_ramp(0, 40, ['c', 'd'], [200, -100], [0,0])
 
     seg.a.add_block(0,lp.linspace(50,100,10),100)
     seg.a += 500
     seg.b += 500
     seg.reset_time()
-    seg.q1.add_MW_pulse(0,100,10,1.015e9)
+    seg.q1.add_MW_pulse(0,100,10,1.010e9)
     seg.q1.wait(10)
     seg.reset_time()
     seg.q1.add_chirp(0,100,1e7,1.1e8, 100)
@@ -622,6 +624,7 @@ if __name__ == '__main__':
     seg.d.plot_segment([0], True, sample_rate = 1e10)
     seg.M1.plot_segment([0])
     plt.show()
+    plt.grid(True)
 
     plt.figure()
     seg.plot([0], ['c','d'])

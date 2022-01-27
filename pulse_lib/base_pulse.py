@@ -5,7 +5,7 @@ from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
 from pulse_lib.configuration.physical_channels import (
         awg_channel, marker_channel, digitizer_channel, digitizer_channel_iq)
-from pulse_lib.configuration.iq_channels import IQ_channel, qubit_channel
+from pulse_lib.configuration.iq_channels import IQ_channel, QubitChannel
 from pulse_lib.configuration.devices import awg_slave
 from pulse_lib.virtual_matrix.virtual_gate_matrices import VirtualGateMatrices
 
@@ -233,19 +233,49 @@ class pulselib:
         else:
             raise ValueError(f"Channel '{channel_name}' is not defined")
 
+    def add_channel_offset(self, channel_name, offset):
+        '''
+        Sets channel offset.
+        Args:
+            channel_name (str) : channel name as defined in define_channel().
+            offset (float) : offset in mV.
+        '''
+        if channel_name in self.awg_channels:
+            self.awg_channels[channel_name].offset = offset
+        else:
+            raise ValueError(f"Channel '{channel_name}' is not defined")
+
     def define_IQ_channel(self, name):
         channel = IQ_channel(name)
         self.IQ_channel = self.IQ_channels[name] = channel
         return channel
 
-    def define_qubit_channel(self, qubit_channel_name, IQ_channel_name, reference_frequency):
+    def define_qubit_channel(self, qubit_channel_name, IQ_channel_name,
+                             reference_frequency=None,
+                             correction_phase=0.0, correction_gain=(1.0,1.0)):
+        """
+        Make a virtual channel that hold IQ signals. Each virtual channel can hold their own phase information.
+        It is recommended to make one IQ channel per qubit (assuming you are multiplexing for multiple qubits)
+        Args:
+            virtual_channel_name (str) : channel name (e.g. qubit_1)
+            LO_freq (float) : frequency of the qubit when not driving and default for driving.
+            correction_phase (float) : phase in rad added to Q component of IQ channel
+            correction_gain (float) : correction of I and Q amplitude
+        """
         iq_channel = self.IQ_channels[IQ_channel_name]
-        qubit = qubit_channel(qubit_channel_name, reference_frequency, iq_channel)
+        qubit = QubitChannel(qubit_channel_name, reference_frequency, iq_channel,
+                             correction_phase, correction_gain)
         iq_channel.qubit_channels.append(qubit)
         self.qubit_channels[qubit_channel_name] = qubit
 
     def set_qubit_idle_frequency(self, qubit_channel_name, idle_frequency):
         self.qubit_channels[qubit_channel_name].reference_frequency = idle_frequency
+
+    def set_qubit_correction_phase(self, qubit_channel_name, correction_phase):
+        self.qubit_channels[qubit_channel_name].correction_phase = correction_phase
+
+    def set_qubit_correction_gain(self, qubit_channel_name, correction_gain_I, correction_gain_Q):
+        self.qubit_channels[qubit_channel_name].correction_gain = (correction_gain_I, correction_gain_Q)
 
     def set_channel_attenuations(self, attenuation_dict):
         for channel, attenuation in attenuation_dict.items():
@@ -466,7 +496,7 @@ if __name__ == '__main__':
     p.add_channel_delay('Q_MW',50)
 
     # add limits on voltages for DC channel compenstation (if no limit is specified, no compensation is performed).
-    # p.add_channel_compenstation_limit('B0', (-100, 500))
+    # p.add_channel_compensation_limit('B0', (-100, 500))
 
     try:
         from V2_software.drivers.virtual_gates.harware import hardware_example

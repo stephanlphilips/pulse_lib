@@ -110,27 +110,32 @@ class segment_IQ(segment_base):
         self.data_tmp.add_MW_data(MW_data)
         return self.data_tmp
 
-    def get_IQ_data(self, LO, I_or_Q, image):
+    def get_IQ_data(self, ref_chan):
         '''
         get I and Q data from the main element.
         Args:
-            LO (float): frequency of microwave source
-            I_or_Q (str) : 'I'/'Q', denoting if you want the I or the Q channel
-            Image : '+'/'-', - if you want the differential signal.
+            ref_chan (IQ_render_info): render info like LO and I/Q
         Returns:
             data (np.ndarray<pulse_data>) : array with the pulsedata objects inside
         '''
+        iq_out = ref_chan.out_channel
+        qubit_channel = ref_chan.qubit_channel
+        LO = ref_chan.LO
 
         phase_shift = 0
-        if I_or_Q == 'I':
+        if iq_out.IQ_comp == 'I':
             phase_shift += np.pi/2
-        if image == '-':
+            correction_gain = qubit_channel.correction_gain[0]
+        else:
+            phase_shift += qubit_channel.correction_phase
+            correction_gain = qubit_channel.correction_gain[1]
+        if iq_out.image == '-':
             phase_shift += np.pi
 
         local_data = copy.copy(self.data).flatten()
         # downconvert the sigal saved in the data object, so later on, in the real MW source, it can be upconverted again.
         for i in range(len(local_data)):
-            local_data[i] = copy.copy(self.data.flat[i])
+            local_data[i] = self.data.flat[i] * correction_gain
             local_data[i].shift_MW_phases(phase_shift)
             local_data[i].shift_MW_frequency(LO)
 
