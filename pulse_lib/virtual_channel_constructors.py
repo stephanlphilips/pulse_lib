@@ -7,7 +7,7 @@ class virtual_gates_constructor(object):
     """
     Constructor to create virtual gate matrixes.
     """
-    def __init__(self, pulse_lib_obj, name=None):
+    def __init__(self, pulse_lib_obj, name = None):
         """
         init object
         Args:
@@ -129,15 +129,24 @@ class IQ_channel_constructor(object):
         """
         self.IQ_channel.LO_parameter = LO
 
-    def add_virtual_IQ_channel(self, virtual_channel_name, LO_freq = None):
+    def add_virtual_IQ_channel(self, virtual_channel_name,
+                               LO_freq=None,
+                               correction_phase=0.0,
+                               correction_gain=(1.0,1.0)):
         """
         Make a virtual channel that hold IQ signals. Each virtual channel can hold their own phase information.
         It is recommended to make one IQ channel per qubit (assuming you are multiplexing for multiple qubits)
         Args:
             virtual_channel_name (str) : channel name (e.g. qubit_1)
             LO_freq (float) : frequency of the qubit when not driving and default for driving.
+            correction_phase (float) : phase in rad added to Q component of IQ channel
+            correction_gain (float) : correction of I and Q gain
         """
-        self.pulse_lib_obj.define_qubit_channel(virtual_channel_name, self.IQ_channel.name, reference_frequency=LO_freq)
+        self.pulse_lib_obj.define_qubit_channel(virtual_channel_name, self.IQ_channel.name,
+                                                reference_frequency=LO_freq,
+                                                correction_phase=correction_phase,
+                                                correction_gain=correction_gain)
+
 
     def __check_awg_channel_name(self, channel_name):
         """

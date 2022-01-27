@@ -3,6 +3,7 @@ Class that is used to make DC pulses.
 """
 import numpy as np
 
+from pulse_lib.configuration.iq_channels import IQ_out_channel_info, QubitChannel
 from pulse_lib.segments.segment_base import last_edited, segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller
 from pulse_lib.segments.data_classes.data_pulse import pulse_data, custom_pulse_element, pulse_delta
@@ -10,18 +11,15 @@ from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
 from pulse_lib.segments.segment_IQ import segment_IQ
 from dataclasses import dataclass
 
-# @@@ TODO: This is very similar to IQ_out_channel_info + qubit_channel
 @dataclass
 class IQ_render_info:
-    """
-    structure to save relevant information about the rendering of the IQ channels (for is in channel object).
-    """
+    '''
+    Rendering information for a single IQ channel and a single qubit segment
+    '''
+    virtual_channel: segment_IQ
+    qubit_channel: QubitChannel
+    out_channel: IQ_out_channel_info
     LO : float
-    virtual_channel_name: str # @@@ never used
-    virtual_channel_pointer: segment_IQ #TODO fix to segment_IQ data type, needs to be post loaded somehow.
-    IQ_render_option : str
-    image_render_option : str
-
 
 class segment_pulse(segment_base):
     '''
@@ -177,17 +175,15 @@ class segment_pulse(segment_base):
         '''
         self.reference_channels.append(virtual_channel_reference_info)
 
-    def add_IQ_channel(self, LO, channel_name, pointer_to_channel, I_or_Q_part, image):
+    def add_IQ_channel(self, virtual_channel, qubit_channel, out_channel, LO):
         '''
         Add a reference to an IQ channel. Same principle as for the virtual one.
         Args:
-            LO (float) : frequecy at which MW source runs (needed to calculate final IQ signal.)
-            channel_name (str): human readable name of the virtual channel
-            pointer_to_channel (*segment_single_IQ): pointer to segment_single_IQ object
-            I_or_Q_part (str) : 'I' or 'Q' to indicate that the reference is to the I or Q part of the signal.
-            image (str) : '+' / '-', take the image of the signal (needed for differential inputs)
+            virtual_channel (segment_IQ): segment with pulses
+            qubit_channel (QubitChannel): qubit channel definition with o.a. phase correction.
+            out_channel (IQ_out_channel_info): defines AWG output channel and settings.
         '''
-        self.IQ_ref_channels.append(IQ_render_info(LO, channel_name, pointer_to_channel, I_or_Q_part, image))
+        self.IQ_ref_channels.append(IQ_render_info(virtual_channel, qubit_channel, out_channel, LO))
 
     @last_edited
     @loop_controller
@@ -211,7 +207,7 @@ if __name__ == '__main__':
     # a) adding pulses
     # b) rendering pulse segments
 
-    import matplotlib.pyplot as plt
+#    import matplotlib.pyplot as plt
 
     from pulse_lib.segments.segment_HVI_variables import segment_HVI_variables
     test_HVI_marker = segment_HVI_variables("name")

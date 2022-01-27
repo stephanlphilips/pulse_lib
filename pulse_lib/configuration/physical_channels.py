@@ -12,6 +12,7 @@ class awg_channel:
     attenuation: float = 1.0
     compensation_limits: Tuple[float, float] = (0,0)
     bias_T_RC_time: Optional[float] = None
+    offset: float = 0.0 # mV
 
 @dataclass
 class marker_channel:

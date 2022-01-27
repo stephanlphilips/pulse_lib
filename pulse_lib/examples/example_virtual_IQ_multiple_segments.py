@@ -13,7 +13,6 @@ from configuration.medium_iq import init_hardware, init_pulselib
 start_all_logging()
 logger.get_file_handler().setLevel(logging.DEBUG)
 
-
 def create_seq(pulse_lib):
 
     seg1 = pulse_lib.mk_segment(name='init', sample_rate=1e8)

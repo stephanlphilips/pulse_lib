@@ -41,19 +41,19 @@ class parent_data(ABC):
 
     @abstractmethod
     def append():
-        raise NotImplemented
+        raise NotImplementedError()
 
     @abstractmethod
     def slice_time():
-        raise NotImplemented
+        raise NotImplementedError()
 
     @abstractmethod
     def reset_time(time = None, extend_only = False):
-        raise NotImplemented
+        raise NotImplementedError()
 
     @abstractmethod
     def wait(time):
-        raise NotImplemented
+        raise NotImplementedError()
 
 #    @abstractmethod
 #    def get_vmax(self,sample_rate):
@@ -82,26 +82,26 @@ class parent_data(ABC):
         Returns:
             integrate (double) : the integrated value of the waveform (unit is mV/sec).
         '''
-        raise NotImplemented
+        raise NotImplementedError()
 
     @abstractmethod
     def __add__():
-        raise NotImplemented
+        raise NotImplementedError()
 
     @abstractmethod
     def __mul__():
-        raise NotImplemented
+        raise NotImplementedError()
 
     @abstractmethod
     def __copy__():
-        raise NotImplemented
+        raise NotImplementedError()
 
     @abstractmethod
     def _render(self, sample_rate, ref_channel_states):
         '''
         make a full rendering of the waveform at a predetermined sample rate. This should be defined in the child of this class.
         '''
-        raise NotImplemented
+        raise NotImplementedError()
 
     def add_software_marker(self, marker_name, time):
         '''

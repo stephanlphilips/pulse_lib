@@ -518,6 +518,10 @@ class pulse_data(parent_data):
 
             new_data.phase_shifts = copy.copy(self.phase_shifts)
             new_data._end_time = self._end_time
+            new_data.start_time = self.start_time
+            new_data.software_marker_data = copy.copy(self.software_marker_data)
+            new_data.global_phase = self.global_phase
+            new_data._consolidated = True
         else:
             raise TypeError(f'Cannot multiply pulse_data with {type(other)}')
 
@@ -870,37 +874,3 @@ class pulse_data(parent_data):
 
         return metadata
 
-if __name__ == '__main__':
-    """
-    test functions for the IQ_data object
-    """
-    from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
-    import matplotlib.pyplot as plt
-    # make two shaped pulses after each other.
-    IQ_data_object1 = IQ_data_single()
-    IQ_data_object1.start = 10
-    IQ_data_object1.stop = 140
-    IQ_data_object1.amplitude = 1
-    IQ_data_object1.frequency = 1e8
-    IQ_data_object1.start_phase = np.pi/2
-    IQ_data_object1.envelope = envelope_generator('flattop')
-
-    IQ_data_object2 = IQ_data_single()
-    IQ_data_object2.start = 150
-    IQ_data_object2.stop = 190
-    IQ_data_object2.amplitude = 1
-    IQ_data_object2.frequency = 1e8
-
-    data = pulse_data()
-    data.add_MW_data(IQ_data_object1)
-    data.reset_time(data.total_time)
-    data.add_MW_data(IQ_data_object2)
-    data.reset_time(data.total_time)
-    data.add_pulse_data(base_pulse_element(0,140, 1 , 1))
-    data.add_pulse_data(base_pulse_element(200,280, 2 , 1))
-
-    data.repeat(2)
-    rendering_data = data.render(1e9)
-    t = np.linspace(0, data.total_time, len(rendering_data))
-    plt.plot(t, rendering_data)
-    plt.show()

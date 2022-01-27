@@ -121,9 +121,12 @@ class Wrapped5014:
 
         for channel in self._awg_channels.values():
             if channel.awg_name == awg.name:
+                # NOTE: Tektronix setting is Vpp, not amplitude.
+                #       Currently the actual output is half of the pulselib pulse amplitude.
                 if channel.amplitude > 4500 or channel.amplitude < 20:
                     raise ValueError(f'amplitude ({channel.amplitude}) out of range [20, 4500] mV')
                 amplitudes[channel.channel_number-1] = channel.amplitude
+                offsets[channel.channel_number-1] = channel.offset
 
         for channel in self._marker_channels.values():
             if channel.module_name == awg.name:
