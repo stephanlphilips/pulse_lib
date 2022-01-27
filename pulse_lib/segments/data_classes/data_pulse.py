@@ -503,6 +503,10 @@ class pulse_data(parent_data):
 
             new_data.phase_shifts = copy.copy(self.phase_shifts)
             new_data._end_time = self._end_time
+            new_data.start_time = self.start_time
+            new_data.software_marker_data = copy.copy(self.software_marker_data)
+            new_data.global_phase = self.global_phase
+            new_data._consolidated = True
         else:
             raise TypeError(f'Cannot multiply pulse_data with {type(other)}')
 
