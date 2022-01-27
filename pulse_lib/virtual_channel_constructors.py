@@ -1,135 +1,36 @@
-import warnings
 import numpy as np
 
 from .configuration.iq_channels import IQ_channel, IQ_out_channel_info
 
+
 class virtual_gates_constructor(object):
     """
-    Construtor to initialize virtual gate matrixes.
+    Constructor to create virtual gate matrixes.
     """
-    def __init__(self, pulse_lib_obj, name = None, inverse = True, square = True):
+    def __init__(self, pulse_lib_obj, name = None):
         """
         init object
         Args:
             pulse_lib_obj (pulse_lib) : add a pulse lib object to whom properties need to be added.
-            name (string) : name of the virtual gates constructor
-            inverse (Bool) : defines whether the virtual gate matrix np object
-                            is provided as an inverse or regular matrix. Default
-                            is True, compatible with the 'old style' virtual gates
-            square (Bool): defines whether the virtual gate matrix needs to be 
-                            (and will be made) square. This is True for a real
-                            virtual gate matrix, but could be set False to define
-                            combined gates. Default is True, and cannot be
-                            True if inverse is also True.
-            
+            name (str): name of the matrix
         """
         self.pulse_lib_obj = pulse_lib_obj
-        self.pulse_lib_obj.virtual_channels.append(self)
         self.name = name
         self.real_gate_names = []
         self.virtual_gate_names = []
-        self._virtual_gate_matrix = None
-        self.valid_indices = None
-        self.square = square
-        if inverse:
-            if square:
-                raise ValueError('Cannot have inverse and square true.')
-            self.vgm = self._fetch_virtual_gate_matrix
-            self.vgmi = self._inv_virtual_gate_matrix
-        else:
-            self.vgm = self._inv_virtual_gate_matrix
-            self.vgmi = self._fetch_virtual_gate_matrix
-
-    @property
-    def virtual_gate_matrix(self):
-        # Property for backwards compatibilty
-        return self.vgm()
-    
-    @property
-    def virtual_gate_matrix_inv(self):
-        # Property for backwards compatibilty
-        return self.vgmi()
-    
-    def _fetch_virtual_gate_matrix(self):
-        '''
-        returns the virtual gate matrix from the np object. checks which of the
-        gates exist in the pulselib and limits the matrix to these gates.
-        '''
-        if self._virtual_gate_matrix is None:
-            raise ValueError("Cannot fetch virtual gate matrix, please define (see docs).")
-
-        self.virtual_gate_matrix_tmp = np.asarray(self._virtual_gate_matrix)
-        self.virtual_gate_matrix_tmp = self.virtual_gate_matrix_tmp[self.valid_indices]
-        if self.square:
-            self.virtual_gate_matrix_tmp = self.virtual_gate_matrix_tmp[:,self.valid_indices]
-        return self.virtual_gate_matrix_tmp
-
-    def _inv_virtual_gate_matrix(self):
-        '''
-        returns the inverse of the virtual gate matrix from the np object.
-        '''
-        return np.linalg.inv(self._fetch_virtual_gate_matrix())
-
-    @property
-    def size_row(self):
-        """
-        number of rows in the virtual gate matrix
-        """
-        return self._fetch_virtual_gate_matrix().shape[0]
-
-    @property
-    def size_col(self):
-        """
-        number of columns in the virtual gate matrix
-        """
-        return self._fetch_virtual_gate_matrix().shape[1]
-
-    def load_via_harware(self, virtual_gate_set):
-        '''
-        load in a virtual gate set by the hardware file.
-        This has as advantage that when the matrix get updated for the dac, the same happens for the AWG channels.
-
-        Args:
-            virtual_gate_set (virtual_gate) : virtual_gate object
-        '''
-        # fetch gates that are also present on the AWG.
-        idx_of_valid_gates = []
-        for i in range(len(virtual_gate_set)):
-            if virtual_gate_set.real_gate_names[i] in self.pulse_lib_obj.awg_channels:
-                idx_of_valid_gates.append(i)
-
-        if len(idx_of_valid_gates) == 0:
-            warnings.warn("No valid gates found of the AWG for the virtual gate set {}. This virtual gate entry will be neglected.".format(virtual_gate_set.name))
-            return
-
-        self.valid_indices = np.array(idx_of_valid_gates, dtype=np.int)
-        self._virtual_gate_matrix = virtual_gate_set.virtual_gate_matrix
-        self.real_gate_names = list(np.asarray(virtual_gate_set.real_gate_names)[idx_of_valid_gates])
-        self.virtual_gate_names =list( np.asarray(virtual_gate_set.virtual_gate_names)[idx_of_valid_gates])
-
-    def load_via_hardware_new(self, virtual_gate_set):
-        idx_of_valid_gates = []
-        for i in range(len(virtual_gate_set)):
-            if virtual_gate_set.gates[i] in self.pulse_lib_obj.awg_channels:
-                idx_of_valid_gates.append(i)
-
-        if len(idx_of_valid_gates) == 0:
-            warnings.warn("No valid gates found of the AWG for the virtual gate set {}. This virtual gate entry will be neglected.".format(virtual_gate_set.name))
-            return
-
-        self.valid_indices = np.array(idx_of_valid_gates, dtype=np.int)
-        self._virtual_gate_matrix = virtual_gate_set.matrix
-        self.real_gate_names = list(np.asarray(virtual_gate_set.gates)[idx_of_valid_gates])
-        self.virtual_gate_names =list( np.asarray(virtual_gate_set.v_gates)[idx_of_valid_gates])
+        # NOTE: _matrix_data is an external reference. The inverse cannot be cached.
+        self._matrix = None
 
     def add_real_gates(self, *args):
         """
-        specify list of real gate names where to map on in the virtual gate matrix (from left to the right in the matrix)
+        specify list of real gate names where to map on in the
+        virtual gate matrix (from left to the right in the matrix)
         Args:
             *args (str) : naems of AWG channels to map on to.
         """
+        defined_channels = self.pulse_lib_obj.channels
         for i in args:
-            if i not in self.pulse_lib_obj.awg_channels:
+            if i not in defined_channels:
                 raise ValueError(f"Channel {i} not defined in the pulse_lib object.")
 
         self.real_gate_names = args
@@ -140,27 +41,35 @@ class virtual_gates_constructor(object):
         Args:
             *args (str) : names of virtual AWG channels to map on to.
         """
+        self.virtual_gate_names = []
+        defined_channels = self.pulse_lib_obj.channels
         for i in args:
-            if i in self.pulse_lib_obj.awg_channels:
-                raise ValueError("Name error, a virtual gate should have a different name that the one of a real one {}.".format(i))
+            if i in defined_channels:
+                raise ValueError(f"Cannot add virtual gate {i}. There is another gates with the same name.")
         self.virtual_gate_names = args
 
     def add_virtual_gate_matrix(self, virtual_gate_matrix):
         """
         add the inverted virtual gate matrix.
         Args :
-            virtual_gate_matrix (np.ndarray[ndim=2, type=double]) : numpy array representing the inverted virtual gate matrix.
+            virtual_gate_matrix (np.ndarray[ndim=2, type=double]) : numpy array representing the (inverted) virtual gate matrix.
         """
-        n = virtual_gate_matrix.shape[0]
+        self._matrix = virtual_gate_matrix
 
-        if n != len(self.real_gate_names):
-            raise ValueError("size virtual gate matrix ({}) not matching the given amount of real gates names({})".format(n, len(self.real_gate_names)))
-        if n != len(self.virtual_gate_names):
-            raise ValueError("size virtual gate matrix ({}) not matching the given amount of virutal gates names({})".format(n, len(self.virtual_gate_names)))
+        self._update_virtual_gate_matrix()
 
-        self.valid_indices = np.arange(n, dtype=np.int)
-        self._virtual_gate_matrix = virtual_gate_matrix.data
+    def _update_virtual_gate_matrix(self):
+        if self._matrix is None:
+            return
 
+        self.pulse_lib_obj.add_virtual_matrix(
+                self.name,
+                self.real_gate_names,
+                self.virtual_gate_names,
+                self._matrix,
+                real2virtual=True,
+                filter_undefined=True,
+                keep_squared=True)
 
 
 class IQ_channel_constructor(object):
@@ -220,15 +129,24 @@ class IQ_channel_constructor(object):
         """
         self.IQ_channel.LO_parameter = LO
 
-    def add_virtual_IQ_channel(self, virtual_channel_name, LO_freq = None):
+    def add_virtual_IQ_channel(self, virtual_channel_name,
+                               LO_freq=None,
+                               correction_phase=0.0,
+                               correction_gain=(1.0,1.0)):
         """
         Make a virtual channel that hold IQ signals. Each virtual channel can hold their own phase information.
         It is recommended to make one IQ channel per qubit (assuming you are multiplexing for multiple qubits)
         Args:
             virtual_channel_name (str) : channel name (e.g. qubit_1)
             LO_freq (float) : frequency of the qubit when not driving and default for driving.
+            correction_phase (float) : phase in rad added to Q component of IQ channel
+            correction_gain (float) : correction of I and Q gain
         """
-        self.pulse_lib_obj.define_qubit_channel(virtual_channel_name, self.IQ_channel.name, reference_frequency=LO_freq)
+        self.pulse_lib_obj.define_qubit_channel(virtual_channel_name, self.IQ_channel.name,
+                                                reference_frequency=LO_freq,
+                                                correction_phase=correction_phase,
+                                                correction_gain=correction_gain)
+
 
     def __check_awg_channel_name(self, channel_name):
         """

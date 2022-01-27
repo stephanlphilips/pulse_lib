@@ -27,7 +27,7 @@ except: pass
 
 
 def set_channel_props(pulse, channel_name, compensation_limits=(0,0), attenuation=1.0, delay=0):
-    pulse.add_channel_compenstation_limit(channel_name, compensation_limits)
+    pulse.add_channel_compensation_limit(channel_name, compensation_limits)
     pulse.awg_channels[channel_name].attenuation = attenuation
     pulse.add_channel_delay(channel_name, delay)
 

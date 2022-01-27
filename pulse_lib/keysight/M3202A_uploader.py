@@ -164,6 +164,7 @@ class M3202A_Uploader:
                 awg_name = channel.awg_name
                 channel_number = channel.channel_number
                 amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.MAX_AMPLITUDE
+                offset = channel.offset
             elif channel_name in self.marker_channels:
                 channel = self.marker_channels[channel_name]
                 awg_name = channel.module_name

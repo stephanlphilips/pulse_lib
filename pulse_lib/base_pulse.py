@@ -5,10 +5,9 @@ from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
 from pulse_lib.configuration.physical_channels import (
         awg_channel, marker_channel, digitizer_channel, digitizer_channel_iq)
-from pulse_lib.configuration.iq_channels import IQ_channel, qubit_channel
+from pulse_lib.configuration.iq_channels import IQ_channel, QubitChannel
 from pulse_lib.configuration.devices import awg_slave
-
-from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
+from pulse_lib.virtual_matrix.virtual_gate_matrices import VirtualGateMatrices
 
 
 try:
@@ -28,7 +27,7 @@ class pulselib:
         self.awg_channels = dict()
         self.marker_channels = dict()
         self.digitizer_channels = dict()
-        self.virtual_channels = []
+        self._virtual_matrices = VirtualGateMatrices()
         self.qubit_channels = dict()
         self.IQ_channels = dict()
 
@@ -44,8 +43,7 @@ class pulselib:
         channels += self.awg_channels.keys()
         # Exclude marker_channels from channel list. channels property is used for 'sweepable' channels.
         # channels += self.marker_channels.keys()
-        for i in self.virtual_channels:
-            channels += i.virtual_gate_names
+        channels += self._virtual_matrices.virtual_gate_names
         return channels
 
     def add_awg(self, awg):
@@ -199,10 +197,6 @@ class pulselib:
             raise ValueError(f"Channel delay error: Channel '{channel}' is not defined")
 
 
-    def add_channel_compenstation_limit(self, channel_name, limit):
-        # call the method with the correct name
-        self.add_channel_compensation_limit(channel_name, limit)
-
     def add_channel_compensation_limit(self, channel_name, limit):
         '''
         add voltage limitations per channnel that can be used to make sure that the intregral of the total voltages is 0.
@@ -239,19 +233,74 @@ class pulselib:
         else:
             raise ValueError(f"Channel '{channel_name}' is not defined")
 
+    def add_channel_offset(self, channel_name, offset):
+        '''
+        Sets channel offset.
+        Args:
+            channel_name (str) : channel name as defined in define_channel().
+            offset (float) : offset in mV.
+        '''
+        if channel_name in self.awg_channels:
+            self.awg_channels[channel_name].offset = offset
+        else:
+            raise ValueError(f"Channel '{channel_name}' is not defined")
+
     def define_IQ_channel(self, name):
         channel = IQ_channel(name)
         self.IQ_channel = self.IQ_channels[name] = channel
         return channel
 
-    def define_qubit_channel(self, qubit_channel_name, IQ_channel_name, reference_frequency):
+    def define_qubit_channel(self, qubit_channel_name, IQ_channel_name,
+                             reference_frequency=None,
+                             correction_phase=0.0, correction_gain=(1.0,1.0)):
+        """
+        Make a virtual channel that hold IQ signals. Each virtual channel can hold their own phase information.
+        It is recommended to make one IQ channel per qubit (assuming you are multiplexing for multiple qubits)
+        Args:
+            virtual_channel_name (str) : channel name (e.g. qubit_1)
+            LO_freq (float) : frequency of the qubit when not driving and default for driving.
+            correction_phase (float) : phase in rad added to Q component of IQ channel
+            correction_gain (float) : correction of I and Q amplitude
+        """
         iq_channel = self.IQ_channels[IQ_channel_name]
-        qubit = qubit_channel(qubit_channel_name, reference_frequency, iq_channel)
+        qubit = QubitChannel(qubit_channel_name, reference_frequency, iq_channel,
+                             correction_phase, correction_gain)
         iq_channel.qubit_channels.append(qubit)
         self.qubit_channels[qubit_channel_name] = qubit
 
     def set_qubit_idle_frequency(self, qubit_channel_name, idle_frequency):
         self.qubit_channels[qubit_channel_name].reference_frequency = idle_frequency
+
+    def set_qubit_correction_phase(self, qubit_channel_name, correction_phase):
+        self.qubit_channels[qubit_channel_name].correction_phase = correction_phase
+
+    def set_qubit_correction_gain(self, qubit_channel_name, correction_gain_I, correction_gain_Q):
+        self.qubit_channels[qubit_channel_name].correction_gain = (correction_gain_I, correction_gain_Q)
+
+    def set_channel_attenuations(self, attenuation_dict):
+        for channel, attenuation in attenuation_dict.items():
+            if channel not in self.awg_channels:
+                logging.info(f'Channel {channel} defined in hardware, but not in pulselib; skipping channel')
+                continue
+            self.awg_channels[channel].attenuation = attenuation
+
+    def add_virtual_matrix(self, name,
+                           real_gate_names,
+                           virtual_gate_names,
+                           matrix,
+                           real2virtual=False,
+                           filter_undefined=False,
+                           keep_squared=False):
+        self._virtual_matrices.add(
+                name,
+                real_gate_names,
+                virtual_gate_names,
+                matrix,
+                real2virtual=real2virtual,
+                filter_undefined=filter_undefined,
+                keep_squared=keep_squared,
+                awg_channels=list(self.awg_channels.keys())
+                )
 
     def _create_M3202A_uploader(self):
         try:
@@ -309,7 +358,7 @@ class pulselib:
             segment (segment_container) : returns a container that contains all the previously defined gates.
         '''
         return segment_container(self.awg_channels.keys(), self.marker_channels.keys(),
-                                 self.virtual_channels, self.IQ_channels.values(),
+                                 self._virtual_matrices, self.IQ_channels.values(),
                                  self.digitizer_channels.values(),
                                  name=name, sample_rate=sample_rate)
 
@@ -339,7 +388,6 @@ class pulselib:
             awg = self.awg_devices[channel.awg_name]
             awg.awg_flush(channel.channel_number)
 
-
     def load_hardware(self, hardware):
         '''
         load virtual gates and attenuation via the harware class (used in qtt)
@@ -354,36 +402,34 @@ class pulselib:
 
         if new_hardware_class:
             for virtual_gate_set in hardware.virtual_gates:
-                vgcs = {vgc.name:vgc for vgc in self.virtual_channels}
-                if virtual_gate_set.name in vgcs:
-                    vgc = vgcs[virtual_gate_set.name]
-                else:
-                    vgc = virtual_gates_constructor(self, name=virtual_gate_set.name)
-                    vgc.load_via_hardware_new(virtual_gate_set)
+                self.add_virtual_matrix(
+                        virtual_gate_set.name,
+                        virtual_gate_set.real_gate_names,
+                        virtual_gate_set.virtual_gate_names,
+                        virtual_gate_set.matrix,
+                        real2virtual=True,
+                        filter_undefined=True,
+                        keep_squared=True)
 
+            # Add all awg channels to mapping
             hardware.awg2dac_ratios.add(list(self.awg_channels.keys()))
 
-            for channel, attenuation in hardware.awg2dac_ratios.items():
-                if channel not in self.awg_channels:
-                    logging.info(f'Channel {channel} defined in hardware, but not in pulselib; skipping channel')
-                    continue
-                self.awg_channels[channel].attenuation = attenuation
+            self.set_channel_attenuations(hardware.awg2dac_ratios)
 
         else:
             for virtual_gate_set in hardware.virtual_gates:
-                vgcs = {vgc.name:vgc for vgc in self.virtual_channels}
-                if virtual_gate_set.name in vgcs:
-                    vgc = vgcs[virtual_gate_set.name]
-                else:
-                    vgc = virtual_gates_constructor(self, name=virtual_gate_set.name)
-                vgc.load_via_harware(virtual_gate_set)
+                self.add_virtual_matrix(
+                        virtual_gate_set.name,
+                        virtual_gate_set.real_gate_names,
+                        virtual_gate_set.virtual_gate_names,
+                        virtual_gate_set.virtual_gate_matrix,
+                        real2virtual=True,
+                        filter_undefined=True,
+                        keep_squared=True)
 
-            # set output ratio's of the channels from the harware file.
+            self.set_channel_attenuations(hardware.AWG_to_dac_conversion)
 
-            # copy all named channels from harware file to awg_channels
-            for channel, attenuation in hardware.AWG_to_dac_conversion.items():
-                self.awg_channels[channel].attenuation = attenuation
-
+            # Add all awg channels to mapping
             sync = False
             for channel in self.awg_channels.values():
                 if channel.name not in hardware.AWG_to_dac_conversion:
@@ -391,7 +437,6 @@ class pulselib:
                     sync = True
             if sync:
                 hardware.sync_data()
-
 
     def _check_uniqueness_of_channel_name(self, channel_name):
         if (channel_name in self.awg_channels
@@ -403,6 +448,7 @@ class pulselib:
 
 if __name__ == '__main__':
     from pulse_lib.virtual_channel_constructors import IQ_channel_constructor
+    from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 
     p = pulselib()
 
@@ -450,7 +496,7 @@ if __name__ == '__main__':
     p.add_channel_delay('Q_MW',50)
 
     # add limits on voltages for DC channel compenstation (if no limit is specified, no compensation is performed).
-    # p.add_channel_compenstation_limit('B0', (-100, 500))
+    # p.add_channel_compensation_limit('B0', (-100, 500))
 
     try:
         from V2_software.drivers.virtual_gates.harware import hardware_example

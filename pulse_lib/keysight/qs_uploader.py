@@ -189,6 +189,7 @@ class QsUploader:
                 awg_name = channel.awg_name
                 channel_number = channel.channel_number
                 amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.MAX_AMPLITUDE
+                offset = channel.offset
             elif channel_name in self.marker_channels:
                 channel = self.marker_channels[channel_name]
                 awg_name = channel.module_name
@@ -213,6 +214,16 @@ class QsUploader:
                         channel_number, queue_item.wave_reference,
                         trigger_mode, start_delay, cycles, prescaler)
                 trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
+
+
+        # set offset for IQ channels
+        for channel_name, awg_channel in self.awg_channels.items():
+            if channel_name not in job.channel_queues:
+                awg_name = awg_channel.awg_name
+                channel_number = awg_channel.channel_number
+                offset = awg_channel.offset
+                awg = self.AWGs[awg_name]
+                awg.set_channel_offset(offset/1000, channel_number)
 
         start = time.perf_counter()
         for awg_sequencer in self.sequencer_channels.values():

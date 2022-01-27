@@ -99,6 +99,11 @@ class SequencerChannel:
         self._waveforms = [None]*64
         self._schedule = []
         self._components = 'IQ'
+        self._gainA = 1.0
+        self._gainB = 1.0
+
+    def _init_lo(self):
+        pass
 
     def set_baseband(self, is_baseband):
         if is_baseband:
@@ -136,10 +141,10 @@ class SequencerChannel:
     def _plot(self, phase, label):
         if len(self._schedule) == 0:
             return
+        print(f'{label}:{len(self._schedule)} ({phase/np.pi*180:5.1f})')
         starttime = 0
         phase = phase
         wave = np.zeros(0)
-        print(f'{label}:{len(self._schedule)}')
         for inst in self._schedule:
             duration = inst.wait_after
             wvf_nr = inst.wave_numbers[0] if isinstance(inst, AwgConditionalInstruction) else inst.wave_number
@@ -157,14 +162,14 @@ class SequencerChannel:
 
     def plot(self):
 #        pt.figure(self._number)
-        print(f'seq {self._number}')
+#        print(f'seq {self._number}')
         if self._components=='IQ':
-            self._plot(self._phaseI, label=f'{self._instrument.name}-{self._number}.I')
-            self._plot(self._phaseQ, label=f'{self._instrument.name}-{self._number}.Q')
+            self._plot(self._phaseI/180*np.pi, label=f'{self._instrument.name}-{self._number}.I')
+            self._plot(self._phaseQ/180*np.pi, label=f'{self._instrument.name}-{self._number}.Q')
         elif self._components=='I':
-            self._plot(self._phaseI, label=f'{self._instrument.name}-{self._number}')
+            self._plot(self._phaseI/180*np.pi, label=f'{self._instrument.name}-{self._number}')
         elif self._components=='Q':
-            self._plot(self._phaseQ, label=f'{self._instrument.name}-{self._number}')
+            self._plot(self._phaseQ/180*np.pi, label=f'{self._instrument.name}-{self._number}')
 
     def describe(self):
         print(f'seq {self._number} schedule')
@@ -205,7 +210,7 @@ class MockM3202A_QS(MockM3202A):
 
             pt.plot(t, values, ':', label=f'{self.name}-T')
 
-    def plot(self):
+    def plot(self, **kwargs):
         super().plot()
         for seq in self._sequencers.values():
             seq.plot()

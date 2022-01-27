@@ -29,7 +29,7 @@ class segment_container():
     Class returns vmin/vmax data to awg object
     Class returns upload data as a numpy<double> array to awg object.
     '''
-    def __init__(self, channel_names, markers=[], virtual_gates_objs=[], IQ_channels_objs=[],
+    def __init__(self, channel_names, markers=[], virtual_gate_matrices=None, IQ_channels_objs=[],
                  digitizer_channels = [],
                  name=None, sample_rate=None):
         """
@@ -37,7 +37,7 @@ class segment_container():
         Args:
             channel_names (list<str>) : list with names of physical output channels on the AWG
             markers (list<str>) : declaration which of these channels are markers
-            virtual_gates_objs (list<virtual_gates_constructor>) : list of object that define virtual gates
+            virtual_gate_matrices (VirtualGateMatrices) : object with all virtual gates matrices
             IQ_channels_objs (list<IQ_channel_constructor>) : list of objects that define virtual IQ channels.
             Name (str): Optional name of segment container
             sample_rate (float): Optional sample rate of segment container. This sample rate overrules the default set on the sequence.
@@ -51,7 +51,7 @@ class segment_container():
         self._software_markers = segment_HVI_variables("HVI_markers")
         self._segment_measurements = segment_measurements()
 
-        self._virtual_gates_objs = virtual_gates_objs
+        self._virtual_gate_matrices = virtual_gate_matrices
         self._IQ_channel_objs = IQ_channels_objs
         self._digitizer_channels = digitizer_channels
         self.name = name
@@ -72,9 +72,9 @@ class segment_container():
             self.channels.append(name)
 
         # define virtual gates
-        for virtual_gates in virtual_gates_objs:
+        if self._virtual_gate_matrices:
             # make segments for virtual gates.
-            for virtual_gate_name in virtual_gates.virtual_gate_names:
+            for virtual_gate_name in self._virtual_gate_matrices.virtual_gate_names:
                 setattr(self, virtual_gate_name, segment_pulse(virtual_gate_name, self._software_markers, 'virtual_baseband'))
                 self.channels.append(virtual_gate_name)
 
@@ -85,7 +85,7 @@ class segment_container():
                 self.channels.append(qubit_channel.channel_name)
 
         # add the reference between channels for baseband pulses (->virtual gates) and IQ channels.
-        add_reference_channels(self, self._virtual_gates_objs, self._IQ_channel_objs)
+        add_reference_channels(self, self._virtual_gate_matrices, self._IQ_channel_objs)
 
         for digitizer_channel in self._digitizer_channels:
             name = digitizer_channel.name
@@ -102,7 +102,7 @@ class segment_container():
         elif isinstance(index, int):
             new = segment_container([])
 
-            new._virtual_gates_objs = self._virtual_gates_objs
+            new._virtual_gate_matrices = self._virtual_gate_matrices
             new._IQ_channel_objs = self._IQ_channel_objs
 
             new.channels = self.channels
@@ -120,7 +120,7 @@ class segment_container():
             new._setpoints = self._setpoints
 
             # update the references in of all the channels
-            add_reference_channels(new, self._virtual_gates_objs, self._IQ_channel_objs)
+            add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
 
             return new
 
@@ -129,7 +129,7 @@ class segment_container():
     def __copy__(self):
         new = segment_container([])
 
-        new._virtual_gates_objs = self._virtual_gates_objs
+        new._virtual_gate_matrices = self._virtual_gate_matrices
         new._IQ_channel_objs = self._IQ_channel_objs
 
         new.channels = copy.copy(self.channels)
@@ -145,7 +145,7 @@ class segment_container():
         new._setpoints = copy.copy(self._setpoints)
 
         # update the references in of all the channels
-        add_reference_channels(new, self._virtual_gates_objs, self._IQ_channel_objs)
+        add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
 
         return new
 
@@ -156,7 +156,7 @@ class segment_container():
     @software_markers.setter
     def software_markers(self, new_marker):
         self._software_markers = new_marker
-        add_reference_channels(self, self._virtual_gates_objs, self._IQ_channel_objs)
+        add_reference_channels(self, self._virtual_gate_matrices, self._IQ_channel_objs)
 
     @property
     def measurements(self):
@@ -179,6 +179,9 @@ class segment_container():
         for i in self.channels:
             dim = getattr(self, i).shape
             my_shape = find_common_dimension(my_shape, dim)
+
+        dim = self._software_markers.shape
+        my_shape = find_common_dimension(my_shape, dim)
 
         return my_shape
 
@@ -250,6 +253,8 @@ class segment_container():
         for channel in self.channels:
             segment = self[channel]
             comb_setpoints += segment.setpoints
+
+        comb_setpoints += self._software_markers.setpoints
 
         return comb_setpoints
 
@@ -441,15 +446,18 @@ class segment_container():
 
     def enter_rendering_mode(self):
         '''
-        put the segments into rendering mode, which means that they cannot be changed. All segments will get their final length at this moment.
+        put the segments into rendering mode, which means that they cannot be changed.
+        All segments will get their final length at this moment.
         '''
         self.reset_time()
         self.render_mode = True
-        for i in self.channels:
-            getattr(self, i).render_mode =  True
-            # make a pre-render all all the pulse data (e.g. compose channels, do not render in full).
-            if getattr(self, i).type == 'render':
-                getattr(self, i).pulse_data_all
+
+        for name in self.channels:
+            ch = self[name]
+            ch.render_mode =  True
+            # make a pre-render of all the pulse data (e.g. compose channels, do not render in full).
+            if ch.type == 'render':
+                ch.pulse_data_all
 
     def add_master_clock(self, time):
         '''
@@ -520,34 +528,31 @@ class virtual_pulse_channel_info:
         return getattr(self.seg_container, self.name)
 
 
-def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channels_objs):
+def add_reference_channels(segment_container_obj, virtual_gate_matrices, IQ_channels_objs):
     '''
     add/update the references to the channels
 
     Args:
         segment_container_obj (segment_container) :
-        virtual_gates_objs (list<virtual_gates_constructor>) : list of object that define virtual gates
+        virtual_gate_matrices (VirtualGateMatrices) : collection of all virtual gate matrices
         IQ_channels_objs (list<IQ_channel_constructor>) : list of objects that define virtual IQ channels.
     '''
     for channel in segment_container_obj.channels:
-        getattr(segment_container_obj, channel).reference_channels = list()
-        getattr(segment_container_obj, channel).IQ_ref_channels = list()
-        getattr(segment_container_obj, channel).add_reference_markers = list()
-        getattr(segment_container_obj, channel)._data_hvi_variable = segment_container_obj._software_markers
+        seg_ch = segment_container_obj[channel]
+        seg_ch.reference_channels = list()
+        seg_ch.IQ_ref_channels = list()
+        seg_ch.add_reference_markers = list()
+        seg_ch._data_hvi_variable = segment_container_obj._software_markers
 
-    for virtual_gates in virtual_gates_objs:
-        # add reference in real gates.
-        for i in range(virtual_gates.size_row):
-            real_channel = getattr(segment_container_obj, virtual_gates.real_gate_names[i])
-            virtual_gates_values = virtual_gates.virtual_gate_matrix_inv[i,:]
-
-            for j in range(virtual_gates.size_col):
-                multiplier = virtual_gates_values[j]
-                # only add reference when it has a significant contribution
-                if abs(multiplier) > 2E-4:
-                    virtual_channel_reference_info = virtual_pulse_channel_info(virtual_gates.virtual_gate_names[j],
+    if virtual_gate_matrices:
+        for virtual_gate_name,virt2real in virtual_gate_matrices.virtual_gate_projection.items():
+            for real_gate_name, multiplier in virt2real.items():
+                if abs(multiplier) > 1E-4:
+                    real_channel = segment_container_obj[real_gate_name]
+                    virtual_channel_reference_info = virtual_pulse_channel_info(virtual_gate_name,
                         multiplier, segment_container_obj)
                     real_channel.add_reference_channel(virtual_channel_reference_info)
+
 
     # define virtual IQ channels
     for IQ_channels_obj in IQ_channels_objs:
@@ -556,8 +561,7 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
             real_channel = getattr(segment_container_obj, IQ_out_channel.awg_channel_name)
             for qubit_channel in IQ_channels_obj.qubit_channels:
                 virtual_channel = getattr(segment_container_obj, qubit_channel.channel_name)
-                real_channel.add_IQ_channel(IQ_channels_obj.LO, qubit_channel.channel_name,
-                                            virtual_channel, IQ_out_channel.IQ_comp, IQ_out_channel.image)
+                real_channel.add_IQ_channel(virtual_channel, qubit_channel, IQ_out_channel, IQ_channels_obj.LO)
 
         # set up markers
         for marker_name in IQ_channels_obj.marker_channels:
@@ -569,13 +573,13 @@ def add_reference_channels(segment_container_obj, virtual_gates_objs, IQ_channel
 
 
 if __name__ == '__main__':
-    import pulse_lib.segments.utility.looping as lp
     import matplotlib.pyplot as plt
+    from pulse_lib.configuration.iq_channels import IQ_out_channel_info, QubitChannel
 
     seg = segment_container(["a", "b", "c", "d"])
     # b = segment_container(["a", "b"])
-    chan = segment_IQ("q1")
-    setattr(seg, "q1", chan)
+    chan_q1 = segment_IQ("q1")
+    setattr(seg, "q1", chan_q1)
 
     chan_M = segment_marker("M1")
     setattr(seg, "M1", chan_M)
@@ -583,22 +587,24 @@ if __name__ == '__main__':
     seg.channels.append("M1")
     # print(seg.channels)
     # print(seg.q1)
-    seg.a.add_IQ_channel(1e9, "q1", chan, "I", "0")
-    seg.b.add_IQ_channel(1e9, "q1", chan, "Q", "0")
+    q1_channel = QubitChannel('q1', None, None)
+    I_out = IQ_out_channel_info('AWG1_I', 'I', '+')
+    Q_out = IQ_out_channel_info('AWG1_Q', 'Q', '+')
+    seg.a.add_IQ_channel(seg.q1, q1_channel, I_out, 1.0e9)
+    seg.b.add_IQ_channel(seg.q1, q1_channel, Q_out, 1.0e9)
 
-    seg.M1.add_reference_marker_IQ(chan)
+    seg.M1.add_reference_marker_IQ(seg.q1)
 
     seg['c'].add_block(0, 10, 100)
-    seg.add_block(10, 20, ['c', 'd'], [-100, -50])
-    seg.add_ramp(10, 20, ['d', 'c'], [50, -100], [100, 250])
-    seg.add_ramp(0, 20, ['c', 'd'], [250, 100], [0,0])
-
+    seg.add_block(10, 50, ['c', 'd'], [50, -50])
+    seg.add_ramp(10, 50, ['d', 'c'], [-100, 50], [-50, 150], reset_time=True)
+    seg.add_ramp(0, 40, ['c', 'd'], [200, -100], [0,0])
 
     seg.a.add_block(0,lp.linspace(50,100,10),100)
     seg.a += 500
     seg.b += 500
     seg.reset_time()
-    seg.q1.add_MW_pulse(0,100,10,1.015e9)
+    seg.q1.add_MW_pulse(0,100,10,1.010e9)
     seg.q1.wait(10)
     seg.reset_time()
     seg.q1.add_chirp(0,100,1e7,1.1e8, 100)
@@ -618,6 +624,7 @@ if __name__ == '__main__':
     seg.d.plot_segment([0], True, sample_rate = 1e10)
     seg.M1.plot_segment([0])
     plt.show()
+    plt.grid(True)
 
     plt.figure()
     seg.plot([0], ['c','d'])
