@@ -169,8 +169,3 @@ class conditional_segment:
     def get_metadata(self):
         pass
 
-
-if __name__ == '__main__':
-    import pulse_lib.segments.utility.looping as lp
-    import matplotlib.pyplot as plt
-
