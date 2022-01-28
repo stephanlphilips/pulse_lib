@@ -35,6 +35,8 @@ class M3202A_Uploader:
 
         self.jobs = []
 
+        self.release_all_awg_memory()
+
         self._config_marker_channels()
 
     def _config_marker_channels(self):
@@ -157,41 +159,44 @@ class M3202A_Uploader:
 
         # queue waveforms
         for channel_name, queue in job.channel_queues.items():
-            offset = 0
+            try:
+                offset = 0
 
-            if channel_name in self.awg_channels:
-                channel = self.awg_channels[channel_name]
-                awg_name = channel.awg_name
-                channel_number = channel.channel_number
-                amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.MAX_AMPLITUDE
-                offset = channel.offset
-            elif channel_name in self.marker_channels:
-                channel = self.marker_channels[channel_name]
-                awg_name = channel.module_name
-                channel_number = channel.channel_number
-                amplitude = channel.amplitude
-                if channel.invert:
-                    offset = amplitude
-                    amplitude = -amplitude
-            else:
-                raise Exception(f'Undefined channel {channel_name}')
+                if channel_name in self.awg_channels:
+                    channel = self.awg_channels[channel_name]
+                    awg_name = channel.awg_name
+                    channel_number = channel.channel_number
+                    amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.MAX_AMPLITUDE
+                    offset = channel.offset
+                elif channel_name in self.marker_channels:
+                    channel = self.marker_channels[channel_name]
+                    awg_name = channel.module_name
+                    channel_number = channel.channel_number
+                    amplitude = channel.amplitude
+                    if channel.invert:
+                        offset = amplitude
+                        amplitude = -amplitude
+                else:
+                    raise Exception(f'Undefined channel {channel_name}')
 
-            self.AWGs[awg_name].set_channel_amplitude(amplitude/1000, channel_number)
-            self.AWGs[awg_name].set_channel_offset(offset/1000, channel_number)
+                self.AWGs[awg_name].set_channel_amplitude(amplitude/1000, channel_number)
+                self.AWGs[awg_name].set_channel_offset(offset/1000, channel_number)
 
-            # empty AWG queue
-            self.AWGs[awg_name].awg_flush(channel_number)
+                # empty AWG queue
+                self.AWGs[awg_name].awg_flush(channel_number)
 
-            start_delay = 0 # no start delay
-            trigger_mode = 1 # software/HVI trigger
-            cycles = 1
-            for queue_item in queue:
-                awg = self.AWGs[awg_name]
-                prescaler = awg.convert_sample_rate_to_prescaler(queue_item.sample_rate)
-                awg.awg_queue_waveform(
-                        channel_number, queue_item.wave_reference,
-                        trigger_mode, start_delay, cycles, prescaler)
-                trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
+                start_delay = 0 # no start delay
+                trigger_mode = 1 # software/HVI trigger
+                cycles = 1
+                for queue_item in queue:
+                    awg = self.AWGs[awg_name]
+                    prescaler = awg.convert_sample_rate_to_prescaler(queue_item.sample_rate)
+                    awg.awg_queue_waveform(
+                            channel_number, queue_item.wave_reference,
+                            trigger_mode, start_delay, cycles, prescaler)
+                    trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
+            except:
+                raise Exception(f'Play failed on channel {channel_name}')
 
         # start hvi (start function loads schedule if not yet loaded)
         acquire_triggers = {f'dig_trigger_{i+1}':t for i,t in enumerate(job.digitizer_triggers)}
@@ -219,6 +224,12 @@ class M3202A_Uploader:
                 or (job.seq_id == seq_id and (index is None or job.index == index))):
                 job.release()
 
+    def release_all_awg_memory(self):
+        for awg in self.AWGs.values():
+            if hasattr(awg, 'release_waveform_memory'):
+                awg.release_waveform_memory()
+            else:
+                print('Update M3202A driver')
 
     def release_jobs(self):
         for job in self.jobs:
