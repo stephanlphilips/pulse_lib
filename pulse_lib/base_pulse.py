@@ -390,8 +390,8 @@ class pulselib:
         Releases AWG waveform memory.
         Also flushes AWG queues.
         """
-        if self._backend == "Tektronix5014":
-            logging.info(f'release_awg_memory() has no effect on Tektronix')
+        if self._backend not in ["Keysight", "Keysight_QS", "M3202A"]:
+            logging.info(f'release_awg_memory() not implemented for {self._backend}')
             return
 
         if wait_idle:
@@ -399,9 +399,11 @@ class pulselib:
 
         self.uploader.release_memory()
 
-        for channel in self.awg_channels:
+        for channel in self.awg_channels.values():
             awg = self.awg_devices[channel.awg_name]
             awg.awg_flush(channel.channel_number)
+
+        self.uploader.release_all_awg_memory()
 
     def load_hardware(self, hardware):
         '''
