@@ -14,6 +14,7 @@ All notable changes to Pulselib will be documented in this file.
 
 ### Fixed
 - loops with t_measurement in HVI variable.
+- release_awg_memory() for Keysight
 
 ## \[1.2.0] - 2021-11-11
 First labeled release. Start of dev branch and change logging.
