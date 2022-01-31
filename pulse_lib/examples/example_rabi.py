@@ -47,6 +47,8 @@ my_seq.set_hw_schedule(HardwareScheduleMock())
 my_seq.n_rep = 1
 my_seq.sample_rate = 1e9
 
+# optionally: set t_measure globablly and omit in acquire call()
+# my_seq.set_acquisition(t_measure=t_measure)
 
 for f in [0, 9]:
     for t in [0, 1, 9]:
