@@ -663,8 +663,8 @@ class UploadAggregator:
             trigger_period = None
             t_integrate = acq_conf.t_measure
 
+
         seq = AcquisitionSequenceBuilder(channel_name, self.program[channel_name], job.n_rep)
-        seq.integration_time = t_integrate
 
         markers = self.get_markers_seq(job, channel_name)
         seq.add_markers(markers)
@@ -677,6 +677,10 @@ class UploadAggregator:
             for acquisition in acquisition_data:
                 t = PulsarConfig.align(acquisition.start + seg_start)
                 t_measure = acquisition.t_measure if acquisition.t_measure is not None else acq_conf.t_measure
+                if not t_integrate:
+                    t_integrate = t_measure
+                elif t_measure != t_integrate:
+                    raise Exception('Only 1 t_measure per channel is supported')
                 if acquisition.n_repeat:
                     seq.repeated_acquire(t, acquisition.n_repeat, PulsarConfig.align(acquisition.interval))
                 elif trigger_period and t_measure > trigger_period:
@@ -684,6 +688,10 @@ class UploadAggregator:
                     seq.acquire(t, n_cycles, trigger_period)
                 else:
                     seq.acquire(t)
+
+        if not t_integrate:
+            raise Exception(f'Measurement time not set for channel {channel_name}')
+        seq.integration_time = t_integrate
 
         seq.close()
 
