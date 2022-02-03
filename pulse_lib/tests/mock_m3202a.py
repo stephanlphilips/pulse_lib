@@ -93,6 +93,9 @@ class MockM3202A(Instrument):
     def awg_is_running(self, channel):
         return False
 
+    def release_waveform_memory(self):
+        pass
+
     def get_data(self, channel):
         return self.channel_data[channel]
 

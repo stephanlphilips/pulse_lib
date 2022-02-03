@@ -133,16 +133,15 @@ class Tektronix5014_Uploader:
         """
 
         job =  self.__get_job(seq_id, index)
-        enable_channels = dict()
+        enable_channels = {awg.name:set() for awg in self.awgs.values()}
         for channel in self.awg_channels.values():
-            enable_channels.setdefault(channel.awg_name, set()).add(channel.channel_number)
+            enable_channels[channel.awg_name].add(channel.channel_number)
         for channel in self.marker_channels.values():
             channel_number = channel.channel_number if isinstance(channel.channel_number, int) else channel.channel_number[0]
-            enable_channels.setdefault(channel.module_name, set()).add(channel_number)
+            enable_channels[channel.awg_name].add(channel_number)
 
         for awg in self.awgs.values():
-            channels = enable_channels[awg.name]
-            for channel in channels:
+            for channel in enable_channels[awg.name]:
                 awg.set(f'ch{channel}_state', 1)
 
         job.hw_schedule.set_configuration(job.schedule_params, job.n_waveforms)
