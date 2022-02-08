@@ -10,11 +10,6 @@ from pulse_lib.configuration.devices import awg_slave
 from pulse_lib.virtual_matrix.virtual_gate_matrices import VirtualGateMatrices
 
 
-try:
-    from core_tools.drivers.hardware.hardware import hardware as hw_cls
-except:
-    print('old version of core_tools detected ..')
-
 class pulselib:
     '''
     Global class that is an organisational element in making the pulses.
@@ -397,6 +392,11 @@ class pulselib:
         Args:
             hardware (harware_parent) : harware class.
         '''
+        try:
+            from core_tools.drivers.hardware.hardware import hardware as hw_cls
+        except:
+            logging.warning('old version of core_tools detected ..')
+
         try:
             new_hardware_class = isinstance(hardware, hw_cls)
         except:
