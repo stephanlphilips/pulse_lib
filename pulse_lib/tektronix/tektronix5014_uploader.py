@@ -138,7 +138,7 @@ class Tektronix5014_Uploader:
             enable_channels[channel.awg_name].add(channel.channel_number)
         for channel in self.marker_channels.values():
             channel_number = channel.channel_number if isinstance(channel.channel_number, int) else channel.channel_number[0]
-            enable_channels[channel.awg_name].add(channel_number)
+            enable_channels[channel.module_name].add(channel_number)
 
         for awg in self.awgs.values():
             for channel in enable_channels[awg.name]:
