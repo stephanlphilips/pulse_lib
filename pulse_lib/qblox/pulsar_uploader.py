@@ -548,8 +548,6 @@ class UploadAggregator:
                     v_start = scaling * e.v_start
                     v_stop = scaling * e.v_stop
                     duration = t_end - t
-                    if duration == 0:
-                        continue
                     if abs(v_start - v_stop) > 6e-5:
                         # ramp only when > 2 bits on 16-bit signed resolution
                         seq.ramp(t, duration, v_start, v_stop)
