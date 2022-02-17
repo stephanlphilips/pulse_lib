@@ -571,7 +571,7 @@ class UploadAggregator:
                     duration = t_end - t
                     seq.custom_pulse(t, duration, scaling, e)
                 else:
-                    raise Exception('Unknown pulse element {type(e)}')
+                    raise Exception(f'Unknown pulse element {type(e)}')
 
         t_end = seg_render.t_end + t_offset
         seq.set_offset(t_end, 0, 0.0)
