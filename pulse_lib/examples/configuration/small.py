@@ -49,6 +49,10 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
         pulse.add_channel_bias_T_compensation('P1', bias_T_rc_time)
         pulse.add_channel_bias_T_compensation('P2', bias_T_rc_time)
 
+    dig_name = digitizers[0].name if len(digitizers) > 0 else 'Dig1'
+    pulse.define_digitizer_channel('SD1', dig_name, 0 + _ch_offset)
+    pulse.define_digitizer_channel('SD2', dig_name, 1 + _ch_offset)
+
     if virtual_gates:
         # set a virtual gate matrix
         virtual_gate_set_1 = virtual_gates_constructor(pulse)
