@@ -47,8 +47,8 @@ class VirtualGateMatrix:
         if self._invert:
             matrix = np.linalg.inv(matrix)
         if self._valid_indices:
-            matrix = matrix[:,self._valid_indices]
+            matrix = matrix[self._valid_indices, :]
             if self._square:
-                matrix = matrix[self._valid_indices]
+                matrix = matrix[:, self._valid_indices]
         return matrix
 
