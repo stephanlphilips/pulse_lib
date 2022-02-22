@@ -22,8 +22,8 @@ t_measure = 100 # short time for visibility of other pulses
 t_X90 = 60
 amplitude = 50
 
-t_pulse = lp.linspace(100, 1000, 10, axis=0)
-f_drive = lp.linspace(2.41e9, 2.43e9, 11, axis=1)
+t_pulse = lp.linspace(200, 1000, 5, name='t', unit='ns', axis=0)
+f_drive = lp.linspace(2.41e9, 2.43e9, 3, name='freq', unit='Hz', axis=1)
 amplitude = 50
 
 # init pulse
@@ -50,13 +50,15 @@ my_seq.sample_rate = 1e9
 # optionally: set t_measure globablly and omit in acquire call()
 # my_seq.set_acquisition(t_measure=t_measure)
 
-for f in [0, 9]:
-    for t in [0, 1, 9]:
-        my_seq.upload([f,t])
-        my_seq.play([f,t])
+for t in my_seq.t.values:
+    my_seq.t(t)
+    for freq in my_seq.freq.values:
+        my_seq.freq(freq)
+        my_seq.upload()
+        my_seq.play()
         plot_awgs(awgs)
         pt.grid(True)
-        pt.title(f'f={f_drive[f]/1e6:7.2f} MHz, t={t_pulse[t]} ns')
+        pt.title(f'f={freq/1e6} MHz, t={t} ns')
 
 
 
