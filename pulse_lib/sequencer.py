@@ -342,8 +342,9 @@ class index_param(Parameter):
     def __init__(self, name, my_seq, dim):
         self.my_seq = my_seq
         self.dim = dim
-        val_map = dict(zip(my_seq.setpoints[dim], range(len(my_seq.setpoints[dim]))))
-        super().__init__(name=name, val_mapping = val_map, initial_value = my_seq.setpoints[dim][0])
+        self.values = my_seq.setpoints[dim]
+        val_map = dict(zip(self.values, range(len(self.values))))
+        super().__init__(name=name, val_mapping = val_map, initial_value = self.values[0])
 
     def set_raw(self, value):
         self.my_seq.set_sweep_index(self.dim, value)
