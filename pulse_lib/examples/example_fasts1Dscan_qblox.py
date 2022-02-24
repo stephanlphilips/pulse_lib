@@ -10,7 +10,7 @@ awgs, digs = init_hardware()
 # create channels P1, P2, vP1, vP2, SD1, SD2
 p = init_pulselib(awgs, digs, virtual_gates=True)
 
-fast_param = fast_scan1D_param(p, gate='vP1', swing=100.0, n_pt=50, t_step=5000)
+fast_param = fast_scan1D_param(p, gate='vP1', swing=100.0, n_pt=50, t_step=5000, n_avg=3)
 
 # Reading param uploads, plays and returns data
 data = fast_param()
