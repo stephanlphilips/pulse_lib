@@ -106,7 +106,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
     # generate the sequence and upload it.
     my_seq = pulse_lib.mk_sequence([seg])
     my_seq.n_rep = n_avg
-    my_seq.set_acquisition(t_measure=t_step, channels=acq_channels)
+    my_seq.set_acquisition(t_measure=t_step, channels=acq_channels, average_repetitions=True)
 
     logging.info(f'Upload')
     my_seq.upload()
@@ -253,7 +253,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
     # generate the sequence and upload it.
     my_seq = pulse_lib.mk_sequence([seg])
     my_seq.n_rep = n_avg
-    my_seq.set_acquisition(t_measure=t_step, channels=acq_channels)
+    my_seq.set_acquisition(t_measure=t_step, channels=acq_channels, average_repetitions=True)
 
     logging.info(f'Seq upload')
     my_seq.upload()
@@ -319,10 +319,10 @@ class _scan_parameter(MultiParameter):
 
         n_avg = self.my_seq.n_rep
         for i in range(len(data)):
-            if n_avg > 1:
-                d = np.average(data[i].reshape((n_avg,-1)), axis=0)
-            else:
-                d = data[i]
+#            if False and n_avg > 1:
+#                d = np.average(data[i].reshape((n_avg,-1)), axis=0)
+#            else:
+            d = data[i]
             ch_data = d.reshape(self.shape)
             if self.biasT_corr:
                 data_out[i][:len(ch_data[::2])] = ch_data[::2]

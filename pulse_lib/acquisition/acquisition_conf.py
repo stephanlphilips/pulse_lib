@@ -20,12 +20,17 @@ class AcquisitionConf:
     Downsampled rate in Hz. When not None, the data should not be averaged,
     but downsampled with specified rate. Useful for Elzerman readout.
     '''
-    # TODO @@@ are the options needed?
-    options: Optional[Dict[str,Any]] = None
+    average_repetitions: bool = False
     '''
-    Instrument specific options that will not be interpreted by pulse_lib.
-    Examples: sample_rate, mV_range,
+    Average acquisition data over the sequence repetitions.
     '''
+
+    # # TODO @@@ are the options needed?
+    # options: Optional[Dict[str,Any]] = None
+    # '''
+    # Instrument specific options that will not be interpreted by pulse_lib.
+    # Examples: sample_rate, mV_range,
+    # '''
 
     # TODO  @@@
     # * add indexer for channel specific configuration: t_measure, downsample_rate

@@ -247,15 +247,16 @@ class PulsarUploader:
             try:
                 raw = self.q1instrument.get_acquisition_bins(channel_name, 'default')
             except KeyError:
-                raw = {'integration':{'path0':[], 'path1':[]}}
+                raw = {'integration':{'path0':[], 'path1':[]}, 'avg_cnt':[]}
+            avg_cnt = raw['avg_cnt']
             if len(in_ch) == 1:
                 ch = in_ch[0]
                 raw_ch = np.require(raw['integration'][f'path{ch}'], dtype=float)
-                result[f'{channel_name}'] = in_ranges[ch]/2/t_measure * raw_ch
+                result[f'{channel_name}'] = in_ranges[ch]/2/t_measure * raw_ch / avg_cnt
             else:
                 for i in in_ch:
                     raw_ch = np.require(raw['integration'][f'path{i}'], dtype=float)
-                    result[f'{channel_name}_{i}'] = in_ranges[ch]/2/t_measure * raw_ch
+                    result[f'{channel_name}_{i}'] = in_ranges[ch]/2/t_measure * raw_ch / avg_cnt
         return result
 
     def wait_until_AWG_idle(self):
@@ -379,7 +380,7 @@ class SegmentRenderInfo:
 
 
 class UploadAggregator:
-    verbose = False
+    verbose = True
 
     def __init__(self, q1instrument, awg_channels, marker_channels, digitizer_channels,
                  qubit_channels, awg_voltage_channels, marker_sequencers, seq_markers):
@@ -661,11 +662,17 @@ class UploadAggregator:
             trigger_period = None
             t_integrate = acq_conf.t_measure
 
+        if acq_conf.average_repetitions:
+            n_rep = 1
+        else:
+            n_rep = job.n_rep
 
-        seq = AcquisitionSequenceBuilder(channel_name, self.program[channel_name], job.n_rep)
+        seq = AcquisitionSequenceBuilder(channel_name, self.program[channel_name], n_rep)
 
         markers = self.get_markers_seq(job, channel_name)
         seq.add_markers(markers)
+        if acq_conf.average_repetitions:
+            seq.reset_bin_counter()
 
         for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
             seg_start = seg_render.t_start + t_offset
@@ -687,8 +694,6 @@ class UploadAggregator:
                 else:
                     seq.acquire(t)
 
-        if not t_integrate:
-            raise Exception(f'Measurement time not set for channel {channel_name}')
         seq.integration_time = t_integrate
 
         seq.close()

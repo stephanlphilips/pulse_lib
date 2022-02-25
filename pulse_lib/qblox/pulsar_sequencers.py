@@ -189,6 +189,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         super().__init__(name, sequencer)
         self.n_repetitions = n_repetitions
         self.n_triggers = 0
+        self._integration_time = None
         # allocate minim size later adjust for number of triggers
         self.seq.add_acquisition_bins('default', n_repetitions)
 
@@ -199,6 +200,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
     @integration_time.setter
     def integration_time(self, value):
         logging.info(f'{self.name}: integration time {value}')
+        self._integration_time = value
         self.seq.integration_length_acq = value
 
     def acquire(self, t):
@@ -209,9 +211,14 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self.n_triggers += n
         self.seq.repeated_acquire(n, t_period, 'default', 'increment', t_offset=t)
 
+    def reset_bin_counter(self):
+        self.seq.reset_bin_counter('default')
+
     def close(self):
         super().close()
         num_bins = self.n_triggers * self.n_repetitions
+        if num_bins > 0 and not self._integration_time:
+            raise Exception(f'Measurement time not set for channel {self.name}')
         self.seq.add_acquisition_bins('default', num_bins)
 
 

@@ -274,6 +274,7 @@ class sequencer():
                         t_measure=None,
                         downsample_rate=None,
                         channels=[],
+                        average_repetitions=None,
                         ):
         '''
         Args:
@@ -282,6 +283,7 @@ class sequencer():
             downsample_rate (float):
                 Rate in Hz. When not None, the data should not be averaged,
                 but downsampled with specified rate. Useful for Elzerman readout.
+            average_repetitions (bool): Average data over the sequence repetitions.
         '''
         conf = self.acquisition_conf
         if t_measure:
@@ -290,6 +292,8 @@ class sequencer():
             conf.downsample_rate = downsample_rate
         if channels != []:
             conf.channels = channels
+        if average_repetitions is not None:
+            conf.average_repetitions = average_repetitions
 
     def get_acquisition_param(self, name, upload=None, n_triggers=None):
         if upload == 'auto':
