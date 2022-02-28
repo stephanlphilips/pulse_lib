@@ -145,7 +145,7 @@ class PulsarUploader:
             else:
                 seq_name = f'_M_{marker_channel.module_name}'
                 marker_sequencers.append(seq_name)
-                self.q1instrument.add_control(seq_name, marker_channel.module_name)
+                self.q1instrument.add_control(seq_name, marker_channel.module_name, channels=[])
             mlist = seq_markers.setdefault(seq_name, [])
             mlist.append(channel_name)
 
