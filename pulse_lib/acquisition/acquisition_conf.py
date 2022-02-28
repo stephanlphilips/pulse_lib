@@ -25,14 +25,14 @@ class AcquisitionConf:
     Average acquisition data over the sequence repetitions.
     '''
 
-    # # TODO @@@ are the options needed?
+    # TODO are the options needed?
     # options: Optional[Dict[str,Any]] = None
     # '''
     # Instrument specific options that will not be interpreted by pulse_lib.
     # Examples: sample_rate, mV_range,
     # '''
 
-    # TODO  @@@
+    # TODO?
     # * add indexer for channel specific configuration: t_measure, downsample_rate
     #
     # * complex: (bool) = False ??
