@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.4.0] - @@@@
+### Added
+- Support for Qblox modules: QCM and QRM
+- Added sequencer.get_measurement_data
+- Added sequencer.set_acquisition
+- Added sequencer.get_acquisition_param with automatic upload/play
+- Added acquire(..., n_repeat=None, interval=None)
+- Added qblox_fast_scan 1D and 2D
+- Improved sequencer sweep index parameters
+
+
 ## \[1.3.0] - 2022-02-22
 ### Added
 - IQ correction of phase, amplitude and offset:
