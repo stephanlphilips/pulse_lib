@@ -66,7 +66,7 @@ awgs, digs = init_hardware()
 pulse = init_pulselib(awgs, digs, virtual_gates=True)
 
 my_seq = create_seq(pulse)
-t_measure = 10_000
+t_measure = 5_000
 my_seq.set_acquisition(t_measure=t_measure)
 
 param = my_seq.get_acquisition_param('Test', upload='auto')

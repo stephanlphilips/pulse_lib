@@ -32,10 +32,10 @@ def create_seq(pulse_lib):
     s = seg3
     s.P1.add_block(0, 1e4, -90)
     s.P2.add_block(0, 1e4, 120)
-    s.vP4.add_ramp_ss(1e4, 3e4, 0, 50)
-    s.vP4.add_block(3e4, 4e4, 50)
-    s.vP4.add_ramp_ss(4e4, 5e4, 50, 0)
-    s.SD1.acquire(3.5e4, t_measure=1e4)
+    s.vP4.add_ramp_ss(1e4, 2e4, 0, 50)
+    s.vP4.add_block(2e4, 3e4, 50)
+    s.vP4.add_ramp_ss(3e4, 3.5e4, 50, 0)
+    s.SD1.acquire(2e4)
 
     # generate the sequence and upload it.
     my_seq = pulse_lib.mk_sequence([seg1, seg2, seg3])
@@ -46,11 +46,6 @@ def create_seq(pulse_lib):
     return my_seq
 
 def plot(seq, job, awgs):
-#    uploader = seq.uploader
-    print(f'sequence: {seq.shape}')
-    print(f'job index:{job.index}, sequences:{len(job.sequence)}')
-    print(f'  sample_rate:{job.default_sample_rate} playback_time:{job.playback_time}')
-
     fig = pt.figure(1)
     fig.clear()
 
@@ -68,12 +63,15 @@ awgs, digs = init_hardware()
 pulse = init_pulselib(awgs, digs, virtual_gates=True)
 
 my_seq = create_seq(pulse)
+my_seq.set_acquisition(t_measure=1e4)
+# with Downsampling:
+# my_seq.set_acquisition(t_measure=1e4, downsample_rate=0.5e6)
 
 logging.info(f'sequence shape: {my_seq.shape}')
 
-job = my_seq.upload([0])
+job = my_seq.upload()
 
-my_seq.play([0], release=False)
+my_seq.play(release=False)
 
 data = my_seq.get_measurement_data()
 
@@ -85,6 +83,6 @@ for ch_name,values in data.items():
 pt.legend()
 #pprint(job.upload_info)
 
-my_seq.play([0], release=True)
+my_seq.play(release=True)
 my_seq.uploader.release_jobs()
 
