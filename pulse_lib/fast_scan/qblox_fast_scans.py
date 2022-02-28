@@ -106,6 +106,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
     # generate the sequence and upload it.
     my_seq = pulse_lib.mk_sequence([seg])
     my_seq.n_rep = n_avg
+    # Note: uses hardware averaging with Qblox modules
     my_seq.set_acquisition(t_measure=t_step, channels=acq_channels, average_repetitions=True)
 
     logging.info(f'Upload')
@@ -253,6 +254,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
     # generate the sequence and upload it.
     my_seq = pulse_lib.mk_sequence([seg])
     my_seq.n_rep = n_avg
+    # Note: uses hardware averaging with Qblox modules
     my_seq.set_acquisition(t_measure=t_step, channels=acq_channels, average_repetitions=True)
 
     logging.info(f'Seq upload')
@@ -317,11 +319,7 @@ class _scan_parameter(MultiParameter):
         # make sure that data is put in the right order.
         data_out = [np.zeros(self.shape) for i in range(len(data))]
 
-        n_avg = self.my_seq.n_rep
         for i in range(len(data)):
-#            if False and n_avg > 1:
-#                d = np.average(data[i].reshape((n_avg,-1)), axis=0)
-#            else:
             d = data[i]
             ch_data = d.reshape(self.shape)
             if self.biasT_corr:
