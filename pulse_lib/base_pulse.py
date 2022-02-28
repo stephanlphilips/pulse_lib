@@ -4,7 +4,7 @@ import numpy as np
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
 from pulse_lib.configuration.physical_channels import (
-        awg_channel, marker_channel, digitizer_channel, digitizer_channel_iq)
+        awg_channel, marker_channel, digitizer_channel, resonator_rf_source)
 from pulse_lib.configuration.iq_channels import IQ_channel, QubitChannel
 from pulse_lib.configuration.devices import awg_slave
 from pulse_lib.virtual_matrix.virtual_gate_matrices import VirtualGateMatrices
@@ -139,7 +139,7 @@ class pulselib:
             iq_out (bool): if True convert imaginary component of channel to Q data
         '''
         self._check_uniqueness_of_channel_name(name)
-        self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, channel_number, iq_out=iq_out)
+        self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, [channel_number], iq_out=iq_out)
 
     def define_digitizer_channel_iq(self, name, digitizer_name, channel_numbers, phase=0.0, iq_out=False):
         ''' Defines a digitizer I/Q input pair.
@@ -151,7 +151,8 @@ class pulselib:
             iq_out (bool): if True output I+Q data, else output I data only.
         '''
         self._check_uniqueness_of_channel_name(name)
-        self.digitizer_channels[name] = digitizer_channel_iq(name, digitizer_name, channel_numbers, iq_out=iq_out)
+        self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, channel_numbers,
+                                                          iq_out=iq_out, phase=phase)
 
     def set_digitizer_phase(self, channel_name, phase):
         '''
@@ -159,10 +160,54 @@ class pulselib:
         Args:
             channel_name (str): name of the channel.
             phase (float): phase shift in rad.
-
-        Note: only used for phase correction of I/Q input
+        Note:  The phase applies only when the digitizer does the IQ demodulation
         '''
         self.digitizer_channels[channel_name].phase = phase
+
+    def set_digitizer_frequency(self, channel_name, frequency):
+        '''
+        Sets frequency of digitizer channel for IQ demodulation.
+        Args:
+            channel_name (str): name of the channel.
+            frequency (float): frequency in Hz.
+        Note:  The phase applies only when the digitizer does the IQ demodulation
+        '''
+        self.digitizer_channels[channel_name].frequency = frequency
+
+    def set_digitizer_rf_source(self, channel_name, output, amplitude,
+                                mode='pulsed',
+                                trigger_offset_ns=None,
+                                attenuation=1.0):
+        '''
+        Adds a resonator RF source to the digitizer channel.
+        The resonator will be driven with the frequency specified for the digitizer
+        channel and dependent on the mode can be enabled synchronous with acquisitions.
+
+        The rf source can also be refer to a marker channel to enable an external modulator.
+
+        Args:
+            channel_name (str): name of the digitizer channel.
+            output one of the following:
+                (str) name of awg_channel
+                (Tuple[str, int]) name of module and channel number
+                (Tuple[str, List[int]]) name of module and channel numbers
+            amplitude (float): amplitude of the RF source in mV.
+            mode (str):
+                'continuous' enables output from start of sequence till after last acquisition.
+                'pulsed' enables output `trigger_offset_ns` before each acquisition till end of the acquisition.
+                'shaped' generates a pulse equal to the acquisition envelope starting `trigger_offset_ns` before
+                   the acquisition.
+            trigger_offset_ns (float): offset in [ns] for pulsed and shaped RF source enabling.
+            attenuation (float): Attenuation of the source channel.
+        Note:
+            The output specification depends on the driver.
+            Qblox driver only supports module name with channel number(s).
+        '''
+        rf_source = resonator_rf_source(output=output, mode=mode,
+                                        amplitude=amplitude,
+                                        trigger_offset_ns=trigger_offset_ns,
+                                        attenuation=attenuation)
+        self.digitizer_channels[channel_name].rf_source = rf_source
 
     def set_digitizer_iq_out(self, channel_name, iq_out):
         '''

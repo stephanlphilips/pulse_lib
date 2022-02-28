@@ -156,16 +156,14 @@ class measurement_converter:
             if len(acquisitions.data) == 0:
                 self._channel_raw[channel.name] = np.zeros(0, dtype=np.complex if channel.iq_out else np.float)
                 continue
-            if isinstance(channel, digitizer_channel):
-                # this can be complex valued output with LO modulation or phase shift in digitizer (FPGA)
-                ch = output_channels.index(channel.channel_number)
-                ch_raw = data[ch]
-            elif isinstance(channel, digitizer_channel_iq):
+            if channel.iq_input:
                 ch_I = output_channels.index(channel.channel_numbers[0])
                 ch_Q = output_channels.index(channel.channel_numbers[1])
                 ch_raw = (data[ch_I] + 1j * data[ch_Q]) * np.exp(1j*channel.phase)
             else:
-                raise NotImplementedError(f'Unknown channel type {type(channel)}')
+                # this can be complex valued output with LO modulation or phase shift in digitizer (FPGA)
+                ch = output_channels.index(channel.channel_number)
+                ch_raw = data[ch]
 
             if not channel.iq_out:
                 ch_raw = ch_raw.real

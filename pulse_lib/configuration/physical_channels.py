@@ -1,7 +1,6 @@
 from typing import Tuple, Optional, Union, List
 from dataclasses import dataclass
 
-
 @dataclass
 class awg_channel:
     name: str
@@ -55,10 +54,46 @@ class marker_channel:
 #    set frequency and phase in digitizer
 #    measurement_converter generates 1 or 2 raw data outputs depending on iq_out
 
+
+@dataclass
+class resonator_rf_source:
+    '''
+    RF source for resonator used with digitizer channel.
+    The resonator will be driven with the frequency specified for the digitizer
+    channel and dependent on the mode can be enabled synchronous with acquisitions.
+    '''
+    output: Union[str, Tuple[str,int], Tuple[str,List[int]]]
+    '''
+    output: one of the following:
+        (str) name of awg_channel
+        (Tuple[str, int]) name of module and channel number
+        (Tuple[str, List[int]]) name of module and channel numbers
+    '''
+    mode: str = 'pulsed'
+    '''
+    'continuous', 'pulsed', 'shaped'
+    '''
+    amplitude: float = 0.0
+    '''
+    amplitude of the RF source in mV.
+    '''
+    trigger_offset_ns: float = 0.0
+    '''
+    offset in [ns] for pulsed and shaped RF source enabling.
+    '''
+    attenuation : float = 1.0
+    '''
+    Attenuation of the source channel.
+    '''
+
+
 @dataclass
 class digitizer_channel:
     '''
     Channel to retrieve the digitizer data from.
+
+    If multiple channel numbers are specified, than the acquisition for these
+    channels is performed simultaneously.
 
     NOTE:
         This channel does not specify the physical digitizer input channel.
@@ -67,37 +102,42 @@ class digitizer_channel:
     '''
     name: str
     module_name: str
-    channel_number: int
+    channel_numbers: List[int]
     '''
     Channel number to *read* the data from.
     This is the number of the output buffer of the digitizer.
     '''
+    # @@@ TODO change to 'data_mode': 'Complex' or 'Real' or 'I+Q'  or 'Split'??
     iq_out: bool = False
     '''
     Return I/Q data in complex value. If False the imaginary component will be discarded.
     '''
+    phase : float = 0.0
+    '''
+    Phase shift after iq demodulation
+    '''
+    iq_input: bool = False
+    '''
+    Input consists of 2 channels, the demodulated I and Q.
+    '''
+    frequency: Union[None, float] = None
+    '''
+    demodulation frequency.
+    '''
+    rf_source: resonator_rf_source = None
+    '''
+    Optional rf_source to generate the resonator drive signal.
+    '''
+
+    def __post_init__(self):
+        n_ch = len(self.channel_numbers)
+        if self.iq_input and n_ch != 2:
+            raise Exception(f'Channel {self.name} specified iq_input, but has {n_ch} channels')
 
     @property
-    def channel_numbers(self):
-        ''' Returns channel number in list.
-        Utility method to simplify code that accepts classes digitizer_channel and digitizer_channel_iq
+    def channel_number(self):
+        ''' Returns channel number if there is only 1 input channel.
         '''
-        return [self.channel_number]
-
-@dataclass
-class digitizer_channel_iq:
-    '''
-    I/Q channel pair consisting of 2 input channels that are not combined by the hardware.
-    Pair is treated as one entity.
-    Both channels are triggered simultaneously.
-    Acquisition result is complex value.
-    '''
-    name: str
-    module_name: str
-    channel_numbers: List[int]
-    phase : float = 0.0
-    iq_out: bool = False
-    '''
-    Return I/Q data in complex value. If False the imaginary component will be discarded.
-    '''
-
+        if len(self.channel_numbers) != 1:
+            raise Exception(f'channel {self.name} has more than 1 channel')
+        return self.channel_numbers[0]

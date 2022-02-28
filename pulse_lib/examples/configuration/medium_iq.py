@@ -56,6 +56,11 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
     dig_name = digitizers[0].name if len(digitizers) > 0 else 'Dig1'
     pulse.define_digitizer_channel('SD1', dig_name, 0 + _ch_offset)
     pulse.define_digitizer_channel('SD2', dig_name, 1 + _ch_offset)
+    pulse.set_digitizer_frequency('SD1', 100e6)
+    pulse.set_digitizer_rf_source('SD1', (dig_name, 0), 400,
+                                  mode='pulsed',
+                                  trigger_offset_ns=500,
+                                  attenuation=1.0)
 
     pulse.define_channel('P5', dig_name, 1 + _ch_offset)
 
@@ -64,7 +69,7 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
     pulse.add_channel_compensation_limit('P2', (-50, 50))
     pulse.add_channel_compensation_limit('P3', (-80, 80))
 
-    pulse.awg_channels['P1'].attenuation = 0.5
+    # pulse.add_channel_attenuation('P1', 0.5)
 
     if bias_T_rc_time:
         pulse.add_channel_bias_T_compensation('P1', bias_T_rc_time)

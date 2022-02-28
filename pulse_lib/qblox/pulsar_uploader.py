@@ -3,7 +3,7 @@ from datetime import datetime
 import numpy as np
 import logging
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Union
+from typing import Dict, Optional
 
 from .rendering import SineWaveform, get_modulation
 from .pulsar_sequencers import (
@@ -76,7 +76,20 @@ class PulsarUploader:
             q1.add_control(name, module_name, [out_ch.channel_number for out_ch in out_channels])
 
         for name, dig_ch in self.digitizer_channels.items():
-            q1.add_readout(name, dig_ch.module_name)
+            out_ch = []
+            rf_source = dig_ch.rf_source
+            if rf_source is not None:
+                if rf_source.mode != 'continuous' and rf_source.trigger_offset_ns is None:
+                    raise Exception(f"'{self.name}' RF source mode {rf_source.mode} trigger_offset_ns not specified")
+                out = rf_source.output
+                if out is str or len(out) != 2:
+                    raise Exception(f'Resonator must be defined as (module_name,channel). '
+                                    f'Format {out} is currently not supported for "{name}"')
+                if out[0] != dig_ch.module_name:
+                    raise Exception(f'Resonator must be on same module. '
+                                    f'Format {out} is currently not supported for "{name}"')
+                out_ch = [out[1]] if isinstance(out[1], int) else out[1]
+            q1.add_readout(name, dig_ch.module_name, out_channels=out_ch)
 
         for name, marker_ch in self.marker_channels.items():
             # TODO implement marker channel inversion
@@ -219,10 +232,6 @@ class PulsarUploader:
 
         logging.info(f'Play {index}')
 
-#        # TODO @@@ cleanup frequency update hack
-        for name, qubit_channel in self.qubit_channels.items():
-            nco_frequency = qubit_channel.reference_frequency - qubit_channel.iq_channel.LO
-            self.q1instrument.controllers[name].nco_frequency = nco_frequency
         self.q1instrument.run_program(job.program)
 
         if release_job:
@@ -241,9 +250,9 @@ class PulsarUploader:
             in_ch = dig_ch.channel_numbers
             in_ranges = self.q1instrument.get_input_ranges(channel_name)
             # TODO:
+            # @@@ retrieve from program
             # * t_measure in acquisition
             # * weighed integration (length only?)
-            # * number averages
             try:
                 raw = self.q1instrument.get_acquisition_bins(channel_name, 'default')
             except KeyError:
@@ -601,10 +610,9 @@ class UploadAggregator:
             raise Exception(f'I/Q Channel delays must be equal ({channel_name})')
         t_offset = PulsarConfig.align(self.max_pre_start_ns + delays[0])
 
-        # TODO @@@ LO frequency can change during sweep
+        # TODO @@@ Check: LO frequency can change during sweep
         lo_freq = qubit_channel.iq_channel.LO
         nco_freq = qubit_channel.reference_frequency-lo_freq
-
 
         seq = IQSequenceBuilder(channel_name, self.program[channel_name],
                                 nco_freq)
@@ -657,22 +665,23 @@ class UploadAggregator:
 
         if acq_conf.downsample_rate is not None:
             trigger_period = PulsarConfig.align(1e9/acq_conf.downsample_rate)
-            t_integrate = trigger_period
         else:
             trigger_period = None
-            t_integrate = acq_conf.t_measure
 
         if acq_conf.average_repetitions:
             n_rep = 1
         else:
             n_rep = job.n_rep
 
-        seq = AcquisitionSequenceBuilder(channel_name, self.program[channel_name], n_rep)
+        nco_freq = digitizer_channel.frequency
+        seq = AcquisitionSequenceBuilder(channel_name, self.program[channel_name], n_rep,
+                                         nco_frequency=nco_freq,
+                                         rf_source=digitizer_channel.rf_source)
 
         markers = self.get_markers_seq(job, channel_name)
         seq.add_markers(markers)
         if acq_conf.average_repetitions:
-            seq.reset_bin_counter()
+            seq.reset_bin_counter(t=0)
 
         for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
             seg_start = seg_render.t_start + t_offset
@@ -682,19 +691,16 @@ class UploadAggregator:
             for acquisition in acquisition_data:
                 t = PulsarConfig.align(acquisition.start + seg_start)
                 t_measure = acquisition.t_measure if acquisition.t_measure is not None else acq_conf.t_measure
-                if not t_integrate:
-                    t_integrate = t_measure
-                elif t_measure != t_integrate:
-                    raise Exception('Only 1 t_measure per channel is supported')
-                if acquisition.n_repeat:
-                    seq.repeated_acquire(t, acquisition.n_repeat, PulsarConfig.align(acquisition.interval))
-                elif trigger_period and t_measure > trigger_period:
-                    n_cycles = iround(t_measure / trigger_period)
-                    seq.acquire(t, n_cycles, trigger_period)
-                else:
-                    seq.acquire(t)
+                t_measure = PulsarConfig.align(t_measure)
 
-        seq.integration_time = t_integrate
+                if acquisition.n_repeat:
+                    seq.repeated_acquire(t, t_measure, acquisition.n_repeat,
+                                         PulsarConfig.align(acquisition.interval))
+                elif trigger_period:
+                    n_cycles = max(1, iround(t_measure / trigger_period))
+                    seq.repeated_acquire(t, trigger_period, n_cycles, trigger_period)
+                else:
+                    seq.acquire(t, t_measure)
 
         seq.close()
 
