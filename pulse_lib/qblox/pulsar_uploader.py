@@ -252,20 +252,36 @@ class PulsarUploader:
             # TODO:
             # @@@ retrieve from program
             # * t_measure in acquisition
-            # * weighed integration (length only?)
+            # * weighed integration: divide by RMS*length?
             try:
                 raw = self.q1instrument.get_acquisition_bins(channel_name, 'default')
             except KeyError:
                 raw = {'integration':{'path0':[], 'path1':[]}, 'avg_cnt':[]}
-            avg_cnt = raw['avg_cnt']
-            if len(in_ch) == 1:
+            avg_cnt = np.asarray(raw['avg_cnt'])
+            if dig_ch.frequency or len(in_ch) == 2:
+                raw_0 = np.require(raw['integration']['path0'], dtype=float)
+                raw_0 *= in_ranges[0]/2/t_measure / avg_cnt
+                raw_1 = np.require(raw['integration']['path1'], dtype=float)
+                raw_1 *= in_ranges[1]/2/t_measure / avg_cnt
+
+                if dig_ch.frequency:
+                    raw_ch = (raw_0 + 1j * raw_1) * np.exp(1j*dig_ch.phase)
+                    # TODO @@@ return complex, real or (_I, _Q) or (_0, _1)
+                    if not dig_ch.iq_out:
+                        raw_ch = raw_ch.real
+                    result[f'{channel_name}'] = raw_ch
+                else:
+                    if in_ch[0] == 1:
+                        # swap results
+                        raw_0, raw_1 = raw_1, raw_0
+                    result[f'{channel_name}_0'] = raw_0
+                    result[f'{channel_name}_1'] = raw_1
+
+            else:
                 ch = in_ch[0]
                 raw_ch = np.require(raw['integration'][f'path{ch}'], dtype=float)
-                result[f'{channel_name}'] = in_ranges[ch]/2/t_measure * raw_ch / avg_cnt
-            else:
-                for i in in_ch:
-                    raw_ch = np.require(raw['integration'][f'path{i}'], dtype=float)
-                    result[f'{channel_name}_{i}'] = in_ranges[ch]/2/t_measure * raw_ch / avg_cnt
+                raw_ch *= in_ranges[ch]/2/t_measure / avg_cnt
+                result[f'{channel_name}'] = raw_ch
         return result
 
     def wait_until_AWG_idle(self):
