@@ -52,7 +52,7 @@ class PulsarUploader:
 
         self.jobs = []
 
-        q1 = Q1Instrument(PulsarUploader.output_dir)
+        q1 = Q1Instrument(PulsarUploader.output_dir, add_traceback=False)
         self.q1instrument = q1
 
         for awg in awg_devices.values():
@@ -405,7 +405,7 @@ class SegmentRenderInfo:
 
 
 class UploadAggregator:
-    verbose = True
+    verbose = False
 
     def __init__(self, q1instrument, awg_channels, marker_channels, digitizer_channels,
                  qubit_channels, awg_voltage_channels, marker_sequencers, seq_markers):
