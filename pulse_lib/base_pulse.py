@@ -152,7 +152,8 @@ class pulselib:
         '''
         self._check_uniqueness_of_channel_name(name)
         self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, channel_numbers,
-                                                          iq_out=iq_out, phase=phase)
+                                                          iq_out=iq_out, phase=phase,
+                                                          iq_input=True)
 
     def set_digitizer_phase(self, channel_name, phase):
         '''
