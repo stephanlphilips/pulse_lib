@@ -44,7 +44,7 @@ readout.SD1.acquire(0, t_measure)
 # generate the sequence from segments
 my_seq = p.mk_sequence([init, manip, readout])
 my_seq.set_hw_schedule(HardwareScheduleMock())
-my_seq.n_rep = 1
+my_seq.n_rep = 3
 my_seq.sample_rate = 1e9
 
 # optionally: set t_measure globablly and omit in acquire call()
