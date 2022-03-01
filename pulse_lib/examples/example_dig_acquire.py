@@ -1,5 +1,6 @@
 import logging
 from pprint import pprint
+import numpy as np
 import matplotlib.pyplot as pt
 
 import qcodes.logger as logger
@@ -7,53 +8,42 @@ from qcodes.logger import start_all_logging
 
 from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
 
-from configuration.medium_iq import init_hardware, init_pulselib
+from configuration.medium import init_hardware, init_pulselib
+from utils.plot import plot_awgs
 
-start_all_logging()
-logger.get_file_handler().setLevel(logging.DEBUG)
+#start_all_logging()
+#logger.get_file_handler().setLevel(logging.DEBUG)
 
 
 def create_seq(pulse_lib):
 
     seg1 = pulse_lib.mk_segment(name='init')
     s = seg1
-    s.P1.add_ramp_ss(0, 1000, -120, 150)
-    s['P2'].add_block(0, 500, 50)
-    s.vP3.add_block(600, 800, 100)
+    s.vP1.add_block(0, 500, 50)
 
     seg2 = pulse_lib.mk_segment('manip')
     s = seg2
-    s.vP4.add_ramp_ss(0, 100, 50, 100)
-    s.vP4.add_ramp_ss(100, 200, 100, 50)
-    s.P5.add_block(0, 200, -100)
-
+    s.vP2.add_ramp_ss(0, 100, 50, 100)
+    s.vP2.add_ramp_ss(100, 200, 100, 50)
 
     seg3 = pulse_lib.mk_segment('measure')
     s = seg3
-    s.P1.add_block(0, 1e4, -90)
-    s.P2.add_block(0, 1e4, 120)
-    s.vP4.add_ramp_ss(1e4, 2e4, 0, 50)
-    s.vP4.add_block(2e4, 3e4, 50)
-    s.vP4.add_ramp_ss(3e4, 3.5e4, 50, 0)
+    s.vP1.add_block(0, 1e4, -90)
+    s.vP2.add_block(0, 1e4, 120)
+    s.vP3.add_ramp_ss(1e4, 2e4, 0, 50)
+    s.vP3.add_block(2e4, 3e4, 50)
+    s.vP3.add_ramp_ss(3e4, 3.5e4, 50, 0)
+    s.vP1.add_block(2e4, 3e4, -100)
     s.SD1.acquire(2e4)
+    s.SD2.acquire(2e4)
 
     # generate the sequence and upload it.
     my_seq = pulse_lib.mk_sequence([seg1, seg2, seg3])
     my_seq.set_hw_schedule(HardwareScheduleMock())
-    my_seq.n_rep = 4
+    my_seq.n_rep = 10
     my_seq.sample_rate = 1e9
 
     return my_seq
-
-def plot(seq, job, awgs):
-    fig = pt.figure(1)
-    fig.clear()
-
-    for awg in awgs:
-        awg.plot()
-
-    pt.legend()
-    pt.show()
 
 
 # create "AWG1","AWG2"
@@ -62,8 +52,11 @@ awgs, digs = init_hardware()
 # create channels
 pulse = init_pulselib(awgs, digs, virtual_gates=True)
 
+# With current setup the angle of -0.228*PI results in a measurement with IQ angle is 0 (Q is 0.0)
+pulse.set_digitizer_phase('SD2', -0.228*np.pi)
+
 my_seq = create_seq(pulse)
-my_seq.set_acquisition(t_measure=1e4)
+my_seq.set_acquisition(t_measure=1e4, channels=['SD1', 'SD2']) # @@@ FIX requirement to specify channels
 # with Downsampling:
 # my_seq.set_acquisition(t_measure=1e4, downsample_rate=0.5e6)
 
@@ -75,11 +68,12 @@ my_seq.play(release=False)
 
 data = my_seq.get_measurement_data()
 
-plot(my_seq, job, awgs+digs)
+#plot_awgs(awgs+digs)
 
 pt.figure()
 for ch_name,values in data.items():
-    pt.plot(values, label=ch_name)
+    pt.plot(np.real(values), label=ch_name+' I')
+    pt.plot(np.imag(values), label=ch_name+' Q')
 pt.legend()
 #pprint(job.upload_info)
 
