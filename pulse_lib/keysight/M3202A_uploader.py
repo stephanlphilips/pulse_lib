@@ -390,7 +390,7 @@ class RefChannels:
 
 
 class UploadAggregator:
-    verbose = False
+    verbose = True
 
     def __init__(self, awg_channels, marker_channels, qubit_channels, digitizer_channels):
         self.npt = 0
@@ -454,6 +454,7 @@ class UploadAggregator:
             sample_rate = (seg.sample_rate if seg.sample_rate is not None else job.default_sample_rate) * 1e-9
             duration = seg.get_total_time(job.index)
             npt =  int(round(duration * sample_rate))
+            logging.debug(f'seg: {npt}, {duration * sample_rate:6.2f}')
             info = SegmentRenderInfo(sample_rate, t_start, npt)
             segments.append(info)
             t_start = info.t_end
@@ -481,6 +482,7 @@ class UploadAggregator:
                 n_post = round(((seg.t_start + max_post_end_ns) - section.t_end) * section.sample_rate)
                 section.npt += n_post
                 section.align(extend=True)
+                logging.debug(f'decrease rate {sample_rate}, {section.sample_rate}, {n_post}, {section}')
 
                 # number of points of segment to be rendered to previous section
                 n_start_transition = round((section.t_end - seg.t_start)*sample_rate)
@@ -491,18 +493,22 @@ class UploadAggregator:
                 # start new section
                 section = RenderSection(sample_rate, section.t_end)
                 sections.append(section)
+                logging.debug(f'decrease rate >> {n_start_transition}, {section}')
                 section.npt -= n_start_transition
 
 
             seg.section = section
             seg.offset = section.npt
             section.npt += seg.npt
+            logging.debug(f'add {iseg} {seg.npt} {section}')
 
             # create welding region if sample rate increases
             if sample_rate_next != 0 and sample_rate_next > sample_rate:
                 n_pre = round((section.t_end - (seg.t_end - max_pre_start_ns)) * section.sample_rate)
                 section.npt -= n_pre
-                section.align(extend=True)
+                logging.debug(f'increase rate {sample_rate_next}, {section.sample_rate}, {n_pre}, {section}')
+                section.align(extend=False)
+                logging.debug(f'increase rate align >> {section} {(section.t_end - (seg.t_end - max_pre_start_ns)) * section.sample_rate:5.2f}')
 
                 # start new section
                 section = RenderSection(sample_rate_next, section.t_end)
@@ -615,6 +621,7 @@ class UploadAggregator:
                     t_welding = (seg_render.t_end - next_section.t_start)
                     i_end = len(wvf) - round(t_welding*sample_rate) + n_delay_welding
 
+                    logging.info(f'section end: {iseg}: {i_start}:{i_end} {len(wvf)}')
                     if i_start != i_end:
                         buffer[-(i_end-i_start):] = wvf[i_start:i_end]
 
