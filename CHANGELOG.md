@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.3.1] - 2022-03-07
+### Fixed
+- Fixed rendering of segments with different sample rates
+- Rendering of conditional segments with looping
+
 ## \[1.3.0] - 2022-02-22
 ### Added
 - IQ correction of phase, amplitude and offset:
