@@ -261,7 +261,7 @@ class sequencer():
         self.hw_schedule = hw_schedule
         self.hw_schedule.set_schedule_parameters(**kwargs)
 
-    def upload(self, index=(0,)):
+    def upload(self, index=None):
         '''
         Sends the sequence with the provided index to the uploader module. Once he is done, the play function can do its work.
         Args:
@@ -271,6 +271,8 @@ class sequencer():
         start multiple uploads at once (during upload you can do playback, when the first one is finihsed)
         (note that this is only possible if you AWG supports upload while doing playback)
         '''
+        if index is None:
+            index = self.sweep_index[::-1]
         self._validate_index(index)
         upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep, self._sample_rate, self.neutralize)
 
@@ -282,7 +284,7 @@ class sequencer():
         return upload_job
 
 
-    def play(self, index=(0,), release= True):
+    def play(self, index=None, release= True):
         '''
         Playback a certain index, assuming the index is provided.
         Args:
@@ -291,6 +293,8 @@ class sequencer():
 
         Note that the playback will not start until you have uploaded the waveforms.
         '''
+        if index is None:
+            index = self.sweep_index[::-1]
         self._validate_index(index)
         self.uploader.play(self.id, index, release)
 
