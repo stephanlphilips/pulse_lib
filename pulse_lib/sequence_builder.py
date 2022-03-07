@@ -109,22 +109,6 @@ class sequence_builder:
             template.build(segment, reset=False, **kwargs)
         self._segments.append(cond_seg)
 
-    def wait(self, channels, t, amplitudes, reset_time=True):
-        '''
-        Adds a block to each of the specified channels.
-        Args:
-           t (float, loop_obj): duration of the block
-           channels (List[str]): channels to apply the block to
-           amplitudes (List[float, loop_obj]): amplitude per channel
-           reset_time (bool): if True resets segment time after block
-        '''
-        segment = self._get_segment()
-        for channel, amplitude in zip(channels, amplitudes):
-            segment[channel].add_block(0, t, amplitude)
-
-        if reset_time == True:
-            self.reset_time()
-
     def add_block(self, channels, t, amplitudes, reset_time=True):
         '''
         Adds a block to each of the specified channels.
@@ -154,10 +138,45 @@ class sequence_builder:
         '''
         segment = self._get_segment()
         for channel, start_amp, stop_amp in zip(channels, start_amplitudes, stop_amplitudes):
-            segment.add_ramp_ss(0, t, start_amp, stop_amp)
+            segment[channel].add_ramp_ss(0, t, start_amp, stop_amp)
 
         if reset_time == True:
             self.reset_time()
+
+    def add_long_block(self, channels, t, amplitudes, sample_rate=1e9, reset_time=True):
+        '''
+        Adds a long block to each of the specified channels.
+        Sample rate can be lowered to reduce the wavelength.
+        Number of samples must be > 2000.
+        Args:
+           t (float, loop_obj): duration of the block
+           channels (List[str]): channels to apply the block to
+           amplitudes (List[float, loop_obj]): amplitude per channel
+           reset_time (bool): if True resets segment time after block
+        '''
+        self.reset_time()
+        self._segment = None
+        segment = self._get_segment()
+        segment.sample_rate = sample_rate
+        for channel, amplitude in zip(channels, amplitudes):
+            segment[channel].add_block(0, t, amplitude)
+
+        self.reset_time()
+        self._segment = None
+
+    def add_long_wait(self, t_wait, sample_rate=1e9):
+        '''
+        Inserts a long wait using a new segment with a specified sample rate.
+        Number of samples must be > 2000.
+        '''
+        self.reset_time()
+        self._segment = None
+        segment = self._get_segment()
+        segment.sample_rate = sample_rate
+        # just pick first channel to set wait time
+        segment[segment.channels[0]].wait(t_wait)
+        self.reset_time()
+        self._segment = None
 
     def append(self, other):
         # close active segments in both sequences

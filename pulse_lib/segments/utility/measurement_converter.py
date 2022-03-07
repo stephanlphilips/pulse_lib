@@ -4,6 +4,7 @@ import numpy as np
 from pulse_lib.configuration.physical_channels import digitizer_channel, digitizer_channel_iq
 from pulse_lib.segments.segment_measurements import measurement_acquisition, measurement_expression
 from pulse_lib.segments.utility.rounding import iround
+from pulse_lib.segments.data_classes.data_generic import map_index
 
 from qcodes import MultiParameter
 
@@ -133,6 +134,10 @@ class measurement_converter:
                                         ('repetition', ), ('repetition',), ('', ))
         self.sp_total = setpoints_single('total_selected', 'total_selected', '#')
 
+    def _get_acquisitions(self, channel_name, index):
+        ch_acqs = self._description.acquisitions[channel_name]
+        index_mapped = map_index(index, ch_acqs.shape)
+        return ch_acqs[index_mapped].data
 
     def _set_channel_raw(self, data, index):
         digitizer_channels = self._description.digitizer_channels
@@ -143,17 +148,17 @@ class measurement_converter:
         # get digitizer parameter result numbering
         output_channels = []
         for channel in digitizer_channels.values():
-            acquisitions = self._description.acquisitions[channel.name][index]
-            output_channels += channel.channel_numbers
+            acquisitions = self._get_acquisitions(channel.name, index)
+            if len(acquisitions) > 0:
+                output_channels += channel.channel_numbers
         output_channels.sort()
 
 
         # set raw values
         self._channel_raw = {}
         for channel in digitizer_channels.values():
-
-            acquisitions = self._description.acquisitions[channel.name][index]
-            if len(acquisitions.data) == 0:
+            acquisitions = self._get_acquisitions(channel.name, index)
+            if len(acquisitions) == 0:
                 self._channel_raw[channel.name] = np.zeros(0, dtype=np.complex if channel.iq_out else np.float)
                 continue
             if channel.iq_input:
@@ -168,7 +173,14 @@ class measurement_converter:
             if not channel.iq_out:
                 ch_raw = ch_raw.real
 
-            self._channel_raw[channel.name] = ch_raw.reshape((-1, len(acquisitions.data))).T
+            self._channel_raw[channel.name] = ch_raw.reshape((-1, len(acquisitions))).T
+#            # TODO @@@ fix downsample_rate
+#            if channel.downsample_rate is None:
+#                self._channel_raw[channel.name] = ch_raw.reshape((-1, len(acquisitions))).T
+#            else:
+#                period_ns = iround(1e8/channel.downsample_rate) * 10
+#                n_samples = sum(int(acq.t_measure / period_ns) for acq in acquisitions)
+#                self._channel_raw[channel.name] = ch_raw.reshape((-1, n_samples)).T
 
 
     def _set_data_raw(self, data):
@@ -197,7 +209,8 @@ class measurement_converter:
                     continue
 
                 channel_name = m.acquisition_channel
-                acq = self._description.acquisitions[channel_name][index].data[m.index]
+                acquisitions = self._get_acquisitions(channel_name, index)
+                acq = acquisitions[m.index]
                 result = self._channel_raw[channel_name][m.index] > acq.threshold
                 if acq.zero_on_high:
                     result = not result
