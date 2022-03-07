@@ -6,6 +6,7 @@ This object also allows you to do operations on all segments at the same time.
 from pulse_lib.segments.segment_HVI_variables import segment_HVI_variables
 from pulse_lib.segments.segment_measurements import segment_measurements
 from pulse_lib.segments.segment_container import segment_container
+from pulse_lib.segments.data_classes.data_generic import map_index
 
 import pulse_lib.segments.utility.looping as lp
 from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, reduce_arr, upconvert_dimension
@@ -98,6 +99,9 @@ class conditional_segment:
         times = np.amax(time_data, axis = 0)
 
         return times
+
+    def get_total_time(self, index):
+        return self.total_time[map_index(index, self.shape)]
 
 #    @property
 #    def _start_time(self):
