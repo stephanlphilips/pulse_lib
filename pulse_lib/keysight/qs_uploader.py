@@ -652,7 +652,7 @@ class UploadAggregator:
                 sections.append(section)
 
                 # number of points of segment to be rendered to next section
-                n_end_transition = round((section.t_start - seg.t_end)*sample_rate_next)
+                n_end_transition = round((seg.t_end - section.t_start)*sample_rate_next)
 
                 section.npt += n_end_transition
 
