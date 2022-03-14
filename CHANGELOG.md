@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.3.2] - 2022-03-014
+### Fixed
+- Fixed long wait (> 160 ms) for QuantumSequencer
+
 ## \[1.3.1] - 2022-03-07
 ### Fixed
 - Fixed rendering of segments with different sample rates
