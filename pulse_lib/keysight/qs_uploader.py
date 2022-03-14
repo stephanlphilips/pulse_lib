@@ -244,7 +244,8 @@ class QsUploader:
                 sequence = job.iq_sequences[awg_sequencer.channel_name]
 
                 # TODO cleanup frequency update hack
-                seq._frequency = sequence.lo_freq
+                qubit_channel = self.qubit_channels[awg_sequencer.channel_name]
+                seq._frequency = qubit_channel.reference_frequency - qubit_channel.iq_channel.LO
 
                 # @@@ IQSequence.upload() OR Sequence.upload()
                 for number,wvf in enumerate(sequence.waveforms):

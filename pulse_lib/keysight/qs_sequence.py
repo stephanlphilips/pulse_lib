@@ -198,7 +198,7 @@ class IQSequenceBuilder:
     def _render_phase_shift(self, phase_shift) -> Waveform:
         waveform = Waveform('', prephase=phase_shift, duration=2)
         index = self._get_waveform_index(waveform)
-        return index, 5
+        return index, 1
 
     def _get_waveform_index(self, waveform:Waveform):
         try:
