@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.3.3] - 2022-03-014
+### Fixed
+- QuantumSequencer bugs in 1.3.2
+
 ## \[1.3.2] - 2022-03-014
 ### Fixed
 - Fixed long wait (> 160 ms) for QuantumSequencer
