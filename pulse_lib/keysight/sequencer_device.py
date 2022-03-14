@@ -53,7 +53,7 @@ class SequencerDevice:
                 gain_correction = list(reversed(qubit_channel.correction_gain))
                 qubit_phases[0] += qubit_channel.correction_phase*180/np.pi
 
-            print(f'{qubit_channel.channel_name} {IQ_comps} {qubit_phases}')
+            #print(f'{qubit_channel.channel_name} {IQ_comps} {qubit_phases}')
 
             qubit_channel.correction_phase
             sequencer = SequencerInfo(self.name, seq_num,
