@@ -11,6 +11,9 @@ All notable changes to Pulselib will be documented in this file.
 - Added qblox_fast_scan 1D and 2D
 - Improved sequencer sweep index parameters
 
+## \[1.3.2] - 2022-03014
+### Fixed
+- Fixed long wait (> 160 ms) for QuantumSequencer
 
 ## \[1.3.1] - 2022-03-07
 ### Fixed
