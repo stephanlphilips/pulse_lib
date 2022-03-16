@@ -44,13 +44,13 @@ my_seq = p.mk_sequence([seg1, seg2, seg3, seg4])
 
 my_seq.set_hw_schedule(HardwareScheduleMock())
 my_seq.sample_rate = 1e8
-my_seq.n_rep = 3
+my_seq.n_rep = 1
 
 my_seq.upload()
 
 my_seq.play()
 
 plot_awgs(awgs, bias_T_rc_time=bias_T_rc_time)
-pt.title('AWG upload (with DC compensation)')
+pt.title('AWG upload with bias-T compensation, RC = 1 ms')
 pt.grid(True)
 

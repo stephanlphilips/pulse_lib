@@ -16,7 +16,6 @@ def add_detuning_params(p, gate1, gate2, detuning, energy):
             ]
         )
 
-
 # create "AWG1"
 awgs, digs = init_hardware()
 
@@ -78,13 +77,21 @@ pt.title('detuning and real channels')
 pt.grid(True)
 
 pt.figure()
+seg3.vP1.plot_segment()
+seg3.vP2.plot_segment()
+seg3.P1.plot_segment()
+seg3.P2.plot_segment()
+pt.title('real and virtual channels')
+pt.grid(True)
+
+pt.figure()
 seg4.ve12.plot_segment()
 seg4.vU12.plot_segment()
 seg4.vP1.plot_segment()
 seg4.vP2.plot_segment()
 seg4.P1.plot_segment()
 seg4.P2.plot_segment()
-pt.title('detuning, virtual and real channels')
+pt.title('virtual detuning and real channels')
 pt.grid(True)
 
 plot_awgs(awgs)

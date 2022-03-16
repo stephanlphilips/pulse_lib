@@ -56,22 +56,32 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None,
 
     if virtual_gates:
         # set a virtual gate matrix
-        virtual_gate_set_1 = virtual_gates_constructor(pulse)
-        virtual_gate_set_1.add_real_gates('P1','P2')
-        virtual_gate_set_1.add_virtual_gates('vP1','vP2')
-        inv_matrix = 1.2*np.eye(2) - 0.1
-        virtual_gate_set_1.add_virtual_gate_matrix(np.linalg.inv(inv_matrix))
+        pulse.add_virtual_matrix(
+                name='virtual-gates',
+                real_gate_names=['P1','P2'],
+                virtual_gate_names=['vP1','vP2'],
+                matrix=[
+                    [+1.0, -0.1],
+                    [-0.1, +1.0],
+                    ]
+                )
 
-    # define IQ output pair
+    q1_resonant_frequency = 2.430e9
+    q2_resonant_frequency = 2.450e9
+
+    # frequency of the MW source
+    lo_freq = lo_frequency if lo_frequency is not None else 2.400e9
+
+    # combine outputs I1 and Q1 in IQ pair
     IQ_pair_1 = IQ_channel_constructor(pulse)
     IQ_pair_1.add_IQ_chan("I1", "I")
     IQ_pair_1.add_IQ_chan("Q1", "Q")
-    # frequency of the MW source
-    lo_freq = lo_frequency if lo_frequency is not None else 2.400e9
+    # set frequency of LO: this can be the qcodes parameter of the VSG
     IQ_pair_1.set_LO(lo_freq)
 
-    # add 1 qubit: q1
-    IQ_pair_1.add_virtual_IQ_channel("q1", 2.415e9)
+    # add qubits: q1 and q2
+    IQ_pair_1.add_virtual_IQ_channel("q1", q1_resonant_frequency)
+    IQ_pair_1.add_virtual_IQ_channel("q2", q2_resonant_frequency)
 
     pulse.finish_init()
 

@@ -57,10 +57,10 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
     pulse.define_digitizer_channel('SD1', dig_name, 0 + _ch_offset)
     pulse.define_digitizer_channel('SD2', dig_name, 1 + _ch_offset)
     pulse.set_digitizer_frequency('SD1', 100e6)
-    pulse.set_digitizer_rf_source('SD1', (dig_name, 0), 400,
+    pulse.set_digitizer_rf_source('SD1', output=(dig_name, 0),
+                                  amplitude=400,
                                   mode='pulsed',
-                                  trigger_offset_ns=500,
-                                  attenuation=1.0)
+                                  trigger_offset_ns=500)
 
     pulse.define_channel('P5', dig_name, 1 + _ch_offset)
 
