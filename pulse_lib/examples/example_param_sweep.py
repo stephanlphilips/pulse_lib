@@ -13,8 +13,8 @@ awgs = init_hardware()
 # create channels P1, P2
 p = init_pulselib(awgs)
 
-v_param = lp.linspace(0, 200, 11, axis=0, unit = "mV", name = "vPulse")
-t_wait = lp.linspace(20, 100, 5, axis=1, unit = "mV", name = "t_wait")
+v_param = lp.linspace(0, 200, 5, axis=0, unit = "mV", name = "vPulse")
+t_wait = lp.linspace(20, 100, 3, axis=1, unit = "mV", name = "t_wait")
 
 
 seg1 = p.mk_segment()
@@ -33,19 +33,12 @@ seg2.P1.add_block(0, 100, v_param)
 seq = p.mk_sequence([seg1,seg2])
 seq.set_hw_schedule(HardwareScheduleMock())
 
-for index in ([(0,8), (2,2)]):
-    seq.upload(index=index)
-    seq.play(index=index)
+for t in seq.t_wait.values:
+    for v_pulse in seq.vPulse.values:
+        seq.t_wait(t)
+        seq.vPulse(v_pulse)
+        seq.upload()
+        seq.play()
 
-pt.figure()
-pt.title('segment 1')
-seg1.plot((0,10))
-
-for index in [(0,0), (0,2), (4,8)]:
-    pt.figure()
-    pt.title(f'segment 2 - {index}')
-    seg2.plot(index=index)
-
-
-plot_awgs(awgs)
-pt.title('AWG upload with DC compensation pulse at end')
+        plot_awgs(awgs)
+        pt.title('AWG upload {t} - {v_pulse}')
