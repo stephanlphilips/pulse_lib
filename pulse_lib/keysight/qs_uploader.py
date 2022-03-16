@@ -936,7 +936,7 @@ class UploadAggregator:
 
                         sequence.conditional_pulses(t_instr, seg_render.t_start,
                                                     instr.pulses, qs_cond.order,
-                                                    conditional_register=3)
+                                                    condition_register=3)
             sequence.close()
             duration = time.perf_counter() - start
             logging.debug(f'generated iq sequence {channel_name} {duration*1000:6.3f} ms')

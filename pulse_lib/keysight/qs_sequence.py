@@ -101,7 +101,7 @@ class IQSequenceBuilder:
             elif pulse.mw_pulse is not None:
                 mw_entry = pulse.mw_pulse
                 t_pulse = segment_start + mw_entry.start
-                wvf_offset = t_pulse - t_instr
+                wvf_offset = int(t_pulse - t_instr + 0.5)
                 index, duration = self._render_waveform(mw_entry, self.lo_freq, wvf_offset,
                                                         prephase=pulse.prephase,
                                                         postphase=pulse.postphase)
