@@ -3,9 +3,11 @@ from typing import Union, Optional, List
 
 import numpy as np
 
+def iround(value):
+    return int(value + 0.5)
+
 @dataclass
 class Waveform:
-    wvf_id: str
     amplitude: float = 0
     am_envelope: Union[None, float, np.ndarray] = None
     frequency: float = None
@@ -17,8 +19,7 @@ class Waveform:
     restore_frequency: bool = True
 
     def __eq__(self, other):
-        return (self.wvf_id == other.wvf_id
-                and self.amplitude == other.amplitude
+        return (self.amplitude == other.amplitude
                 and np.all(self.am_envelope == other.am_envelope)
                 and self.frequency == other.frequency
                 and np.all(self.pm_envelope == other.pm_envelope)
@@ -57,7 +58,7 @@ class DigitizerSequenceEntry:
 class IQSequenceBuilder:
     def __init__(self, name, t_start, lo_freq):
         self.name = name
-        self.time = t_start
+        self.time = iround(t_start)
         self.lo_freq = lo_freq
         self.end_pulse = self.time
         self.last_instruction = None
@@ -101,7 +102,7 @@ class IQSequenceBuilder:
             elif pulse.mw_pulse is not None:
                 mw_entry = pulse.mw_pulse
                 t_pulse = segment_start + mw_entry.start
-                wvf_offset = t_pulse - t_instr
+                wvf_offset = iround(t_pulse - t_instr)
                 index, duration = self._render_waveform(mw_entry, self.lo_freq, wvf_offset,
                                                         prephase=pulse.prephase,
                                                         postphase=pulse.postphase)
@@ -112,17 +113,16 @@ class IQSequenceBuilder:
             wvf_indices.append(index)
             t_end = max(t_end, pulse_end)
 
-        self.end_pulse = t_end
+        self._set_pulse_end(t_end)
 
         for ibranch in order:
             entry.waveform_indices.append(wvf_indices[ibranch])
-        # @@@ t_end
 
     def close(self):
         # set wait time of last instruction
         if self.last_instruction is not None and self.end_pulse > self.time:
             t_wait = self.end_pulse - self.time
-            t = int(t_wait / 5 + 1) * 5
+            t = (iround(t_wait) // 5 + 1) * 5
             self.last_instruction.time_after = t
             self.last_instruction = None
 
@@ -132,10 +132,13 @@ class IQSequenceBuilder:
         entry.waveform_index = waveform_index
         self.sequence.append(entry)
         self.last_instruction = entry
-        self.end_pulse = t_end
+        self._set_pulse_end(t_end)
+
+    def _set_pulse_end(self, t_end):
+        self.end_pulse = max(self.end_pulse, iround(t_end))
 
     def _wait_till(self, t_start):
-        t_instruction = int(t_start / 5) * 5
+        t_instruction = (iround(t_start) // 5) * 5
         if t_instruction < self.end_pulse:
             raise Exception(f'Overlapping pulses at {t_start} of {self.name}')
 
@@ -169,7 +172,7 @@ class IQSequenceBuilder:
 
     def _render_waveform(self, mw_pulse_data, lo_freq:float, offset:float, prephase=0, postphase=0) -> Waveform:
         # always render at 1e9 Sa/s
-        duration = mw_pulse_data.stop - mw_pulse_data.start
+        duration = iround(mw_pulse_data.stop) - iround(mw_pulse_data.start)
         if mw_pulse_data.envelope is None:
             amp_envelope = 1.0
             pm_envelope = 0.0
@@ -179,11 +182,11 @@ class IQSequenceBuilder:
             pm_envelope = mw_pulse_data.envelope.get_PM_envelope(duration, 1.0)
             add_pm = not np.all(pm_envelope == 0)
 
-        waveform = Waveform('', mw_pulse_data.amplitude, amp_envelope,
+        waveform = Waveform(mw_pulse_data.amplitude, amp_envelope,
                             mw_pulse_data.frequency - lo_freq, pm_envelope,
                             mw_pulse_data.start_phase + prephase,
                             -mw_pulse_data.start_phase + postphase,
-                            int(duration), offset)
+                            duration, offset)
 
         extra = 0
         # post_phase and pm_envelope add 2 samples, but last sample is restore of NCO
@@ -196,7 +199,7 @@ class IQSequenceBuilder:
 
 
     def _render_phase_shift(self, phase_shift) -> Waveform:
-        waveform = Waveform('', prephase=phase_shift, duration=2)
+        waveform = Waveform(prephase=phase_shift, duration=2)
         index = self._get_waveform_index(waveform)
         return index, 1
 
@@ -209,7 +212,7 @@ class IQSequenceBuilder:
         return index
 
     def _get_wvf_offset(self, t_pulse):
-        return int(t_pulse) % 5
+        return iround(t_pulse) % 5
 
 
 class AcquisitionSequenceBuilder:
@@ -232,18 +235,21 @@ class AcquisitionSequenceBuilder:
         entry.measurement_id = len(self.sequence)
         entry.threshold = threshold
         entry.pxi_trigger = pxi_trigger
-        self.end_pulse = t_start + t_integrate * n_repeat
+        self._set_pulse_end(t_start + t_integrate * n_repeat)
 
     def close(self):
         # set wait time of last instruction
         if self.last_instruction is not None and self.end_pulse > self.time:
             t_wait = self.end_pulse - self.time
-            t = int(t_wait / 5 + 1) * 5
+            t = (iround(t_wait) // 5 + 1) * 5
             self.last_instruction.time_after = t
             self.last_instruction = None
 
+    def _set_pulse_end(self, t_end):
+        self.end_pulse = max(self.end_pulse, iround(t_end))
+
     def _wait_till(self, t_start):
-        t_instruction = int(t_start / 10) * 10
+        t_instruction = (iround(t_start) // 10) * 10
         if t_instruction < self.end_pulse:
             raise Exception(f'Overlapping pulses at {t_start} of {self.name}')
 
