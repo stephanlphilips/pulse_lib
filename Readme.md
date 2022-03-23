@@ -4,14 +4,15 @@ Pulse_lib is a library to control multi-channel AWG pulse sequences and digitize
 with a simple API using physical units. It is designed to control qubit experiments, especially quantum dot
 and spin qubit experiments.
 
-Sequences can contain direct voltage pulses, microwave (MW) pulses, digital markers and triggers.
+Sequences can contain direct voltage pulses, phase coherent microwave (MW) pulses, digital markers, triggers,
+and digitizer acquisitions.
 The MW pulses in a sequence are phase coherent to enable construction of sequences of quantum gates.
-Pulse_lib creates IQ output pairs to generate the MW pulses using a vector signal generator.
+Pulse_lib uses IQ output pairs to generate the MW pulses with a vector signal generator.
 
 Parameters of the pulses in a sequence can be swept across a range of values. This turns the sequence in a
 multi-dimensional measurement.
 
-Pulses in pulse_lib are specified in physical units as they should arrive on the target device:
+Pulses in pulse_lib are specified in the physical units in the context of the target device:
 * Amplitudes are specified in millivolts
 * Time is specified in nanoseconds
 * MW pulses are specified for a specific qubit and resonance and drive frequency in Hz
@@ -32,6 +33,7 @@ Pulse_lib supports the following hardware:
 * Keysight PXI M3202A AWG and M3201A digitizer
 * Tektronix AWG5014 with Spectrum M4i digitizer
 * Qblox Pulsar QCM and QRM
+* QuTech QuantumSequencer for Keysight PXI
 
 The communication with the AWGs has been optimized to minimize the overhead between measurements.
 The compilation of pulse sequences and the communication with the AWGs will be further optimized
