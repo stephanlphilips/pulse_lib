@@ -1,9 +1,13 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.3.4] - 2022-03-@@
+## \[1.3.5] - 2022-03-@@
 ### Added
 - Added argument reset_time to wait()
+
+## \[1.3.4] - 2022-03-23
+### Improved
+- QuantumSequencer use waveform with low sample rate for long DC compensation pulse.
 
 ## \[1.3.3] - 2022-03-14
 ### Fixed

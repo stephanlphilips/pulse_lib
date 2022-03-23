@@ -58,7 +58,7 @@ class DigitizerSequenceEntry:
 class IQSequenceBuilder:
     def __init__(self, name, t_start, lo_freq):
         self.name = name
-        self.time = t_start
+        self.time = iround(t_start)
         self.lo_freq = lo_freq
         self.end_pulse = self.time
         self.last_instruction = None
@@ -117,7 +117,6 @@ class IQSequenceBuilder:
 
         for ibranch in order:
             entry.waveform_indices.append(wvf_indices[ibranch])
-        # @@@ t_end
 
     def close(self):
         # set wait time of last instruction

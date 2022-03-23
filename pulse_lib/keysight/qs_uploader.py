@@ -624,6 +624,24 @@ class UploadAggregator:
         compensation_time = self.get_max_compensation_time()
         logging.debug(f'DC compensation time: {compensation_time*1e9} ns')
         compensation_npt = int(np.ceil(compensation_time * section.sample_rate * 1e9))
+        if compensation_npt > 50_000:
+            # more than 50_000 samples? Use new segment with lower sample rate for compensation
+
+            sample_rate = 1e9 * section.sample_rate * 5_000 / compensation_npt
+            # find an existing sample rate
+            nice_sample_rates = [1e6, 2e6, 5e6, 1e7, 2e7, 5e7, 1e8, 2e8, 1e9]
+            for sr in nice_sample_rates:
+                if sample_rate <= sr:
+                    sample_rate = sr * 1e-9
+                    break
+            # create new section
+            section.align(extend=True)
+            section = RenderSection(sample_rate, section.t_end)
+            sections.append(section)
+            # calculate npt
+            compensation_npt = int(np.ceil(compensation_time * section.sample_rate * 1e9))
+            logging.info(f'Added new segment for DC compensation: {int(compensation_time*1e9)} ns, '
+                         f'sample_rate: {sr/1e6} MHz, {compensation_npt} Sa')
 
         job.upload_info.dc_compensation_duration = compensation_npt/section.sample_rate
         section.npt += compensation_npt
@@ -759,25 +777,24 @@ class UploadAggregator:
 
             if job.neutralize:
                 if section != sections[-1]:
-                    # Corner case, DC compensation is in a new section # @@@ can this occur??
+                    # DC compensation is in a separate section
                     bias_T_compensation_mV = self._add_bias_T_compensation(buffer, bias_T_compensation_mV,
                                                                            section.sample_rate, channel_info)
                     self._upload_wvf(job, channel_name, buffer, channel_info.amplitude, channel_info.attenuation,
                                      section.sample_rate, awg_upload_func)
                     section = sections[-1]
                     buffer = np.zeros(section.npt)
-                    logging.info(f'DC compensation: Corner case {section}')
+                    logging.info(f'DC compensation section with {section.npt} Sa')
 
                 compensation_npt = round(job.upload_info.dc_compensation_duration * section.sample_rate)
 
                 if compensation_npt > 0 and channel_info.dc_compensation:
-                    compensation_voltage = -channel_info.integral * sample_rate / compensation_npt * 1e9
+                    compensation_voltage = -channel_info.integral * section.sample_rate / compensation_npt * 1e9
                     job.upload_info.dc_compensation_voltages[channel_name] = compensation_voltage
                     buffer[-(compensation_npt+1):-1] = compensation_voltage
                     logging.debug(f'DC compensation {channel_name}: {compensation_voltage:6.1f} mV {compensation_npt} Sa')
                 else:
                     job.upload_info.dc_compensation_voltages[channel_name] = 0
-                    # TODO: @@@ reduce length of waveform?
 
             bias_T_compensation_mV = self._add_bias_T_compensation(buffer, bias_T_compensation_mV,
                                                                    section.sample_rate, channel_info)
