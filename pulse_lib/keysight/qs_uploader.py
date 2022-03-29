@@ -600,7 +600,10 @@ class UploadAggregator:
 
             # create welding region if sample rate increases
             if sample_rate_next != 0 and sample_rate_next > sample_rate:
-                n_pre = round((section.t_end - (seg.t_end - max_pre_start_ns)) * section.sample_rate)
+                # The current section should end before the next segment starts:
+                # - subtract any extension into the next segment
+                # - align boundary with truncation
+                n_pre = int(np.ceil((section.t_end - (seg.t_end - max_pre_start_ns)) * section.sample_rate))
                 section.npt -= n_pre
                 section.align(extend=False)
 

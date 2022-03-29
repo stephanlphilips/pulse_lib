@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.3.5] - 2022-03-29
+### Fixed
+- Error when rendering section with low sample rate extends into segment with high sample rate.
+
 ## \[1.3.4] - 2022-03-23
 ### Improved
 - QuantumSequencer use waveform with low sample rate for long DC compensation pulse.
