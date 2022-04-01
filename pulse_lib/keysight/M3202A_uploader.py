@@ -505,7 +505,7 @@ class UploadAggregator:
             if sample_rate_next != 0 and sample_rate_next > sample_rate:
                 n_pre = round((section.t_end - (seg.t_end - max_pre_start_ns)) * section.sample_rate)
                 section.npt -= n_pre
-                section.align(extend=True)
+                section.align(extend=False)
 
                 # start new section
                 section = RenderSection(sample_rate_next, section.t_end)

@@ -52,7 +52,8 @@ readout.SD1.acquire(0, t_measure)
 # generate the sequence from segments
 my_seq = p.mk_sequence([init, manip, readout])
 my_seq.set_hw_schedule(HardwareScheduleMock())
-my_seq.n_rep = 1000
+# Normally a 1000 repetitions would be used, but for demo 3 is enough.
+my_seq.n_rep = 3
 my_seq.sample_rate = 1e9
 
 for t in [0, 1, 2, 3, 10]:

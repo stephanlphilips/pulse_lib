@@ -8,10 +8,10 @@ from utils.plot import plot_awgs
 
 
 # create "AWG1"
-awgs = init_hardware()
+awgs, digs = init_hardware()
 
 # create channels P1, P2
-p = init_pulselib(awgs)
+p = init_pulselib(awgs, digs)
 
 t_measure_loop = lp.linspace(100,800,8,name="t_measure",unit="ns",axis=0)
 v_param = lp.linspace(20,240,12,name="vP1",unit="mV",axis=1)
@@ -34,6 +34,7 @@ seg2.add_HVI_variable('t_measure', t_measure_loop)
 # create sequence
 seq = p.mk_sequence([seg2])
 seq.set_hw_schedule(HardwareScheduleMock())
+seq.n_rep = 3
 
 print('Shape', seq.shape)
 print(seq.setpoints)

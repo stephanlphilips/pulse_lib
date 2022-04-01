@@ -16,7 +16,7 @@ fast_param = fast_scan2D_param(p,
                                gate2='P2', swing2=35.0, n_pt2=20,
                                t_step=4000)
 
-# Reading param uploads, plays and returns data
+# Reading the parameter uploads and plays the sequence and returns data
 data = fast_param()
 
 pt.figure()
