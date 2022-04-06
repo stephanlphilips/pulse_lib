@@ -1,8 +1,9 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.3.6] - 2022-03-@@
+## \[1.3.6] - 2022-04-@@
 ### Added
+- Refactored Tektronix backend -> 'Tektronix_5014'. Faster and allow fast switching between multiple uploaded sequences.
 - Added argument reset_time to wait()
 
 ## \[1.3.5] - 2022-03-29
