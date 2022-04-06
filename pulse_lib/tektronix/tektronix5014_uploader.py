@@ -812,7 +812,7 @@ def _send_waveform_to_list(awg, length, wf, m1, m2, name):
     if m1 is not None:
         packed_wf += 16384 * m1
     if m2 is not None:
-        packed_wf += 32768 * m1
+        packed_wf += 32768 * m2
 
     raw_data = packed_wf.tobytes()
     l = len(wf)
