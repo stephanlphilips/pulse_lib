@@ -318,6 +318,15 @@ class pulselib:
         self.uploader = Tektronix5014_Uploader(self.awg_devices, self.awg_channels,
                                                self.marker_channels, self.digitizer_markers,
                                                self.qubit_channels, self.digitizer_channels, self.awg_sync)
+    def _old_Tektronix5014_message(self):
+        raise Exception('''
+        Pulselib Tektronix driver has changed in pulselib version 1.3.6.
+        New driver: backend='Tektronix_5014'.
+        ATTENTION:
+            * Amplitude output has been corrected. It is 2x previous output. Correct attenuation per channel!!
+            * Use sequence.play(release=False) to call play multiple times after a single upload.
+            ''')
+
     def _create_KeysightQS_uploader(self):
         try:
             from pulse_lib.keysight.qs_uploader import QsUploader
@@ -335,6 +344,9 @@ class pulselib:
             self._create_M3202A_uploader()
 
         elif self._backend == "Tektronix5014":
+            self._old_Tektronix5014_message()
+
+        elif self._backend == "Tektronix_5014":
             self._create_Tektronix5014_uploader()
 
         elif self._backend == "Keysight_QS":
