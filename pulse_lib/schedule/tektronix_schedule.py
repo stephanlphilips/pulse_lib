@@ -36,10 +36,10 @@ class TektronixSchedule(HardwareSchedule):
         for awg in self.awgs:
             if not self.awg_is_slave[awg.name]:
                 awg.force_trigger()
-                
+
     def _get_digitizer_timeout(self):
         return self.digitizer.timeout.cache()
-    
+
     def start(self, waveform_duration, n_repetitions, sequence_parameters):
 
         timeout_ms = self._get_digitizer_timeout()
@@ -82,8 +82,8 @@ class TektronixAtsSchedule(TektronixSchedule):
     def __init__(self, pulselib, acquisition_controller):
         super().__init__(pulselib)
         self.acquisition_controller = acquisition_controller
-        
-    
+
+
     def _get_digitizer_timeout(self):
         return self.digitizer.buffer_timeout()
 
@@ -91,7 +91,7 @@ class TektronixAtsSchedule(TektronixSchedule):
         for awg in self.awgs:
             if not self.awg_is_slave[awg.name]:
                 awg.force_trigger()
-            
+
     def _trigger_instr(self):
         logging.info('set trigger in ATS acquisition controller')
         self.acquisition_controller.pre_acquire = self._pre_acquire
