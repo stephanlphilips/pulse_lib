@@ -370,6 +370,10 @@ class pulselib:
         Releases AWG waveform memory.
         Also flushes AWG queues.
         """
+        if self._backend == "Tektronix5014":
+            self.uploader.release_all_awg_memory()
+            return
+
         if self._backend not in ["Keysight", "Keysight_QS", "M3202A"]:
             logging.info(f'release_awg_memory() not implemented for {self._backend}')
             return

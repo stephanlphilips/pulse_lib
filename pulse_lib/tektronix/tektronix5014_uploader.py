@@ -8,7 +8,6 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 from pulse_lib.segments.data_classes.data_markers import marker_pulse
 
-from .wrapped_5014 import Wrapped5014
 
 class AwgConfig:
     DEFAULT_AMPLITUDE = 1500 # mV
@@ -52,9 +51,14 @@ class Tektronix5014_Uploader:
         self.qubit_channels = qubit_channels
         self.awg_sync = awg_sync
 
-        self.job = None
+        self.jobs = []
+        self.last_job = None
 
         self.setup_slaves()
+        self.set_cfg()
+
+        self.pending_deletes = dict()
+        self.release_all_awg_memory()
 
     def setup_slaves(self):
         logging.info(f'Configure slave AWGs: {self.awg_sync}')
@@ -65,6 +69,37 @@ class Tektronix5014_Uploader:
             awg.trigger_level(1.6)
             awg.trigger_slope('POS')
 
+    def set_cfg(self):
+        max_amplitude = 4500 / 2
+        min_amplitude = 20 / 2
+        for channel in self.awg_channels.values():
+            awg = self.awgs[channel.awg_name]
+            if channel.amplitude > max_amplitude or channel.amplitude < min_amplitude:
+                raise ValueError(f'amplitude ({channel.amplitude}) out of range [{min_amplitude}, {max_amplitude}] mV')
+            ch_num = channel.channel_number
+            # NOTE: Tektronix setting is Vpp, not amplitude.
+            awg.set(f'ch{ch_num}_amp', channel.amplitude/1000*2)
+            awg.set(f'ch{ch_num}_offset', channel.offset/1000)
+
+        for channel in self.marker_channels.values():
+            awg = self.awgs[channel.module_name]
+            if isinstance(channel.channel_number, tuple):
+                if channel.amplitude > 2700 or channel.amplitude < -900:
+                    raise ValueError(f'marker amplitude ({channel.amplitude}) out of range [-900, 2700] mV')
+                channel_number = channel.channel_number[0]
+                marker_number = channel.channel_number[1]
+                if channel.invert:
+                    awg.set(f'ch{channel_number}_m{marker_number}_low', channel.amplitude/1000)
+                    awg.set(f'ch{channel_number}_m{marker_number}_high', 0.0)
+                else:
+                    awg.set(f'ch{channel_number}_m{marker_number}_high', channel.amplitude/1000)
+                    awg.set(f'ch{channel_number}_m{marker_number}_low', 0.0)
+            else:
+                if channel.amplitude > max_amplitude or channel.amplitude < min_amplitude:
+                    raise ValueError(f'amplitude ({channel.amplitude}) out of range [{min_amplitude}, {max_amplitude}] mV')
+                ch_num = channel.channel_number
+                awg.set(f'ch{ch_num}_amp', channel.amplitude/1000*2)
+
     def get_effective_sample_rate(self, sample_rate):
         """
         Returns the sample rate that will be used by the Tektronix AWG.
@@ -74,7 +109,9 @@ class Tektronix5014_Uploader:
 
 
     def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True):
-        return Job(sequence, index, seq_id, n_rep, sample_rate, neutralize)
+        self.release_memory(seq_id, index)
+        return Job(self.jobs, sequence, index, seq_id, n_rep, sample_rate, neutralize,
+                   self.pending_deletes)
 
 
     def add_upload_job(self, job):
@@ -99,7 +136,7 @@ class Tektronix5014_Uploader:
 
         aggregator.upload_job(job)
 
-        self.job = job
+        self.jobs.append(job)
 
         duration = time.perf_counter() - start
         logging.debug(f'generated upload data ({duration*1000:6.3f} ms)')
@@ -114,8 +151,7 @@ class Tektronix5014_Uploader:
         Return:
             job (upload_job) :job, with locations of the sequences to be uploaded.
         """
-        if self.job is not None:
-            job = self.job
+        for job in self.jobs:
             if job.seq_id == seq_id and job.index == index and not job.released:
                 return job
 
@@ -133,19 +169,23 @@ class Tektronix5014_Uploader:
         """
 
         job =  self.__get_job(seq_id, index)
-        enable_channels = {awg.name:set() for awg in self.awgs.values()}
-        for channel in self.awg_channels.values():
-            enable_channels[channel.awg_name].add(channel.channel_number)
-        for channel in self.marker_channels.values():
-            channel_number = channel.channel_number if isinstance(channel.channel_number, int) else channel.channel_number[0]
-            enable_channels[channel.module_name].add(channel_number)
 
+        # load sequence if needed
+        if job != self.last_job:
+            self.last_job = job
+            self._set_sequence(job)
+
+        # remove old waveforms
         for awg in self.awgs.values():
-            for channel in enable_channels[awg.name]:
-                awg.set(f'ch{channel}_state', 1)
+            for waveform_name in self.pending_deletes[awg.name]:
+                _delete_waveform(awg, waveform_name)
+            self.pending_deletes[awg.name] = []
 
         job.hw_schedule.set_configuration(job.schedule_params, job.n_waveforms)
         job.hw_schedule.start(job.playback_time, job.n_rep, job.schedule_params)
+
+        if release_job:
+            job.release()
 
     def wait_until_AWG_idle(self):
         while (True):
@@ -154,14 +194,59 @@ class Tektronix5014_Uploader:
                 break
             time.sleep(0.001)
 
+    def release_memory(self, seq_id=None, index=None):
+        """
+        Release job memory for `seq_id` and `index`.
+        Args:
+            seq_id (uuid) : id of the sequence. if None release all
+            index (tuple) : index that has to be released; if None release all.
+        """
+        for job in self.jobs:
+            if (seq_id is None
+                or (job.seq_id == seq_id and (index is None or job.index == index))):
+                job.release()
 
-    def release_memory(self, seq_id, index=None):
-        pass
+    def release_all_awg_memory(self):
+        self.release_memory()
+        for awg in self.awgs.values():
+            awg.sequence_length(0)
+            awg.delete_all_waveforms_from_list()
+            self.pending_deletes[awg.name] = []
 
+    def _set_sequence(self, job):
+        for awg in self.awgs.values():
+            awg_data = job.waveform_data[awg.name]
+            n_elements = 1
+            awg.sequence_length(n_elements)
+            element_no = 1
+            enable_channels = []
+            for channel in range(1,5):
+                if channel in awg_data:
+                    wave_name = awg_data[channel].name
+                    awg.set_sqel_waveform(wave_name, channel, element_no)
+                    enable_channels.append(channel)
+                else:
+                    awg.set_sqel_waveform("", channel, element_no)
+            awg.set_sqel_goto_state(element_no, 1)
+
+            for channel in enable_channels:
+                awg.set(f'ch{channel}_state', 1)
+
+
+@dataclass
+class ChannelData:
+    name: str
+    length: int
+    wvf: Optional[np.ndarray] = None
+    m1: Optional[np.ndarray] = None
+    m2: Optional[np.ndarray] = None
 
 class Job(object):
+    last_job_id = 0
+
     """docstring for upload_job"""
-    def __init__(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True, priority=0):
+    def __init__(self, job_list, sequence, index, seq_id, n_rep, sample_rate, neutralize,
+                 delete_list):
         '''
         Args:
             job_list (list): list with all jobs.
@@ -171,23 +256,33 @@ class Job(object):
             n_rep (int) : number of repetitions of this sequence.
             sample_rate (float) : sample rate
             neutralize (bool) : place a neutralizing segment at the end of the upload
-            priority (int) : priority of the job (the higher one will be excuted first)
         '''
+        self.job_list = job_list
         self.sequence = sequence
         self.seq_id = seq_id
         self.index = index
         self.n_rep = n_rep
         self.default_sample_rate = sample_rate
         self.neutralize = neutralize
-        self.priority = priority
+        self.delete_list = delete_list
         self.playback_time = 0 #total playtime of the waveform
 
         self.released = False
+        self.job_id = self._get_job_id()
 
         self.hw_schedule = None
         self.digitizer_triggers = []
-        logging.debug(f'new job {seq_id}-{index}')
+        # waveform data per awg and channel: Dict[str,Dict[int,ChannelData]]
+        self.waveform_data = {}
+        logging.debug(f'new job {self.job_id:04X} ({seq_id}-{index})')
 
+    def _get_job_id(self):
+        all_ids = [job.job_id for job in self.job_list]
+        good_id = False
+        while not good_id:
+            Job.last_job_id = (Job.last_job_id + 1) % 0x10000
+            good_id = Job.last_job_id not in all_ids
+        return Job.last_job_id
 
     def add_hw_schedule(self, hw_schedule, schedule_params):
         """
@@ -199,6 +294,27 @@ class Job(object):
         self.hw_schedule = hw_schedule
         self.schedule_params = schedule_params
 
+    def release(self):
+        if self.released:
+            logging.warning(f'job {self.job_id:04X} ({self.seq_id}-{self.index}) already released')
+            return
+
+        logging.debug(f'release job {self.seq_id}-{self.index}')
+        self.released = True
+
+        for awg_name, awg_data in self.waveform_data.items():
+            for channel_data in awg_data.values():
+                self.delete_list[awg_name].append(channel_data.name)
+
+        if self in self.job_list:
+            self.job_list.remove(self)
+
+
+    def __del__(self):
+        if not self.released:
+            logging.warn(f'Job {self.job_id} ({self.seq_id}-{self.index}) was not released. '
+                         'Automatic release in destructor.')
+            self.release()
 
 
 @dataclass
@@ -267,16 +383,17 @@ class UploadAggregator:
     def __init__(self, awgs, awg_channels, marker_channels, digitizer_channels,
                  digitizer_markers, qubit_channels, awg_sync):
         self.npt = 0
+        self.awgs = awgs
+        self.awg_channels = awg_channels
         self.marker_channels = marker_channels
         self.digitizer_channels = digitizer_channels
         self.digitizer_markers = digitizer_markers
         self.qubit_channels = qubit_channels
         self.awg_sync = awg_sync
         self.channels = dict()
-        self.waveforms = dict()
-        self.awgs = dict()
-        for awg in awgs.values():
-            self.awgs[awg.name] = Wrapped5014(awg, awg_channels, marker_channels)
+        self.waveform_data = dict()
+        for awg_name in self.awgs:
+            self.waveform_data[awg_name] = dict()
 
         delays = []
         for channel in awg_channels.values():
@@ -519,7 +636,7 @@ class UploadAggregator:
     def _upload_awg_markers(self, job, marker_channel, m):
         sections = job.upload_info.sections
         section = sections[0]
-        buffer = np.zeros(section.npt, dtype=np.float32)
+        buffer = np.zeros(section.npt, dtype=np.uint16)
         s = 0
         t_on = 0
         for on_off in m:
@@ -540,22 +657,59 @@ class UploadAggregator:
                     pt_on = 0
                 if t_off < section.t_end:
                     pt_off = int((t_off - section.t_start) * section.sample_rate)
-                    buffer[pt_on:pt_off] = 1.0
+                    buffer[pt_on:pt_off] = 1
                 else:
                     logging.error(f'Failed to render marker t_off > end')
 
-        self._upload_wvf(job, marker_channel.name, buffer, 1.0, 1.0)
+#        self._upload_wvf(job, marker_channel.name, buffer, 1.0, 1.0)
+        self._add_channel_data(job, marker_channel.name, buffer)
 
 
     def _upload_wvf(self, job, channel_name, waveform, attenuation, amplitude):
         # note: numpy inplace multiplication is much faster than standard multiplication
         waveform *= 1/(attenuation * amplitude)
-        self.waveforms[channel_name] = waveform
+        self._add_channel_data(job, channel_name, waveform)
+
+    def _add_channel_data(self, job, channel_name, data):
+        marker_number = None
+        if channel_name in self.awg_channels:
+            awg_channel = self.awg_channels[channel_name]
+            channel_number = awg_channel.channel_number
+            awg_name = awg_channel.awg_name
+        elif channel_name in self.marker_channels:
+            marker_channel = self.marker_channels[channel_name]
+            awg_name = marker_channel.module_name
+            channel_number = marker_channel.channel_number
+            if isinstance(channel_number, tuple):
+                marker_number = channel_number[1]
+                channel_number = channel_number[0]
+        else:
+            raise Exception(f'Unknown channel {channel_name}')
+
+        awg_data = self.waveform_data[awg_name]
+        if channel_number not in awg_data:
+            l = len(data)
+            channel_data = ChannelData(f'ch_{channel_number}_x{job.job_id:04X}', l)
+#            # @@@ todo improve/simplify np data. Use None.
+#            channel_data.wvf = np.zeros(l, dtype=np.uint16)
+#            channel_data.m1 = np.zeros(l, dtype=np.uint16)
+#            channel_data.m2 = np.zeros(l, dtype=np.uint16)
+            awg_data[channel_number] = channel_data
+        else:
+            channel_data = awg_data[channel_number]
+
+        if not marker_number:
+            channel_data.wvf = data
+        elif marker_number == 1:
+            channel_data.m1 = data
+        else:
+            channel_data.m2 = data
 
 
     def upload_job(self, job):
 
         job.upload_info = JobUploadInfo()
+        job.waveform_data = self.waveform_data
 
         self._integrate(job)
 
@@ -612,9 +766,10 @@ class UploadAggregator:
 
 
     def _upload_waveforms(self, job, awg):
-            awg.set_sample_rate(job.default_sample_rate)
-            # awg filters waveforms on name
-            awg.upload_waveforms(self.waveforms)
+
+        awg.clock_freq(int(job.default_sample_rate))
+        for data in job.waveform_data[awg.name].values():
+            _send_waveform_to_list(awg, data.length, data.wvf, data.m1, data.m2, data.name)
 
     def upload(self, job):
         use_concurrent_upload = True
@@ -633,4 +788,52 @@ class UploadAggregator:
                 self._upload_waveforms(job, awg)
 
 
+def _delete_waveform(awg, name):
+    s = f'WLISt:WAVeform:DEL "{name}"'
+    awg.write(s)
 
+
+def _send_waveform_to_list(awg, length, wf, m1, m2, name):
+    ''' Send a waveform to the waveform list of the AWG.
+    Note: This is a rewritten, faster version of AWG5014.send_waveform_to_list.
+
+    Args:
+        w: The waveform
+        m1: Marker1
+        m2: Marker2
+        wfmname: waveform name
+    '''
+    if wf is None:
+        packed_wf = np.zeros(length)
+    else:
+        # Note: we use np.trunc here rather than np.round
+        # as it is an order of magnitude faster
+        packed_wf = np.trunc(wf * 8191 + 8191.5).astype('<u2')
+    if m1 is not None:
+        packed_wf += 16384 * m1
+    if m2 is not None:
+        packed_wf += 32768 * m1
+
+    raw_data = packed_wf.tobytes()
+    l = len(wf)
+
+    # if we create a waveform with the same name but different size,
+    # it will not get over written
+    # Delete the possibly existing file (will do nothing if the file
+    # doesn't exist
+    s = f'WLISt:WAVeform:DEL "{name}"'
+    awg.write(s)
+
+    # create the waveform
+    s = f'WLISt:WAVeform:NEW "{name}",{l},INTEGER'
+    awg.write(s)
+
+    # upload data
+    s1_str = f'WLISt:WAVeform:DATA "{name}",'
+    s1 = s1_str.encode('UTF-8')
+    s3 = raw_data
+    s2_str = '#' + str(len(str(len(s3)))) + str(len(s3))
+    s2 = s2_str.encode('UTF-8')
+
+    mes = s1 + s2 + s3
+    awg.visa_handle.write_raw(mes)
