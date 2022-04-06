@@ -175,17 +175,20 @@ class Tektronix5014_Uploader:
             self.last_job = job
             self._set_sequence(job)
 
-        # remove old waveforms
-        for awg in self.awgs.values():
-            for waveform_name in self.pending_deletes[awg.name]:
-                _delete_waveform(awg, waveform_name)
-            self.pending_deletes[awg.name] = []
+        self._delete_released_waveforms()
 
         job.hw_schedule.set_configuration(job.schedule_params, job.n_waveforms)
         job.hw_schedule.start(job.playback_time, job.n_rep, job.schedule_params)
 
         if release_job:
             job.release()
+
+    def _delete_released_waveforms(self):
+        # remove old waveforms
+        for awg in self.awgs.values():
+            for waveform_name in self.pending_deletes[awg.name]:
+                _delete_waveform(awg, waveform_name)
+            self.pending_deletes[awg.name] = []
 
     def wait_until_AWG_idle(self):
         while (True):
@@ -205,13 +208,14 @@ class Tektronix5014_Uploader:
             if (seq_id is None
                 or (job.seq_id == seq_id and (index is None or job.index == index))):
                 job.release()
+        self._delete_released_waveforms()
 
     def release_all_awg_memory(self):
-        self.release_memory()
         for awg in self.awgs.values():
             awg.sequence_length(0)
             awg.delete_all_waveforms_from_list()
             self.pending_deletes[awg.name] = []
+        self.release_memory()
 
     def _set_sequence(self, job):
         for awg in self.awgs.values():
