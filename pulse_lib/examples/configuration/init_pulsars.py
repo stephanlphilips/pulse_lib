@@ -72,8 +72,8 @@ if not qc.Station.default:
 else:
     station = qc.Station.default
 
-_use_simulator = False
-_use_dummy = False
+_use_simulator = True
+_use_dummy = True
 
 qcm0 = add_module('QCM', 'qcm0', '192.168.0.2')
 qrm1 = add_module('QRM', 'qrm1', '192.168.0.3')
