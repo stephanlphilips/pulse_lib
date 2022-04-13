@@ -257,12 +257,11 @@ class PulsarUploader:
                 raw = self.q1instrument.get_acquisition_bins(channel_name, 'default')
             except KeyError:
                 raw = {'integration':{'path0':[], 'path1':[]}, 'avg_cnt':[]}
-            avg_cnt = np.asarray(raw['avg_cnt'])
             if dig_ch.frequency or len(in_ch) == 2:
                 raw_0 = np.require(raw['integration']['path0'], dtype=float)
-                raw_0 *= in_ranges[0]/2/t_measure / avg_cnt
+                raw_0 *= in_ranges[0]/2/t_measure
                 raw_1 = np.require(raw['integration']['path1'], dtype=float)
-                raw_1 *= in_ranges[1]/2/t_measure / avg_cnt
+                raw_1 *= in_ranges[1]/2/t_measure
 
                 if dig_ch.frequency:
                     raw_ch = (raw_0 + 1j * raw_1) * np.exp(1j*dig_ch.phase)
@@ -280,7 +279,7 @@ class PulsarUploader:
             else:
                 ch = in_ch[0]
                 raw_ch = np.require(raw['integration'][f'path{ch}'], dtype=float)
-                raw_ch *= in_ranges[ch]/2/t_measure / avg_cnt
+                raw_ch *= in_ranges[ch]/2/t_measure
                 result[f'{channel_name}'] = raw_ch
         return result
 
