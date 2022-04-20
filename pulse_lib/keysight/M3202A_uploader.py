@@ -65,7 +65,8 @@ class M3202A_Uploader:
         return awg.convert_prescaler_to_sample_rate(awg.convert_sample_rate_to_prescaler(sample_rate))
 
 
-    def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True):
+    def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True, alignment=None):
+        # TODO @@@ implement alignment
         # remove any old job with same sequencer and index
         self.release_memory(seq_id, index)
         return Job(self.jobs, sequence, index, seq_id, n_rep, sample_rate, neutralize)

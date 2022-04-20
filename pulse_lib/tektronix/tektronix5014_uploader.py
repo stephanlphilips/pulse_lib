@@ -108,10 +108,10 @@ class Tektronix5014_Uploader:
         return (sample_rate+99)//100 * 100
 
 
-    def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True):
+    def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True, alignment=None):
         self.release_memory(seq_id, index)
         return Job(self.jobs, sequence, index, seq_id, n_rep, sample_rate, neutralize,
-                   self.pending_deletes)
+                   self.pending_deletes, alignment=alignment)
 
 
     def add_upload_job(self, job):
@@ -250,7 +250,7 @@ class Job(object):
 
     """docstring for upload_job"""
     def __init__(self, job_list, sequence, index, seq_id, n_rep, sample_rate, neutralize,
-                 delete_list):
+                 delete_list, alignment=None):
         '''
         Args:
             job_list (list): list with all jobs.
@@ -260,6 +260,8 @@ class Job(object):
             n_rep (int) : number of repetitions of this sequence.
             sample_rate (float) : sample rate
             neutralize (bool) : place a neutralizing segment at the end of the upload
+            delete_list (dict[str, list]): list per AWG for adding waveforms to be deleted.
+            alignment (optional int): repetition period alignment in ns.
         '''
         self.job_list = job_list
         self.sequence = sequence
@@ -269,6 +271,7 @@ class Job(object):
         self.default_sample_rate = sample_rate
         self.neutralize = neutralize
         self.delete_list = delete_list
+        self.alignment = alignment
         self.playback_time = 0 #total playtime of the waveform
 
         self.released = False
@@ -344,9 +347,6 @@ class RenderSection:
     @property
     def t_end(self):
         return self.t_start + self.npt / self.sample_rate
-
-    def align(self, extend):
-        pass
 
 @dataclass
 class JobUploadInfo:
@@ -497,7 +497,10 @@ class UploadAggregator:
 
         # add at least 1 zero
         section.npt += 1
-        section.align(extend=True)
+        if job.alignment:
+            alignment = job.alignment
+            section.npt = (int(section.npt + alignment - 1) // alignment) * alignment
+
         job.playback_time = section.t_end - sections[0].t_start
         job.n_waveforms = len(sections)
         logging.debug(f'Playback time: {job.playback_time} ns')
