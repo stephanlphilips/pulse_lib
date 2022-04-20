@@ -71,7 +71,6 @@ data = param()
 # plot_awgs(awgs+digs)
 
 pt.figure()
-names = param.names
 for ch_name,values in zip(param.names, data):
     print(ch_name, values)
     pt.plot(values, label=ch_name)

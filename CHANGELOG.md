@@ -7,10 +7,18 @@ All notable changes to Pulselib will be documented in this file.
 - Added sequencer.get_measurement_data
 - Added sequencer.set_acquisition
 - Added sequencer.get_acquisition_param with automatic upload/play
-- Added acquire(..., n_repeat=None, interval=None)
+- Added channel acquire(..., n_repeat= , interval= )
 - Added qblox_fast_scan 1D and 2D
 - Improved sequencer sweep index parameters
 
+## \[1.3.2] - 2022-03014
+## \[1.3.3] - 2022-03-014
+### Fixed
+- QuantumSequencer bugs in 1.3.2
+
+## \[1.3.2] - 2022-03-014
+### Fixed
+- Fixed long wait (> 160 ms) for QuantumSequencer
 
 ## \[1.3.1] - 2022-03-07
 ### Fixed

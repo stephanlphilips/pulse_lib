@@ -6,7 +6,7 @@ print('packages: %s' % packages)
 
 
 setup(name="pulse_lib",
-	version="1.3.1",
+	version="1.3.3",
 	packages = find_packages(),
     install_requires=['si_prefix', 'qcodes>=0.27.0'],
     license='MIT',

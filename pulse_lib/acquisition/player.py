@@ -17,6 +17,7 @@ class SequencePlayer:
     def get_measurement_data(self):
         seq = self._sequencer
         # upload and play index is seq.sweep_index[::-1]
+        # TODO @@@ improve: only upload when index changed.
         seq.upload()
         seq.play()
         return seq.get_measurement_data()
