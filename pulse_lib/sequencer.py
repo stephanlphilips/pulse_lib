@@ -117,7 +117,7 @@ class sequencer():
     def repetition_alignment(self):
         return self._alignment
 
-    @repetition_alignment.property
+    @repetition_alignment.setter
     def repetition_alignment(self, value):
         self._alignment = value
 
