@@ -172,8 +172,10 @@ class Tektronix5014_Uploader:
 
         # load sequence if needed
         if job != self.last_job:
-            self.last_job = job
+            if self.last_job is not None:
+                self.last_job.hw_schedule.stop()
             self._set_sequence(job)
+            self.last_job = job
 
         self._delete_released_waveforms()
 
