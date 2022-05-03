@@ -1,14 +1,18 @@
 import logging
-from typing import Callable, Iterable, cast
-from collections.abc import Mapping
+from collections.abc import Sequence, Mapping
+from typing import Callable, Any, TypeVar, cast
 from dataclasses import dataclass, field
 import numpy as np
 from qcodes import MultiParameter
 from pulse_lib.base_pulse import pulselib as PulseLib
 from pulse_lib.sequencer import sequencer as Sequencer
 
-
+# Some typing stuff
+NDFloatArray = np.ndarray[float, Any]
 DataProcesser = Callable[[np.ndarray], np.ndarray]
+T = TypeVar("T")
+
+# Module level logger
 _logger = logging.getLogger(__name__)
 
 
@@ -51,23 +55,12 @@ class FastScan1dDef:
     pulse_gates: dict[str, float] = field(default_factory=dict)
     n_avg: int = 1
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.t_step < 1000:
             raise ValueError("Measurement time too short. Minimum is 1000")
 
 
-def fast_scan1D_param(pulse_lib: PulseLib, gate: str, swing: float, n_pt: int, t_step: int, **kwargs) -> MultiParameter:
-    kwargs["pulselib"] = pulse_lib
-    kwargs["gate"] = gate
-    kwargs["swing"] = swing
-    kwargs["n_pt"] = n_pt
-    kwargs["t_step"] = t_step
-    if "biasT_corr" in kwargs:
-        kwargs["bias_t_corr"] = kwargs.pop("biasT_corr")
-    return fast_scan1d_param(FastScan1dDef(**kwargs))
-
-
-def fast_scan1d_param(scan_def: FastScan1dDef) -> MultiParameter:
+def fast_scan1d_param(scan_def: FastScan1dDef) -> MultiParameter:  # pylint: disable=too-many-locals
     """
     Creates a parameter to do a 1D fast scan.
 
@@ -104,9 +97,7 @@ def fast_scan1d_param(scan_def: FastScan1dDef) -> MultiParameter:
         acq_channel_map = {str(name): (str(name), cast(DataProcesser, np.real)) for name in acq_channels}
     else:
         acq_channel_map = scan_def.acq_channel_map
-        acq_channels = list(
-            set(v[0] for v in acq_channel_map.values())
-        )  # set to remove duplicates
+        acq_channels = list(set(v[0] for v in acq_channel_map.values()))  # set to remove duplicates
 
     # Construct the pulse sequence
     seg = scan_def.pulselib.mk_segment()
@@ -134,25 +125,23 @@ def fast_scan1d_param(scan_def: FastScan1dDef) -> MultiParameter:
     my_seq = scan_def.pulselib.mk_sequence([seg])
     my_seq.n_rep = scan_def.n_avg
     # Note: uses hardware averaging with Qblox modules
-    my_seq.set_acquisition(
-        t_measure=scan_def.t_step, channels=acq_channels, average_repetitions=True
-    )
+    my_seq.set_acquisition(t_measure=scan_def.t_step, channels=acq_channels, average_repetitions=True)
     _logger.info("Upload")
     my_seq.upload()
 
-    return _ScanParameter(
+    pdef = _ScanParameterDef(
         pulselib=scan_def.pulselib,
-        my_seq=my_seq,
+        sequencer=my_seq,
         t_measure=scan_def.t_step,
-        shape=(scan_def.n_pt,),
-        names=(scan_def.gate,),
-        setpoint=((voltages_sp,), ),
+        setpoint_names=(scan_def.gate,),
+        setpoint_values=(tuple(voltages_sp),),
         bias_t_corr=scan_def.bias_t_corr,
-        channel_map=acq_channel_map,
+        acq_channel_map=acq_channel_map,
     )
+    return _ScanParameter(scan_param_def=pdef)
 
 
-def _bias_t_shuffle(arr_in: np.ndarray) -> np.ndarray:
+def _bias_t_shuffle(arr_in: NDFloatArray) -> NDFloatArray:
     # Shuffle array indices as: 0, N-1, 1, N-2, etc
     # If the input is a ramp, this avoids bias T loading
     assert len(arr_in.shape) == 1
@@ -160,95 +149,114 @@ def _bias_t_shuffle(arr_in: np.ndarray) -> np.ndarray:
     m = (n_ptx + 1) // 2
     arr_out = np.zeros(n_ptx)
     arr_out[::2] = arr_in[:m]  # Even indices contain first half of the input
-    arr_out[1::2] = arr_in[m:][
-        ::-1
-    ]  # Odd indices contain reversed second half of the input
+    arr_out[1::2] = arr_in[m:][::-1]  # Odd indices contain reversed second half of the input
     return arr_out
 
 
-class _ScanParameter(MultiParameter):
+@dataclass
+class _ScanParameterDef:
+    """
+    Dataclass for definition of scan parameter
+
+    Attributes:
+        pulselib: pulse library object
+        sequencer: sequence of the 1D scan
+        t_measure: time to measure per step
+        setpoint_names: name of the gate(s) that are measured.
+        setpoint_values: array with the setpoints of the input data
+        bias_t_corr: bias T correction or not -- if enabled -- automatic reshaping of the data.
+        acq_channel_map:
+            defines new list of derived channels to display. Dictionary entries name: (channel_name, func).
+            E.g. {(ch1-I':(1, np.real), 'ch1-Q':('ch1', np.imag), 'ch3-Amp':('ch3', np.abs),
+            'ch3-Phase':('ch3', np.angle)}
+    """
+
+    pulselib: PulseLib
+    sequencer: Sequencer
+    acq_channel_map: Mapping[str, tuple[str, DataProcesser]]
+    setpoint_names: Sequence[str]
+    setpoint_values: Sequence[Sequence[float]]
+    bias_t_corr: bool
+    t_measure: int
+
+
+class _ScanParameter(MultiParameter):  # pylint: disable=abstract-method
     """
     Scan parameter for digitizer
     """
 
-    def __init__(
-        self,
-        *,
-        pulselib: PulseLib,
-        my_seq: Sequencer,
-        t_measure: int,
-        shape: tuple[int],
-        names: Iterable[str],
-        setpoint: Iterable[Iterable[np.ndarray]],
-        bias_t_corr: bool,
-        channel_map: Mapping[str, tuple[str, DataProcesser]],
-    ):
-        """
-        args:
-            pulselib: pulse library object
-            my_seq: sequence of the 1D scan
-            t_measure: time to measure per step
-            shape: expected output shape
-            names: name of the gate(s) that are measured.
-            setpoint: array witht the setpoints of the input data
-            bias_t_corr: bias T correction or not -- if enabled -- automatic reshaping of the data.
-            channel_map:
-                defines new list of derived channels to display. Dictionary entries name: (channel_name, func).
-                E.g. {(ch1-I':(1, np.real), 'ch1-Q':('ch1', np.imag), 'ch3-Amp':('ch3', np.abs),
-                'ch3-Phase':('ch3', np.angle)}
-        """
-        self.my_seq = my_seq
-        self.pulse_lib = pulselib
-        self.t_measure = t_measure
-        self.n_rep = np.prod(shape)
-        self.channel_map = dict(channel_map)
-        self.channel_names = tuple(self.channel_map.keys())
-        self.bias_t_corr = bias_t_corr
-        self.shape = shape
+    def __init__(self, scan_param_def: _ScanParameterDef):
+        self.sequencer = scan_param_def.sequencer
+        self.pulselib = scan_param_def.pulselib
+        self.t_measure = scan_param_def.t_measure
+        self.acq_shape = tuple(len(s) for s in scan_param_def.setpoint_values)
+        self.n_rep = np.prod(self.acq_shape)
+        self.acq_channel_map = dict(scan_param_def.acq_channel_map)
+        self.acq_channel_names = tuple(self.acq_channel_map.keys())
+        self.bias_t_corr = scan_param_def.bias_t_corr
 
-        n_out_ch = len(self.channel_names)
-        names_qc = tuple([tuple(names)] * n_out_ch)
-        setpoints_qc = tuple([tuple(s) for s in setpoint] * n_out_ch)
+        n_acq_ch = len(self.acq_channel_names)
+        setpoint_names = tuple(scan_param_def.setpoint_names)  # convert from iterable to sequence type
+
+        # Helper function to repeat setpoint info for all acquisition channels
+        def _repeated_tuple(obj: T, rep: int = n_acq_ch) -> tuple[T, ...]:
+            return (obj,) * rep
+
         super().__init__(
             name="fastScan",
-            names=self.channel_names,
-            shapes=tuple([shape] * n_out_ch),
-            labels=self.channel_names,
-            units=tuple(["mV"] * n_out_ch),
-            setpoints=setpoints_qc,
-            setpoint_names=names_qc,
-            setpoint_labels=names_qc,
-            setpoint_units=(("mV",) * len(names_qc[0]),) * n_out_ch,
+            names=self.acq_channel_names,
+            shapes=_repeated_tuple(self.acq_shape),
+            labels=self.acq_channel_names,
+            units=_repeated_tuple("mV"),
+            setpoints=_repeated_tuple(tuple(s for s in scan_param_def.setpoint_values)),
+            setpoint_names=_repeated_tuple(setpoint_names),
+            setpoint_labels=_repeated_tuple(setpoint_names),
+            setpoint_units=_repeated_tuple(_repeated_tuple("mV", len(setpoint_names))),
             docstring="Scan parameter for digitizer",
         )
 
-    def get_raw(self):
+    def get_raw(self) -> tuple[NDFloatArray, ...]:
         # play sequence
-        self.my_seq.play(release=False)
-        raw_dict = self.my_seq.get_measurement_data()
+        self.sequencer.play(release=False)
+        raw_dict = self.sequencer.get_measurement_data()
 
         # get the data, converted to mV
-        data = [func(raw_dict[ch] * 1000.0) for ch, func in self.channel_map.values()]
+        data = [func(raw_dict[ch] * 1000.0) for ch, func in self.acq_channel_map.values()]
 
         # make sure that data is put in the right order.
         data_out = []
         for ch_data in data:
-            out = ch_data.reshape(self.shape)
+            out = ch_data.reshape(self.acq_shape)
             if self.bias_t_corr:
                 out = _bias_t_shuffle(out)
             data_out.append(out)
 
         return tuple(data_out)
 
-    def stop(self):
-        if self.my_seq is not None and self.pulse_lib is not None:
-            # remove pulse sequence from the AWG's memory, unload schedule and free memory.
+    def stop(self) -> None:
+        if hasattr(self, "sequencer"):
             _logger.info("stop: release memory")
-            self.my_seq.close()
-            self.my_seq = None
-            self.pulse_lib = None
+            self.sequencer.close()
+            delattr(self, "sequencer")
+            delattr(self, "pulselib")
 
-    def __del__(self):
-        if self.my_seq is not None and self.pulse_lib is not None:
+    def __del__(self) -> None:
+        if hasattr(self, "sequencer"):
             _logger.warning("Automatic cleanup in __del__(); Calling stop()")
             self.stop()
+
+
+# Backwards compatibility section
+
+
+def fast_scan1D_param(  # pylint: disable=invalid-name
+    pulse_lib: PulseLib, gate: str, swing: float, n_pt: int, t_step: int, **kwargs: Any
+) -> MultiParameter:
+    kwargs["pulselib"] = pulse_lib
+    kwargs["gate"] = gate
+    kwargs["swing"] = swing
+    kwargs["n_pt"] = n_pt
+    kwargs["t_step"] = t_step
+    if "biasT_corr" in kwargs:
+        kwargs["bias_t_corr"] = kwargs.pop("biasT_corr")
+    return fast_scan1d_param(FastScan1dDef(**kwargs))
