@@ -52,10 +52,10 @@ class TektronixSchedule(HardwareSchedule):
             for awg in self.awgs:
                 element_no = 1
                 awg.set_sqel_trigger_wait(element_no)
-                if self.awg_is_slave[awg.name]:
+                if n_repetitions <= 65535:
                     awg.set_sqel_loopcnt(n_repetitions, element_no)
                 else:
-                    awg.set_sqel_loopcnt(n_repetitions, element_no)
+                    awg.set_sqel_loopcnt_to_inf(element_no)
                 awg.run_mode('SEQ')
                 awg.run()
 
