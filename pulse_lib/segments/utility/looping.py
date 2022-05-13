@@ -215,7 +215,7 @@ class loop_obj():
 
 
     def __repr__(self):
-        return f'axis:{self.axis}, labels:{self.labels}, units: {self.units}, setvals: {self.setvals}'
+        return f'loop(axis:{self.axis}, labels:{self.labels}, units: {self.units}, setvals: {self.setvals})'
 
 
 class linspace(loop_obj):
