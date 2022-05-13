@@ -242,7 +242,7 @@ class pulselib:
 
     def define_IQ_channel(self, name):
         channel = IQ_channel(name)
-        self.IQ_channel = self.IQ_channels[name] = channel
+        self.IQ_channels[name] = channel
         return channel
 
     def define_qubit_channel(self, qubit_channel_name, IQ_channel_name,

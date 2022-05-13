@@ -3,28 +3,81 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pulse lib's documentation
-====================================
-This is a pulse library designed to provide all the control signals that are needed control spin qubits coherenly.
-A lot of attention is given to performance, structure and ease of use.
+Pulse_lib
+=========
 
-Features now include:
-	- Support for arbitrary pulse/sine wave based sequences (phase coherent atm).
-	- Fully multidimensional. Execute any command as a loop in any dimension.
-	- Short and clean syntax. No sympy.
-	- Native support for virtual gates.
-	- IQ toolkit and IQ virtual channels -- Full suppport for single sideband modulation (Along with PM/AM/FM).
-	- Automatic compenstation for DC offsets.
-	- High speed uploader for Keysight PXI systems which supports upload during playback.
+Pulse_lib is a library to control multi-channel AWG pulse sequences and digitizer acquisitions
+with a simple API using physical units. It is designed to control qubit experiments, especially quantum dot
+and spin qubit experiments.
 
-Getting started:
+Sequences can contain direct voltage pulses, phase coherent microwave (MW) pulses, digital markers, triggers,
+and digitizer acquisitions. Parameters of the pulses in a sequence can be swept across a range of values. This turns the sequence in a
+multi-dimensional measurement.
 
-	- :ref:`struct_lib`
-	- :ref:`init_lib`
-	- :ref:`simple_pulse`
+Pulse_lib translates the specified pulse sequence to output signals of the AWG. It takes care of:
 
-..    :caption: Getting started
-..    :titlesonly:
+* Phase coherence of pulses per qubit
+* Capacitive coupling of plunger and barrier gates of quantum dots using a virtual matrix
+* Signal delays due to vector signal generator and cables
+* MW up conversion by vector signal generator
+* Attenuators between AWG and target device
+* DC charging of bias-T, which acts as a high pass filter for AWG signals
+
+Pulses can be conditional on a measurement in the same sequence. However, this feature
+is currently only supported by the QuTech QuantumSequencer for Keysight PXI.
+
+Pulse_lib supports the following hardware:
+
+* Keysight PXI M3202A AWG and M3201A digitizer
+* Tektronix AWG5014 with Spectrum M4i digitizer
+* Qblox Pulsar QCM and QRM
+* QuTech QuantumSequencer for Keysight PXI
+
+
+.. toctree::
+	:maxdepth: 2
+	:caption: Getting started
+	:name: getting_started
+
+	introduction
+	installation
+	tutorials/basic_example
+
+.. toctree::
+	:maxdepth: 2
+	:caption: Signal physics
+
+	signals/delays
+	signals/attenuation
+	signals/bias_T
+	signals/cross_capacitance
+	signals/iq_modulation
+
+.. toctree::
+	:maxdepth: 1
+	:caption: User Guide
+
+	user/configuration
+	user/segments
+	user/timeline
+	user/voltage_channels
+	user/mw_channels
+	user/marker_channels
+	user/digitizer_channels
+	user/parameter_sweep
+	user/plotting_segments
+	user/acquisition_parameter
+	user/executing_sequence
+
+*TODO:*
+
+
+.. Getting started:
+
+..	- :ref:`struct_lib`
+..	- :ref:`init_lib`
+..	- :ref:`simple_pulse`
+
 
 ..    struct
 ..    tutorials/init_lib
@@ -35,23 +88,6 @@ Getting started:
 ..    tutorials/reset_time_and_slicing
 ..    tutorials/example_PT
 ..    tutorials/example_RB
-
-When using the library in combination with the keysight PXI AWG's, playback of the waveforms is also supported:
-	- How does a upload work? What are the different steps?
-	- Your first simple upload.
-	- Integrating HVI.
-	- More advanced upload options, running uploads at high speeds.
-
-An overview of all the functions in the classes can be found at
-	- sequence
-	- segment containers
-	- segment base
-	- segment IQ
-
-API documentation for developers
-	- Requesting data from the sequence object.
-
-
 
 
 Indices and tables

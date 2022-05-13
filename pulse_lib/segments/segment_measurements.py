@@ -35,6 +35,8 @@ class segment_measurements:
                         ref:MeasurementRef=None, accept_if=None):
         if ref is None:
             name = f'<unnamed> {channel},{index}'
+        elif isinstance(ref, str):
+            name = ref
         else:
             name = ref.name
         self._measurements.append(measurement_acquisition(name, accept_if, channel, index, has_threshold, ref))

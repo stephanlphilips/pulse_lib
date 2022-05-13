@@ -381,12 +381,27 @@ class segment_container():
         else:
             self._software_markers._pulse_data_all = update_dimension(self._software_markers.pulse_data_all, shape, ref)
 
+    def wait(self, time, channels=None, reset_time=False):
+        '''
+        Wait for specified time after current end of all segments.
+        Args:
+           time (float, loop_obj): wait time
+           channels (List[str]): channels to add the wait to. If None add to all channels.
+           reset_time (bool): reset time after adding pulses
+        '''
+        if channels is None:
+            channels = self.channels
+        for channel in channels:
+            self[channel].wait(time)
+        if reset_time:
+            self.reset_time()
+
     def add_block(self, start, stop, channels, amplitudes, reset_time=False):
         '''
         Adds a block to each of the specified channels.
         Args:
            start (float, loop_obj): start of the block
-           stop (float, loop_obj): stop of the block
+           stop (float, loop_obj): stop of the block. If stop == -1, then keep till end of segment.
            channels (List[str]): channels to apply the block to
            amplitudes (List[float, loop_obj]): amplitude per channel
            reset_time (bool): reset time after adding pulses
@@ -396,7 +411,7 @@ class segment_container():
         if reset_time:
             self.reset_time()
 
-    def add_ramp(self, start, stop, channels, start_amplitudes, stop_amplitudes, reset_time=False):
+    def add_ramp(self, start, stop, channels, start_amplitudes, stop_amplitudes, keep_amplitude=False, reset_time=False):
         '''
         Adds a ramp to each of the specified channels.
         Args:
@@ -405,10 +420,11 @@ class segment_container():
            channels (List[str]): channels to apply the block to
            start_amplitudes (List[float, loop_obj]): start amplitude per channel
            stop_amplitudes (List[float, loop_obj]): stop amplitude per channel
+           keep_amplitude : when pulse is done, keep reached amplitude till end of segment.
            reset_time (bool): reset time after adding pulses
         '''
         for channel, start_amp, stop_amp in zip(channels, start_amplitudes, stop_amplitudes):
-            self[channel].add_ramp_ss(start, stop, start_amp, stop_amp)
+            self[channel].add_ramp_ss(start, stop, start_amp, stop_amp, keep_amplitude=keep_amplitude)
         if reset_time:
             self.reset_time()
 
