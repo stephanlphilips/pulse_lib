@@ -20,7 +20,7 @@ def init_pulselib(awgs, virtual_gates=False, bias_T_rc_time=None):
     pulse = pulselib()
 
     for awg in awgs:
-        pulse.add_awgs(awg.name, awg)
+        pulse.add_awg(awg)
 
     # define channels
     pulse.define_channel('P1','AWG1', 1)
@@ -30,7 +30,7 @@ def init_pulselib(awgs, virtual_gates=False, bias_T_rc_time=None):
 
     pulse.define_digitizer_channel('SD1', 'Digitizer', 1)
 
-    # add limits on voltages for DC channel compenstation (if no limit is specified, no compensation is performed).
+    # add limits on voltages for DC channel compensation (if no limit is specified, no compensation is performed).
     pulse.add_channel_compensation_limit('P1', (-200, 500))
     pulse.add_channel_compensation_limit('P2', (-200, 500))
 
