@@ -381,18 +381,18 @@ class segment_container():
         else:
             self._software_markers._pulse_data_all = update_dimension(self._software_markers.pulse_data_all, shape, ref)
 
-    def wait(self, t, channels=None, reset_time=False):
+    def wait(self, time, channels=None, reset_time=False):
         '''
         Wait for specified time after current end of all segments.
         Args:
-           t (float, loop_obj): wait time
+           time (float, loop_obj): wait time
            channels (List[str]): channels to add the wait to. If None add to all channels.
            reset_time (bool): reset time after adding pulses
         '''
         if channels is None:
             channels = self.channels
         for channel in channels:
-            self[channel].wait(t)
+            self[channel].wait(time)
         if reset_time:
             self.reset_time()
 
