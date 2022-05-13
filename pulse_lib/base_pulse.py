@@ -382,7 +382,7 @@ class pulselib:
         Releases AWG waveform memory.
         Also flushes AWG queues.
         """
-        if self._backend == "Tektronix5014":
+        if self._backend == "Tektronix_5014":
             self.uploader.release_all_awg_memory()
             return
 
