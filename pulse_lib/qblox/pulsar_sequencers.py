@@ -282,7 +282,10 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._commands.append(_SeqCommand(t, func, args, kwargs))
 
     def _add_pulse(self, t, duration):
-        t_start = max(0, t - self.rf_source.trigger_offset_ns)
+        t_start = t - self.rf_source.trigger_offset_ns
+        if t_start < 0:
+            raise Exception('RF source has negative start time. Acquisition triggered too early. '
+                            f'Acquisition start: {t}, RF source start: {t_start}')
         t_end = t + duration
         if self.rf_source_mode == 'shaped':
             t_end -= self.rf_source.trigger_offset_ns
