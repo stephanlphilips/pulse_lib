@@ -88,7 +88,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
         g1.add_block(0, step_eff, voltage)
         if 0 <= i-line_margin < n_pt:
             for acq_ch in acq_channels:
-                seg[acq_ch].acquire(0, t_step)
+                seg[acq_ch].acquire(acquisition_delay, t_step)
 
         for gp,v in pulse_channels:
             gp.add_block(0, step_eff, v)
@@ -231,7 +231,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
         g1.add_ramp_ss(0, step_eff*n_ptx, -vpx, vpx)
         g2.add_block(0, step_eff*n_ptx, v2)
         for acq_ch in acq_channels:
-            seg[acq_ch].acquire(step_eff*line_margin, n_repeat=n_pt1, interval=step_eff)
+            seg[acq_ch].acquire(step_eff*line_margin+acquisition_delay, n_repeat=n_pt1, interval=step_eff)
         for g,v in pulse_channels:
             g.add_block(0, step_eff*n_ptx, v)
         seg.reset_time()
