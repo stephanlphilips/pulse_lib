@@ -23,7 +23,7 @@ pt.figure()
 names = fast_param.names
 for ch_name,values in zip(fast_param.names, data):
     print(ch_name, values)
-    pt.plot(values, label=ch_name)
+    pt.plot(values.flat, label=ch_name)
 pt.legend()
 
 
