@@ -123,6 +123,7 @@ class segment_container():
             add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
 
             return new
+        raise KeyError(index)
 
 
 
