@@ -1,16 +1,18 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.3.6] - 2022-05-@@
-### Added
+## \[1.4.0] - 2022-05-17
+### Changed
 - Renamed Tektronix backend 'Tektronix_5014' after refactoring:
     - Faster and allow fast switching between multiple uploaded sequences.
     - Amplitude output has been corrected. It is 2x previous output. Correct attenuation per channel!!
     - Use sequence.play(release=False) to call play multiple times after a single upload.
     - Use infinite looping when n_rep > 65535
+### Added
 - Added sequencer.repetition_aligment to align the duration of the sequence with an external clock or signal frequency.
   (currently only implemented for Tektronix)
 - Added argument reset_time to wait()
+- Several pages of documentation (not finished yet..)
 
 ## \[1.3.5] - 2022-03-29
 ### Fixed
