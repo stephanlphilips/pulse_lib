@@ -10,7 +10,7 @@ Pulse_lib can compensate for these difference in signal delays.
 
 Signal delays in pulse and acquisition paths are caused by:
 
-* propagation through cables, which is approximately 3 ns / m.
+* propagation through cables, which is approximately 4 - 5 ns/m.
 * propagation through vector signal generator, which takes 20 - 50 ns.
 * propagation through RF up-convertor, down-converter.
 * processing time in AWG
