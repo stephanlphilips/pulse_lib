@@ -58,6 +58,7 @@ class sequencer():
         self.n_rep = 1000
         self._sample_rate = 1e9
         self._HVI_variables = None
+        self._alignment = None
         self._acquisition_conf = AcquisitionConf()
 
     @property
@@ -116,6 +117,14 @@ class sequencer():
         msg = f"effective sampling rate is set to {si_format(self._sample_rate, precision=1)}Sa/s"
         logging.info(msg)
         print("Info : " + msg)
+
+    @property
+    def repetition_alignment(self):
+        return self._alignment
+
+    @repetition_alignment.setter
+    def repetition_alignment(self, value):
+        self._alignment = value
 
     @property
     def measurements_description(self):
@@ -330,10 +339,12 @@ class sequencer():
         if index is None:
             index = self.sweep_index[::-1]
         self._validate_index(index)
-        upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep,
-                                              self._sample_rate, self.neutralize)
+        upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep, self._sample_rate,
+                                              self.neutralize, alignment=self._alignment)
         upload_job.set_acquisition_conf(self._acquisition_conf)
-        upload_job.add_hw_schedule(self.hw_schedule, self._HVI_variables.item(tuple(index)).HVI_markers)
+
+        if self.hw_schedule is not None:
+            upload_job.add_hw_schedule(self.hw_schedule, self._HVI_variables.item(tuple(index)).HVI_markers)
 
         self.uploader.add_upload_job(upload_job)
 

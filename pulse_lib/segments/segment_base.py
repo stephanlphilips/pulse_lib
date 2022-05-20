@@ -104,13 +104,15 @@ class segment_base():
 
     @last_edited
     @loop_controller
-    def wait(self, time):
+    def wait(self, time, reset_time=False):
         '''
         resets the time back to zero after a certain point
         Args:
             time (double) : time in ns to wait
         '''
         self.data_tmp.wait(time)
+        if reset_time:
+            self.reset_time()
         return self.data_tmp
 
 

@@ -9,6 +9,9 @@ class AwgConfig:
     MAX_AMPLITUDE = 1500 # mV
     ALIGNMENT = 10 # waveform must be multiple 10 bytes
 
+def iround(value):
+    return int(value + 0.5)
+
 
 class M3202A_Uploader:
 
@@ -65,7 +68,8 @@ class M3202A_Uploader:
         return awg.convert_prescaler_to_sample_rate(awg.convert_sample_rate_to_prescaler(sample_rate))
 
 
-    def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True):
+    def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True, alignment=None):
+        # TODO @@@ implement alignment
         # remove any old job with same sequencer and index
         self.release_memory(seq_id, index)
         return Job(self.jobs, sequence, index, seq_id, n_rep, sample_rate, neutralize)
@@ -393,7 +397,7 @@ class RefChannels:
 
 
 class UploadAggregator:
-    verbose = False
+    verbose = True
 
     def __init__(self, awg_channels, marker_channels, qubit_channels, digitizer_channels):
         self.npt = 0
@@ -456,7 +460,8 @@ class UploadAggregator:
             # work with sample rate in GSa/s
             sample_rate = (seg.sample_rate if seg.sample_rate is not None else job.default_sample_rate) * 1e-9
             duration = seg.get_total_time(job.index)
-            npt =  int(round(duration * sample_rate))
+            logging.debug(f'Seg duration:{duration:9.3f}')
+            npt =  iround(duration * sample_rate)
             info = SegmentRenderInfo(sample_rate, t_start, npt)
             segments.append(info)
             t_start = info.t_end
@@ -468,7 +473,7 @@ class UploadAggregator:
 
         section = RenderSection(segments[0].sample_rate, t_start)
         sections.append(section)
-        section.npt += round(max_pre_start_ns * section.sample_rate)
+        section.npt += iround(max_pre_start_ns * section.sample_rate)
 
         for iseg,seg in enumerate(segments):
             sample_rate = seg.sample_rate
@@ -481,12 +486,12 @@ class UploadAggregator:
             # create welding region if sample_rate decreases
             if sample_rate < section.sample_rate:
                 # welding region is length of padding for alignment + post_stop region
-                n_post = round(((seg.t_start + max_post_end_ns) - section.t_end) * section.sample_rate)
+                n_post = iround(((seg.t_start + max_post_end_ns) - section.t_end) * section.sample_rate)
                 section.npt += n_post
                 section.align(extend=True)
 
                 # number of points of segment to be rendered to previous section
-                n_start_transition = round((section.t_end - seg.t_start)*sample_rate)
+                n_start_transition = iround((section.t_end - seg.t_start)*sample_rate)
 
                 seg.n_start_transition = n_start_transition
                 seg.start_section = section
@@ -503,7 +508,10 @@ class UploadAggregator:
 
             # create welding region if sample rate increases
             if sample_rate_next != 0 and sample_rate_next > sample_rate:
-                n_pre = round((section.t_end - (seg.t_end - max_pre_start_ns)) * section.sample_rate)
+                # The current section should end before the next segment starts:
+                # - subtract any extension into the next segment
+                # - align boundary with truncation
+                n_pre = int(np.ceil((section.t_end - (seg.t_end - max_pre_start_ns)) * section.sample_rate))
                 section.npt -= n_pre
                 section.align(extend=False)
 
@@ -512,7 +520,7 @@ class UploadAggregator:
                 sections.append(section)
 
                 # number of points of segment to be rendered to next section
-                n_end_transition = round((seg.t_end - section.t_start)*sample_rate_next)
+                n_end_transition = iround((seg.t_end - section.t_start)*sample_rate_next)
 
                 section.npt += n_end_transition
 
@@ -520,13 +528,32 @@ class UploadAggregator:
                 seg.end_section = section
 
         # add post stop samples; seg = last segment, section is last section
-        n_post = round(((seg.t_end + max_post_end_ns) - section.t_end) * section.sample_rate)
+        n_post = iround(((seg.t_end + max_post_end_ns) - section.t_end) * section.sample_rate)
+        logging.debug(f'Post: {n_post}, npt:{section.npt}')
         section.npt += n_post
 
         # add DC compensation
         compensation_time = self.get_max_compensation_time()
         logging.debug(f'DC compensation time: {compensation_time*1e9} ns')
         compensation_npt = int(np.ceil(compensation_time * section.sample_rate * 1e9))
+        if compensation_npt > 50_000:
+            # more than 50_000 samples? Use new segment with lower sample rate for compensation
+
+            sample_rate = 1e9 * section.sample_rate * 5_000 / compensation_npt
+            # find an existing sample rate
+            nice_sample_rates = [1e6, 2e6, 5e6, 1e7, 2e7, 5e7, 1e8, 2e8, 1e9]
+            for sr in nice_sample_rates:
+                if sample_rate <= sr:
+                    sample_rate = sr * 1e-9
+                    break
+            # create new section
+            section.align(extend=True)
+            section = RenderSection(sample_rate, section.t_end)
+            sections.append(section)
+            # calculate npt
+            compensation_npt = int(np.ceil(compensation_time * section.sample_rate * 1e9))
+            logging.info(f'Added new segment for DC compensation: {int(compensation_time*1e9)} ns, '
+                         f'sample_rate: {sr/1e6} MHz, {compensation_npt} Sa')
 
         job.upload_info.dc_compensation_duration = compensation_npt/section.sample_rate
         section.npt += compensation_npt
@@ -569,7 +596,7 @@ class UploadAggregator:
             for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
 
                 sample_rate = seg_render.sample_rate
-                n_delay = round(channel_info.delay_ns * sample_rate)
+                n_delay = iround(channel_info.delay_ns * sample_rate)
 
                 seg_ch = getattr(seg, channel_name)
                 ref_channel_states.start_time = seg_render.t_start
@@ -589,16 +616,16 @@ class UploadAggregator:
                         logging.error(f'OOPS section mismatch {iseg}, {channel_name}')
 
                     # add n_start_transition - n_delay to start_section
-#                    n_delay_welding = round(channel_info.delay_ns * section.sample_rate)
+#                    n_delay_welding = iround(channel_info.delay_ns * section.sample_rate)
                     t_welding = (section.t_end - seg_render.t_start)
-                    i_start = round(t_welding*sample_rate) - n_delay
-                    n_section = round(t_welding*section.sample_rate) + round(-channel_info.delay_ns * section.sample_rate)
+                    i_start = iround(t_welding*sample_rate) - n_delay
+                    n_section = iround(t_welding*section.sample_rate) + iround(-channel_info.delay_ns * section.sample_rate)
 
                     if n_section > 0:
-                        if np.round(n_section*sample_rate/section.sample_rate) >= len(wvf):
+                        if iround(n_section*sample_rate/section.sample_rate) >= len(wvf):
                             raise Exception(f'segment {iseg} too short for welding. (nwelding:{n_section}, len_wvf:{len(wvf)})')
 
-                        isub = [np.round(i*sample_rate/section.sample_rate) for i in np.arange(n_section)]
+                        isub = [iround(i*sample_rate/section.sample_rate) for i in np.arange(n_section)]
                         welding_samples = np.take(wvf, isub)
                         buffer[-n_section:] = welding_samples
 
@@ -614,9 +641,9 @@ class UploadAggregator:
                 if seg_render.end_section:
                     next_section = seg_render.end_section
                     # add n_end_transition + n_delay to next section. First complete this section
-                    n_delay_welding = round(channel_info.delay_ns * section.sample_rate)
+                    n_delay_welding = iround(channel_info.delay_ns * section.sample_rate)
                     t_welding = (seg_render.t_end - next_section.t_start)
-                    i_end = len(wvf) - round(t_welding*sample_rate) + n_delay_welding
+                    i_end = len(wvf) - iround(t_welding*sample_rate) + n_delay_welding
 
                     if i_start != i_end:
                         buffer[-(i_end-i_start):] = wvf[i_start:i_end]
@@ -629,11 +656,11 @@ class UploadAggregator:
                     section = next_section
                     buffer = np.zeros(section.npt)
 
-                    n_section = round(t_welding*section.sample_rate) + round(channel_info.delay_ns * section.sample_rate)
-                    if np.round(n_section*sample_rate/section.sample_rate) >= len(wvf):
+                    n_section = iround(t_welding*section.sample_rate) + iround(channel_info.delay_ns * section.sample_rate)
+                    if iround(n_section*sample_rate/section.sample_rate) >= len(wvf):
                         raise Exception(f'segment {iseg} too short for welding. (nwelding:{n_section}, len_wvf:{len(wvf)})')
 
-                    isub = [min(len(wvf)-1, i_end + np.round(i*sample_rate/section.sample_rate)) for i in np.arange(n_section)]
+                    isub = [min(len(wvf)-1, i_end + iround(i*sample_rate/section.sample_rate)) for i in np.arange(n_section)]
                     welding_samples = np.take(wvf, isub)
                     buffer[:n_section] = welding_samples
 
@@ -646,25 +673,24 @@ class UploadAggregator:
 
             if job.neutralize:
                 if section != sections[-1]:
-                    # Corner case, DC compensation is in a new section # @@@ can this occur??
+                    # DC compensation is in a separate section
                     bias_T_compensation_mV = self._add_bias_T_compensation(buffer, bias_T_compensation_mV,
                                                                            section.sample_rate, channel_info)
                     self._upload_wvf(job, channel_name, buffer, channel_info.amplitude, channel_info.attenuation,
                                      section.sample_rate, awg_upload_func)
                     section = sections[-1]
                     buffer = np.zeros(section.npt)
-                    logging.info(f'DC compensation: Corner case {section}')
+                    logging.info(f'DC compensation section with {section.npt} Sa')
 
-                compensation_npt = round(job.upload_info.dc_compensation_duration * section.sample_rate)
+                compensation_npt = iround(job.upload_info.dc_compensation_duration * section.sample_rate)
 
                 if compensation_npt > 0 and channel_info.dc_compensation:
-                    compensation_voltage = -channel_info.integral * sample_rate / compensation_npt * 1e9
+                    compensation_voltage = -channel_info.integral * section.sample_rate / compensation_npt * 1e9
                     job.upload_info.dc_compensation_voltages[channel_name] = compensation_voltage
                     buffer[-(compensation_npt+1):-1] = compensation_voltage
                     logging.debug(f'DC compensation {channel_name}: {compensation_voltage:6.1f} mV {compensation_npt} Sa')
                 else:
                     job.upload_info.dc_compensation_voltages[channel_name] = 0
-                    # TODO: @@@ reduce length of waveform?
 
             bias_T_compensation_mV = self._add_bias_T_compensation(buffer, bias_T_compensation_mV,
                                                                    section.sample_rate, channel_info)

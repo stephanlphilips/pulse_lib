@@ -81,6 +81,7 @@ class MockM3202A(Instrument):
     def awg_flush(self, channel):
         logging.info(f'{self.name}.awg_flush({channel})')
         self.channel_data[channel] = []
+        self.channel_prescaler[channel] = []
 
     def awg_stop(self, channel):
         logging.info(f'{self.name}.awg_stop({channel})')

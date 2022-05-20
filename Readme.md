@@ -1,29 +1,51 @@
 # Introduction
 
-This is a pulse library that is build to make pulses that are commonly used to control spin qubits coherenly. A lot of attention is given to performance, structure and ease of use. At the moment the library only has a back-end that is suited for Keysight PXI AWG systems
+Pulse_lib is a library to control multi-channel AWG pulse sequences and digitizer acquisitions
+with a simple API using physical units. It is designed to control qubit experiments, especially quantum dot
+and spin qubit experiments.
 
-Features now include:
-* support for arbitrary baseband/microwave based sequences
-* Fully multidimensional. Execute any command as a loop in any dimension.
-* Short and clean syntax. No sympy.
-* Native support for virtual gates.
-* IQ toolkit and IQ virtual channels -- Full suppport for single sideband modulation (Along with PM/AM/FM) and out of the box pulse shaping. Automatic softare downconversion from MW pulse to IQ, which can later on be upconverted in hardware by mixing with the IF.
-* Automatic compenstation for DC offsets.
-* High speed uploader for Keysight PXI systems which supports upload during playback (up to ~ 100 experiments per second (record~350))
+Sequences can contain direct voltage pulses, phase coherent microwave (MW) pulses, digital markers, triggers,
+and digitizer acquisitions.
+The MW pulses in a sequence are phase coherent to enable construction of sequences of quantum gates.
+Pulse_lib uses IQ output pairs to generate the MW pulses with a vector signal generator.
 
-!! keysight AWG's their waveforms need to have a length of modulo 10 !! (related to the clock of the AWG)
---> segments are concatenated for this purose when uploading (e.g. upload happens in one big chunk)
+Parameters of the pulses in a sequence can be swept across a range of values. This turns the sequence in a
+multi-dimensional measurement.
+
+Pulses in pulse_lib are specified in the physical units in the context of the target device:
+* Amplitudes are specified in millivolts
+* Time is specified in nanoseconds
+* MW pulses are specified for a specific qubit and resonance and drive frequency in Hz
+* Channels are identified with a logical name
+
+Pulse_lib translates the specified pulse sequence to output signals of the AWG. It takes care of:
+* Phase coherence of pulses per qubit
+* Capacitive coupling of plunger and barrier gates of quantum dots using a virtual matrix
+* Signal delays due to vector signal generator and cables
+* MW up conversion by vector signal generator
+* Attenuators between AWG and target device
+* DC charging of bias-T, which acts as a high pass filter for AWG signals
+
+Pulses in pulse_lib can be made conditional on a measurement in the same sequence. However, this feature
+is currently only supported by the QuTech QuantumSequencer for Keysight PXI.
+
+Pulse_lib supports the following hardware:
+* Keysight PXI M3202A AWG and M3201A digitizer
+* Tektronix AWG5014 with Spectrum M4i digitizer
+* Qblox Pulsar QCM and QRM
+* QuTech QuantumSequencer for Keysight PXI
+
+The communication with the AWGs has been optimized to minimize the overhead between measurements.
+The compilation of pulse sequences and the communication with the AWGs will be further optimized
+with every new release of the software.
 
 # Requirements
-You need python3.x and a c/c++ compiler. For the c-compiler, the following is recommended
-* windows: the Visual Studio SDK C/C++ compiler (tested)
-* linux: gcc is fine.
-* ox x : gcc or clang both work
+You need python 3.7+ and qcodes.
 
-To install the upload libraries for the keysight system, you will need:
-* the Keysight SD1 software
-* openMP (comes by default in visual studio)
-(At the moment this is a requirement, will be removed as a requirement at a later time)
+To use pulse_lib with Keysight you also need Keysight SD1 software, Keysight FPGA Test Sync Executive, hvi2-script
+and hvi2 schedules.
+
+To use pulse_lib with Qblox you also need [Q1Pulse](https://github.com/sldesnoo-Delft/q1pulse).
 
 # Quick start
 The pulse library can be installed by cloning the library from github on your computer.
@@ -31,20 +53,9 @@ Navigate in the github folder and run the following in the terminal:
 ```bash
 	python3 setup.py install
 ```
-The python scrip will also take care of compiling the c code. On windows, it is recommended to do this in a Anaconda promt. You will need to run the promt with administarator privelages.
 
 # Documentation
 Documentation for the library can be found at:
 
 https://pulse-lib.readthedocs.io
 
-# TODO
-TODO list:
-* Support for calibration arguments? -- this should be engineered well.
-* HVI2 integration
-
-TODO bugs and small things to fix,
-* remove finish init
-* Keysight FPGA pulse correction not there? --> investigation needed. + correction for long time scale pulses
-New functionality (prioritized):
-* TODO : automate phase compensation of microwave pulses. (master clock already there for the HVI markers)

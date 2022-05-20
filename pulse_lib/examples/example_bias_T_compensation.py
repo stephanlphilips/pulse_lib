@@ -10,7 +10,7 @@ from utils.plot import plot_awgs
 awgs, digs = init_hardware()
 
 # RC time = 1 ms
-bias_T_rc_time = 0.001
+bias_T_rc_time = 0.1
 compensate_bias_T = True
 
 # create channels P1, P2
@@ -27,23 +27,19 @@ P2 = ( -25,   25)
 P3 = (  25,  -25)
 
 seg1 = p.mk_segment(name='init')
-seg1.add_block(0, 10000, gates, P0, reset_time=True)
+seg1.add_block(0, 10000000, gates, P0, reset_time=True)
 seg2 = p.mk_segment(name='load')
-seg2.add_block(0, 10000, gates, P1, reset_time=True)
+seg2.add_block(0, 10000000, gates, P1, reset_time=True)
 seg3 = p.mk_segment(name='measure')
-seg3.add_ramp(0, 500, gates, P1, P2, reset_time=True)
-seg3.add_ramp(0, 500, gates, P2, P3, reset_time=True)
-seg3.add_block(0, 500000, gates, P3, reset_time=True)
-seg4 = p.mk_segment()
-seg4.add_block(0, 10000, gates, P0, reset_time=True)
+seg3.add_block(0, 50000000, gates, P3, reset_time=True)
 
 
 
 # generate the sequence and upload it.
-my_seq = p.mk_sequence([seg1, seg2, seg3, seg4])
+my_seq = p.mk_sequence([seg1, seg2, seg3])
 
 my_seq.set_hw_schedule(HardwareScheduleMock())
-my_seq.sample_rate = 1e8
+my_seq.sample_rate = 1e7
 my_seq.n_rep = 1
 
 my_seq.upload()
@@ -51,6 +47,7 @@ my_seq.upload()
 my_seq.play()
 
 plot_awgs(awgs, bias_T_rc_time=bias_T_rc_time)
-pt.title('AWG upload with bias-T compensation, RC = 1 ms')
+pt.title('With bias-T compensation')
 pt.grid(True)
+pt.ylim(-0.30, 0.55)
 
