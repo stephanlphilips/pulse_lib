@@ -38,6 +38,7 @@ class QsUploader:
         self.digitizer_channels = digitizer_channels
 
         self.jobs = []
+        self.acq_description = None
 
         add_sequencers(self, awg_devices, awg_channels, IQ_channels)
 
@@ -195,7 +196,7 @@ class QsUploader:
                     awg_name = channel.awg_name
                     channel_number = channel.channel_number
                     amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.MAX_AMPLITUDE
-                    offset = channel.offset
+                    offset = channel.offset if channel.offset is not None else 0
                 elif channel_name in self.marker_channels:
                     channel = self.marker_channels[channel_name]
                     awg_name = channel.module_name
@@ -1047,7 +1048,7 @@ class UploadAggregator:
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, segments)):
                 if isinstance(seg, conditional_segment):
                     logging.debug(f'conditional for {channel_name}')
-                    # TODO @@@@ lookup acquisitions and set pxi trigger.
+                    # TODO @@@ lookup acquisitions and set pxi trigger.
                     seg_ch = get_conditional_channel(seg, channel_name)
                 else:
                     seg_ch = seg[channel_name]
@@ -1059,8 +1060,8 @@ class UploadAggregator:
                         t_measure = acquisition.t_measure
                     else:
                         t_measure = job.acquisition_conf.t_measure
-                    if job.acquisition_conf.downsample_rate is not None:
-                        period_ns = iround(1e8/job.acquisition_conf.downsample_rate) * 10
+                    if job.acquisition_conf.sample_rate is not None:
+                        period_ns = iround(1e8/job.acquisition_conf.sample_rate) * 10
                         n_cycles = int(t_measure / period_ns)
                         t_integrate = period_ns
                     else:

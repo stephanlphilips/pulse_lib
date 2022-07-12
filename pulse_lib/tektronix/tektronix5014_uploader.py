@@ -79,7 +79,8 @@ class Tektronix5014_Uploader:
             ch_num = channel.channel_number
             # NOTE: Tektronix setting is Vpp, not amplitude.
             awg.set(f'ch{ch_num}_amp', channel.amplitude/1000*2)
-            awg.set(f'ch{ch_num}_offset', channel.offset/1000)
+            offset = channel.offset if channel.offset is not None else 0
+            awg.set(f'ch{ch_num}_offset', offset/1000)
 
         for channel in self.marker_channels.values():
             awg = self.awgs[channel.module_name]

@@ -11,7 +11,7 @@ class awg_channel:
     attenuation: float = 1.0
     compensation_limits: Tuple[float, float] = (0,0)
     bias_T_RC_time: Optional[float] = None
-    offset: float = 0.0 # mV
+    offset: Optional[float] = None # mV
 
 @dataclass
 class marker_channel:
@@ -28,7 +28,7 @@ class marker_channel:
     amplitude: float = 1000
     invert: bool = False
     delay: float = 0 # ns
-    sequencer_name : str = None
+    sequencer_name : Optional[str] = None
     '''
     Qblox only: name of qubit, awg or digitizer channel to use for sequencing
     '''
