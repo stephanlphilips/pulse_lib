@@ -1,9 +1,11 @@
 import time
+from uuid import UUID
 from datetime import datetime
 import numpy as np
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Union
+from numbers import Number
 
 from .rendering import SineWaveform, get_modulation
 from .pulsar_sequencers import (
@@ -51,6 +53,7 @@ class PulsarUploader:
         self.digitizer_channels = digitizer_channels
 
         self.jobs = []
+        self.acq_description = None
 
         q1 = Q1Instrument(PulsarUploader.output_dir, add_traceback=False)
         self.q1instrument = q1
@@ -132,7 +135,7 @@ class PulsarUploader:
             for marker_name in marker_channels:
                 awg_module_name = iq_channel.IQ_out_channels[0].awg_channel_name
                 m_ch = self.marker_channels[marker_name]
-                if awg_module_name != m_ch.module_name:
+                if awg_module_name == m_ch.module_name:
                     default_iq_markers[m_ch.name] = qubit_channel.channel_name
 
         seq_markers = {}
@@ -163,6 +166,11 @@ class PulsarUploader:
         """
         return 1e9
 
+    def get_num_samples(self, acquisition_channel, t_measure, sample_rate):
+        # todo: remove code duplication with add_acquisition_channel
+        trigger_period = PulsarConfig.align(1e9/sample_rate)
+        n_samples = max(1, iround(t_measure / trigger_period))
+        return n_samples
 
     def create_job(self, sequence, index, seq_id, n_rep, sample_rate,
                    neutralize=True, alignment=None):
@@ -229,8 +237,21 @@ class PulsarUploader:
             index (tuple) : index that has to be played
             release_job (bool) : release memory on AWG after done.
         """
+        # set offset for output channels (also I/Q)
+        for awg_channel in self.awg_channels.values():
+            module = self.q1instrument.modules[awg_channel.awg_name]
+            if awg_channel.offset is not None:
+                module.set_out_offset(awg_channel.channel_number, awg_channel.offset)
 
         job =  self.__get_job(seq_id, index)
+        channels = job.acquisition_conf.channels
+        if channels is None:
+            channels = self.digitizer_channels.keys()
+        self.acq_description = AcqDescription(seq_id, index, channels,
+                                              job.acq_data_scaling,
+                                              job.n_rep,
+                                              job.acquisition_conf.average_repetitions)
+
 
         logging.info(f'Play {index}')
 
@@ -239,39 +260,38 @@ class PulsarUploader:
         if release_job:
             job.release()
 
-    def get_measurement_data(self, acq_conf):
-        channels = acq_conf.channels
-        if channels is None:
-            channels = self.digitizer_channels.keys()
+    def get_channel_data(self, seq_id, index):
+        acq_desc = self.acq_description
+        if acq_desc.seq_id != seq_id or acq_desc.index != index:
+            raise Exception(f'Data for index {index} not available')
 
         result = {}
-        # Divide by integration length. Assume it is fixed
-        t_measure = acq_conf.t_measure
-        for channel_name in channels:
+        for channel_name in acq_desc.channels:
+            scaling = acq_desc.acq_data_scaling[channel_name]
+
             dig_ch = self.digitizer_channels[channel_name]
             in_ch = dig_ch.channel_numbers
             in_ranges = self.q1instrument.get_input_ranges(channel_name)
-            # TODO:
-            # @@@ retrieve from program
-            # * t_measure in acquisition
-            # * weighed integration: divide by RMS*length?
+
             try:
                 raw = self.q1instrument.get_acquisition_bins(channel_name, 'default')
             except KeyError:
                 raw = {'integration':{'path0':[], 'path1':[]}, 'avg_cnt':[]}
+
             if dig_ch.frequency or len(in_ch) == 2:
                 raw_0 = np.require(raw['integration']['path0'], dtype=float)
-                raw_0 *= in_ranges[0]/2/t_measure
+                raw_0 = self._scale_acq_data(raw_0, in_ranges[0]/2*scaling)
                 raw_1 = np.require(raw['integration']['path1'], dtype=float)
-                raw_1 *= in_ranges[1]/2/t_measure
+                raw_1 = self._scale_acq_data(raw_1, in_ranges[1]/2*scaling)
 
-                if dig_ch.frequency:
+                if dig_ch.frequency or dig_ch.iq_input:
+                    # @@@ if frequency, set phase in QRM.sequencer phase_rotation_acq
                     raw_ch = (raw_0 + 1j * raw_1) * np.exp(1j*dig_ch.phase)
-                    # TODO @@@ return complex, real or (_I, _Q) or (_0, _1)
                     if not dig_ch.iq_out:
                         raw_ch = raw_ch.real
-                    result[f'{channel_name}'] = raw_ch
+                    result[channel_name] = raw_ch
                 else:
+                    # @@@ is this a realistic scenario?
                     if in_ch[0] == 1:
                         # swap results
                         raw_0, raw_1 = raw_1, raw_0
@@ -281,9 +301,23 @@ class PulsarUploader:
             else:
                 ch = in_ch[0]
                 raw_ch = np.require(raw['integration'][f'path{ch}'], dtype=float)
-                raw_ch *= in_ranges[ch]/2/t_measure
-                result[f'{channel_name}'] = raw_ch
+                raw_ch = self._scale_acq_data(raw_ch, in_ranges[ch]/2*scaling)
+                result[channel_name] = raw_ch
+
+        if not acq_desc.average_repetitions:
+            for key,value in result.items():
+                result[key] = value.reshape((acq_desc.n_rep, -1))
+
         return result
+
+    def _scale_acq_data(self, data, scaling):
+        if len(data) == 0:
+            return data
+        if isinstance(scaling, Number):
+            data *= scaling
+            return data
+        res = data.reshape((-1, len(scaling))) * scaling
+        return res.flatten()
 
     def wait_until_AWG_idle(self):
         # @@@ TODO implement when run_program() has async version
@@ -306,6 +340,15 @@ class PulsarUploader:
         for job in self.jobs:
             job.release()
 
+
+@dataclass
+class AcqDescription:
+    seq_id: UUID
+    index: List[int]
+    channels: List[str]
+    acq_data_scaling: Dict[str, Union[float, np.ndarray]]
+    n_rep: int
+    average_repetitions: bool = False
 
 
 class Job(object):
@@ -332,6 +375,8 @@ class Job(object):
         self.priority = priority
         self.schedule_params = {}
         self.playback_time = 0 #total playtime of the waveform
+        self.acquisition_conf = None
+        self.acq_data_scaling = {}
 
         self.released = False
 
@@ -612,7 +657,7 @@ class UploadAggregator:
             seq.set_offset(t_end, compensation_ns, compensation_voltage)
             seq.set_offset(t_end + compensation_ns, 0, 0.0)
 
-        seq.close()
+        seq.finalize()
 
     def add_qubit_channel(self, job, qubit_channel):
         segments = self.segments
@@ -667,7 +712,7 @@ class UploadAggregator:
                     raise Exception('Unknown pulse element {type(e)}')
 
         # add final markers
-        seq.close()
+        seq.finalize()
 
 
     def add_acquisition_channel(self, job, digitizer_channel):
@@ -680,8 +725,8 @@ class UploadAggregator:
 
         acq_conf = job.acquisition_conf
 
-        if acq_conf.downsample_rate is not None:
-            trigger_period = PulsarConfig.align(1e9/acq_conf.downsample_rate)
+        if acq_conf.sample_rate is not None:
+            trigger_period = PulsarConfig.align(1e9/acq_conf.sample_rate)
         else:
             trigger_period = None
 
@@ -719,14 +764,15 @@ class UploadAggregator:
                 else:
                     seq.acquire(t, t_measure)
 
-        seq.close()
+        seq.finalize()
+        job.acq_data_scaling[channel_name] = seq.get_data_scaling()
 
     def add_marker_seq(self, job, channel_name):
         seq = SequenceBuilderBase(channel_name, self.program[channel_name])
 
         markers = self.get_markers_seq(job, channel_name)
         seq.add_markers(markers)
-        seq.close()
+        seq.finalize()
 
     def build(self, job):
         job.upload_info = JobUploadInfo()

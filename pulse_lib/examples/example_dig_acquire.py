@@ -56,9 +56,9 @@ pulse = init_pulselib(awgs, digs, virtual_gates=True)
 pulse.set_digitizer_phase('SD2', -0.228*np.pi)
 
 my_seq = create_seq(pulse)
-my_seq.set_acquisition(t_measure=1e4, channels=['SD1', 'SD2']) # @@@ FIX requirement to specify channels
+my_seq.set_acquisition(t_measure=1e4)
 # with Downsampling:
-# my_seq.set_acquisition(t_measure=1e4, downsample_rate=0.5e6)
+# my_seq.set_acquisition(t_measure=1e4, sample_rate=0.5e6)
 
 logging.info(f'sequence shape: {my_seq.shape}')
 
@@ -66,14 +66,17 @@ job = my_seq.upload()
 
 my_seq.play(release=False)
 
-data = my_seq.get_measurement_data()
+data = my_seq.get_measurement_results(iq_complex=False)
 
 #plot_awgs(awgs+digs)
 
 pt.figure()
 for ch_name,values in data.items():
-    pt.plot(np.real(values), label=ch_name+' I')
-    pt.plot(np.imag(values), label=ch_name+' Q')
+    if isinstance(values[0], complex):
+        pt.plot(np.real(values), label=ch_name+' I')
+        pt.plot(np.imag(values), label=ch_name+' Q')
+    else:
+        pt.plot(values, label=ch_name)
 pt.legend()
 #pprint(job.upload_info)
 

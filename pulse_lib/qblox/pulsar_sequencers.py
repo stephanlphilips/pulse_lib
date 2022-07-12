@@ -77,7 +77,7 @@ class SequenceBuilderBase:
     def add_comment(self, comment):
         self.seq.add_comment(comment)
 
-    def close(self):
+    def finalize(self):
         for i in range(self.imarker, len(self.markers)):
             marker = self.markers[i]
             self._set_markers(marker[0], marker[1])
@@ -153,12 +153,14 @@ class IQSequenceBuilder(SequenceBuilderBase):
         waveform.frequency -= self.seq.nco_frequency
 
         if abs(waveform.frequency) > 1:
-            # TODO @@@ Fix coherent pulses
-            print(f'Warning: incorrect phase for pulse at {t} ns')
             wave_ids = self.register_sinewave_iq(waveform)
             self.seq.shaped_pulse(wave_ids[0], amplitude,
                                   wave_ids[1], amplitude,
                                   t_offset=t)
+            # Adjust NCO after driving with other frequency
+            delta_phase = 2*np.pi*waveform.frequency*duration*1e-9
+            self.shift_phase(t+duration, delta_phase)
+
         elif not isinstance(waveform.phmod, Number):
             wave_ids = self.register_sinewave_iq(waveform)
             self.seq.shaped_pulse(wave_ids[0], amplitude,
@@ -177,7 +179,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
                 self.seq.block_pulse(duration, ampI, ampQ, t_offset=t)
             else:
                 # phase is accounted for in ampI, ampQ
-                waveform.phase = np.pi*0.5
+                waveform.phase = np.pi*0.5 # TODO @@@ Why this phase???
                 waveform.phmod = 0
                 ampI = amplitude * np.sin(cycles)
                 ampQ = amplitude * np.cos(cycles)
@@ -186,8 +188,14 @@ class IQSequenceBuilder(SequenceBuilderBase):
                 self.seq.shaped_pulse(wave_id, ampI, wave_id, ampQ, t_offset=t)
 
     def shift_phase(self, t, phase):
+        '''
+        Arguments:
+            phase (float): phase in rad.
+        '''
         self._update_time_and_markers(t, 0.0)
-        self.seq.shift_phase(phase, t_offset=t)
+        # normalize phase to -1.0 .. + 1.0 for Q1Pulse sequencer
+        norm_phase = (phase/np.pi + 1) % 2 - 1
+        self.seq.shift_phase(norm_phase, t_offset=t)
 
 
 @dataclass
@@ -205,6 +213,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self.rf_source = rf_source
         self.n_triggers = 0
         self._integration_time = None
+        self._data_scaling = None
         self._commands = []
         self.rf_source_mode = rf_source.mode if rf_source is not None else None
         self._pulse_end = -1
@@ -226,7 +235,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
             self._integration_time = value
             self.seq.integration_length_acq = value
         elif self._integration_time != value:
-            raise Exception('Only 1 integration time per channel is supported')
+            raise Exception('Only 1 integration time (t_measure) per channel is supported')
 
     def add_markers(self, markers):
         for marker in markers:
@@ -238,6 +247,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._update_time(t, t_integrate)
         self.integration_time = t_integrate
         self.n_triggers += 1
+        self._add_scaling(1/t_integrate, 1)
         # enqueue: self.seq.acquire('default', 'increment', t_offset=t)
         self._add_command(t,
                           self.seq.acquire, 'default', 'increment', t_offset=t)
@@ -249,6 +259,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._update_time(t, duration)
         self.integration_time = t_integrate
         self.n_triggers += n
+        self._add_scaling(1/t_integrate, n)
         # enqueue: self.seq.repeated_acquire(n, t_period, 'default', 'increment', t_offset=t)
         self._add_command(t,
                           self.seq.repeated_acquire, n, t_period, 'default', 'increment', t_offset=t)
@@ -260,7 +271,8 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._add_command(t,
                           self.seq.reset_bin_counter, 'default')
 
-    def close(self):
+    def finalize(self):
+        # note: no need to call super().finalize() because all markers have already been added.
         if not self.n_triggers:
             return
         if not self._integration_time:
@@ -277,6 +289,23 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         for cmd in self._commands:
             # print(cmd.func.__name__, cmd.args, cmd.kwargs)
             cmd.func(*cmd.args, **cmd.kwargs)
+
+    def get_data_scaling(self):
+        if isinstance(self._data_scaling, (Number, None)):
+            return self._data_scaling
+        return np.array(self._data_scaling)
+
+    def _add_scaling(self, scaling, n):
+        if self._data_scaling is None:
+            self._data_scaling = scaling
+        elif isinstance(self._data_scaling, Number):
+            if self._data_scaling == scaling: # @@@ rounding errors...
+                pass
+            else:
+               self._data_scaling = [self._data_scaling] * self.n_triggers
+               self._data_scaling[-n:-1] = scaling
+        else:
+           self._data_scaling += [scaling] * n
 
     def _add_command(self, t, func, *args, **kwargs):
         self._commands.append(_SeqCommand(t, func, args, kwargs))

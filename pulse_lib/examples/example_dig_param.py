@@ -34,8 +34,8 @@ def create_seq(pulse_lib):
     s.vP3.add_block(2e4, 3e4, 50)
     s.vP3.add_ramp_ss(3e4, 3.5e4, 50, 0)
     s.vP1.add_block(2e4, 3e4, -100)
-    s.SD1.acquire(2e4)
-    s.SD2.acquire(2e4)
+    s.SD1.acquire(2e4, ref='m1')
+    s.SD2.acquire(2e4, ref='m2')
 
     # generate the sequence and upload it.
     my_seq = pulse_lib.mk_sequence([seg1, seg2, seg3])
@@ -59,11 +59,9 @@ pulse.set_digitizer_phase('SD2', -0.228*np.pi)
 my_seq = create_seq(pulse)
 my_seq.set_acquisition(t_measure=t_measure)
 
-param = my_seq.get_acquisition_param('Test', upload='auto')
-param.add_derived_param('SD2_I', lambda d:np.real(d['SD2']))
-param.add_derived_param('SD2_Q', lambda d:np.imag(d['SD2']))
-param.add_derived_param('SD2_Amp', lambda d:np.abs(d['SD2']))
-param.add_derived_param('SD2_phase', lambda d:np.angle(d['SD2']))
+param = my_seq.get_measurement_param('Test', upload='auto', iq_complex=False)
+param.add_derived_param('m2_amp', lambda d:np.abs(d['m2_I']+1j*d['m2_Q']))
+param.add_derived_param('m2_phase', lambda d:np.angle(d['m2_I']+1j*d['m2_Q']))
 
 # Reading param uploads, plays and returns data
 data = param()
@@ -73,6 +71,10 @@ data = param()
 pt.figure()
 for ch_name,values in zip(param.names, data):
     print(ch_name, values)
-    pt.plot(values, label=ch_name)
+    if isinstance(values[0], complex):
+        pt.plot(values.real, label=ch_name+' I')
+        pt.plot(values.imag, label=ch_name+' Q')
+    else:
+        pt.plot(values, label=ch_name)
 pt.legend()
 

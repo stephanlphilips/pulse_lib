@@ -1,10 +1,15 @@
 from dataclasses import dataclass
-from typing import Optional, Union, List, Dict, Any
+from typing import Optional, Union, List
 
 from pulse_lib.segments.utility.looping import loop_obj
 
 @dataclass
 class AcquisitionConf:
+    configure_digitizer: bool = False
+    '''
+    If true the digitizer will be configured by pulselib.
+    '''
+
     t_measure: Union[None, float, loop_obj] = None
     '''
     measurement time in ns.
@@ -15,10 +20,11 @@ class AcquisitionConf:
     Channels to retrieve data from specified by name.
     If None it is defined by acquire()
     '''
-    downsample_rate: Optional[float] = None
+    sample_rate: Optional[float] = None
     '''
-    Downsampled rate in Hz. When not None, the data should not be averaged,
-    but downsampled with specified rate. Useful for Elzerman readout.
+    Sample rate of data in Hz. When not None, the data should not be averaged,
+    but downsampled with specified rate. Useful for time traces and Elzerman readout.
+    Downsampling uses block average.
     '''
     average_repetitions: bool = False
     '''
@@ -33,8 +39,6 @@ class AcquisitionConf:
     # '''
 
     # TODO?
-    # * add indexer for channel specific configuration: t_measure, downsample_rate
-    #
     # * complex: (bool) = False ??
     #
     # * channel_map: (Dict[]) = None ??

@@ -13,11 +13,13 @@ from .measurements_description import measurements_description
 from .acquisition.acquisition_conf import AcquisitionConf
 from .acquisition.acquisition_param import AcquisitionParam
 from .acquisition.player import SequencePlayer
+from .acquisition.measurement_converter import MeasurementConverter, DataSelection, MeasurementParameter
 
 from si_prefix import si_format
 
 from typing import List
 from collections.abc import Iterable
+from numbers import Number
 import numpy as np
 import uuid
 import logging
@@ -55,11 +57,23 @@ class sequencer():
         # hardware schedule (HVI)
         self.hw_schedule = None
 
-        self.n_rep = 1000
+        self._n_rep = 1000
         self._sample_rate = 1e9
         self._HVI_variables = None
         self._alignment = None
         self._acquisition_conf = AcquisitionConf()
+        self._measurement_converter = None
+
+    @property
+    def n_rep(self):
+        return self._n_rep
+
+    @n_rep.setter
+    def n_rep(self, value):
+        if self._measurement_converter is not None:
+            raise Exception('Cannot change n_rep after calling get_measurement_results or '
+                            'get_measurement_param')
+        self._n_rep = value
 
     @property
     def sweep_index(self):
@@ -130,6 +144,11 @@ class sequencer():
     def measurements_description(self):
         return self._measurements_description
 
+    def _get_measurement_converter(self):
+        if self._measurement_converter is None:
+            self._measurement_converter = MeasurementConverter(self._measurements_description,
+                                                               self.n_rep, self._acquisition_conf.sample_rate)
+        return self._measurement_converter
 
     def add_sequence(self, sequence):
         '''
@@ -192,6 +211,7 @@ class sequencer():
             self._measurements_description.add_segment(seg_container, t_tot)
 
             t_tot += seg_container.total_time
+        self._measurements_description.add_HVI_variables(self._HVI_variables)
 
         self.params =[]
 
@@ -272,16 +292,18 @@ class sequencer():
         self.hw_schedule = hw_schedule
         self.hw_schedule.set_schedule_parameters(**kwargs)
 
+
     @property
-    def acquisition_conf(self):
-        '''
-        Returns acquisition configuration object (AcquisitionConf)
-        '''
-        return self._acquisition_conf
+    def configure_digitizer(self):
+        return self._acquisition_conf.configure_digitizer
+
+    @configure_digitizer.setter
+    def configure_digitizer(self, enable):
+        self._acquisition_conf.configure_digitizer = enable
 
     def set_acquisition(self,
                         t_measure=None,
-                        downsample_rate=None,
+                        sample_rate=None,
                         channels=[],
                         average_repetitions=None,
                         ):
@@ -289,42 +311,79 @@ class sequencer():
         Args:
             t_measure (Union[float, loop_obj]):
                 measurement time in ns. If None it must be specified in the acquire() call.
-            downsample_rate (float):
-                Rate in Hz. When not None, the data should not be averaged,
-                but downsampled with specified rate. Useful for Elzerman readout.
+            sample_rate (float):
+                Output data rate in Hz. When not None, the data should not be averaged,
+                but sampled with specified rate. Useful for time traces and Elzerman readout.
+                Does not change digitizer DAC rate. Data is down-sampled using block averages.
             average_repetitions (bool): Average data over the sequence repetitions.
         '''
-        conf = self.acquisition_conf
+        if self._measurement_converter is not None:
+            raise Exception('Acquisition parameters cannot be changed after calling  '
+                            'get_measurement_results or get_measurement_param')
+        conf = self._acquisition_conf
         if t_measure:
             conf.t_measure = t_measure
-        if downsample_rate:
-            conf.downsample_rate = downsample_rate
+            if sample_rate or conf.sample_rate:
+                self._set_num_samples()
+        if sample_rate:
+            conf.sample_rate = sample_rate
+            self._set_num_samples()
         if channels != []:
             conf.channels = channels
         if average_repetitions is not None:
-            conf.average_repetitions = average_repetitions
+            conf.average_repetitions = average_repetitions # @@@ implement Keysight
 
-    def get_acquisition_param(self, name, upload=None, n_triggers=None):
+    def _set_num_samples(self):
+        default_t_measure = self._acquisition_conf.t_measure
+        sample_rate = self._acquisition_conf.sample_rate
+        for m in self._measurements_description.measurements:
+            if m.t_measure is None:
+                if default_t_measure is None:
+                    raise Exception(f't_measure not specified for measurement {m}')
+                t_measure = default_t_measure
+            elif isinstance(m.t_measure, Number):
+                t_measure = m.t_measure
+            else:
+                raise Exception(f't_measure must be number and not a {type(m.t_measure)} for time traces')
+            m.n_samples = self.uploader.get_num_samples(m.acquisition_channel,
+                                                        t_measure, sample_rate) # @@@ implement QS, Tektronix
+
+
+    def get_acquisition_param(self, name, upload=None, n_triggers=None): # @@@ remove
         if upload == 'auto':
             reader = SequencePlayer(self)
         else:
             reader = self
 
-        conf = self.acquisition_conf
+        conf = self._acquisition_conf
         acq_channels = conf.channels if conf.channels else list(self._digitizer_channels.keys())
-
-        # TODO @@@ determine n_triggers from acquisitions (and HVI)
 
         param = AcquisitionParam(reader, name,
                  acq_channels,
                  n_rep=self.n_rep if self.n_rep > 1 else None,
                  n_triggers=n_triggers,
                  t_measure=conf.t_measure,
-                 sample_rate=conf.downsample_rate,
+                 sample_rate=conf.sample_rate,
                  average_repetitions=False)
 
         return param
 
+    def get_measurement_param(self, name='seq_measurements', upload=None,
+                              raw=True, states=True, values=True,
+                              selectors=True, total_selected=True, accept_mask=True,
+                              iq_complex=True):
+        # @@@ 'always' vs 'auto'
+        if upload == 'auto':
+            reader = SequencePlayer(self)
+        else:
+            reader = self
+        mc = self._get_measurement_converter()
+        selection = DataSelection(raw=raw, states=states, values=values,
+                                  selectors=selectors, total_selected=total_selected,
+                                  accept_mask=accept_mask,
+                                  iq_complex=iq_complex)
+        param = MeasurementParameter(name, reader, mc, selection)
+        return param
 
     def upload(self, index=None):
         '''
@@ -358,15 +417,41 @@ class sequencer():
             index (tuple) : index if wich you wannt to upload. This index should fit into the shape of the sequence being played.
             release (bool) : release memory on the AWG after the element has been played.
 
-        Note that the playback will not start until you have uploaded the waveforms.
         '''
         if index is None:
             index = self.sweep_index[::-1]
         self._validate_index(index)
         self.uploader.play(self.id, index, release)
 
-    def get_measurement_data(self, channels=None):
-        return self.uploader.get_measurement_data(self.acquisition_conf)
+    def get_measurement_results(self, index=None, iq_complex=True):
+        '''
+        Returns data per measurement.
+        Raw & state
+        Raw = complex
+        No averaging over repetitions.
+        '''
+        if index is None:
+            index = self.sweep_index[::-1]
+        mc = self._get_measurement_converter()
+        mc.set_channel_data(self.get_channel_data(index))
+        return mc.get_all_measurements(iq_complex=iq_complex)
+
+    def get_measurement_data(self, index=None):
+        '''
+        Deprecated
+        '''
+        logging.warning('get_measurement_data is deprecated. Use get_channel_data')
+        return self.get_channel_data(index)
+
+
+    def get_channel_data(self, index=None):
+        '''
+        Returns acquisition data per channel in a 1D or 2D array.
+        The array is 1D for video mode scans and 2D for single shot measurements.
+        '''
+        if index is None:
+            index = self.sweep_index[::-1]
+        return self.uploader.get_channel_data(self.id, index)
 
     def close(self):
         '''

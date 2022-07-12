@@ -307,7 +307,7 @@ class _scan_parameter(MultiParameter):
 
         # play sequence
         self.my_seq.play(release = False)
-        raw_dict = self.my_seq.get_measurement_data()
+        raw_dict = self.my_seq.get_channel_data()
 
         # get the data
         data = []

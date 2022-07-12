@@ -1,10 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Tuple, List
 import numpy as np
-from pulse_lib.configuration.physical_channels import digitizer_channel, digitizer_channel_iq
 from pulse_lib.segments.segment_measurements import measurement_acquisition, measurement_expression
-from pulse_lib.segments.utility.rounding import iround
-from pulse_lib.segments.data_classes.data_generic import map_index
 
 from qcodes import MultiParameter
 
@@ -43,13 +40,12 @@ class _MeasurementParameter(MultiParameter):
     def __init__(self, setpoints, getter):
         super().__init__('measurement', **setpoints.__dict__)
         self._getter = getter
-        self.index = (0,)
         self.dig = None
         self.mc = None
 
     def get_raw(self):
         data = self.dig.measure.get_data()
-        self.mc.set_data(data, self.index)
+        self.mc.set_data(data)
         return self._getter()
 
     def setUpParam(self, mc, dig):
@@ -63,14 +59,13 @@ class _MeasurementParameter(MultiParameter):
         self.mc = mc
         self.dig = dig
 
-    def setIndex(self, idx):
+    def setIndex(self, idx): # TODO Remove
         '''
         set index that is currenly playing
 
         Args:
             idx (tuple) : current index
         '''
-        self.index = idx
 
 
 class measurement_converter:
@@ -134,12 +129,8 @@ class measurement_converter:
                                         ('repetition', ), ('repetition',), ('', ))
         self.sp_total = setpoints_single('total_selected', 'total_selected', '#')
 
-    def _get_acquisitions(self, channel_name, index):
-        ch_acqs = self._description.acquisitions[channel_name]
-        index_mapped = map_index(index, ch_acqs.shape)
-        return ch_acqs[index_mapped].data
 
-    def _set_channel_raw(self, data, index):
+    def _set_channel_raw(self, data):
         digitizer_channels = self._description.digitizer_channels
 
         # TODO @@@ works only for 1 digitizer
@@ -148,18 +139,17 @@ class measurement_converter:
         # get digitizer parameter result numbering
         output_channels = []
         for channel in digitizer_channels.values():
-            acquisitions = self._get_acquisitions(channel.name, index)
-            if len(acquisitions) > 0:
+            n_acq = self._description.acquisition_count[channel.name]
+            if n_acq > 0:
                 output_channels += channel.channel_numbers
         output_channels.sort()
-
 
         # set raw values
         self._channel_raw = {}
         for channel in digitizer_channels.values():
-            acquisitions = self._get_acquisitions(channel.name, index)
-            if len(acquisitions) == 0:
-                self._channel_raw[channel.name] = np.zeros(0, dtype=np.complex if channel.iq_out else np.float)
+            n_acq = self._description.acquisition_count[channel.name]
+            if n_acq == 0:
+                self._channel_raw[channel.name] = np.zeros(0, dtype=complex if channel.iq_out else float)
                 continue
             if channel.iq_input:
                 ch_I = output_channels.index(channel.channel_numbers[0])
@@ -173,8 +163,8 @@ class measurement_converter:
             if not channel.iq_out:
                 ch_raw = ch_raw.real
 
-            self._channel_raw[channel.name] = ch_raw.reshape((-1, len(acquisitions))).T
-#            # TODO @@@ fix downsample_rate
+            self._channel_raw[channel.name] = ch_raw.reshape((-1, n_acq)).T
+#            # TODO @@@ fix downsample_rate => add n_samples to measurement_description
 #            if channel.downsample_rate is None:
 #                self._channel_raw[channel.name] = ch_raw.reshape((-1, len(acquisitions))).T
 #            else:
@@ -195,7 +185,7 @@ class measurement_converter:
                 else:
                     self._raw.append(channel_raw)
 
-    def _set_states(self, data, index):
+    def _set_states(self, data):
         # iterate through measurements and keep last named values in dictionary
         results = []
         selectors = []
@@ -209,10 +199,8 @@ class measurement_converter:
                     continue
 
                 channel_name = m.acquisition_channel
-                acquisitions = self._get_acquisitions(channel_name, index)
-                acq = acquisitions[m.index]
-                result = self._channel_raw[channel_name][m.index] > acq.threshold
-                if acq.zero_on_high:
+                result = self._channel_raw[channel_name][m.index] > m.threshold
+                if m.zero_on_high:
                     result = not result
                 result = result.astype(int)
             elif isinstance(m, measurement_expression):
@@ -240,9 +228,9 @@ class measurement_converter:
     def set_data(self, data, index=(0,)):
         # todo add module_name to digitizer data
 
-        self._set_channel_raw(data, index)
+        self._set_channel_raw(data)
         self._set_data_raw(data)
-        self._set_states(data, index)
+        self._set_states(data)
 
 
     def raw(self):
@@ -260,7 +248,7 @@ class measurement_converter:
 
     def values(self):
         return _MeasurementParameter(setpoints_multi(self.sp_values),
-                                     lambda: self._selectors)
+                                     lambda: self._values)
 
     def accepted(self):
         return _MeasurementParameter(setpoints_multi(self.sp_accepted),

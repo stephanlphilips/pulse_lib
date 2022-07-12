@@ -1,4 +1,5 @@
 import time
+from uuid import UUID
 import numpy as np
 import logging
 from dataclasses import dataclass, field
@@ -17,7 +18,8 @@ class M3202A_Uploader:
 
     verbose = False
 
-    def __init__(self, AWGs, awg_channels, marker_channels, qubit_channels, digitizer_channels):
+    def __init__(self, AWGs, awg_channels, marker_channels, qubit_channels,
+                 digitizers, digitizer_channels):
         '''
         Initialize the keysight uploader.
         Args:
@@ -25,6 +27,7 @@ class M3202A_Uploader:
             awg_channels Dict[name, awg_channel]: channel names and properties
             marker_channels: Dict[name, marker_channel]: dict with names and properties
             qubit_channels: Dict[name, qubit_channel]: dict with names and properties
+            digitizers: Dict[name, SD_DIG]: dict with digitizers
             digitizer_channels: Dict[name, digitizer_channel]: dict with names and properties
         Returns:
             None
@@ -34,13 +37,16 @@ class M3202A_Uploader:
         self.awg_channels = awg_channels
         self.marker_channels = marker_channels
         self.qubit_channels = qubit_channels
+        self.digitizers = digitizers
         self.digitizer_channels = digitizer_channels
 
         self.jobs = []
+        self.acq_description = None
 
         self.release_all_awg_memory()
 
         self._config_marker_channels()
+
 
     def _config_marker_channels(self):
         for channel in self.marker_channels.values():
@@ -67,6 +73,10 @@ class M3202A_Uploader:
         awg = list(self.AWGs.values())[0]
         return awg.convert_prescaler_to_sample_rate(awg.convert_sample_rate_to_prescaler(sample_rate))
 
+    def get_num_samples(self, acquisition_channel, t_measure, sample_rate):
+        dig_ch = self.digitizer_channels[acquisition_channel]
+        digitizer = self.digitizers[dig_ch.module_name]
+        return digitizer.get_points_per_cycle(t_measure, sample_rate)
 
     def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True, alignment=None):
         # TODO @@@ implement alignment
@@ -129,6 +139,44 @@ class M3202A_Uploader:
         awg.load_marker_table(table)
         logging.debug(f'marker for {channel_name} loaded in {(time.perf_counter()-start)*1000:4.2f} ms')
 
+    def _configure_digitizers(self, job):
+        if not job.acquisition_conf.configure_digitizer:
+            return
+        '''
+        Configure per digitizer channel:
+            n_triggers: job.n_triggers per channel
+            t_measure: job.t_measure per channel
+            downsampled_rate:
+            acquisition_mode: set externally
+            scale, impedance: set externally
+        '''
+        enabled_channels = {}
+        channels = job.acquisition_conf.channels
+        sample_rate = job.acquisition_conf.sample_rate
+        if channels is None:
+            channels = list(job.acquisitions.keys())
+        for channel_name,t_measure in job.t_measure.items():
+            if channel_name not in channels:
+                continue
+            n_triggers = len(job.acquisitions[channel_name])
+            channel_conf = self.digitizer_channels[channel_name]
+            dig_name = channel_conf.module_name
+            dig = self.digitizers[dig_name]
+            for ch in channel_conf.channel_numbers:
+                dig.set_daq_settings(ch, n_triggers*job.n_rep, t_measure,
+                                     downsampled_rate=sample_rate)
+                enabled_channels.setdefault(dig_name, []).append(ch)
+
+        # disable not used channels of digitizer
+        for dig_name,channel_nums in enabled_channels.items():
+            dig = self.digitizers[dig_name]
+            dig.set_operating_mode(2) # HVI
+            dig.set_active_channels(channel_nums)
+
+        self.acq_description = AcqDescription(job.seq_id, job.index, channels,
+                                              job.acquisitions, enabled_channels)
+
+
     def __get_job(self, seq_id, index):
         """
         get job data of an uploaded segment
@@ -171,7 +219,7 @@ class M3202A_Uploader:
                     awg_name = channel.awg_name
                     channel_number = channel.channel_number
                     amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.MAX_AMPLITUDE
-                    offset = channel.offset
+                    offset = channel.offset if channel.offset is not None else 0
                 elif channel_name in self.marker_channels:
                     channel = self.marker_channels[channel_name]
                     awg_name = channel.module_name
@@ -202,6 +250,9 @@ class M3202A_Uploader:
             except:
                 raise Exception(f'Play failed on channel {channel_name}')
 
+
+        self._configure_digitizers()
+
         # start hvi (start function loads schedule if not yet loaded)
         acquire_triggers = {f'dig_trigger_{i+1}':t for i,t in enumerate(job.digitizer_triggers)}
         trigger_channels = {f'dig_trigger_channels_{dig_name}':triggers
@@ -215,6 +266,41 @@ class M3202A_Uploader:
         if release_job:
             job.release()
 
+    def get_channel_data(self, seq_id, index):
+        acq_desc = self.acq_description
+        if acq_desc.seq_id != seq_id or acq_desc.index != index:
+            raise Exception(f'Data for index {index} not available')
+
+        dig_data = {}
+        for dig_name,channel_nums in acq_desc.enabled_channels.items():
+            dig = self.digitizers[dig_name]
+            dig_data[dig_name] = {}
+            active_channels = dig.active_channels
+            data = dig.measure.get_data()
+            for ch_num, ch_data in zip(active_channels, data):
+                dig_data[dig_name][ch_num] = ch_data
+
+        result = {}
+        for channel_name in acq_desc.channels:
+            channel = self.digitizer_channels[channel_name]
+            dig_name = channel.module_name
+            in_ch = channel.channel_numbers
+            # Note: Digitizer FPGA returns IQ in complex value.
+            #       2 input channels are used with external IQ demodulation without processing in FPGA.
+            if len(in_ch) == 2:
+                raw_I = dig_data[dig_name][in_ch[0]]
+                raw_Q = dig_data[dig_name][in_ch[1]]
+                raw_ch = (raw_I + 1j * raw_Q) * np.exp(1j*channel.phase)
+            else:
+                # this can be complex valued output with LO modulation or phase shift in digitizer (FPGA)
+                raw_ch = dig_data[dig_name][channel.in_ch[0]]
+
+            if not channel.iq_out:
+                raw_ch = raw_ch.real
+
+            result[channel_name] = raw_ch
+
+        return result
 
     def release_memory(self, seq_id=None, index=None):
         """
@@ -253,6 +339,14 @@ class M3202A_Uploader:
 
 
 @dataclass
+class AcqDescription:
+    seq_id: UUID
+    index: List[int]
+    channels: List[str]
+    acquisitions: Dict[str, List[str]]
+    enabled_channels : Dict[str, List[int]]
+
+@dataclass
 class AwgQueueItem:
     wave_reference: object
     sample_rate: float
@@ -260,7 +354,7 @@ class AwgQueueItem:
 
 class Job(object):
     """docstring for upload_job"""
-    def __init__(self, job_list, sequence, index, seq_id, n_rep, sample_rate, neutralize=True, priority=0):
+    def __init__(self, job_list, sequence, index, seq_id, n_rep, sample_rate, neutralize=True):
         '''
         Args:
             job_list (list): list with all jobs.
@@ -270,7 +364,6 @@ class Job(object):
             n_rep (int) : number of repetitions of this sequence.
             sample_rate (float) : sample rate
             neutralize (bool) : place a neutralizing segment at the end of the upload
-            priority (int) : priority of the job (the higher one will be excuted first)
         '''
         self.job_list = job_list
         self.sequence = sequence
@@ -279,8 +372,8 @@ class Job(object):
         self.n_rep = n_rep
         self.default_sample_rate = sample_rate
         self.neutralize = neutralize
-        self.priority = priority
         self.playback_time = 0 #total playtime of the waveform
+        self.acquisition_conf = None
 
         self.released = False
 
@@ -788,24 +881,55 @@ class UploadAggregator:
         wave_ref = awg_upload_func(channel_name, waveform)
         job.add_waveform(channel_name, wave_ref, sample_rate*1e9)
 
+    def _count_hvi_measurements(self, hvi_params):
+        n = 0
+        while(True):
+            if n == 0 and 'dig_wait' in hvi_params:
+                n += 1
+            elif f'dig_wait_{n+1}' in hvi_params or f'dig_trigger_{n+1}' in hvi_params:
+                n += 1
+            else:
+                return n
+
     def _generate_digitizer_triggers(self, job):
         trigger_channels = {}
         digitizer_trigger_channels = {}
-        has_HVI_triggers = False
+        job.acquisitions = {}
+        job.t_measure = {}
 
-        for name, value in job.schedule_params.items():
-            if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
-                has_HVI_triggers = True
+        n_hvi_triggers = self._count_hvi_measurements(job.schedule_params)
+        has_HVI_triggers = n_hvi_triggers > 0
+        if has_HVI_triggers:
+            for ch_name in self.digitizer_channels:
+                job.acquisitions[ch_name] = [f'{ch_name}_{i+1}' for i in range(n_hvi_triggers)]
+                job.t_measure[ch_name] = job.acquisition_conf.t_measure
 
         # TODO @@@: cleanup this messy code.
-        for channel_name, channel in self.digitizer_channels.items():
+        for ch_name, channel in self.digitizer_channels.items():
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
-                seg_ch = getattr(seg, channel_name)
+                seg_ch = getattr(seg, ch_name)
                 acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
+                if has_HVI_triggers and len(acquisition_data) > 0:
+                    raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
                 for acquisition in acquisition_data:
-                    if has_HVI_triggers:
-                        raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
                     t = seg_render.t_start + acquisition.start
+                    acq_list = job.acquisitions.setdefault(ch_name, [])
+                    if acquisition.ref is None:
+                        acq_name = f'{ch_name}_{len(acq_list)+1}'
+                    elif isinstance(acquisition.ref, str):
+                        acq_name = acquisition.ref
+                    else:
+                        acq_name = acquisition.ref.name
+                    acq_list.append(acq_name)
+                    if ch_name in job.t_measure:
+                        if acquisition.t_measure != job.t_measure[ch_name]:
+                            raise Exception(
+                                    't_measure must be same for all triggers, '
+                                    f'channel:{ch_name}, '
+                                    f'{acquisition.t_measure}!={job.t_measure[ch_name]}')
+                    else:
+                        job.t_measure[ch_name] = acquisition.t_measure
+
                     for ch in channel.channel_numbers:
                         trigger_channels.setdefault(t, []).append((channel.module_name, ch))
                     # set empty list. Fill later after sorting all triggers

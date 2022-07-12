@@ -30,6 +30,12 @@ class pulselib:
         self.digitizer_markers = dict()
         self.awg_sync = dict()
 
+        # pulselib can configure digitizer if desired.
+        self._configure_digitizer = False
+        if backend == 'Qblox':
+            # pulselib must configure digitizer for qblox
+            self._configure_digitizer = True
+
         self._backend = backend
 
     @property
@@ -40,6 +46,14 @@ class pulselib:
         # channels += self.marker_channels.keys()
         channels += self._virtual_matrices.virtual_gate_names
         return channels
+
+    @property
+    def configure_digitizer(self):
+        return self._configure_digitizer
+
+    @configure_digitizer.setter
+    def configure_digitizer(self, enable):
+        self._configure_digitizer = enable
 
     def add_awg(self, awg):
         '''
@@ -105,6 +119,7 @@ class pulselib:
             For Keysight AWG the amplitude should only be set to enforce a maximum output level. The amplitude is applied
             digitally and setting it does not improve resolution of noise level.
             For Tektronix AWG the amplitude applies to the analogue output range.
+            For Qblox setting the amplitude has no effect.
         '''
         self._check_uniqueness_of_channel_name(channel_name)
         self.awg_channels[channel_name] = awg_channel(channel_name, AWG_name, channel_number, amplitude)
@@ -136,7 +151,7 @@ class pulselib:
             channel_name (str): name of the channel.
             digitizer_name (str): name of digitizer
             channel_number (int): channel number
-            iq_out (bool): if True convert imaginary component of channel to Q data
+            iq_out (bool): if True output I+Q data, else output I data only.
         '''
         self._check_uniqueness_of_channel_name(name)
         self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, [channel_number], iq_out=iq_out)
@@ -352,7 +367,7 @@ class pulselib:
 
         self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels,
                                         self.marker_channels, self.qubit_channels,
-                                        self.digitizer_channels)
+                                        self.digitizers, self.digitizer_channels)
 
     def _create_Tektronix5014_uploader(self):
         try:
@@ -396,6 +411,8 @@ class pulselib:
                                        self.marker_channels,
                                        self.IQ_channels, self.qubit_channels,
                                        self.digitizers, self.digitizer_channels)
+        # QRM is always controlled by pulselib
+        self.configure_digitizer = True
 
     def finish_init(self):
         if self._backend in ["Keysight", "M3202A"]:
@@ -436,6 +453,7 @@ class pulselib:
         '''
         seq_obj = sequencer(self.uploader, self.digitizer_channels)
         seq_obj.add_sequence(seq)
+        seq_obj.configure_digitizer = self.configure_digitizer
         return seq_obj
 
     def release_awg_memory(self, wait_idle=True):

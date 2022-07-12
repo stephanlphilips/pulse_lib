@@ -193,7 +193,7 @@ class AcquisitionParam(MultiParameter):
                 raise Exception('Please also supply setpoint names/units/labels')
 
     def get_raw(self):
-        data_raw = self.acquisition_hardware.get_measurement_data()
+        data_raw = self.acquisition_hardware.get_channel_data()
         data = {}
         for i,name in enumerate(self.raw_names):
             data[name] = np.reshape(data_raw[name], self.acq_shapes[i])
