@@ -251,7 +251,7 @@ class M3202A_Uploader:
                 raise Exception(f'Play failed on channel {channel_name}')
 
 
-        self._configure_digitizers()
+        self._configure_digitizers(job)
 
         # start hvi (start function loads schedule if not yet loaded)
         acquire_triggers = {f'dig_trigger_{i+1}':t for i,t in enumerate(job.digitizer_triggers)}

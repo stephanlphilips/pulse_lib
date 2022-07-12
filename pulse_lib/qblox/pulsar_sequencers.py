@@ -65,12 +65,12 @@ class SequenceBuilderBase:
 
     def _update_time(self, t, duration):
         if t < self.t_end:
-            raise Exception(f'Overlapping pulses {t} > {self.t_end} ({self.name})')
+            raise Exception(f'Overlapping pulses {t} < {self.t_end} ({self.name})')
         self.t_end = t + duration
 
     def _update_time_and_markers(self, t, duration):
         if t < self.t_end:
-            raise Exception(f'Overlapping pulses {t} > {self.t_end} ({self.name})')
+            raise Exception(f'Overlapping pulses {t} < {self.t_end} ({self.name})')
         self.insert_markers(t)
         self.t_end = t + duration
 

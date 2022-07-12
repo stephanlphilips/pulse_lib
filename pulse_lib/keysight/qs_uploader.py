@@ -230,7 +230,7 @@ class QsUploader:
             if channel_name not in job.channel_queues:
                 awg_name = awg_channel.awg_name
                 channel_number = awg_channel.channel_number
-                offset = awg_channel.offset
+                offset = awg_channel.offset if awg_channel.offset is not None else 0
                 awg = self.AWGs[awg_name]
                 awg.set_channel_offset(offset/1000, channel_number)
 

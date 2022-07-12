@@ -645,7 +645,7 @@ class UploadAggregator:
                 else:
                     raise Exception(f'Unknown pulse element {type(e)}')
 
-        t_end = seg_render.t_end + t_offset
+        t_end = PulsarConfig.align(seg_render.t_end + t_offset)
         seq.set_offset(t_end, 0, 0.0)
 
         compensation_ns = job.upload_info.dc_compensation_duration_ns
@@ -753,6 +753,8 @@ class UploadAggregator:
             for acquisition in acquisition_data:
                 t = PulsarConfig.align(acquisition.start + seg_start)
                 t_measure = acquisition.t_measure if acquisition.t_measure is not None else acq_conf.t_measure
+                if t_measure is None:
+                    raise Exception('measurement time has not been configured')
                 t_measure = PulsarConfig.align(t_measure)
 
                 if acquisition.n_repeat:
