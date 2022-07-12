@@ -291,7 +291,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
             cmd.func(*cmd.args, **cmd.kwargs)
 
     def get_data_scaling(self):
-        if isinstance(self._data_scaling, (Number, None)):
+        if isinstance(self._data_scaling, (Number, type(None))):
             return self._data_scaling
         return np.array(self._data_scaling)
 
