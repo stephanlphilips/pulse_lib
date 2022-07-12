@@ -8,15 +8,26 @@ from .utility.measurement_ref import MeasurementExpressionBase, MeasurementRef
 
 @dataclass
 class measurement_base:
-    name: str
+    name: Optional[str]
     accept_if: Optional[bool]
 
 @dataclass
 class measurement_acquisition(measurement_base):
     acquisition_channel: str
     index: int
-    has_threshold: bool
+    threshold: Optional[float] = None
+    zero_on_high: bool = False
     ref: Optional[MeasurementRef] = None
+    t_measure: Optional[float] = None
+    n_samples: Optional[int] = None
+    '''  Number of samples when using time traces. Value set by sequencer when downsampling. '''
+    data_offset: int = 0
+    ''' Offset of data in acquired channel data. '''
+
+    @property
+    def has_threshold(self):
+        return self.threshold is not None
+
 
 @dataclass
 class measurement_expression(measurement_base):
@@ -31,15 +42,26 @@ class segment_measurements:
     def measurements(self):
         return self._measurements
 
-    def add_acquisition(self, channel:str, index:int, has_threshold:bool,
-                        ref:MeasurementRef=None, accept_if=None):
+    def add_acquisition(self, channel:str, index:int,
+                        t_measure:Optional[float],
+                        threshold:Optional[float],
+                        zero_on_high=False,
+                        ref:MeasurementRef=None,
+                        accept_if=None,
+                        n_repeat=None):
         if ref is None:
-            name = f'<unnamed> {channel},{index}'
+            name = None
         elif isinstance(ref, str):
             name = ref
         else:
             name = ref.name
-        self._measurements.append(measurement_acquisition(name, accept_if, channel, index, has_threshold, ref))
+        if name is not None:
+            for m in self._measurements:
+                if m.name == name:
+                    raise Exception(f'Duplicate measurement name: {name}')
+        self._measurements.append(measurement_acquisition(name, accept_if, channel, index,
+                                                          threshold, zero_on_high, ref,
+                                                          t_measure, n_samples=n_repeat))
 
     def add_expression(self, expression:MeasurementExpressionBase, accept_if=None, name:str=None):
         if name is None:

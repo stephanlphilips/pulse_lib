@@ -59,7 +59,7 @@ class segment_acquisition():
             ref (Optional[str or MeasurementRef]): optional reference to retrieve measurement by name
             n_repeat (Optional[int]): number of repeated triggers, e.g for video mode
             interval (Optional[float]): repetition interval in ns when n_repeat is also set
-            threshold (Optional[float or loopobj]): optional threshold
+            threshold (Optional[float]): optional threshold
             zero_on_high (bool): if True then result = 0 if value>threshold
             accept_if (Optional[bool]):
                 if set the result of the sequence will only be accepted if the measurement
@@ -70,8 +70,12 @@ class segment_acquisition():
         # TODO: measurements are not sorted in time. So, this works as long as they are added in right order.
         index = self._measurement_index
         self._measurement_index += 1
-        self._measurement_segment.add_acquisition(self.name, index, threshold is not None,
-                                                  ref=ref, accept_if=accept_if)
+        self._measurement_segment.add_acquisition(self.name, index, t_measure,
+                                                  threshold,
+                                                  zero_on_high=zero_on_high,
+                                                  ref=ref,
+                                                  accept_if=accept_if,
+                                                  n_repeat=n_repeat)
         self._acquire(start, t_measure, ref=ref,
                       n_repeat=n_repeat, interval=interval,
                       threshold=threshold, zero_on_high=zero_on_high)
