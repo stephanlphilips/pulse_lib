@@ -274,19 +274,19 @@ class PulsarUploader:
             in_ranges = self.q1instrument.get_input_ranges(channel_name)
 
             try:
-                raw = self.q1instrument.get_acquisition_bins(channel_name, 'default')
+                bin_data = self.q1instrument.get_acquisition_bins(channel_name, 'default')
+                raw = []
+                for i in range(2):
+                    path_data = np.require(bin_data['integration'][f'path{i}'], dtype=float)
+                    raw.append(self._scale_acq_data(path_data, in_ranges[i]/2*scaling))
             except KeyError:
-                raw = {'integration':{'path0':[], 'path1':[]}, 'avg_cnt':[]}
+                raw = [np.zeros(0)]*2
 
             if dig_ch.frequency or len(in_ch) == 2:
-                raw_0 = np.require(raw['integration']['path0'], dtype=float)
-                raw_0 = self._scale_acq_data(raw_0, in_ranges[0]/2*scaling)
-                raw_1 = np.require(raw['integration']['path1'], dtype=float)
-                raw_1 = self._scale_acq_data(raw_1, in_ranges[1]/2*scaling)
 
                 if dig_ch.frequency or dig_ch.iq_input:
                     # @@@ if frequency, set phase in QRM.sequencer phase_rotation_acq
-                    raw_ch = (raw_0 + 1j * raw_1) * np.exp(1j*dig_ch.phase)
+                    raw_ch = (raw[0] + 1j * raw[1]) * np.exp(1j*dig_ch.phase)
                     if not dig_ch.iq_out:
                         raw_ch = raw_ch.real
                     result[channel_name] = raw_ch
@@ -294,15 +294,13 @@ class PulsarUploader:
                     # @@@ is this a realistic scenario?
                     if in_ch[0] == 1:
                         # swap results
-                        raw_0, raw_1 = raw_1, raw_0
-                    result[f'{channel_name}_0'] = raw_0
-                    result[f'{channel_name}_1'] = raw_1
+                        raw[0], raw[1] = raw[1], raw[0]
+                    result[f'{channel_name}_0'] = raw[0]
+                    result[f'{channel_name}_1'] = raw[1]
 
             else:
                 ch = in_ch[0]
-                raw_ch = np.require(raw['integration'][f'path{ch}'], dtype=float)
-                raw_ch = self._scale_acq_data(raw_ch, in_ranges[ch]/2*scaling)
-                result[channel_name] = raw_ch
+                result[channel_name] = raw[ch]
 
         if not acq_desc.average_repetitions:
             for key,value in result.items():
