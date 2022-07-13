@@ -199,7 +199,7 @@ class MeasurementConverter:
                 sp_names = ('repetition',)
                 sp_units = ('',)
                 shape = (n_rep,)
-                setpoints = ((np.arange(n_rep),),)
+                setpoints = (tuple(np.arange(n_rep)),)
                 if m.n_samples is not None:
                     period = 1e9/self._sample_rate
                     time = tuple(np.arange(m.n_samples) * period)
