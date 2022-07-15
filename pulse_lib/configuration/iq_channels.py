@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Optional
 
 from qcodes.instrument.parameter import Parameter
 
@@ -17,8 +17,8 @@ class QubitChannel:
     channel_name : str
     reference_frequency : float
     iq_channel: 'IQ_channel'
-    correction_phase: float = 0.0
-    correction_gain: Tuple[float] = (1.0, 1.0)
+    correction_phase: Optional[float] = None
+    correction_gain: Optional[Tuple[float]] = None
 
 
 @dataclass

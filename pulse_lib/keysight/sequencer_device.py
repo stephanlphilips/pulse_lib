@@ -46,16 +46,21 @@ class SequencerDevice:
         for i, qubit_channel in enumerate(IQ_channel.qubit_channels):
             seq_num = sequencer_numbers[i]
             qubit_phases = phases.copy()
-            if IQ_comps == 'IQ':
-                gain_correction = qubit_channel.correction_gain
-                qubit_phases[1] += qubit_channel.correction_phase*180/np.pi
+            if qubit_channel.correction_gain is None:
+                gain_correction = [1.0, 1.0]
             else:
-                gain_correction = list(reversed(qubit_channel.correction_gain))
-                qubit_phases[0] += qubit_channel.correction_phase*180/np.pi
+                if IQ_comps == 'IQ':
+                    gain_correction = qubit_channel.correction_gain
+                else:
+                    gain_correction = list(reversed(qubit_channel.correction_gain))
+            if qubit_channel.correction_phase is not None:
+                if IQ_comps == 'IQ':
+                    qubit_phases[1] += qubit_channel.correction_phase*180/np.pi
+                else:
+                    qubit_phases[0] += qubit_channel.correction_phase*180/np.pi
 
             #print(f'{qubit_channel.channel_name} {IQ_comps} {qubit_phases}')
 
-            qubit_channel.correction_phase
             sequencer = SequencerInfo(self.name, seq_num,
                                       qubit_channel.channel_name, qubit_phases, gain_correction)
             self.sequencers[seq_num-1] = sequencer

@@ -675,7 +675,9 @@ class UploadAggregator:
         nco_freq = qubit_channel.reference_frequency-lo_freq
 
         seq = IQSequenceBuilder(channel_name, self.program[channel_name],
-                                nco_freq)
+                                nco_freq,
+                                mixer_gain=qubit_channel.correction_gain,
+                                mixer_phase_offset=qubit_channel.correction_phase)
         attenuation = 1.0 # TODO @@@ check if this is always true..
         scaling = 1/(attenuation * seq.max_output_voltage*1000)
 

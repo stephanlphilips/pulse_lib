@@ -125,10 +125,11 @@ class segment_IQ(segment_base):
         phase_shift = 0
         if iq_out.IQ_comp == 'I':
             phase_shift += np.pi/2
-            correction_gain = qubit_channel.correction_gain[0]
+            correction_gain = qubit_channel.correction_gain[0] if qubit_channel.correction_gain is not None else 1.0
         else:
-            phase_shift += qubit_channel.correction_phase
-            correction_gain = qubit_channel.correction_gain[1]
+            if qubit_channel.correction_phase is not None:
+                phase_shift += qubit_channel.correction_phase
+            correction_gain = qubit_channel.correction_gain[1] if qubit_channel.correction_gain is not None else 1.0
         if iq_out.image == '-':
             phase_shift += np.pi
 

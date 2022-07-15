@@ -141,10 +141,16 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
 
 
 class IQSequenceBuilder(SequenceBuilderBase):
-    def __init__(self, name, sequencer, nco_frequency):
+    def __init__(self, name, sequencer, nco_frequency,
+                 mixer_gain=None, mixer_phase_offset=None):
         super().__init__(name, sequencer)
         self.seq.nco_frequency = nco_frequency
         self.add_comment(f'IQ: NCO={nco_frequency/1e6:7.2f} MHz')
+
+        if mixer_gain is not None:
+            self.seq.mixer_gain_ratio = mixer_gain[1]/mixer_gain[0]
+        if mixer_phase_offset is not None:
+            self.seq.mixer_phase_offset_degree = mixer_phase_offset/np.pi*180
 
     def pulse(self, t, duration, amplitude, waveform):
         self._update_time_and_markers(t, duration)
