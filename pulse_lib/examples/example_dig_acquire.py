@@ -46,7 +46,7 @@ def create_seq(pulse_lib):
     return my_seq
 
 
-# create "AWG1","AWG2"
+# create "AWG1","AWG2", "DIG1"
 awgs, digs = init_hardware()
 
 # create channels

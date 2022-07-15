@@ -15,8 +15,8 @@ from qcodes.logger import start_all_logging
 start_all_logging()
 
 
-awgs, digitizer = init_hardware()
-p = init_pulselib(awgs, digitizer)
+awgs, digs = init_hardware()
+p = init_pulselib(awgs, digs)
 
 # set qubit frequencies for nice figures
 

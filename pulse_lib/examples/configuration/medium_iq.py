@@ -17,8 +17,8 @@ def init_hardware():
         return [qcm0, qcm2], [qrm1]
     if _backend == 'Keysight':
         _ch_offset = 1
-        from .init_keysight import awg1, awg2
-        return [awg1,awg2], []
+        from .init_keysight import awg1, awg2, dig1
+        return [awg1,awg2], [dig1]
     if _backend == 'Keysight_QS':
         _ch_offset = 1
         from .init_keysight_qs import awg1, dig1
@@ -29,6 +29,7 @@ def init_hardware():
 def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
 
     pulse = pulselib(_backend)
+    pulse.configure_digitizer = True
 
     for awg in awgs:
         pulse.add_awg(awg)
@@ -62,7 +63,6 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
                                   mode='pulsed',
                                   trigger_offset_ns=500)
 
-    pulse.define_channel('P5', dig_name, 1 + _ch_offset)
 
     # add limits on voltages for DC channel compensation (if no limit is specified, no compensation is performed).
     pulse.add_channel_compensation_limit('P1', (-100, 100))
