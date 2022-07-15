@@ -86,13 +86,13 @@ my_seq = create_seq(pulse)
 
 logging.info(f'sequence shape: {my_seq.shape}')
 
-job = my_seq.upload([0])
+job = my_seq.upload()
 
-my_seq.play([0], release=False)
+my_seq.play(release=False)
 
 plot(my_seq, job, awgs)
 pprint(job.upload_info)
 
-my_seq.play([0], release=True)
+my_seq.play(release=True)
 my_seq.uploader.release_jobs()
 

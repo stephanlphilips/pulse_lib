@@ -26,12 +26,15 @@ seg1.P1.add_block(100, 200, v_param)
 seg2.P2.add_block(0, 100, 200)
 seg2.P2.wait(t_wait)
 seg2.reset_time()
-seg2.add_HVI_marker('dig_trigger_1', t_off=50)
+seg2.SD1.acquire(40)
+seg2.SD1.wait(1000)
 seg2.P1.add_block(0, 100, v_param)
 
 # create sequence
 seq = p.mk_sequence([seg1,seg2])
+seq.n_rep = 10
 seq.set_hw_schedule(HardwareScheduleMock())
+seq.set_acquisition(t_measure=100)
 
 for t in seq.t_wait.values:
     for v_pulse in seq.vPulse.values:

@@ -45,10 +45,10 @@ DataSet.default_io = io
 station = Station()
 
 # create "AWG1"
-awgs = init_hardware()
+awgs,digitizer = init_hardware()
 
 # create channels P1, P2
-p = init_pulselib(awgs)
+p = init_pulselib(awgs, digitizer)
 
 v_param = lp.linspace(0, 200, 5, axis=0, unit = "mV", name = "vPulse")
 t_wait = lp.linspace(20, 100, 3, axis=1, unit = "mV", name = "t_wait")
@@ -63,13 +63,15 @@ seg1.P1.add_block(100, 200, v_param)
 seg2.P2.add_block(0, 100, 200)
 seg2.P2.wait(t_wait)
 seg2.reset_time()
-seg2.add_HVI_marker('dig_trigger_1', t_off=50)
+seg2.SD1.acquire(40)
 seg2.P1.add_block(0, 100, v_param)
+seg2.SD1.wait(1000)
 
 # create sequence
 seq = p.mk_sequence([seg1,seg2])
+seq.n_rep=5
 seq.set_hw_schedule(HardwareScheduleMock())
+seq.set_acquisition(t_measure=100)
+param = seq.get_measurement_param()
 
-dig_param = DummyParam('dummy', 200, 10)
-
-qc_run('SweepDemo', seq, dig_param)
+qc_run('SweepDemo', seq, param)

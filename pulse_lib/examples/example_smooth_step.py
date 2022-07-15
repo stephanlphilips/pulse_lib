@@ -6,7 +6,7 @@ from scipy.signal import gaussian
 import pulse_lib.segments.utility.looping as lp
 from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
 
-from configuration.small import init_hardware, init_pulselib
+from configuration.small import init_hardware, init_pulselib, _backend
 from utils.plot import plot_awgs
 
 
@@ -45,6 +45,12 @@ def gaussian_step(duration, sample_rate, amplitude, stddev):
     dy = gg[m]-gg[m-1]
     print(dy, dy*stddev, 0.40/stddev*amplitude)
     return gg * amplitude
+
+
+
+if _backend == 'Qblox':
+    raise Exception('This example does not yet work with Qblox. '
+                    'Custom pulse and ramp may not overlap.')
 
 
 
