@@ -18,11 +18,11 @@ class MockM3102A(Instrument):
     def slot_number(self):
         return self._slot_number
 
-    def set_operation_mode(self, value):
+    def set_operating_mode(self, value):
         pass
 
     def set_active_channels(self, channel_list):
-        self.measure._active_channels = channel_list
+        self.measure._active_channels = set(channel_list)
 
     @property
     def active_channels(self):
@@ -58,7 +58,7 @@ class ChannelProperties:
 class ChannelData:
     def __init__(self):
         self._active_channels = set([1,2,3,4])
-        self._data = {i:[] for i in self._active_channels}
+        self._data = {i:None for i in self._active_channels}
         self._ch_properties = {i:ChannelProperties() for i in self._active_channels}
 
     def get_data(self):

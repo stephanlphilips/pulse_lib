@@ -76,7 +76,7 @@ class M3202A_Uploader:
     def get_num_samples(self, acquisition_channel, t_measure, sample_rate):
         dig_ch = self.digitizer_channels[acquisition_channel]
         digitizer = self.digitizers[dig_ch.module_name]
-        return digitizer.get_points_per_cycle(t_measure, sample_rate)
+        return digitizer.get_samples_per_measurement(t_measure, sample_rate)
 
     def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True, alignment=None):
         # TODO @@@ implement alignment
@@ -174,7 +174,9 @@ class M3202A_Uploader:
             dig.set_active_channels(channel_nums)
 
         self.acq_description = AcqDescription(job.seq_id, job.index, channels,
-                                              job.acquisitions, enabled_channels)
+                                              job.acquisitions, enabled_channels,
+                                              job.n_rep,
+                                              job.acquisition_conf.average_repetitions)
 
 
     def __get_job(self, seq_id, index):
@@ -293,12 +295,16 @@ class M3202A_Uploader:
                 raw_ch = (raw_I + 1j * raw_Q) * np.exp(1j*channel.phase)
             else:
                 # this can be complex valued output with LO modulation or phase shift in digitizer (FPGA)
-                raw_ch = dig_data[dig_name][channel.in_ch[0]]
+                raw_ch = dig_data[dig_name][in_ch[0]]
 
             if not channel.iq_out:
                 raw_ch = raw_ch.real
 
             result[channel_name] = raw_ch
+
+        if not acq_desc.average_repetitions:
+            for key,value in result.items():
+                result[key] = value.reshape((acq_desc.n_rep, -1))
 
         return result
 
@@ -344,7 +350,9 @@ class AcqDescription:
     index: List[int]
     channels: List[str]
     acquisitions: Dict[str, List[str]]
-    enabled_channels : Dict[str, List[int]]
+    enabled_channels: Dict[str, List[int]]
+    n_rep: int
+    average_repetitions: bool
 
 @dataclass
 class AwgQueueItem:
