@@ -173,7 +173,7 @@ class measurement_converter:
 #                self._channel_raw[channel.name] = ch_raw.reshape((-1, n_samples)).T
 
 
-    def _set_data_raw(self, data):
+    def _set_data_raw(self):
         self._raw = []
         for m in self._description.measurements:
             if isinstance(m, measurement_acquisition):
@@ -185,7 +185,7 @@ class measurement_converter:
                 else:
                     self._raw.append(channel_raw)
 
-    def _set_states(self, data):
+    def _set_states(self):
         # iterate through measurements and keep last named values in dictionary
         results = []
         selectors = []
@@ -225,12 +225,12 @@ class measurement_converter:
         self._values = [np.sum(result*accepted_mask)/total_selected for result in values_unfiltered]
 
 
-    def set_data(self, data, index=(0,)):
+    def set_data(self, data, index=None):
         # todo add module_name to digitizer data
 
         self._set_channel_raw(data)
-        self._set_data_raw(data)
-        self._set_states(data)
+        self._set_data_raw()
+        self._set_states()
 
 
     def raw(self):
