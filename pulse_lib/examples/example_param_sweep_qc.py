@@ -10,7 +10,6 @@ from qcodes.actions import Task
 
 from configuration.small import init_hardware, init_pulselib
 #from utils.plot import plot_awgs
-from utils.dummy_param import DummyParam
 
 def upload_play(seq):
     seq.upload()
