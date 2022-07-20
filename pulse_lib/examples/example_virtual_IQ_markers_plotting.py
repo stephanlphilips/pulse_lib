@@ -9,6 +9,7 @@ from qcodes.logger import start_all_logging
 from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
 
 from configuration.medium_iq import init_hardware, init_pulselib
+from utils.plot import plot_awgs
 
 
 start_all_logging()
@@ -73,21 +74,6 @@ def create_seq(pulse_lib):
 
     return my_seq
 
-def plot(seq, job, awgs):
-#    uploader = seq.uploader
-    print(f'sequence: {seq.shape}')
-    print(f'job index:{job.index}, sequences:{len(job.sequence)}')
-    print(f'  sample_rate:{job.default_sample_rate} playback_time:{job.playback_time}')
-
-    fig = pt.figure(1)
-    fig.clear()
-
-    for awg in awgs:
-        awg.plot()
-
-    pt.legend()
-    pt.show()
-
 
 
 # create "AWG1","AWG2"
@@ -104,7 +90,7 @@ job = my_seq.upload()
 
 my_seq.play(release=False)
 
-plot(my_seq, job, awgs)
+plot_awgs(awgs)
 pprint(job.upload_info)
 
 my_seq.play(release=True)
