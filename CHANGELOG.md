@@ -1,14 +1,22 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.5.0] - 2022-05-@@@
+## \[1.5.0] - 2022-07-@@@
 ### Added
 - Support for Qblox modules: QCM and QRM
-- Added sequencer.get_measurement_data
+- Added sequencer.get_channel_data
 - Added sequencer.set_acquisition
-- Added sequencer.get_acquisition_param with automatic upload/play
+- Added sequencer.get_measurement_param with automatic upload/play and thresholding
+- Added sequencer.get_measurement_results
 - Added channel acquire(..., n_repeat= , interval= )
 - Added qblox_fast_scan 1D and 2D
+- Added digitizer configuring by M3202A_Uploader.
+
+### Changed
+- Default channel offset is None to allow configuration outside of pulselib
+
+### Fixed
+- Scaling of custom pulses with virtual gates. Custom function now always called with amplitude of original pulse.
 
 
 ## \[1.4.0] - 2022-05-17
