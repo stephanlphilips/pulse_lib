@@ -439,14 +439,18 @@ class sequencer():
     def get_measurement_data(self, index=None):
         '''
         Deprecated
+        Returns channel data in V (!)
         '''
         logging.warning('get_measurement_data is deprecated. Use get_channel_data')
-        return self.get_channel_data(index)
+        return {
+            name:value/1000.0
+            for name, value in self.get_channel_data(index).items()
+            }
 
 
     def get_channel_data(self, index=None):
         '''
-        Returns acquisition data per channel in a 1D or 2D array.
+        Returns acquisition data in mV per channel in a 1D or 2D array.
         The array is 1D for video mode scans and 2D for single shot measurements.
         '''
         if index is None:

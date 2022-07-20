@@ -6,7 +6,7 @@ import logging
 
 def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
                       biasT_corr=False,
-                      acquisition_delay_ns=100,
+                      acquisition_delay_ns=200,
                       line_margin=0,
                       channels=None,
                       channel_map=None,
@@ -119,7 +119,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
 
 def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_step,
                       biasT_corr=True,
-                      acquisition_delay_ns=100,
+                      acquisition_delay_ns=200,
                       line_margin=0,
                       channels=None,
                       channel_map=None,
@@ -313,7 +313,8 @@ class _scan_parameter(MultiParameter):
         data = []
         for setting in self.channel_map.values():
             ch, func = setting
-            ch_data = raw_dict[ch] * 1000.0 # mV
+            # channel data already is in mV
+            ch_data = raw_dict[ch]
             data.append(func(ch_data))
 
         # make sure that data is put in the right order.

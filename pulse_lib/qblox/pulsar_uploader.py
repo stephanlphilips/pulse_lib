@@ -269,18 +269,24 @@ class PulsarUploader:
         for channel_name in acq_desc.channels:
             scaling = acq_desc.acq_data_scaling[channel_name]
 
+
             dig_ch = self.digitizer_channels[channel_name]
             in_ch = dig_ch.channel_numbers
             in_ranges = self.q1instrument.get_input_ranges(channel_name)
 
-            try:
-                bin_data = self.q1instrument.get_acquisition_bins(channel_name, 'default')
-                raw = []
-                for i in range(2):
-                    path_data = np.require(bin_data['integration'][f'path{i}'], dtype=float)
-                    raw.append(self._scale_acq_data(path_data, in_ranges[i]/2*scaling))
-            except KeyError:
+            if scaling is None:
+                # Scaling is None when there are no acquisitions. @@@ TODO make clearer code.
                 raw = [np.zeros(0)]*2
+            else:
+                try:
+                    bin_data = self.q1instrument.get_acquisition_bins(channel_name, 'default') # @@@ handle timeout
+                    raw = []
+                    for i in range(2):
+                        path_data = np.require(bin_data['integration'][f'path{i}'], dtype=float)
+                        # scale to mV values; in_range is voltage peak-peak
+                        raw.append(self._scale_acq_data(path_data, in_ranges[i]/2*scaling*1000))
+                except KeyError:
+                    raw = [np.zeros(0)]*2
 
             if dig_ch.frequency or len(in_ch) == 2:
 
@@ -449,7 +455,7 @@ class SegmentRenderInfo:
 
 
 class UploadAggregator:
-    verbose = False
+    verbose = True
 
     def __init__(self, q1instrument, awg_channels, marker_channels, digitizer_channels,
                  qubit_channels, awg_voltage_channels, marker_sequencers, seq_markers):
