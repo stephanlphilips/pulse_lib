@@ -62,8 +62,9 @@ seg1.P1.add_block(100, 200, v_param)
 seg2.P2.add_block(0, 100, 200)
 seg2.P2.wait(t_wait)
 seg2.reset_time()
-seg2.SD1.acquire(40)
-seg2.P1.add_block(0, 100, v_param)
+seg2.SD1.acquire(150)
+seg2.P1.add_block(0, 300, v_param)
+seg2.P2.add_block(0, 300, v_param)
 seg2.SD1.wait(1000)
 
 # create sequence
