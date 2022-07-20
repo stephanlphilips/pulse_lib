@@ -5,7 +5,6 @@ from typing import Any, List, Dict, Callable
 from dataclasses import dataclass
 
 import numpy as np
-from .rendering import render_custom_pulse
 
 class SequenceBuilderBase:
     def __init__(self, name, sequencer):
@@ -125,7 +124,7 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
         self.seq.shaped_pulse(wave_id, 1.0, t_offset=t)
 
     def register_custom_pulse(self, custom_pulse, scaling):
-        data = render_custom_pulse(custom_pulse, scaling)
+        data = custom_pulse.render(sample_rate=1e9) * scaling
         for index,wave in enumerate(self.custom_pulses):
             if np.all(wave == data):
                 return f'pulse{index}'

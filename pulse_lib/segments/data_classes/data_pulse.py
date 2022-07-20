@@ -79,6 +79,12 @@ class custom_pulse_element:
     amplitude: float
     func: Callable[..., np.ndarray]
     kwargs: Dict[str,Any]
+    scaling: int = 1.0
+
+    def render(self, sample_rate):
+        duration = self.stop - self.start
+        data = self.func(duration, sample_rate, self.amplitude, **self.kwargs)
+        return data*self.scaling
 
 @dataclass
 class rendered_element:
@@ -514,7 +520,7 @@ class pulse_data(parent_data):
 
             new_data.custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
             for custom_pulse in new_data.custom_pulse_data:
-                custom_pulse.amplitude *= other
+                custom_pulse.scaling *= other
 
             new_data.phase_shifts = copy.copy(self.phase_shifts)
             new_data._end_time = self._end_time
@@ -607,7 +613,7 @@ class pulse_data(parent_data):
                                           self._intervals[:-1])
 
         for custom_pulse in self.custom_pulse_data:
-            integrated_value += np.sum(self._render_custom_pulse(custom_pulse, sample_rate))
+            integrated_value += np.sum(custom_pulse.render(sample_rate))
 
         integrated_value *= 1e-9
 
@@ -636,10 +642,6 @@ class pulse_data(parent_data):
         elements.sort(key=lambda p:(int(p.start+0.5)+typeorder(p)))
         return elements
 
-    def _render_custom_pulse(self, custom_pulse, sample_rate):
-        duration = custom_pulse.stop - custom_pulse.start
-        data = custom_pulse.func(duration, sample_rate, custom_pulse.amplitude, **custom_pulse.kwargs)
-        return data
 
     def _render(self, sample_rate, ref_channel_states):
         '''
@@ -720,7 +722,7 @@ class pulse_data(parent_data):
             wvf[start_pt:stop_pt] += amp*amp_envelope*np.sin(2*np.pi*freq/sample_rate*1e-9*t + total_phase)
 
         for custom_pulse in self.custom_pulse_data:
-            data = self._render_custom_pulse(custom_pulse, sample_rate*1e9)
+            data = custom_pulse.render(sample_rate*1e9)
             start_pt = iround(custom_pulse.start * sample_rate)
             stop_pt = start_pt + len(data)
             wvf[start_pt:stop_pt] += data
@@ -753,7 +755,7 @@ class pulse_data(parent_data):
         result.append(last)
         return result
 
-    def render_MW_and_custom(self, sample_rate, ref_channel_states):
+    def render_MW_and_custom(self, sample_rate, ref_channel_states): # @@@ Is this method used somewhere?
         '''
         Render MW pulses and custom data in 'rendered_elements'.
         '''
@@ -813,7 +815,7 @@ class pulse_data(parent_data):
             elements.append(rendered_element(start_pt, stop_pt, wvf))
 
         for custom_pulse in self.custom_pulse_data:
-            wvf = self._render_custom_pulse(custom_pulse, sample_rate*1e9)
+            wvf = custom_pulse.render(sample_rate*1e9)
             start_pt = iround(custom_pulse.start * sample_rate)
             stop_pt = start_pt + len(wvf)
             elements.append(rendered_element(start_pt, stop_pt, wvf))

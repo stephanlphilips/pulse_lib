@@ -41,9 +41,3 @@ class SineWaveform:
         return (self.amod * np.cos(cycles),
                 self.amod * np.sin(cycles))
 
-def render_custom_pulse(custom_pulse, scaling, sample_rate=1e9):
-    duration = custom_pulse.stop - custom_pulse.start
-    data = custom_pulse.func(duration, sample_rate,
-                             custom_pulse.amplitude, **custom_pulse.kwargs)
-    return data * scaling
-
