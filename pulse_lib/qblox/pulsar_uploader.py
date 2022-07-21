@@ -830,9 +830,9 @@ class UploadAggregator:
 
         # NOTE: compilation is ~20% faster with listing=False, add_comments=False
         if UploadAggregator.verbose:
-            self.program.compile(listing=True)
+            self.program.compile(listing=True, json=True)
         else:
-            self.program.compile(add_comments=False, listing=False)
+            self.program.compile(add_comments=False, listing=False, json=False)
 
         times.append(['compile', time.perf_counter()])
 
