@@ -915,7 +915,7 @@ class UploadAggregator:
         # TODO @@@: cleanup this messy code.
         for ch_name, channel in self.digitizer_channels.items():
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
-                seg_ch = getattr(seg, ch_name)
+                seg_ch = seg[ch_name]
                 acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
                 if has_HVI_triggers and len(acquisition_data) > 0:
                     raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
@@ -929,14 +929,15 @@ class UploadAggregator:
                     else:
                         acq_name = acquisition.ref.name
                     acq_list.append(acq_name)
+                    t_measure = acquisition.t_measure if acquisition.t_measure is not None else job.acquisition_conf.t_measure
                     if ch_name in job.t_measure:
-                        if acquisition.t_measure != job.t_measure[ch_name]:
+                        if t_measure != job.t_measure[ch_name]:
                             raise Exception(
                                     't_measure must be same for all triggers, '
                                     f'channel:{ch_name}, '
-                                    f'{acquisition.t_measure}!={job.t_measure[ch_name]}')
+                                    f'{t_measure}!={job.t_measure[ch_name]}')
                     else:
-                        job.t_measure[ch_name] = acquisition.t_measure
+                        job.t_measure[ch_name] = t_measure
 
                     for ch in channel.channel_numbers:
                         trigger_channels.setdefault(t, []).append((channel.module_name, ch))
