@@ -122,7 +122,7 @@ class MeasurementParameter(MultiParameter):
             if add_repetitions:
                 sp_names += ('repetitions',)
                 sp_units += ('',)
-                setpoints += ((np.arange(n_rep),),)
+                setpoints += tuple(np.arange(n_rep))
             if time_trace:
                 if sample_rate is None:
                     sample_rate = self._mc._sample_rate
@@ -237,7 +237,7 @@ class MeasurementConverter:
             name = f'{m.name}_state'
             label = name
             sp_state = SetpointsSingle(name, label, '', shape_raw,
-                                       ((np.arange(shape_raw[0]),),),
+                                       (tuple(np.arange(shape_raw[0])),),
                                        ('repetition', ), ('repetition',), ('', ))
             self.sp_states.append(sp_state)
 
@@ -254,7 +254,7 @@ class MeasurementConverter:
 
         if len(self.sp_selectors) > 0:
             self.sp_mask.append(SetpointsSingle('mask', 'mask', '', shape_raw,
-                                                ((np.arange(shape_raw[0]),),),
+                                                (tuple(np.arange(shape_raw[0])),),
                                                 ('repetition', ), ('repetition',), ('', )))
             self.sp_total.append(SetpointsSingle('total_selected', 'total_selected', '#'))
 
@@ -294,16 +294,14 @@ class MeasurementConverter:
         values_unfiltered = []
         last_result = {}
         accepted_mask = np.ones(self.n_rep, dtype=np.int)
-        for m in self._description.measurements:
+        for i,m in enumerate(self._description.measurements):
             if isinstance(m, measurement_acquisition):
                 if not m.has_threshold:
                     # do not add to result
                     continue
-
-                channel_name = m.acquisition_channel
-                result = self._channel_raw[channel_name][m.index] > m.threshold
+                result = self._raw[i] > m.threshold
                 if m.zero_on_high:
-                    result = not result
+                    result = ~result
                 result = result.astype(int)
             elif isinstance(m, measurement_expression):
                 result = m.expression.evaluate(last_result)
