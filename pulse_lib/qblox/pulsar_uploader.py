@@ -279,12 +279,15 @@ class PulsarUploader:
                 raw = [np.zeros(0)]*2
             else:
                 try:
+                    start = time.perf_counter()
                     bin_data = self.q1instrument.get_acquisition_bins(channel_name, 'default') # @@@ handle timeout
                     raw = []
                     for i in range(2):
                         path_data = np.require(bin_data['integration'][f'path{i}'], dtype=float)
                         # scale to mV values; in_range is voltage peak-peak
                         raw.append(self._scale_acq_data(path_data, in_ranges[i]/2*scaling*1000))
+                    duration_ms = (time.perf_counter()-start)*1000
+                    logging.debug(f'Retrieved data {channel_name} in {duration_ms:5.1f} ms')
                 except KeyError:
                     raw = [np.zeros(0)]*2
 
