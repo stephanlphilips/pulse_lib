@@ -9,7 +9,8 @@ from qcodes.loops import Loop
 from qcodes.actions import Task
 
 from configuration.small import init_hardware, init_pulselib
-#from utils.plot import plot_awgs
+from utils.plot import plot_awgs
+#from core_tools.HVI2.hvi2_schedule_loader import Hvi2ScheduleLoader
 
 def upload_play(seq):
     seq.upload()
@@ -65,12 +66,13 @@ seg2.reset_time()
 seg2.SD1.acquire(150)
 seg2.P1.add_block(0, 300, v_param)
 seg2.P2.add_block(0, 300, v_param)
-seg2.SD1.wait(1000)
+seg2.SD1.wait(1500)
 
 # create sequence
 seq = p.mk_sequence([seg1,seg2])
 seq.n_rep=5
 seq.set_hw_schedule(HardwareScheduleMock())
+#seq.set_hw_schedule(Hvi2ScheduleLoader(p, "SingleShot", digs[0]))
 seq.set_acquisition(t_measure=100)
 param = seq.get_measurement_param()
 
