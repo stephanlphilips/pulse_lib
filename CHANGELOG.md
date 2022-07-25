@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.5.0] - 2022-07-@@@
+## \[1.5.0] - 2022-07-25
 ### Added
 - Support for Qblox modules: QCM and QRM
 - Added sequencer.get_channel_data
@@ -26,6 +26,7 @@ All notable changes to Pulselib will be documented in this file.
     - Amplitude output has been corrected. It is 2x previous output. Correct attenuation per channel!!
     - Use sequence.play(release=False) to call play multiple times after a single upload.
     - Use infinite looping when n_rep > 65535
+
 ### Added
 - Added sequencer.repetition_aligment to align the duration of the sequence with an external clock or signal frequency.
   (currently only implemented for Tektronix)
