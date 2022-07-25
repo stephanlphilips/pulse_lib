@@ -56,6 +56,9 @@ class sequence_builder:
         Args:
             *segments (segment_container) : segments that you want to add
         '''
+        # force start of new segment after appended segments
+        self._segment = None
+        # append new segments
         self._segments += segments
 
 
