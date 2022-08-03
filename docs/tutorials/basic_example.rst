@@ -11,8 +11,11 @@ Configure pulse_lib
 Create a pulse_lib object with gates for voltage pulses and 2 qubit channels for MW pulses.
 
 .. code-block:: python
+	from pulse_lib.base_pulse import pulselib
+	from pulse_lib.virtual_channel_constructors import IQ_channel_constructor
 
-    pl = pulse_lib(backend='Keysight')
+    pl = pulse_lib(backend='Qblox')
+	pl.configure_digitizer = True
 
     # add AWGs and digitizers
     pl.add_awg(awg1)
@@ -49,7 +52,7 @@ A sequence is made of one or more segments. Here we use a single segment.
 
 .. code-block:: python
 
-    seg = pl.create_segment()
+    seg = pl.mk_segment()
 
 Initialize the qubit with a voltage pulse on the gates.
 After the pulse the voltage returns to (0.0, 0.0)
@@ -93,8 +96,12 @@ The acquired data can be retrieved with the acquisition parameter. This is a qco
 
 .. code-block:: python
 
-    seq = pl.make_sequence([seg])
-    acq_param = seq.get_acquisition_param()
+    seq = pl.mk_sequence([seg])
+	
+	# NOTE: A hardware schedule must be set for Keysight and Tektronix. See below.
+	# sequence.set_hw_schedule(hw_schedule)
+	
+    measurement_param = seq.get_measurement_param()
 
     # upload sequence data to AWG
     seq.upload()
@@ -102,5 +109,65 @@ The acquired data can be retrieved with the acquisition parameter. This is a qco
     seq.play()
 
     # retrieve measurement data
-    data = acq_param()
+    data = measurement_param()
+
+
+Hardware schedule
+-----------------
+
+Pulselib needs a hardware schedule to properly configure the digitizer triggers 
+and loops on the Tektronix and Keysight AWGs.
+
+Keysight
+////////
+For Keysight you need HVI2 scripts with a license to use Pathwave TestSyncExecutive.
+There is a set of scripts available in core-tools.
+
+.. code-block:: python
+
+	from core_tools.HVI2.hvi2_schedule_loader import Hvi2ScheduleLoader
+
+    seq = pl.mk_sequence([seg])
+	
+	hw_schedule = Hvi2ScheduleLoader(pl, 'SingleShot', digitizer)
+	sequence.set_hw_schedule(hw_schedule)
+
+
+Tektronix + M4i hardware schedule
+/////////////////////////////////
+
+.. code-block:: python
+
+	from pulse_lib.schedule.tektronix_schedule import TektronixSchedule
+
+    seq = pl.mk_sequence([seg])
+	
+	hw_schedule = TektronixSchedule(pl)
+	sequence.set_hw_schedule(hw_schedule)
+
+Tektronix + ATS hardware schedule
+/////////////////////////////////
+
+.. code-block:: python
+
+	from pulse_lib.schedule.tektronix_schedule import TektronixAtsSchedule
+
+    seq = pl.mk_sequence([seg])
+	
+	hw_schedule = TektronixAtsSchedule(pl, acquisition_controller)
+	sequence.set_hw_schedule(hw_schedule)
+
+
+Tektronix + ATS hardware schedule
+/////////////////////////////////
+
+.. code-block:: python
+
+	from pulse_lib.schedule.tektronix_schedule import TektronixUHFLISchedule
+
+    seq = pl.mk_sequence([seg])
+	
+	hw_schedule = TektronixUHFLISchedule(pl, lockin, seq.n_reps)
+	sequence.set_hw_schedule(hw_schedule)
+
 
