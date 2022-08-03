@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.5.1] - 2022-08-03
+### Added
+- Added sequencer.plot()
+
+### Fixed
+- Fixed looping t_off of add_HVI_marker
+- Fixed plotting after mk_sequence
+
 ## \[1.5.0] - 2022-07-25
 ### Added
 - Support for Qblox modules: QCM and QRM

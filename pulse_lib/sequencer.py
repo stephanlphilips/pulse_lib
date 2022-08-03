@@ -1,3 +1,4 @@
+import matplotlib.pyplot as pt
 from qcodes import Parameter
 
 from .schedule.hardware_schedule import HardwareSchedule
@@ -422,6 +423,25 @@ class sequencer():
             index = self.sweep_index[::-1]
         self._validate_index(index)
         self.uploader.play(self.id, index, release)
+
+
+    def plot(self, index=None, segments=None, awg_output=True):
+        '''
+        Plot sequence for specified index and segments.
+        Args:
+            index (tuple): index in sequence. If None use last index set via sweep params.
+            segments (list[int]): indices of segments to plot. If None, plot all.
+            awg_output (bool): if True plot output of AWGs, else plot virtual data.
+        '''
+        if index is None:
+            index = self.sweep_index[::-1]
+
+        if segments is None:
+            segments = range(len(self.sequence))
+        for s in segments:
+            pt.figure()
+            pt.title(f'Segment {s} index:{index}')
+            self.sequence[s].plot(index, render_full=awg_output)
 
     def get_measurement_results(self, index=None, iq_complex=True):
         '''
