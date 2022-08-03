@@ -43,12 +43,12 @@ class setpoint_mgr():
         return output
 
     def __str__(self):
-        content = "\rSetpoint_mgr class. Contained data:\r\r"
+        content = "\nSetpoint_mgr class. Contained data:\n"
 
         for key in sorted(self._setpoints.keys()):
-            content += "axis : {}\r".format(key)
+            content += "axis : {}\n".format(key)
             content += self._setpoints[key].__str__()
-            content += "\r\r"
+            content += "\n"
 
         return content
 
@@ -120,6 +120,10 @@ class setpoint_mgr():
             else:
                 setpnts += (None, )
         return setpnts
+
+    @property
+    def axis(self):
+        return list(sorted(self._setpoints.keys()))
 
 
 @dataclass
