@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.5.2] - 2022-08-03
+
+### Fixed
+- sequencer.get_channel_data and get_measurement_param when using play() with index
+  as done by core-tools.
+
 ## \[1.5.1] - 2022-08-03
 ### Added
 - Added sequencer.plot()

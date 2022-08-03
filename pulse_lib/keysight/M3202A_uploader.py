@@ -270,7 +270,8 @@ class M3202A_Uploader:
 
     def get_channel_data(self, seq_id, index):
         acq_desc = self.acq_description
-        if acq_desc.seq_id != seq_id or acq_desc.index != index:
+        if (acq_desc.seq_id != seq_id
+            or (index is not None and acq_desc.index != index)):
             raise Exception(f'Data for index {index} not available')
 
         dig_data = {}

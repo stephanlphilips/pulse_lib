@@ -472,9 +472,9 @@ class sequencer():
         '''
         Returns acquisition data in mV per channel in a 1D or 2D array.
         The array is 1D for video mode scans and 2D for single shot measurements.
+        Args:
+            index: If None, use last played sequence index.
         '''
-        if index is None:
-            index = self.sweep_index[::-1]
         return self.uploader.get_channel_data(self.id, index)
 
     def close(self):
