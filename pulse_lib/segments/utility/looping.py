@@ -120,7 +120,7 @@ class loop_obj():
             elif self.ndim == 1 and other.ndim == 1 and self.axis[0] == other.axis[0]:
                 cpy.data += other.data
             else:
-                raise Exception('Adding loop objects not supported')
+                raise Exception(f'Adding loop objects not supported, {self}, {other}')
             # TODO equal axis and multiple dimensions
         else:
             cpy.data += other
