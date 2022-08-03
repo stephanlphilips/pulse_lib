@@ -437,11 +437,27 @@ class segment_container():
             marker_name (str) : name of the marker to add
             t_off (str) : offset to be given from the marker
         '''
-        times = lp.loop_obj(no_setpoints=True)
-        # Look into this inversion of the setpoints
-        times.add_data(self._start_time, axis=list(range(self.ndim -1,-1,-1)))
+        start_time = self._start_time
+        if start_time.shape != (1,):
+            setpoint_data = self.setpoint_data
+            time_shape = []
+            for i in range(start_time.ndim):
+                s = start_time.shape[i]
+                if s > 1:
+                    time_shape.append(s)
+            start_time = start_time.reshape(time_shape)
+            times = lp.loop_obj()
+            times.add_data(start_time, labels=setpoint_data.labels, units=setpoint_data.units,
+                           axis=setpoint_data.axis, setvals=setpoint_data.setpoints)
+            time = t_off + times
+        else:
+            time = t_off + start_time[0]
 
-        self.add_HVI_variable(marker_name, times + t_off, True)
+#        print('start', type(start_time), start_time)
+#        print('t_off', t_off)
+#        print('time', time)
+
+        self.add_HVI_variable(marker_name, time, True)
 
     def add_HVI_variable(self, marker_name, value, time=False):
         """
@@ -510,11 +526,13 @@ class segment_container():
         if render_full:
             if channels is None:
                 channels = [name for name in self.channels if self[name].type == 'render']
-            self.enter_rendering_mode()
+            render_mode = self.render_mode
+            if not render_mode:
+                self.enter_rendering_mode()
             for channel_name in channels:
                 self[channel_name].plot_segment(index, sample_rate=sample_rate, render_full=render_full)
-            self.exit_rendering_mode()
-
+            if not render_mode:
+                self.exit_rendering_mode()
         else:
             if channels is None:
                 channels = self.channels

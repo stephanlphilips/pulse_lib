@@ -234,10 +234,23 @@ class segment_base():
             marker_name (str) : name of the marker to add
             t_off (str) : offset to be given from the marker
         '''
-        times = loop_obj(no_setpoints=True)
-        times.add_data(self.data.start_time, axis=list(range(self.data.ndim -1,-1,-1)))
+        start_time = self.start_time
+        if start_time.shape != (1,):
+            setpoint_data = self.setpoints
+            time_shape = []
+            for i in range(start_time.ndim):
+                s = start_time.shape[i]
+                if s > 1:
+                    time_shape.append(s)
+            start_time = start_time.reshape(time_shape)
+            times = loop_obj()
+            times.add_data(start_time, labels=setpoint_data.labels, units=setpoint_data.units,
+                           axis=setpoint_data.axis, setvals=setpoint_data.setpoints)
+            time = t_off + times
+        else:
+            time = t_off + start_time[0]
 
-        self.add_HVI_variable(marker_name, times + t_off, True)
+        self.add_HVI_variable(marker_name, time, True)
 
     def add_HVI_variable(self, marker_name, value, time=False):
         """
@@ -407,7 +420,7 @@ class segment_base():
         if render_full == True:
             pulse_data_curr_seg = self._get_data_all_at(index)
         else:
-            pulse_data_curr_seg = self.data[map_index(index, self.shape)]
+            pulse_data_curr_seg = self.data[map_index(index, self.data.shape)]
 
         line = '-' if self.type == 'render' else ':'
         y = pulse_data_curr_seg.render(sample_rate)
