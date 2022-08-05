@@ -97,10 +97,10 @@ The acquired data can be retrieved with the acquisition parameter. This is a qco
 .. code-block:: python
 
     seq = pl.mk_sequence([seg])
-	
-	# NOTE: A hardware schedule must be set for Keysight and Tektronix. See below.
-	# sequence.set_hw_schedule(hw_schedule)
-	
+
+    # NOTE: A hardware schedule must be set for Keysight and Tektronix. See below.
+    # sequence.set_hw_schedule(hw_schedule)
+    
     measurement_param = seq.get_measurement_param()
 
     # upload sequence data to AWG
@@ -125,12 +125,12 @@ There is a set of scripts available in core-tools.
 
 .. code-block:: python
 
-	from core_tools.HVI2.hvi2_schedule_loader import Hvi2ScheduleLoader
+    from core_tools.HVI2.hvi2_schedule_loader import Hvi2ScheduleLoader
 
     seq = pl.mk_sequence([seg])
-	
-	hw_schedule = Hvi2ScheduleLoader(pl, 'SingleShot', digitizer)
-	sequence.set_hw_schedule(hw_schedule)
+
+    hw_schedule = Hvi2ScheduleLoader(pl, 'SingleShot', digitizer)
+    sequence.set_hw_schedule(hw_schedule)
 
 
 Tektronix + M4i hardware schedule
@@ -138,24 +138,24 @@ Tektronix + M4i hardware schedule
 
 .. code-block:: python
 
-	from pulse_lib.schedule.tektronix_schedule import TektronixSchedule
+    from pulse_lib.schedule.tektronix_schedule import TektronixSchedule
 
     seq = pl.mk_sequence([seg])
-	
-	hw_schedule = TektronixSchedule(pl)
-	sequence.set_hw_schedule(hw_schedule)
+
+    hw_schedule = TektronixSchedule(pl)
+    sequence.set_hw_schedule(hw_schedule)
 
 Tektronix + ATS hardware schedule
 /////////////////////////////////
 
 .. code-block:: python
 
-	from pulse_lib.schedule.tektronix_schedule import TektronixAtsSchedule
+    from pulse_lib.schedule.tektronix_schedule import TektronixAtsSchedule
 
     seq = pl.mk_sequence([seg])
-	
-	hw_schedule = TektronixAtsSchedule(pl, acquisition_controller)
-	sequence.set_hw_schedule(hw_schedule)
+
+    hw_schedule = TektronixAtsSchedule(pl, acquisition_controller)
+    sequence.set_hw_schedule(hw_schedule)
 
 
 Tektronix + ATS hardware schedule
@@ -163,11 +163,11 @@ Tektronix + ATS hardware schedule
 
 .. code-block:: python
 
-	from pulse_lib.schedule.tektronix_schedule import TektronixUHFLISchedule
+    from pulse_lib.schedule.tektronix_schedule import TektronixUHFLISchedule
 
     seq = pl.mk_sequence([seg])
-	
-	hw_schedule = TektronixUHFLISchedule(pl, lockin, seq.n_reps)
-	sequence.set_hw_schedule(hw_schedule)
+
+    hw_schedule = TektronixUHFLISchedule(pl, lockin, seq.n_reps)
+    sequence.set_hw_schedule(hw_schedule)
 
 
