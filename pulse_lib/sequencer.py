@@ -351,6 +351,8 @@ class sequencer():
 
 
     def get_acquisition_param(self, name, upload=None, n_triggers=None): # @@@ remove
+        if not self.configure_digitizer:
+            raise Exception('configure_digitizer not set')
         if upload == 'auto':
             reader = SequencePlayer(self)
         else:
@@ -373,6 +375,8 @@ class sequencer():
                               raw=True, states=True, values=True,
                               selectors=True, total_selected=True, accept_mask=True,
                               iq_complex=True):
+        if not self.configure_digitizer:
+            raise Exception('configure_digitizer not set')
         # @@@ 'always' vs 'auto'
         if upload == 'auto':
             reader = SequencePlayer(self)
@@ -475,6 +479,8 @@ class sequencer():
         Args:
             index: If None, use last played sequence index.
         '''
+        if not self.configure_digitizer:
+            raise Exception('configure_digitizer not set')
         return self.uploader.get_channel_data(self.id, index)
 
     def close(self):
