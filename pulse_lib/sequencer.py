@@ -351,6 +351,7 @@ class sequencer():
 
 
     def get_acquisition_param(self, name, upload=None, n_triggers=None): # @@@ remove
+        logging.warning('get_acquisition_param is deprecated. Use get_measurement_param')
         if not self.configure_digitizer:
             raise Exception('configure_digitizer not set')
         if upload == 'auto':
