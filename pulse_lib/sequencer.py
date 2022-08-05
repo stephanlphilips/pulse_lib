@@ -404,17 +404,27 @@ class sequencer():
         if index is None:
             index = self.sweep_index[::-1]
         self._validate_index(index)
-        upload_job = self.uploader.create_job(self.sequence, index, self.id, self.n_rep, self._sample_rate,
-                                              self.neutralize, alignment=self._alignment)
-        upload_job.set_acquisition_conf(self._acquisition_conf)
+        n_failures = 0
+        while True:
+            try:
+                upload_job = self.uploader.create_job(self.sequence, index, self.id,
+                                                      self.n_rep, self._sample_rate,
+                                                      self.neutralize, alignment=self._alignment)
+                upload_job.set_acquisition_conf(self._acquisition_conf)
 
-        if self.hw_schedule is not None:
-            upload_job.add_hw_schedule(self.hw_schedule, self._HVI_variables.item(tuple(index)).HVI_markers)
+                if self.hw_schedule is not None:
+                    hvi_markers = self._HVI_variables.item(tuple(index)).HVI_markers
+                    upload_job.add_hw_schedule(self.hw_schedule, hvi_markers)
 
-        self.uploader.add_upload_job(upload_job)
-
-        return upload_job
-
+                self.uploader.add_upload_job(upload_job)
+                return upload_job
+            except Exception as e:
+                n_failures += 1
+                # '-8019' is a non-recoverable Keysight error
+                if '-8019' in repr(e) or n_failures == 3:
+                    raise Exception(e)
+                logging.warning(f'Sequence upload failed at index {index}; retry #{n_failures}')
+                logging.info('Upload exception', exc_info=True)
 
     def play(self, index=None, release= True):
         '''
@@ -427,7 +437,20 @@ class sequencer():
         if index is None:
             index = self.sweep_index[::-1]
         self._validate_index(index)
-        self.uploader.play(self.id, index, release)
+
+        n_failures = 0
+        while True:
+            try:
+                self.uploader.play(self.id, index, release)
+                return
+            except Exception as e:
+                n_failures += 1
+                # '-8019' is a non-recoverable Keysight error
+                if '-8019' in repr(e) or n_failures == 3:
+                    raise Exception(e)
+                logging.warning(f'Sequence play failed at index {index}; retry #{n_failures}')
+                logging.info('Play exception', exc_info=True)
+                self.upload(index)
 
 
     def plot(self, index=None, segments=None, awg_output=True):
