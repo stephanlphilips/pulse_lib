@@ -440,15 +440,19 @@ class segment_container():
         start_time = self._start_time
         if start_time.shape != (1,):
             setpoint_data = self.setpoint_data
+            axis = setpoint_data.axis
             time_shape = []
             for i in range(start_time.ndim):
                 s = start_time.shape[i]
-                if s > 1:
+                if i in axis:
                     time_shape.append(s)
             start_time = start_time.reshape(time_shape)
             times = lp.loop_obj()
-            times.add_data(start_time, labels=setpoint_data.labels, units=setpoint_data.units,
-                           axis=setpoint_data.axis, setvals=setpoint_data.setpoints)
+            times.add_data(start_time,
+                           labels=setpoint_data.labels[::-1],
+                           units=setpoint_data.units[::-1],
+                           axis=setpoint_data.axis[::-1],
+                           setvals=setpoint_data.setpoints[::-1])
             time = t_off + times
         else:
             time = t_off + start_time[0]

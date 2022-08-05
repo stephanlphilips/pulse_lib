@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.5.3] - 2022-08-05
+
+### Fixed
+- Fixed looping and HVI marker
+- Added retries to sequence upload and play
+
 ## \[1.5.2] - 2022-08-03
 
 ### Fixed
