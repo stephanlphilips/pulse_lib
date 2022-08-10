@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.5.4] - 2022-08-@@@
+
+### Fixed
+- Fixed set_acquisition with t_measure and sample_rate
+
 ## \[1.5.3] - 2022-08-05
 
 ### Fixed

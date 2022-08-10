@@ -271,6 +271,7 @@ class MeasurementConverter:
     def _set_data_raw(self):
         digitizer_channels = self._description.digitizer_channels
         self._raw = []
+        self._raw_split = []
         for m in self._description.measurements:
             if isinstance(m, measurement_acquisition):
                 channel_name = m.acquisition_channel
