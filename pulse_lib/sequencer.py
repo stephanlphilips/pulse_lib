@@ -322,12 +322,15 @@ class sequencer():
             raise Exception('Acquisition parameters cannot be changed after calling  '
                             'get_measurement_results or get_measurement_param')
         conf = self._acquisition_conf
+        update_num_samples = False
         if t_measure:
             conf.t_measure = t_measure
             if sample_rate or conf.sample_rate:
-                self._set_num_samples()
+                update_num_samples = True
         if sample_rate:
             conf.sample_rate = sample_rate
+            update_num_samples = True
+        if update_num_samples:
             self._set_num_samples()
         if channels != []:
             conf.channels = channels
