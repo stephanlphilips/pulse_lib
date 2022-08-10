@@ -5,6 +5,7 @@ All notable changes to Pulselib will be documented in this file.
 
 ### Fixed
 - Fixed set_acquisition with t_measure and sample_rate
+- Fixed get_measurement_param with iq_complex=False
 
 ## \[1.5.3] - 2022-08-05
 
