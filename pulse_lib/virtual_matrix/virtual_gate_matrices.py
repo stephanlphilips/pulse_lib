@@ -93,13 +93,13 @@ class VirtualGateMatrices:
                     not_defined_gates.append(gate)
 
             if len(valid_indices) == 0:
-                logging.warn(f"No valid gates found of the AWG for the virtual gate matrix {name}."
-                             "This virtual gate matrix will be ignored.")
+                logging.warning(f"No valid gates found of the AWG for the virtual gate matrix {name}."
+                                "This virtual gate matrix will be ignored.")
                 return
 
             if len(not_defined_gates):
-                logging.warn(f"Gates {not_defined_gates} of virtual gate matrix {name} "
-                             "are not defined in pulselib and will be ignored.")
+                logging.warning(f"Gates {not_defined_gates} of virtual gate matrix {name} "
+                                "are not defined in pulselib and will be ignored.")
 
             real_gate_names = [real_gate_names[i] for i in valid_indices]
             if keep_squared:

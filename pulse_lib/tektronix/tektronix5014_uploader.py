@@ -324,8 +324,8 @@ class Job(object):
 
     def __del__(self):
         if not self.released:
-            logging.warn(f'Job {self.job_id} ({self.seq_id}-{self.index}) was not released. '
-                         'Automatic release in destructor.')
+            logging.warning(f'Job {self.job_id} ({self.seq_id}-{self.index}) was not released. '
+                            'Automatic release in destructor.')
             self.release()
 
 
@@ -553,7 +553,7 @@ class UploadAggregator:
                 logging.debug(f'generated [{job.index}]{iseg}:{channel_name} {len(wvf)} Sa, in {duration*1000:6.3f} ms')
 
                 if len(wvf) != seg_render.npt:
-                    logging.warn(f'waveform {iseg}:{channel_name} {len(wvf)} Sa <> sequence length {seg_render.npt}')
+                    logging.warning(f'waveform {iseg}:{channel_name} {len(wvf)} Sa <> sequence length {seg_render.npt}')
 
                 i_start = 0
                 if section != seg_render.section:

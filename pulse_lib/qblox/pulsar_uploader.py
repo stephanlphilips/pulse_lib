@@ -422,8 +422,8 @@ class Job(object):
 
     def __del__(self):
         if not self.released:
-            logging.warn(f'Job {self.seq_id}-{self.index} was not released. '
-                         'Automatic release in destructor.')
+            logging.debug(f'Job {self.seq_id}-{self.index} was not released. '
+                          'Automatic release in destructor.')
             self.release()
 
 
