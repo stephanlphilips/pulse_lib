@@ -49,12 +49,12 @@ class DataSelection:
 
 
 class MeasurementParameter(MultiParameter):
-    def __init__(self, name, source, mc, data_filter):
-        setpoints = mc.get_setpoints(data_filter)
+    def __init__(self, name, source, mc, data_selection):
+        setpoints = mc.get_setpoints(data_selection)
         super().__init__(name, **setpoints.__dict__)
         self._source = source
         self._mc = mc
-        self._data_filter = data_filter
+        self._data_selection = data_selection
         self._derived_params = {}
 
     def add_derived_param(self, name, func, label=None, unit='mV',
@@ -129,7 +129,10 @@ class MeasurementParameter(MultiParameter):
                 time = tuple(np.arange(n_samples) * period)
                 sp_names += ('time',)
                 sp_units +=  ('ns',)
-                setpoints += ((time,)*n_rep,)
+                if add_repetitions:
+                    setpoints += ((time,)*n_rep,)
+                else:
+                    setpoints += (time,)
 
             sp_labels = sp_names
             self.setpoints = self.setpoints + (setpoints,)
@@ -150,7 +153,7 @@ class MeasurementParameter(MultiParameter):
         data = self._source.get_channel_data()
         self._mc.set_channel_data(data)
 
-        data = self._mc.get_measurement_data(self._data_filter)
+        data = self._mc.get_measurement_data(self._data_selection)
 
         if len(self._derived_params) > 0:
             data_map = {name:values for name,values in zip(self.names, data)}
@@ -187,42 +190,41 @@ class MeasurementConverter:
         self._generate_setpoints_raw()
         self._generate_setpoints()
 
-    # @@@ add raw average over periods.
-
     def _generate_setpoints_raw(self):
         n_rep = self.n_rep
         digitizer_channels = self._description.digitizer_channels
         for m in self._description.measurements:
-            if isinstance(m, measurement_acquisition):
-                sp_names = ('repetition',)
-                sp_units = ('',)
-                shape = (n_rep,)
-                setpoints = (tuple(np.arange(n_rep)),)
-                if m.n_samples is not None:
-                    period = 1e9/self._sample_rate
-                    time = tuple(np.arange(m.n_samples) * period)
-                    shape += (m.n_samples,)
-                    sp_names += ('time',)
-                    sp_units +=  ('ns',)
-                    setpoints += ((time,)*n_rep,)
-                channel_name = m.acquisition_channel
-                channel = digitizer_channels[channel_name]
+            if not isinstance(m, measurement_acquisition):
+                continue
+            sp_names = ('repetition',)
+            sp_units = ('',)
+            shape = (n_rep,)
+            setpoints = (tuple(np.arange(n_rep)),)
+            if m.n_samples is not None:
+                period = 1e9/self._sample_rate
+                time = tuple(np.arange(m.n_samples) * period)
+                shape += (len(time),)
+                sp_names += ('time',)
+                sp_units +=  ('ns',)
+                setpoints += ((time,)*n_rep,)
+            channel_name = m.acquisition_channel
+            channel = digitizer_channels[channel_name]
 
-                name = f'{m.name}'
-                label = f'{m.name} ({channel_name}:{m.index})'
-                sp_raw = SetpointsSingle(name, label, 'mV', shape, setpoints,
-                                         sp_names, sp_names, sp_units)
-                self.sp_raw.append(sp_raw)
+            name = f'{m.name}'
+            label = f'{m.name} ({channel_name}:{m.index})'
+            sp_raw = SetpointsSingle(name, label, 'mV', shape, setpoints,
+                                     sp_names, sp_names, sp_units)
+            self.sp_raw.append(sp_raw)
 
-                if channel.iq_out:
-                    for suffix in ['_I', '_Q']:
-                        name = f'{m.name}{suffix}'
-                        label = f'{m.name}{suffix} ({channel_name}{suffix}:{m.index})'
-                        sp_raw = SetpointsSingle(name, label, 'mV', shape, setpoints,
-                                                 sp_names, sp_names, sp_units)
-                        self.sp_raw_split.append(sp_raw)
-                else:
+            if channel.iq_out:
+                for suffix in ['_I', '_Q']:
+                    name = f'{m.name}{suffix}'
+                    label = f'{m.name}{suffix} ({channel_name}{suffix}:{m.index})'
+                    sp_raw = SetpointsSingle(name, label, 'mV', shape, setpoints,
+                                             sp_names, sp_names, sp_units)
                     self.sp_raw_split.append(sp_raw)
+            else:
+                self.sp_raw_split.append(sp_raw)
 
 
     def _generate_setpoints(self):
