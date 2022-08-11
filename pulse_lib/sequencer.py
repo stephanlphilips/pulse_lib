@@ -379,6 +379,79 @@ class sequencer():
                               raw=True, states=True, values=True,
                               selectors=True, total_selected=True, accept_mask=True,
                               iq_complex=True):
+        '''
+        Returns a qcodes MultiParameter with an entry per measurement, i.e. per acquire call.
+        The data consists of raw data and derived data.
+        The arguments of this method and the acquire call determine
+        which entries are present in the parameter.
+
+        For a call `acquire(start, t_measure, ref=name, threshold=threshold,
+        accept_if=condition)`, the parameter can contain the
+        following entries:
+            "{name}":
+                Raw data of the acquire call in mV.
+                1D array with length n repetitions not a time trace.
+                When sample_rate is set with set_acquisition(sample_rate=sr),
+                then the data contains time traces in a 2D array indexed
+                [index_repetition][time_step].
+                Only present when `raw=True` and `iq_complex=True` or
+                channel contains IQ data.
+            "{name}_I":
+                Similar to "{name}", but contains I component of IQ.
+                Only present when channel contains IQ data,
+                `raw=True`, and `iq_complex=False`.
+            "{name}_Q":
+                Similar to "{name}", but contains Q component of IQ.
+                Only present when channel contains IQ data,
+                `raw=True`, and `iq_complex=False`.
+            "{name}_state":
+                Qubit states in 1 D array.
+                Only present when `states=True`, threshold is set,
+                and accept_if is None.
+            "{name}_frac":
+                Fraction of qubit states == 1 in scalar value in range [0, 1].
+                A value is only added to this average when all selectors (accept_if)
+                have the required value.
+                Only present when `values=True`, threshold is set,
+                and accept_if is None.
+            "{name}_selected":
+                The qubit state of the measurements with an accept_if
+                condition returned in a 1D array.
+                Only present when `selectors=True`, threshold is set,
+                and accept_if is set.
+
+            "total_selected":
+                The number of accepted sequence shots.
+                A shot is accepted when all selectors have the required value.
+                Only present when there is a least 1 measurement with
+                accept_if condition set, and `total_selected=True`.
+            "mask":
+                A 1D array indicating per shot whether it is accepted (1) or
+                rejected (0).
+                Only present when there is a least 1 measurement with
+                accept_if condition set, and `accept_mask=True`.
+
+        Args:
+            name (str): name of the qcodes parameter.
+            upload (str):
+                If 'auto' uploads, plays and retrieves data.
+                Otherwise only retrieves data.
+            raw (bool):
+                If True return raw measurement data.
+            states (bool): If True return the qubit state after applying threshold.
+            values (bool): If True returns the fraction of qubits with state = |1>.
+            selectors (bool):
+                If True returns the qubit state of the measurements that
+                have the argument `accept_if` defined in the acquire call.
+            total_selected (bool):
+                If True returns the number of accepted sequence shots.
+                A shot is accepted when all selectors have the required value.
+            accept_mask (bool):
+                If True returns per shot whether it is accepted or not.
+            iq_complex (bool):
+                If True return IQ data as complex value in raw data.
+
+        '''
         if not self.configure_digitizer:
             raise Exception('configure_digitizer not set')
         # @@@ 'always' vs 'auto'
@@ -474,18 +547,91 @@ class sequencer():
             pt.title(f'Segment {s} index:{index}')
             self.sequence[s].plot(index, render_full=awg_output)
 
-    def get_measurement_results(self, index=None, iq_complex=True):
+    def get_measurement_results(self, index=None,
+                                raw=True, states=True, values=True,
+                                selectors=True, total_selected=True,
+                                accept_mask=True, iq_complex=True):
         '''
-        Returns data per measurement.
-        Raw & state
-        Raw = complex
-        No averaging over repetitions.
+        Returns data per measurement, i.e. per acquire call.
+        The data consists of raw data and derived data.
+        The arguments of this method and the acquire call determine
+        which keys are present in the returned dictionary.
+
+        For a call `acquire(start, t_measure, ref=name, threshold=threshold,
+        accept_if=condition)`, the returned dictionary can contain the
+        following entries:
+            "{name}":
+                Raw data of the acquire call in mV.
+                1D array with length n repetitions not a time trace.
+                When sample_rate is set with set_acquisition(sample_rate=sr),
+                then the data contains time traces in a 2D array indexed
+                [index_repetition][time_step].
+                Only present when `raw=True` and `iq_complex=True` or
+                channel contains IQ data.
+            "{name}_I":
+                Similar to "{name}", but contains I component of IQ.
+                Only present when channel contains IQ data,
+                `raw=True`, and `iq_complex=False`.
+            "{name}_Q":
+                Similar to "{name}", but contains Q component of IQ.
+                Only present when channel contains IQ data,
+                `raw=True`, and `iq_complex=False`.
+            "{name}_state":
+                Qubit states in 1 D array.
+                Only present when `states=True`, threshold is set,
+                and accept_if is None.
+            "{name}_frac":
+                Fraction of qubit states == 1 in scalar value in range [0, 1].
+                A value is only added to this average when all selectors (accept_if)
+                have the required value.
+                Only present when `values=True`, threshold is set,
+                and accept_if is None.
+            "{name}_selected":
+                The qubit state of the measurements with an accept_if
+                condition returned in a 1D array.
+                Only present when `selectors=True`, threshold is set,
+                and accept_if is set.
+
+            "total_selected":
+                The number of accepted sequence shots.
+                A shot is accepted when all selectors have the required value.
+                Only present when there is a least 1 measurement with
+                accept_if condition set, and `total_selected=True`.
+            "mask":
+                A 1D array indicating per shot whether it is accepted (1) or
+                rejected (0).
+                Only present when there is a least 1 measurement with
+                accept_if condition set, and `accept_mask=True`.
+
+        Args:
+            index (tuple[int, ..]):
+                index in sequence when sweeping parameters. If None uses
+                the index of the last play call.
+            raw (bool):
+                If True return raw measurement data.
+            states (bool): If True return the qubit state after applying threshold.
+            values (bool): If True returns the fraction of qubits with state = |1>.
+            selectors (bool):
+                If True returns the qubit state of the measurements that
+                have the argument `accept_if` defined in the acquire call.
+            total_selected (bool):
+                If True returns the number of accepted sequence shots.
+                A shot is accepted when all selectors have the required value.
+            accept_mask (bool):
+                If True returns per shot whether it is accepted or not.
+            iq_complex (bool):
+                If True return IQ data as complex value in raw data.
+
         '''
         if index is None:
             index = self.sweep_index[::-1]
         mc = self._get_measurement_converter()
         mc.set_channel_data(self.get_channel_data(index))
-        return mc.get_all_measurements(iq_complex=iq_complex)
+        selection = DataSelection(raw=raw, states=states, values=values,
+                                  selectors=selectors, total_selected=total_selected,
+                                  accept_mask=accept_mask,
+                                  iq_complex=iq_complex)
+        return mc.get_measurements(selection)
 
     def get_measurement_data(self, index=None):
         '''
@@ -501,8 +647,16 @@ class sequencer():
 
     def get_channel_data(self, index=None):
         '''
-        Returns acquisition data in mV per channel in a 1D or 2D array.
-        The array is 1D for video mode scans and 2D for single shot measurements.
+        Returns acquisition data in mV per channel in a 1D or 2D array, depending
+        on the average_repetitions setting. See set_acquisition().
+
+        Video mode will generally use average_repetitions = True and thus return 1D data.
+
+        The 2D data is arranged as [index_repetition][index_sample].
+        The data of all acquire calls in a sequence is concatenated to one array.
+        The methods get_measurement_result() and get_measurement_param() return
+        the data per acquire call.
+
         Args:
             index: If None, use last played sequence index.
         '''

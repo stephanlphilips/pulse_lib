@@ -3,6 +3,10 @@ All notable changes to Pulselib will be documented in this file.
 
 ## \[1.5.4] - 2022-08-@@@
 
+### Added
+- Added endpoint to looping.linspace, logspace and geomspace.
+- Added more data selection options to get_measurement_results()
+
 ### Fixed
 - Fixed set_acquisition with t_measure and sample_rate
 - Fixed get_measurement_param with iq_complex=False

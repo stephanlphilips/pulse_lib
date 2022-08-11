@@ -47,7 +47,6 @@ class DataSelection:
     accept_mask: bool = False
     iq_complex: bool =True
 
-# TODO @@@ allow derived data
 
 class MeasurementParameter(MultiParameter):
     def __init__(self, name, source, mc, data_filter):
@@ -187,7 +186,6 @@ class MeasurementConverter:
         self.sp_mask = []
         self._generate_setpoints_raw()
         self._generate_setpoints()
-        self._collect_names()
 
     # @@@ add raw average over periods.
 
@@ -258,15 +256,25 @@ class MeasurementConverter:
                                                 ('repetition', ), ('repetition',), ('', )))
             self.sp_total.append(SetpointsSingle('total_selected', 'total_selected', '#'))
 
-    def _collect_names(self):
-        self._names = []
-        for sp in (self.sp_raw + self.sp_states + self.sp_values
-                   + self.sp_selectors + self.sp_total + self.sp_mask):
-            self._names.append(sp.name)
-        self._names_split = []
-        for sp in (self.sp_raw_split + self.sp_states + self.sp_values
-                   + self.sp_selectors + self.sp_total + self.sp_mask):
-            self._names_split.append(sp.name)
+    def _get_names(self, selection):
+        sp_list = []
+        if selection.raw:
+            if selection.iq_complex:
+                sp_list += self.sp_raw
+            else:
+                sp_list += self.sp_raw_split
+        if selection.states:
+            sp_list += self.sp_states
+        if selection.values:
+            sp_list += self.sp_values
+        if selection.selectors:
+            sp_list += self.sp_selectors
+        if selection.total_selected:
+            sp_list += self.sp_total
+        if selection.accept_mask:
+            sp_list += self.sp_mask
+        names = [sp.name for sp in sp_list]
+        return names
 
     def _set_data_raw(self):
         digitizer_channels = self._description.digitizer_channels
@@ -326,7 +334,6 @@ class MeasurementConverter:
         self._selectors = selectors
         self._values = [np.sum(result*accepted_mask)/total_selected for result in values_unfiltered]
 
-
     def set_channel_data(self, data):
         self._channel_raw = data
         self._set_data_raw()
@@ -370,15 +377,11 @@ class MeasurementConverter:
             data += self._accepted
         return data
 
-    def get_all_measurements(self, iq_complex=True):
-        selection = DataSelection(raw=True, states=True, values=True,
-                                  selectors=True, total_selected=True,
-                                  accept_mask=True, iq_complex=iq_complex)
+    def get_measurements(self, selection):
         result = {}
-        names = self._names if iq_complex else self._names_split
-        for name,value in zip(names, self.get_measurement_data(selection)):
+        for name,value in zip(self._get_names(selection),
+                              self.get_measurement_data(selection)):
             result[name] = value
         return result
-
 
 
