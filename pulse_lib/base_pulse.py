@@ -316,7 +316,7 @@ class pulselib:
             virtual_channel_name (str) : channel name (e.g. qubit_1)
             LO_freq (float) : frequency of the qubit when not driving and default for driving.
             correction_phase (float) : phase in rad added to Q component of IQ channel
-            correction_gain (float) : correction of I and Q amplitude
+            correction_gain (tuple[float, float]) : correction of I and Q amplitude
         """
         iq_channel = self.IQ_channels[IQ_channel_name]
         qubit = QubitChannel(qubit_channel_name, reference_frequency, iq_channel,
