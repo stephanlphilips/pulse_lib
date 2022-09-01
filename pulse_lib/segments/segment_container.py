@@ -100,6 +100,7 @@ class segment_container():
                 raise ValueError(f'Unknown channel {index}')
             return getattr(self, index)
         elif isinstance(index, int):
+            # TODO @@@ use numpy style slicing instead of only index.
             new = segment_container([])
 
             new._virtual_gate_matrices = self._virtual_gate_matrices
@@ -116,7 +117,7 @@ class segment_container():
 
             new.render_mode = copy.copy(self.render_mode)
             new._Vmin_max_data = copy.copy(self._Vmin_max_data)
-            new._software_markers =self._software_markers
+            new._software_markers =self._software_markers[index]
             new._setpoints = self._setpoints
 
             # update the references in of all the channels
