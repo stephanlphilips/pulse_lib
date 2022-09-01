@@ -113,8 +113,10 @@ Qubit channels (MW channels)
     # frequency of the MW source
     IQ_pair_1.set_LO(lo_freq)
 
-    # add channel for qubit q1
+    # add channel for qubit q1 with idle frequency 3.213 GHz
     IQ_pair_1.add_virtual_IQ_channel("q1", 3.213e9)
+    # add channel for qubit q2 with idle frequency 3.386 GHz
+    IQ_pair_1.add_virtual_IQ_channel("q2", 3.386e9)
 
 IQ phase-gain compensation
 Offset
