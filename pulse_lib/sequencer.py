@@ -180,7 +180,10 @@ class sequencer():
         # Set the waveform cache equal to the sum over all channels and segments of the max axis length.
         # The cache will than be big enough for 1D iterations along every axis. This gives best performance
         total_axis_length = 0
+        n_samples = 0
         for seg_container in self.sequence:
+            sr = seg_container.sample_rate if seg_container.sample_rate else 1e9
+            n_samples = max(n_samples, np.max(seg_container.total_time) * 1e9 / sr)
             if not isinstance(seg_container, conditional_segment):
                 for channel_name in seg_container.channels:
                     shape = seg_container[channel_name].data.shape
@@ -190,7 +193,11 @@ class sequencer():
                     for channel_name in branch.channels:
                         shape = branch[channel_name].data.shape
                         total_axis_length += max(shape)
-        parent_data.set_waveform_cache_size(total_axis_length)
+        # limit cache to 8 GB
+        max_cache = int(1e9 / n_samples)
+        cache_size = min(total_axis_length, max_cache)
+        logging.info(f'waveform cache: {cache_size} waveforms of max {n_samples} samples')
+        parent_data.set_waveform_cache_size(cache_size)
 
         self._shape = tuple(self._shape)
         self._sweep_index = [0]*self.ndim
