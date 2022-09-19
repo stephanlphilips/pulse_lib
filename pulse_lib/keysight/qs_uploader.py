@@ -299,7 +299,8 @@ class QsUploader:
         schedule_params.update(acquire_triggers)
         schedule_params.update(trigger_channels)
         job.hw_schedule.set_configuration(schedule_params, job.n_waveforms)
-        job.hw_schedule.start(job.playback_time, job.n_rep, schedule_params)
+        n_rep = job.n_rep if job.n_rep else 1
+        job.hw_schedule.start(job.playback_time, n_rep, schedule_params)
 
         if release_job:
             job.release()

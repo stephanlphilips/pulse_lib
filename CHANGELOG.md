@@ -1,15 +1,19 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.5.4] - 2022-08-@@@
+## \[1.5.4] - 2022-09-@@@
 
 ### Added
 - Added endpoint to looping.linspace, logspace and geomspace.
 - Added more data selection options to get_measurement_results()
 
+### Changed
+- Do not add axis 'repetition' if sequencer.n_rep == None.
+
 ### Fixed
 - Fixed set_acquisition with t_measure and sample_rate
 - Fixed get_measurement_param with iq_complex=False
+- Fixed high memory usage due to unlimited waveform cache.
 
 ## \[1.5.3] - 2022-08-05
 

@@ -312,7 +312,7 @@ class PulsarUploader:
                 ch = in_ch[0]
                 result[channel_name] = raw[ch]
 
-        if not acq_desc.average_repetitions:
+        if not acq_desc.average_repetitions and acq_desc.n_rep:
             for key,value in result.items():
                 result[key] = value.reshape((acq_desc.n_rep, -1))
 
@@ -740,7 +740,7 @@ class UploadAggregator:
         else:
             trigger_period = None
 
-        if acq_conf.average_repetitions:
+        if acq_conf.average_repetitions or not job.n_rep:
             n_rep = 1
         else:
             n_rep = job.n_rep
@@ -794,7 +794,7 @@ class UploadAggregator:
         name = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         self.program = self.q1instrument.new_program(name)
         job.program = self.program
-        self.program.repetitions = job.n_rep
+        self.program.repetitions = job.n_rep if job.n_rep else 1
 
         self.program._timeline.disable_update() # @@@ Yuk
 

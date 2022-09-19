@@ -181,7 +181,8 @@ class Tektronix5014_Uploader:
         self._delete_released_waveforms()
 
         job.hw_schedule.set_configuration(job.schedule_params, job.n_waveforms)
-        job.hw_schedule.start(job.playback_time, job.n_rep, job.schedule_params)
+        n_rep = job.n_rep if job.n_rep else 1
+        job.hw_schedule.start(job.playback_time, n_rep, job.schedule_params)
 
         if release_job:
             job.release()

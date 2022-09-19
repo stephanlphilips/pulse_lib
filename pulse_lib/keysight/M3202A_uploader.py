@@ -163,7 +163,8 @@ class M3202A_Uploader:
             dig_name = channel_conf.module_name
             dig = self.digitizers[dig_name]
             for ch in channel_conf.channel_numbers:
-                dig.set_daq_settings(ch, n_triggers*job.n_rep, t_measure,
+                n_rep = job.n_rep if job.n_rep else 1
+                dig.set_daq_settings(ch, n_triggers*n_rep, t_measure,
                                      downsampled_rate=sample_rate)
                 enabled_channels.setdefault(dig_name, []).append(ch)
 
@@ -263,7 +264,8 @@ class M3202A_Uploader:
         schedule_params.update(acquire_triggers)
         schedule_params.update(trigger_channels)
         job.hw_schedule.set_configuration(schedule_params, job.n_waveforms)
-        job.hw_schedule.start(job.playback_time, job.n_rep, schedule_params)
+        n_rep = job.n_rep if job.n_rep else 1
+        job.hw_schedule.start(job.playback_time, n_rep, schedule_params)
 
         if release_job:
             job.release()
@@ -303,7 +305,7 @@ class M3202A_Uploader:
 
             result[channel_name] = raw_ch
 
-        if not acq_desc.average_repetitions:
+        if not acq_desc.average_repetitions and acq_desc.n_rep:
             for key,value in result.items():
                 result[key] = value.reshape((acq_desc.n_rep, -1))
 

@@ -67,6 +67,12 @@ class sequencer():
 
     @property
     def n_rep(self):
+        '''
+        Number times the sequence is repeated.
+        If None or 0 the sequence is executed 1 time and the dimension 'repetition' will
+        not be present in the measurement data.
+        If n_rep is 1 then the dimension 'repetition' will be present in the measurement data.
+        '''
         return self._n_rep
 
     @n_rep.setter
@@ -374,7 +380,7 @@ class sequencer():
 
         param = AcquisitionParam(reader, name,
                  acq_channels,
-                 n_rep=self.n_rep if self.n_rep > 1 else None,
+                 n_rep=self.n_rep if self.n_rep and self.n_rep > 1 else None,
                  n_triggers=n_triggers,
                  t_measure=conf.t_measure,
                  sample_rate=conf.sample_rate,
@@ -655,7 +661,7 @@ class sequencer():
     def get_channel_data(self, index=None):
         '''
         Returns acquisition data in mV per channel in a 1D or 2D array, depending
-        on the average_repetitions setting. See set_acquisition().
+        on the average_repetitions setting and n_rep. See set_acquisition().
 
         Video mode will generally use average_repetitions = True and thus return 1D data.
 
