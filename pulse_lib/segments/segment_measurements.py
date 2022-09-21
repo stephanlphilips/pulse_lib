@@ -71,6 +71,10 @@ class segment_measurements:
     def __getitem__(self, item):
         raise NotImplementedError()
 
-    def __copy__(self):
-        raise NotImplementedError()
+    def __add__(self, other):
+        if (len(self._measurements) > 0
+            or len(other._measurements) > 0):
+            raise Exception(f'Measurements cannot (yet) be combined')
+        return self
+
 

@@ -6,6 +6,8 @@ All notable changes to Pulselib will be documented in this file.
 ### Added
 - Added endpoint to looping.linspace, logspace and geomspace.
 - Added more data selection options to get_measurement_results()
+- Added addition of segment_containers to construct simultaneous driving
+- Added sequence_builder.add_simultaneous()
 
 ### Changed
 - Do not add axis 'repetition' if sequencer.n_rep == None.

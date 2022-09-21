@@ -127,7 +127,6 @@ class segment_container():
         raise KeyError(index)
 
 
-
     def __copy__(self):
         new = segment_container([])
 
@@ -144,10 +143,20 @@ class segment_container():
         new.render_mode = copy.copy(self.render_mode)
         new._Vmin_max_data = copy.copy(self._Vmin_max_data)
         new._software_markers = copy.copy(self._software_markers)
+        new._segment_measurements = copy.copy(self._segment_measurements)
         new._setpoints = copy.copy(self._setpoints)
 
         # update the references in of all the channels
         add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
+
+        return new
+
+    def __add__(self, other):
+        new = self.__copy__()
+        for name in self.channels:
+            setattr(new, name, new[name] + other[name])
+        new._software_markers += other._software_markers
+        new._segment_measurements += other._segment_measurements
 
         return new
 

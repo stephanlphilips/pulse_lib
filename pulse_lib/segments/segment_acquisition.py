@@ -91,14 +91,11 @@ class segment_acquisition():
         return self.data_tmp
 
 
-    def _copy(self, cpy):
-        cpy.type = copy.copy(self.type)
-        cpy.data = copy.copy(self.data)
-
-        # setpoints of the loops (with labels and units)
-        cpy._setpoints = copy.copy(self._setpoints)
-
-        return cpy
+    def __add__(self, other):
+        if (len(self._measurement_segment._measurements) > 0
+            or len(other._measurement_segment._measurements) > 0):
+            raise Exception(f'Measurements cannot (yet) be combined')
+        return segment_acquisition(self.name, self._measurement_segment)
 
     @loop_controller
     def reset_time(self, time=None, extend_only = False):
