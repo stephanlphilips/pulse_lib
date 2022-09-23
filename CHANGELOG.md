@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.5.4] - 2022-09-@@@
+## \[1.5.4] - 2022-09-23
 
 ### Added
 - Added endpoint to looping.linspace, logspace and geomspace.
