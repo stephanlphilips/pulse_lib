@@ -131,7 +131,7 @@ class MeasurementParameter(MultiParameter):
                 time = tuple(np.arange(n_samples) * period)
                 setpoints.append(time, 'time', 'time', 'ns')
 
-            self.setpoints = self.setpoints + setpoints.setpoints
+            self.setpoints = self.setpoints + (setpoints.setpoints,)
             self.setpoint_names = self.setpoint_names + (setpoints.setpoint_names,)
             self.setpoint_labels = self.setpoint_labels + (setpoints.setpoint_labels,)
             self.setpoint_units = self.setpoint_units + (setpoints.setpoint_units,)

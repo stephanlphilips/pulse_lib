@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.5.5] - 2022-09-27
+
+### Fixed
+- Incorrect setpoints in measurement_param.add_derived_param.
+
 ## \[1.5.4] - 2022-09-23
 
 ### Added
