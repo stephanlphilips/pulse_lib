@@ -772,6 +772,8 @@ class UploadAggregator:
                                          PulsarConfig.align(acquisition.interval))
                 elif trigger_period:
                     n_cycles = max(1, iround(t_measure / trigger_period))
+                    if n_cycles < 1:
+                        raise Exception(f'{channel_name} acquisition t_measure < {trigger_period} (1/sample_rate)')
                     seq.repeated_acquire(t, trigger_period, n_cycles, trigger_period)
                 else:
                     seq.acquire(t, t_measure)
