@@ -81,8 +81,10 @@ class segment_container():
         # define virtual IQ channels
         for IQ_channels_obj in IQ_channels_objs:
             for qubit_channel in IQ_channels_obj.qubit_channels:
-                setattr(self, qubit_channel.channel_name, segment_IQ(qubit_channel.channel_name, self._software_markers))
-                self.channels.append(qubit_channel.channel_name)
+                channel_name = qubit_channel.channel_name
+                setattr(self, channel_name,
+                        segment_IQ(channel_name, qubit_channel, self._software_markers))
+                self.channels.append(channel_name)
 
         # add the reference between channels for baseband pulses (->virtual gates) and IQ channels.
         add_reference_channels(self, self._virtual_gate_matrices, self._IQ_channel_objs)
@@ -607,17 +609,17 @@ def add_reference_channels(segment_container_obj, virtual_gate_matrices, IQ_chan
     for IQ_channels_obj in IQ_channels_objs:
         # set up maping to real IQ channels:
         for IQ_out_channel in IQ_channels_obj.IQ_out_channels:
-            real_channel = getattr(segment_container_obj, IQ_out_channel.awg_channel_name)
+            real_channel = segment_container_obj[IQ_out_channel.awg_channel_name]
             for qubit_channel in IQ_channels_obj.qubit_channels:
-                virtual_channel = getattr(segment_container_obj, qubit_channel.channel_name)
-                real_channel.add_IQ_channel(virtual_channel, qubit_channel, IQ_out_channel, IQ_channels_obj.LO)
+                virtual_channel = segment_container_obj[qubit_channel.channel_name]
+                real_channel.add_IQ_channel(virtual_channel, IQ_out_channel)
 
         # set up markers
         for marker_name in IQ_channels_obj.marker_channels:
-            real_channel_marker = getattr(segment_container_obj, marker_name)
+            real_channel_marker = segment_container_obj[marker_name]
 
             for qubit_channel in IQ_channels_obj.qubit_channels:
-                virtual_channel = getattr(segment_container_obj, qubit_channel.channel_name)
+                virtual_channel = segment_container_obj[qubit_channel.channel_name]
                 real_channel_marker.add_reference_marker_IQ(virtual_channel)
 
 
@@ -627,7 +629,8 @@ if __name__ == '__main__':
 
     seg = segment_container(["a", "b", "c", "d"])
     # b = segment_container(["a", "b"])
-    chan_q1 = segment_IQ("q1")
+    q1_channel = QubitChannel('q1', None, None)
+    chan_q1 = segment_IQ("q1", q1_channel)
     setattr(seg, "q1", chan_q1)
 
     chan_M = segment_marker("M1")
@@ -636,11 +639,10 @@ if __name__ == '__main__':
     seg.channels.append("M1")
     # print(seg.channels)
     # print(seg.q1)
-    q1_channel = QubitChannel('q1', None, None)
     I_out = IQ_out_channel_info('AWG1_I', 'I', '+')
     Q_out = IQ_out_channel_info('AWG1_Q', 'Q', '+')
-    seg.a.add_IQ_channel(seg.q1, q1_channel, I_out, 1.0e9)
-    seg.b.add_IQ_channel(seg.q1, q1_channel, Q_out, 1.0e9)
+    seg.a.add_IQ_channel(seg.q1, I_out)
+    seg.b.add_IQ_channel(seg.q1, Q_out)
 
     seg.M1.add_reference_marker_IQ(seg.q1)
 

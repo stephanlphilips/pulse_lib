@@ -643,7 +643,7 @@ class pulse_data(parent_data):
         return elements
 
 
-    def _render(self, sample_rate, ref_channel_states):
+    def _render(self, sample_rate, ref_channel_states, LO):
         '''
         make a full rendering of the waveform at a predetermined sample rate.
         '''
@@ -686,6 +686,11 @@ class pulse_data(parent_data):
             # max amp, freq and phase.
             amp  =  IQ_data_single_object.amplitude
             freq =  IQ_data_single_object.frequency
+            if LO:
+                freq -= LO
+            if abs(freq) > sample_rate*1e9/2:
+                raise Exception(f'Frequency {freq*1e-6:5.1f} MHz is above Nyquist frequency')
+            # TODO add check on configurable bandwidth.
             phase = IQ_data_single_object.start_phase
             if ref_channel_states and IQ_data_single_object.ref_channel in ref_channel_states.start_phase:
                 ref_start_time = ref_channel_states.start_time

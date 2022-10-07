@@ -172,7 +172,7 @@ class acquisition_data(parent_data):
     def __mul__(self, rhs):
         raise NotImplementedError()
 
-    def _render(self, sample_rate, ref_channel_states):
+    def _render(self, sample_rate, ref_channel_states, LO):
         '''
         make a full rendering of the waveform at a predermined sample rate.
         '''

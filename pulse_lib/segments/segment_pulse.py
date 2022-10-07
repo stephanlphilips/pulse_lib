@@ -3,7 +3,7 @@ Class that is used to make DC pulses.
 """
 import numpy as np
 
-from pulse_lib.configuration.iq_channels import IQ_out_channel_info, QubitChannel
+from pulse_lib.configuration.iq_channels import IQ_out_channel_info
 from pulse_lib.segments.segment_base import last_edited, segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller
 from pulse_lib.segments.data_classes.data_pulse import pulse_data, custom_pulse_element, pulse_delta
@@ -17,9 +17,7 @@ class IQ_render_info:
     Rendering information for a single IQ channel and a single qubit segment
     '''
     virtual_channel: segment_IQ
-    qubit_channel: QubitChannel
     out_channel: IQ_out_channel_info
-    LO : float
 
 class segment_pulse(segment_base):
     '''
@@ -175,15 +173,14 @@ class segment_pulse(segment_base):
         '''
         self.reference_channels.append(virtual_channel_reference_info)
 
-    def add_IQ_channel(self, virtual_channel, qubit_channel, out_channel, LO):
+    def add_IQ_channel(self, virtual_channel, out_channel):
         '''
         Add a reference to an IQ channel. Same principle as for the virtual one.
         Args:
             virtual_channel (segment_IQ): segment with pulses
-            qubit_channel (QubitChannel): qubit channel definition with o.a. phase correction.
             out_channel (IQ_out_channel_info): defines AWG output channel and settings.
         '''
-        self.IQ_ref_channels.append(IQ_render_info(virtual_channel, qubit_channel, out_channel, LO))
+        self.IQ_ref_channels.append(IQ_render_info(virtual_channel, out_channel))
 
     @last_edited
     @loop_controller

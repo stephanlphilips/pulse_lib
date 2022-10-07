@@ -158,6 +158,8 @@ class IQSequenceBuilder(SequenceBuilderBase):
         waveform.frequency -= self.seq.nco_frequency
 
         if abs(waveform.frequency) > 1:
+            if abs(waveform.frequency) > 400e6:
+                raise Exception(f'Waveform frequency {waveform.frequency/1e6:5.1f} MHz out of range')
             wave_ids = self.register_sinewave_iq(waveform)
             self.seq.shaped_pulse(wave_ids[0], amplitude,
                                   wave_ids[1], amplitude,

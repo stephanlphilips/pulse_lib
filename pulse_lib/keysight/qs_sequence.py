@@ -182,8 +182,12 @@ class IQSequenceBuilder:
             pm_envelope = mw_pulse_data.envelope.get_PM_envelope(duration, 1.0)
             add_pm = not np.all(pm_envelope == 0)
 
+        frequency = mw_pulse_data.frequency - lo_freq
+        if abs(frequency) > 450e6:
+            raise Exception(f'Waveform frequency {frequency/1e6:5.1f} MHz out of range')
+
         waveform = Waveform(mw_pulse_data.amplitude, amp_envelope,
-                            mw_pulse_data.frequency - lo_freq, pm_envelope,
+                            frequency, pm_envelope,
                             mw_pulse_data.start_phase + prephase,
                             -mw_pulse_data.start_phase + postphase,
                             duration, offset)

@@ -322,7 +322,7 @@ class segment_base():
             for ref_chan in self.IQ_ref_channels:
                 my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.virtual_channel.shape)
                 self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape)
-                self._pulse_data_all += ref_chan.virtual_channel.get_IQ_data(ref_chan)
+                self._pulse_data_all += ref_chan.virtual_channel.get_IQ_data(ref_chan.out_channel)
             for ref_chan in self.references_markers:
                 my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.IQ_channel_ptr.shape)
                 self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape)
@@ -384,7 +384,7 @@ class segment_base():
             # Filter reference channels for use in data_pulse cache
             ref_channel_states = copy.copy(ref_channel_states)
             ref_channel_states.start_phases_all = None
-            ref_names = [ref.qubit_channel.channel_name for ref in self.IQ_ref_channels]
+            ref_names = [ref.virtual_channel.name for ref in self.IQ_ref_channels]
             ref_channel_states.start_phase = {key:value
                                               for (key,value) in ref_channel_states.start_phase.items()
                                               if key in ref_names}
@@ -423,7 +423,11 @@ class segment_base():
             pulse_data_curr_seg = self.data[map_index(index, self.data.shape)]
 
         line = '-' if self.type == 'render' else ':'
-        y = pulse_data_curr_seg.render(sample_rate)
+        try:
+            LO = self._qubit_channel.iq_channel.LO
+        except:
+            LO = None
+        y = pulse_data_curr_seg.render(sample_rate, LO=LO)
         x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))
         plt.plot(x, y, line, label=self.name)
         plt.xlabel("time (ns)")

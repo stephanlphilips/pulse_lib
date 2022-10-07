@@ -34,7 +34,7 @@ class segment_IQ(segment_base):
     Standard single segment for IQ purposes
     todo --> add global phase and time shift in the data class instead of this one (cleaner and more generic).
     """
-    def __init__(self, name, HVI_variable_data = None):
+    def __init__(self, name, qubit_channel, HVI_variable_data = None):
         '''
         Args:
             name : name of the IQ segment
@@ -42,8 +42,9 @@ class segment_IQ(segment_base):
 
         Tip, make on of these segments for each qubit. Then you get a very clean implementation of reference frame changes!
         '''
-        # TODO @@@: improve render copying...
-        super().__init__(name, pulse_data(), HVI_variable_data)# ,segment_type = 'IQ_virtual')
+        # @@@ Fix segment_type with looping refactor
+        super().__init__(name, pulse_data(), HVI_variable_data) #, segment_type = 'IQ_virtual')
+        self._qubit_channel = qubit_channel
 
 
     @loop_controller
@@ -110,27 +111,26 @@ class segment_IQ(segment_base):
         self.data_tmp.add_MW_data(MW_data)
         return self.data_tmp
 
-    def get_IQ_data(self, ref_chan):
+    def get_IQ_data(self, out_channel_info):
         '''
         get I and Q data from the main element.
         Args:
-            ref_chan (IQ_render_info): render info like LO and I/Q
+            out_channel_info (IQ_render_info): render info like LO and I/Q
         Returns:
             data (np.ndarray<pulse_data>) : array with the pulsedata objects inside
         '''
-        iq_out = ref_chan.out_channel
-        qubit_channel = ref_chan.qubit_channel
-        LO = ref_chan.LO
+        qubit_channel = self._qubit_channel
+        LO = qubit_channel.iq_channel.LO
 
         phase_shift = 0
-        if iq_out.IQ_comp == 'I':
+        if out_channel_info.IQ_comp == 'I':
             phase_shift += np.pi/2
             correction_gain = qubit_channel.correction_gain[0] if qubit_channel.correction_gain is not None else 1.0
         else:
             if qubit_channel.correction_phase is not None:
                 phase_shift += qubit_channel.correction_phase
             correction_gain = qubit_channel.correction_gain[1] if qubit_channel.correction_gain is not None else 1.0
-        if iq_out.image == '-':
+        if out_channel_info.image == '-':
             phase_shift += np.pi
 
         local_data = copy.copy(self.data).flatten()

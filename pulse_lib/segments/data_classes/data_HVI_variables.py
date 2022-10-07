@@ -24,16 +24,17 @@ class marker_HVI_variable(parent_data):
         return {**self.my_time_data, **self.my_amp_data}
 
     def __getitem__(self, *item):
+        key = item[0]
         try:
-            return self.my_time_data[item[0]]
+            return self.my_time_data[key]
         except:
             pass
         try:
-            return self.my_amp_data[item[0]]
+            return self.my_amp_data[key]
         except:
             pass
 
-        raise ValueError("Asking for HVI variable {}. But this variable is not present in the current data set.".format(item[0]))
+        raise ValueError(f"Asking for HVI variable {key}. But this variable is not present in the current data set.")
 
     def add_HVI_marker(self, name, amplitude, time):
         """
@@ -181,7 +182,7 @@ class marker_HVI_variable(parent_data):
     def __repr__(self):
         return "=== raw data in HVI variable object ===\n\namplitude data ::\n" + str(self.my_amp_data) + "\ntime dep data ::\n" + str(self.my_time_data)
 
-    def _render(self, sample_rate, ref_channel_states):
+    def _render(self, sample_rate, ref_channel_states, LO):
         '''
         make a full rendering of the waveform at a predetermined sample rate.
         '''
