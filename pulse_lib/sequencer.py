@@ -231,7 +231,8 @@ class sequencer():
 
         for i in range(len(self.labels)):
             par_name = self.labels[i].replace(' ','_')
-            set_param = index_param(par_name, self, dim = i)
+            set_param = index_param(par_name, self.labels[i], self.units[i],
+                                    self, dim = i)
             self.params.append(set_param)
             setattr(self, par_name, set_param)
 
@@ -542,13 +543,14 @@ class sequencer():
                 self.upload(index)
 
 
-    def plot(self, index=None, segments=None, awg_output=True):
+    def plot(self, index=None, segments=None, awg_output=True, channels=None):
         '''
         Plot sequence for specified index and segments.
         Args:
             index (tuple): index in sequence. If None use last index set via sweep params.
             segments (list[int]): indices of segments to plot. If None, plot all.
             awg_output (bool): if True plot output of AWGs, else plot virtual data.
+            channels (list[str]): names of channels to plot, if None, plot all.
         '''
         if index is None:
             index = self.sweep_index[::-1]
@@ -558,7 +560,7 @@ class sequencer():
         for s in segments:
             pt.figure()
             pt.title(f'Segment {s} index:{index}')
-            self.sequence[s].plot(index, render_full=awg_output)
+            self.sequence[s].plot(index, channels=channels, render_full=awg_output)
 
     def get_measurement_results(self, index=None,
                                 raw=True, states=True, values=True,
@@ -721,12 +723,17 @@ class sequencer():
             raise IndexError(f'Index {index} out of range; sequence shape {self._shape}')
 
 class index_param(Parameter):
-    def __init__(self, name, my_seq, dim):
+    def __init__(self, name, label, unit, my_seq, dim):
         self.my_seq = my_seq
         self.dim = dim
         self.values = my_seq.setpoints[dim]
         val_map = dict(zip(self.values, range(len(self.values))))
-        super().__init__(name=name, val_mapping = val_map, initial_value = self.values[0])
+        super().__init__(
+                name=name,
+                label=label,
+                unit=unit,
+                val_mapping = val_map,
+                initial_value = self.values[0])
 
     def set_raw(self, value):
         self.my_seq.set_sweep_index(self.dim, value)
