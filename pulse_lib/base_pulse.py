@@ -213,7 +213,7 @@ class pulselib:
                 'pulsed' enables output `trigger_offset_ns` before each acquisition till end of the acquisition.
                 'shaped' generates a pulse equal to the acquisition envelope starting `trigger_offset_ns` before
                    the acquisition.
-            trigger_offset_ns (float): offset in [ns] for pulsed and shaped RF source enabling.
+            trigger_offset_ns (float): offset in [ns] for RF source enabling.
             attenuation (float): Attenuation of the source channel.
         Note:
             The output specification depends on the driver.
