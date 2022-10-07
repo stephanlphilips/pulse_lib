@@ -136,13 +136,15 @@ class segment_acquisition():
             # Put it in a data_container to maintain pulse_lib structure.
             data_item = data_container(data_item)
 
-        # To avoid unnecessary copying of data we first slice on self, copy, and then restore data in self.
+        # To avoid unnecessary copying of data we first slice data of self, set self.data = None,
+        # copy, and then restore data in self.
         # This trick makes the indexing operation orders faster.
         data_org = self.data
-        self.data = data_item
+        self.data = None
         item = copy.copy(self)
-        item.data = data_item # TODO [SdS]: make clean solution
         self.data = data_org
+
+        item.data = data_item
         return item
 
     def append(self, other, time = None):

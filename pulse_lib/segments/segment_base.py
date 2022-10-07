@@ -173,13 +173,19 @@ class segment_base():
             # Put it in a data_container to maintain pulse_lib structure.
             data_item = data_container(data_item)
 
-        # To avoid unnecessary copying of data we first slice on self, copy, and then restore data in self.
+        # To avoid unnecessary copying of data we first slice data, set self.data=None, copy, and then restore data in self.
         # This trick makes the indexing operation orders faster.
         data_org = self.data
-        self.data = data_item
+        self.data = None
         item = copy.copy(self)
-        item.data = data_item # TODO [SdS]: make clean solution
         self.data = data_org
+
+        item.data = data_item
+        if self._data_hvi_variable is not None:
+            if self._data_hvi_variable is not self.data:
+                item._data_hvi_variable = item._data_hvi_variable[key[0]]
+            else:
+                item._data_hvi_variable = item.data
         return item
 
     @last_edited
