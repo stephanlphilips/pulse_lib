@@ -50,7 +50,7 @@ class marker_HVI_variable(parent_data):
         else:
             self.my_amp_data[name] =  amplitude
 
-    def reset_time(self, time = None, extend_only = False):
+    def reset_time(self, time = None):
         """
         reset the effective start time. See online manual in pulse building instructions to understand this command.
 
@@ -80,17 +80,6 @@ class marker_HVI_variable(parent_data):
         '''
         return self.end_time
 
-    def slice_time(self, start, end):
-        """
-        apply slice operation on this marker.
-
-        Args:
-            start (double) : start time of the marker
-            stop (double) : stop time of the marker
-        """
-        for key in self.my_time_data.keys():
-            self.my_time_data[key] -= start
-
     def get_vmin(self,sample_rate = 1e9):
         return 0
 
@@ -103,21 +92,14 @@ class marker_HVI_variable(parent_data):
         """
         return 0
 
-    def append(self, other, time = None):
+    def append(self, other):
         '''
         Append two segments to each other, where the other segment is places after the first segment. Time is the total time of the first segment.
 
         Args:
             other (marker_HVI_variable) : other pulse data object to be appended
-            time (double/None) : length that the first segment should be.
-
-        ** what to do with start time argument?
         '''
         end_time = self.total_time
-        if time is not None:
-            end_time = time
-            self.slice_time(0, end_time)
-
 
         other_shifted = other._shift_all_time(end_time)
         self.my_time_data.update(other_shifted.my_time_data)

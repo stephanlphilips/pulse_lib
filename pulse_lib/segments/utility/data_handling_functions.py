@@ -497,10 +497,14 @@ def reduce_arr(arr):
         reduced array(np.ndarray) : array with reduced data.
         data_axis (list) : the axises that have changing data.
     """
-    ndim = len(arr.shape)
+    shape = arr.shape
+    ndim = len(shape)
     data_axis = []
     slice_array = ()
     for i in range(ndim):
+        if shape[i] == 1:
+            slice_array += (0,)
+            continue
         mn = np.min(arr, axis=i)
         mx = np.max(arr, axis=i)
         eq = np.all(mn == mx)

@@ -20,7 +20,7 @@ TODO : change dicts to keep the data to an object!!
 import numpy as np
 import copy
 
-from pulse_lib.segments.segment_base import last_edited, segment_base
+from pulse_lib.segments.segment_base import segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, update_dimension
 from pulse_lib.segments.data_classes.data_pulse import pulse_data, PhaseShift
 from pulse_lib.segments.data_classes.data_IQ import envelope_generator, IQ_data_single, make_chirp
@@ -59,13 +59,11 @@ class segment_IQ(segment_base):
         self.data_tmp.global_phase += phase
         return self.data_tmp
 
-    @last_edited
     @loop_controller
     def add_phase_shift(self, t, phase):
         self.data_tmp.add_phase_shift(PhaseShift(t + self.data_tmp.start_time, phase, self.name))
         return self.data_tmp
 
-    @last_edited
     @loop_controller
     def add_MW_pulse(self, t0, t1, amp, freq, phase = 0, AM = None, PM = None):
         '''
@@ -89,7 +87,6 @@ class segment_IQ(segment_base):
         self.data_tmp.add_MW_data(MW_data)
         return self.data_tmp
 
-    @last_edited
     @loop_controller
     def add_chirp(self, t0, t1, f0, f1, amp):
         '''

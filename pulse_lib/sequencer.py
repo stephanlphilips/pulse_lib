@@ -753,8 +753,6 @@ if __name__ == '__main__':
     b.add_HVI_variable("my_vatr", 800)
     a.a.add_block(20,lp.linspace(50,100,10, axis = 1, name = "time", unit = "ns"),100)
 
-    b.slice_time(0,lp.linspace(80,100,10, name = "time", unit = "ns", axis= 2))
-
     my_seq = [a,b]
 
     seq = sequencer(None, dict())

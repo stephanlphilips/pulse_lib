@@ -195,7 +195,7 @@ class pulse_data(parent_data):
         '''
         return self._end_time
 
-    def reset_time(self, time,  extend_only = False):
+    def reset_time(self, time):
         '''
         Preform a reset time on the current segment.
         Args:
@@ -207,8 +207,7 @@ class pulse_data(parent_data):
         else:
             self._update_end_time(time)
 
-        if extend_only == False:
-            self.start_time = time
+        self.start_time = time
 
     def wait(self, time):
         """
@@ -219,19 +218,14 @@ class pulse_data(parent_data):
         """
         self._end_time += time
 
-    def append(self, other, time = None):
+    def append(self, other):
         '''
-        Append two segments to each other, where the other segment is places after the first segment. Time is the total time of the first segment.
+        Append two segments to each other, where the other segment is places after the first segment.
         Args:
             other (pulse_data) : other pulse data object to be appended
-            time (double/None) : length that the first segment should be.
 
-        ** what to do with start time argument?
         '''
-        if time is None:
-            time = self.total_time
-        else:
-            self.slice_time(0, time)
+        time = self.total_time
 
         other_MW_pulse_data = copy.deepcopy(other.MW_pulse_data)
         shift_start_stop(other_MW_pulse_data, time)
@@ -288,122 +282,6 @@ class pulse_data(parent_data):
 
         self._consolidated = False
         self._end_time = (n+1) * time
-
-
-    def slice_time(self, start, end):
-        '''
-        slice the pulse
-        Args:
-            Start (double) : enforced minimal starting time
-            End (double) : enforced max time
-        '''
-        self.__slice_pulse_delta_data(start, end)
-        self.__slice_MW_data(start, end)
-        self.__slice_custom_pulse_data(start, end)
-        self.__slice_phase_shift_data(start, end)
-
-        self._consolidated = False
-        self._end_time = end - start
-
-
-    '''
-    details of pulse data methods
-    '''
-    def __slice_MW_data(self, start, end):
-        '''
-        slice MW_data
-
-        Args:
-            start (double) : enforced minimal starting time
-            end (double) : enforced max time
-        '''
-        new_MW_data = []
-
-        for i in self.MW_pulse_data:
-            if i.start < start:
-                i.start = start
-            if i.stop > end:
-                i.stop = end
-
-            if i.start < i.stop:
-                i.start -= start
-                i.stop -= start
-                new_MW_data.append(i)
-
-        self.MW_pulse_data = new_MW_data
-
-    def __slice_custom_pulse_data(self, start, end):
-        '''
-        slice custom_data
-
-        Args:
-            start (double) : enforced minimal starting time
-            end (double) : enforced max time
-        '''
-        new_custom_data = []
-
-        for i in self.custom_pulse_data:
-            if i.start < start:
-                i.start = start
-            if i.stop > end:
-                i.stop = end
-
-            if i.start < i.stop:
-                i.start -= start
-                i.stop -= start
-                new_custom_data.append(i)
-
-        self.custom_pulse_data = new_custom_data
-
-    def __slice_phase_shift_data(self, start, end):
-        '''
-        slice phase shift data
-
-        Args:
-            start (double) : enforced minimal starting time
-            end (double) : enforced max time
-        '''
-        new_phase_shifts = []
-
-        for i in self.phase_shifts:
-            if start <= i.time <= end:
-                new_phase_shifts.append(i)
-
-        self.phase_shifts = new_phase_shifts
-
-    def __slice_pulse_delta_data(self, start, end):
-        '''
-        slice pulse delta data
-
-        Args:
-            start (double) : enforced minimal starting time
-            end (double) : enforced max time
-        '''
-        new_pulse_deltas = []
-
-        start_delta = pulse_delta(start, 0.0, 0.0)
-        end_delta = pulse_delta(end, 0.0, 0.0)
-        inf_delta = pulse_delta(np.inf, 0.0, 0.0)
-
-        for entry in self.new_pulse_deltas:
-            if entry.time <= start:
-                start_delta.step += entry.step + (start-entry.time) * entry.ramp
-                start_delta.ramp += entry.ramp
-            elif entry.time < end:
-                new_pulse_deltas.append(entry)
-            elif entry.time != np.inf:
-                end_delta += entry
-            else:
-                inf_delta += entry
-
-        if not start_delta.is_near_zero:
-            new_pulse_deltas.insert(0,start_delta)
-        if not end_delta.is_near_zero:
-            new_pulse_deltas.append(end_delta)
-        if not inf_delta.is_near_zero:
-            new_pulse_deltas.append(inf_delta)
-
-        self.pulse_deltas = new_pulse_deltas
 
     def shift_MW_frequency(self, frequency):
         '''

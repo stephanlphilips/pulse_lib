@@ -116,12 +116,9 @@ class conditional_segment:
 
         return comb_setpoints
 
-    def reset_time(self, extend_only = False):
+    def reset_time(self):
         '''
-        Args:
-            extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms...].
-
-        Allings all segments togeter and sets the input time to 0,
+        Alligns all segments togeter and sets the input time to 0,
         e.g. ,
         chan1 : waveform until 70 ns
         chan2 : waveform until 140ns
@@ -148,14 +145,14 @@ class conditional_segment:
 
         for branch in self.branches:
             for ch in branch.channels:
-                branch[ch].reset_time(loop_obj, False)
+                branch[ch].reset_time(loop_obj)
 
     def extend_dim(self, shape=None):
         for branch in self.branches:
             branch.extend_dim(shape)
 
     def enter_rendering_mode(self):
-        self.reset_time(False)
+        self.reset_time()
         for branch in self.branches:
             branch.enter_rendering_mode()
 

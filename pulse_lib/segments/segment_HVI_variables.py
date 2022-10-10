@@ -2,7 +2,7 @@
 Marker implementation.
 """
 
-from pulse_lib.segments.segment_base import segment_base, last_edited
+from pulse_lib.segments.segment_base import segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, loop_controller_post_processing
 from pulse_lib.segments.data_classes.data_HVI_variables import marker_HVI_variable
 import numpy as np
@@ -20,7 +20,6 @@ class segment_HVI_variables(segment_base):
         super(segment_HVI_variables, self).__init__(name, marker_HVI_variable(), segment_type = 'render')
         self._data_hvi_variable = None
 
-    @last_edited
     @loop_controller
     def _add_HVI_variable(self, name, value, time):
         """
@@ -88,7 +87,6 @@ if __name__ == '__main__':
     # print("maximal voltage (mV) : ", s1.v_max([0]))
     # print("integral of data (always 0 for markers) : " ,s1.integrate([0]))
     # print("memory location of render data : " ,s1.pulse_data_all)
-    # print("Last edited : " ,s1.last_edit)
     # print("Shape :" ,s1.shape)
 
     # s1.plot_segment()

@@ -17,7 +17,6 @@ from pulse_lib.segments.data_classes.data_generic import map_index
 
 import uuid
 import numpy as np
-import datetime
 import copy
 from dataclasses import dataclass
 
@@ -47,7 +46,6 @@ class segment_container():
         self.render_mode = False
         self._total_times = None
         self.id = uuid.uuid4()
-        self._Vmin_max_data = dict()
         self._software_markers = segment_HVI_variables("HVI_markers")
         self._segment_measurements = segment_measurements()
 
@@ -56,12 +54,6 @@ class segment_container():
         self._digitizer_channels = digitizer_channels
         self.name = name
         self.sample_rate = sample_rate
-
-        for name in channel_names:
-            self._Vmin_max_data[name] = {"v_min" : None, "v_max" : None}
-
-        self.prev_upload = datetime.datetime.utcfromtimestamp(0)
-
 
         # define real channels (+ markers)
         for name in channel_names:
@@ -118,7 +110,6 @@ class segment_container():
                 setattr(new, chan_name,new_chan)
 
             new.render_mode = copy.copy(self.render_mode)
-            new._Vmin_max_data = copy.copy(self._Vmin_max_data)
             new._software_markers =self._software_markers[index]
             new._setpoints = self._setpoints
 
@@ -143,7 +134,6 @@ class segment_container():
             setattr(new, chan_name,new_chan)
 
         new.render_mode = copy.copy(self.render_mode)
-        new._Vmin_max_data = copy.copy(self._Vmin_max_data)
         new._software_markers = copy.copy(self._software_markers)
         new._segment_measurements = copy.copy(self._segment_measurements)
         new._setpoints = copy.copy(self._setpoints)
@@ -201,14 +191,6 @@ class segment_container():
     @property
     def ndim(self):
         return len(self.shape)
-
-    @property
-    def last_mod(self):
-        time = datetime.datetime.utcfromtimestamp(0)
-        for i in self.channels:
-            if getattr(self, i).last_edit > time:
-                time = getattr(self, i).last_edit
-        return time
 
     @property
     def total_time(self):
@@ -271,63 +253,7 @@ class segment_container():
 
         return comb_setpoints
 
-
-    @property
-    def Vmin_max_data(self):
-        if self.prev_upload < self.last_mod:
-
-            for i in range(len(self.channels)):
-                self._Vmin_max_data[self.channels[i]]['v_min'] = getattr(self,self.channels[i]).v_min
-                self._Vmin_max_data[self.channels[i]]['v_max'] = getattr(self,self.channels[i]).v_max
-
-        return self._Vmin_max_data
-
-    def append(self, other, time=None):
-        '''
-        append other segments the the current ones in the container.
-        Args:
-            other (segment_container) : other segment to append
-        '''
-        if not isinstance(other, segment_container):
-            raise TypeError("segment_container object expected. Did you supply a single segment?")
-
-        # make sure all object have a full size.
-        my_shape = find_common_dimension(self.shape, other.shape)
-        other.extend_dim(my_shape)
-        self.extend_dim(my_shape)
-
-        self._setpoints += other._setpoints
-
-        if time == None:
-            times = self.total_time
-
-            time = lp.loop_obj(no_setpoints=True)
-            time.add_data(times, list(range(len(times.shape)-1, -1,-1)))
-        for i in self.channels:
-            segment = getattr(self, i)
-            segment.append(getattr(other, i), time)
-
-    def slice_time(self, start, stop):
-        """
-        slice time in a segment container
-        Args:
-            start (double) : start time of the slice
-            stop (double) : stop time of the slice
-
-        The slice_time function allows you to cut all the waveforms in the segment container in different sizes.
-        This function should be handy for debugging, example usage would be,
-        You are runnning an algorithm and want to check what the measurement outcomes are though the whole algorithm.
-        Pratically, you want to know
-            0 -> 10ns (@10 ns still everything as expected?)
-            0 -> 20ns
-            0 -> ...
-        This function would allow you to do that, e.g. by calling segment_container.cut_segment(0, lp.linspace(10,100,9))
-        """
-        for i in self.channels:
-            segment = getattr(self, i)
-            segment.slice_time(start, stop)
-
-    def reset_time(self, extend_only = False):
+    def reset_time(self):
         '''
         Args:
             extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms...].
@@ -339,25 +265,33 @@ class segment_container():
         -> totaltime will be 140 ns,
         when you now as a new pulse (e.g. at time 0, it will actually occur at 140 ns in both blocks)
         '''
-
-        n_channels = len(self.channels)
         shape = list(self.shape)
-        time_data = np.empty([n_channels] + shape)
 
-        for i in range(len(self.channels)):
-            time_data[i] = upconvert_dimension(getattr(self, self.channels[i]).total_time, shape)
+        if shape != [1]:
+            n_channels = len(self.channels)
+            time_data = np.empty([n_channels] + shape)
+            for i,channel in enumerate(self.channels):
+                time_data[i] = upconvert_dimension(self[channel].total_time, shape)
 
-        times = np.amax(time_data, axis = 0)
-        times, axis = reduce_arr(times)
-        if len(axis) == 0:
-            loop_obj = times
+            times = np.amax(time_data, axis = 0)
+            times, axis = reduce_arr(times)
+            if len(axis) == 0:
+                loop_obj = times
+            else:
+                loop_obj = lp.loop_obj(no_setpoints=True)
+                loop_obj.add_data(times, axis)
+
+            for channel in self.channels:
+                segment = self[channel]
+                segment.reset_time(loop_obj)
         else:
-            loop_obj = lp.loop_obj(no_setpoints=True)
-            loop_obj.add_data(times, axis)
+            time = 0
+            for channel in self.channels:
+                time = max(time, self[channel].total_time[0])
+            for channel in self.channels:
+                segment = self[channel]
+                segment.reset_time(time)
 
-        for i in self.channels:
-            segment = getattr(self, i)
-            segment.reset_time(loop_obj, False)
 
     def get_waveform(self, channel, index = [0], sample_rate=1e9, ref_channel_states=None):
         '''

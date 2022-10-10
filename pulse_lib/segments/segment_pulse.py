@@ -4,7 +4,7 @@ Class that is used to make DC pulses.
 import numpy as np
 
 from pulse_lib.configuration.iq_channels import IQ_out_channel_info
-from pulse_lib.segments.segment_base import last_edited, segment_base
+from pulse_lib.segments.segment_base import segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller
 from pulse_lib.segments.data_classes.data_pulse import pulse_data, custom_pulse_element, pulse_delta
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
@@ -33,7 +33,6 @@ class segment_pulse(segment_base):
         super().__init__(name, pulse_data(), HVI_variable_data,segment_type)
 
 
-    @last_edited
     @loop_controller
     def add_block(self,start,stop, amplitude):
         '''
@@ -45,7 +44,6 @@ class segment_pulse(segment_base):
                                             step=-amplitude))
         return self.data_tmp
 
-    @last_edited
     @loop_controller
     def add_ramp(self, start, stop, amplitude, keep_amplitude=False):
         '''
@@ -58,7 +56,6 @@ class segment_pulse(segment_base):
         '''
         return self._add_ramp(start, stop, 0, amplitude, keep_amplitude)
 
-    @last_edited
     @loop_controller
     def add_ramp_ss(self, start, stop, start_amplitude, stop_amplitude, keep_amplitude=False):
         '''
@@ -103,7 +100,6 @@ class segment_pulse(segment_base):
         return self.data_tmp
 
 
-    @last_edited
     @loop_controller
     def wait(self, wait):
         '''
@@ -114,7 +110,6 @@ class segment_pulse(segment_base):
         self.data_tmp.wait(wait)
         return self.data_tmp
 
-    @last_edited
     @loop_controller
     def add_sin(self, start, stop, amp, freq, phase_offset=0):
         '''
@@ -136,7 +131,6 @@ class segment_pulse(segment_base):
         return self.data_tmp
 
 
-    @last_edited
     @loop_controller
     def add_custom_pulse(self, start, stop, amplitude, custom_func, **kwargs):
         """
@@ -182,7 +176,6 @@ class segment_pulse(segment_base):
         '''
         self.IQ_ref_channels.append(IQ_render_info(virtual_channel, out_channel))
 
-    @last_edited
     @loop_controller
     def repeat(self, number):
         '''

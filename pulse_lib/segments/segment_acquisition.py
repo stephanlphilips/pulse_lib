@@ -98,14 +98,13 @@ class segment_acquisition():
         return segment_acquisition(self.name, self._measurement_segment)
 
     @loop_controller
-    def reset_time(self, time=None, extend_only = False):
+    def reset_time(self, time=None):
         '''
         resets the time back to zero after a certain point
         Args:
             time (double) : (optional), after time to reset back to 0. Note that this is absolute time and not rescaled time.
-            extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms...].
         '''
-        self.data_tmp.reset_time(time, extend_only)
+        self.data_tmp.reset_time(time)
         return self.data_tmp
 
     @loop_controller
@@ -147,20 +146,18 @@ class segment_acquisition():
         item.data = data_item
         return item
 
-    def append(self, other, time = None):
+    def append(self, other):
         '''
         Put the other segment behind this one.
         Args:
             other (segment_single) : the segment to be appended
-            time (double/loop_obj) : attach at the given time (if None, append at total_time of the segment)
 
         A time reset will be done after the other segment is added.
-        TODO: transfer of units
         '''
         other_loopobj = loop_obj()
         other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)))
         self._setpoints += other._setpoints
-        self.__append(other_loopobj, time)
+        self.__append(other_loopobj)
 
         return self
 
@@ -189,43 +186,15 @@ class segment_acquisition():
         '''
         return self.data_tmp
 
-
-
     @loop_controller
-    def __append(self, other, time):
+    def __append(self, other):
         """
         Put the other segment behind this one (for single segment data object)
 
         Args:
             other (segment_single) : the segment to be appended
-            time (double/loop_obj) : attach at the given time (if None, append at total_time of the segment)
         """
-        if time is None:
-            time = self.data_tmp.total_time
-
-
-        self.data_tmp.append(other, time)
-        return self.data_tmp
-
-    @loop_controller
-    def slice_time(self, start_time, stop_time):
-        """
-        Cuts parts out of a segment.
-
-        Args:
-            start_time (double) : effective new start time
-            stop_time (double) : new ending time of the segment
-
-        The slice_time function allows you to cut a waveform in different sizes.
-        This function should be handy for debugging, example usage would be,
-        You are runnning an algorithm and want to check what the measurement outcomes are though the whole algorithm.
-        Pratically, you want to know
-            0 -> 10ns (@10 ns still everything as expected?)
-            0 -> 20ns
-            0 -> ...
-        This function would allow you to do that, e.g. by calling segment.cut_segment(0, lp.linspace(10,100,9))
-        """
-        self.data_tmp.slice_time(start_time, stop_time)
+        self.data_tmp.append(other)
         return self.data_tmp
 
     # ==== getters on all_data

@@ -40,38 +40,16 @@ class parent_data(ABC):
         cls.waveform_cache = LruCache(cls.waveform_cache.max_size)
 
     @abstractmethod
-    def append():
+    def append(self):
         raise NotImplementedError()
 
     @abstractmethod
-    def slice_time():
+    def reset_time(self, time = None):
         raise NotImplementedError()
 
     @abstractmethod
-    def reset_time(time = None, extend_only = False):
+    def wait(self, time):
         raise NotImplementedError()
-
-    @abstractmethod
-    def wait(time):
-        raise NotImplementedError()
-
-#    @abstractmethod
-#    def get_vmax(self,sample_rate):
-#        '''
-#        Calculate the maximum voltage in the current segment_single.
-#        Args:
-#            sample_rate (double) :  rate at which is samples (in Hz)
-#        '''
-#        raise NotImplemented
-#
-#    @abstractmethod
-#    def get_vmin(self,sample_rate):
-#        '''
-#        Calculate the maximum voltage in the current segment_single.
-#        Args:
-#            sample_rate (double) :  rate at which is samples (in Hz)
-#        '''
-#        raise NotImplemented
 
     @abstractmethod
     def integrate_waveform(self, sample_rate):
