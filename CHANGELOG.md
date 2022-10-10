@@ -1,6 +1,19 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.0] - 2022-10-@@@
+
+- Performance improvements in looping arguments
+- Removed segment_container append(), slice_time(), last_edit
+- Added segment_container.update_dim
+- Performance improvement segment_container.reset_time()
+
+
+## \[1.5.6] - 2022-10-10
+
+### Fixed
+- Fixed error in measurement parameter when no shot is accepted
+
 ## \[1.5.5] - 2022-09-27
 
 ### Fixed
