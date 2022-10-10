@@ -192,6 +192,10 @@ class segment_container():
     def ndim(self):
         return len(self.shape)
 
+    def update_dim(self, loop_obj):
+        # use 1 channel to set the axis. Other axis will follow where needed.
+        self._software_markers.update_dim(loop_obj)
+
     @property
     def total_time(self):
         '''
