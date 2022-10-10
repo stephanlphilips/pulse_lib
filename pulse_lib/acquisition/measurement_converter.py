@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Tuple, List
+import logging
 import numpy as np
 from pulse_lib.segments.segment_measurements import measurement_acquisition, measurement_expression
 
@@ -340,6 +341,7 @@ class MeasurementConverter:
         if total_selected > 0:
             self._values = [np.sum(result*accepted_mask)/total_selected for result in values_unfiltered]
         else:
+            logging.warning('No shot is accepted')
             self._values = [np.full(len(values_unfiltered), np.nan)]
 
     def set_channel_data(self, data):
