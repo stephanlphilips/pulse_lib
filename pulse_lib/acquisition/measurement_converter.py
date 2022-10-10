@@ -340,7 +340,7 @@ class MeasurementConverter:
         if total_selected > 0:
             self._values = [np.sum(result*accepted_mask)/total_selected for result in values_unfiltered]
         else:
-            self._values = np.full(len(values_unfiltered), np.nan)
+            self._values = [np.full(len(values_unfiltered), np.nan)]
 
     def set_channel_data(self, data):
         self._channel_raw = data
