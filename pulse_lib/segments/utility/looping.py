@@ -62,7 +62,7 @@ class loop_obj():
                 if len(data.shape) == 1:
                     self.setvals = (self.data, )
                 else:
-                        raise ValueError ('Multidimensional setpoints cannot be inferred from input.')
+                    raise ValueError ('Multidimensional setpoints cannot be inferred from input.')
             else:
                 self.setvals = tuple()
                 if isinstance(setvals,list) or isinstance(setvals, np.ndarray):

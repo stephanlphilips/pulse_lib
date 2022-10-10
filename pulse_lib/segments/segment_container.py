@@ -332,7 +332,7 @@ class segment_container():
         Args:
             extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms...].
 
-        Allings all segments togeter and sets the input time to 0,
+        Alligns all segments togeter and sets the input time to 0,
         e.g. ,
         chan1 : waveform until 70 ns
         chan2 : waveform until 140ns
@@ -370,12 +370,11 @@ class segment_container():
         '''
         return getattr(self, channel).get_segment(index, sample_rate, ref_channel_states)
 
-    def extend_dim(self, shape=None, ref = False):
+    def extend_dim(self, shape=None):
         '''
         extend the dimensions of the waveform to a given shape.
         Args:
             shape (tuple) : shape of the new waveform
-            ref (bool) : put to True if you want to extend the dimension by using pointers instead of making full copies.
         If referencing is True, a pre-render will already be performed to make sure nothing is rendered double.
         '''
         if shape is None:
@@ -384,15 +383,15 @@ class segment_container():
 
         for i in self.channels:
             if self.render_mode == False:
-                getattr(self, i).data = update_dimension(getattr(self, i).data, shape, ref)
+                getattr(self, i).data = update_dimension(getattr(self, i).data, shape)
 
             if getattr(self, i).type == 'render' and self.render_mode == True:
-                getattr(self, i)._pulse_data_all = update_dimension(getattr(self, i)._pulse_data_all, shape, ref)
+                getattr(self, i)._pulse_data_all = update_dimension(getattr(self, i)._pulse_data_all, shape)
 
         if self.render_mode == False:
-            self._software_markers.data = update_dimension(self._software_markers.data, shape, ref)
+            self._software_markers.data = update_dimension(self._software_markers.data, shape)
         else:
-            self._software_markers._pulse_data_all = update_dimension(self._software_markers.pulse_data_all, shape, ref)
+            self._software_markers._pulse_data_all = update_dimension(self._software_markers.pulse_data_all, shape)
 
     def wait(self, time, channels=None, reset_time=False):
         '''

@@ -150,9 +150,9 @@ class conditional_segment:
             for ch in branch.channels:
                 branch[ch].reset_time(loop_obj, False)
 
-    def extend_dim(self, shape=None, ref = False):
+    def extend_dim(self, shape=None):
         for branch in self.branches:
-            branch.extend_dim(shape, ref)
+            branch.extend_dim(shape)
 
     def enter_rendering_mode(self):
         self.reset_time(False)
