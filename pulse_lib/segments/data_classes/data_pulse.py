@@ -567,7 +567,7 @@ class pulse_data(parent_data):
             if LO:
                 freq -= LO
             if abs(freq) > sample_rate*1e9/2:
-                raise Exception(f'Frequency {freq*1e-6:5.1f} MHz is above Nyquist frequency')
+                raise Exception(f'Frequency {freq*1e-6:5.1f} MHz is above Nyquist frequency ({sample_rate*1e3/2} MHz)')
             # TODO add check on configurable bandwidth.
             phase = IQ_data_single_object.start_phase
             if ref_channel_states and IQ_data_single_object.ref_channel in ref_channel_states.start_phase:
