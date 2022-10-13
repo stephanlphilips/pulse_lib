@@ -38,6 +38,9 @@ class pulselib:
 
         self._backend = backend
 
+        if np.__version__ < '1.20':
+            raise Exception(f'Pulselib requires numpy 1.20+. Found version {np.__version__}')
+
     @property
     def channels(self):
         channels = []
