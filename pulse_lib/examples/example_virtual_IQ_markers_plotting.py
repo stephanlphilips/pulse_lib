@@ -10,7 +10,7 @@ from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
 
 from configuration.medium_iq import init_hardware, init_pulselib
 from utils.plot import plot_awgs
-
+import pulse_lib.segments.utility.looping as lp
 
 start_all_logging()
 logger.get_file_handler().setLevel(logging.DEBUG)
@@ -20,6 +20,8 @@ def tukey(duration, sample_rate):
     return windows.tukey(n_points, alpha=0.5)
 
 def create_seq(pulse_lib):
+
+    t_wait = lp.linspace(100, 300, 3, name='wait', axis=0)
 
     seg1 = pulse_lib.mk_segment(name='init', sample_rate=1e8)
     s = seg1
@@ -32,8 +34,8 @@ def create_seq(pulse_lib):
     # no sample rate specified: it uses default sample rate. In this example 2e8 Sa/s (see below).
     seg2 = pulse_lib.mk_segment('manip')
     s = seg2
-    s.vP4.add_ramp_ss(0, 100, 50, 100)
-    s.vP4.add_ramp_ss(100, 200, 100, 50)
+    s.vP4.add_ramp_ss(0, 100, 500, 1000)
+    s.vP4.add_ramp_ss(100, 200, 1000, 500)
 
     s.q2.add_MW_pulse(40, 140, 50, 2450e6, AM=tukey)
 
@@ -47,6 +49,7 @@ def create_seq(pulse_lib):
     s.vP4.add_ramp_ss(100, 200, 100, 50)
 
     s.q2.add_MW_pulse(40, 140, 50, 2450e6, AM=tukey)
+    s.q1.wait(t_wait, reset_time=True)
 
     s.q1.add_MW_pulse(0, 300, 40, 2435e6)
 
@@ -91,8 +94,13 @@ job = my_seq.upload()
 my_seq.play(release=False)
 
 plot_awgs(awgs)
+pt.xlim(0,2000)
 pprint(job.upload_info)
 
 my_seq.play(release=True)
 my_seq.uploader.release_jobs()
 
+my_seq.upload([2])
+my_seq.play([2])
+plot_awgs(awgs)
+pt.xlim(0,2000)

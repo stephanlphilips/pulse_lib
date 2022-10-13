@@ -179,10 +179,11 @@ class sequencer():
                 print("Info : " + msg)
 
         # update dimensionality of all sequence objects
+        logging.debug('Enter pre-rendering')
         for seg_container in self.sequence:
             seg_container.enter_rendering_mode()
-            self._shape = find_common_dimension(seg_container.shape, self._shape)
-
+            self._shape = find_common_dimension(self._shape, seg_container.shape)
+        logging.debug('Done pre-render')
         # Set the waveform cache equal to the sum over all channels and segments of the max axis length.
         # The cache will than be big enough for 1D iterations along every axis. This gives best performance
         total_axis_length = 0

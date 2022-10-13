@@ -4,7 +4,7 @@ from pulse_lib.segments.utility.setpoint_mgr import setpoint
 from functools import wraps
 import numpy as np
 import copy
-
+import logging
 
 def find_common_dimension(dim_1, dim_2):
     '''
@@ -19,32 +19,18 @@ def find_common_dimension(dim_1, dim_2):
     '''
     if dim_2 == (1,):
         return dim_1
-    dim_1 = list(dim_1)[::-1]
-    dim_2 = list(dim_2)[::-1]
-    dim_comb = []
+    if dim_1 == dim_2:
+        return dim_1
+    if dim_1 == (1,):
+        return dim_2
 
-    # estimate size of new dimension
-    n_dim = len(dim_1)
-    if len(dim_2) > n_dim:
-        n_dim = len(dim_2)
+    try:
+        res = np.broadcast_shapes(dim_1, dim_2)
+        return res
+    except:
+        raise ValueError(f"Cannot combine dimensions of data objects {dim_1} and {dim_2}."
+                         "This error is most likely caused by looping over two variables with different dimensions along the same axis.")
 
-    # combine both
-    for i in range(n_dim):
-        if len(dim_2) <= i:
-            dim_comb.append(dim_1[i])
-        elif len(dim_1) <= i:
-            dim_comb.append(dim_2[i])
-        else:
-            if dim_1[i] == dim_2[i]:
-                dim_comb.append(dim_2[i])
-            elif dim_1[i] == 1:
-                dim_comb.append(dim_2[i])
-            elif dim_2[i] == 1:
-                dim_comb.append(dim_1[i])
-            else:
-                raise ValueError("Error in combining dimensions of two data objects. This error is most likely caused by looping over two variables with different dimensions along the same axis.")
-
-    return tuple(dim_comb[::-1])
 
 def update_dimension(data, new_dimension_info):
     '''
@@ -55,6 +41,8 @@ def update_dimension(data, new_dimension_info):
     Returns:
         data (np.ndarray[dtype = object]) : same as input data, but with new_dimension_info.
     '''
+    if data.shape == tuple(new_dimension_info):
+        return data
 
     new_dimension_info = np.array(new_dimension_info)
 
@@ -79,7 +67,7 @@ def _add_dimensions(data, shape):
     """
     new_data =  data_container(shape = shape)
     for i in range(shape[0]):
-        new_data[i] = cpy_numpy_shallow(data)
+        new_data[i] = _cpy_numpy_shallow(data)
     return new_data
 
 def _extend_dimensions(data, shape, new_axis):
@@ -97,20 +85,20 @@ def _extend_dimensions(data, shape, new_axis):
 
     if new_axis == 0:
         for j in range(len(new_data)):
-            new_data[j] = cpy_numpy_shallow(data)
+            new_data[j] = _cpy_numpy_shallow(data)
     else:
         new_data = new_data.swapaxes(new_axis, 0)
         data = data.swapaxes(new_axis, 0)
 
         for j in range(len(new_data)):
-            new_data[j] = cpy_numpy_shallow(data)
+            new_data[j] = _cpy_numpy_shallow(data)
 
         new_data = new_data.swapaxes(new_axis, 0)
 
     return new_data
 
 
-def cpy_numpy_shallow(data):
+def _cpy_numpy_shallow(data):
     '''
     Makes a shallow copy of an numpy object array.
 
@@ -134,214 +122,7 @@ def cpy_numpy_shallow(data):
     return new_arr
 
 
-def _get_loop_info(lp, index):
-    if lp.no_setpoints or lp.setvals is None:
-        setpnt = None
-    else:
-        setpnt=list()
-
-        for j in range(len(lp.axis)):
-            setpnt_single = setpoint(lp.axis[j], label = (lp.labels[j],), unit = (lp.units[j],), setpoint=(lp.setvals[j],))
-            setpnt.append(setpnt_single)
-
-    info = {
-    'arg_index': index,
-    'shape' : lp.shape,
-    'len': len(lp),
-    'axis': lp.axis,
-    'data' : lp.data,
-    'setpnt' : setpnt
-    }
-    return info
-
-
-def loop_controller(func):
-    '''
-    Checks if there are there are parameters given that are loopable.
-
-    If loop:
-        * then check how many new loop parameters on which axis
-        * extend data format to the right shape (simple python list used).
-        * loop over the data and add called function
-
-    if no loop, just apply func on all data (easy)
-    '''
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        obj = args[0]
-
-        loop_info_args = []
-        loop_info_kwargs = []
-        for i,arg in enumerate(args):
-            if isinstance(arg, loop_obj):
-                loop_info_args.append(_get_loop_info(arg, i))
-
-        for key,kwarg in kwargs.items():
-            if isinstance(kwarg, loop_obj):
-                loop_info_kwargs.append(_get_loop_info(kwarg, key))
-
-        if len(loop_info_args) == 0 and len(loop_info_kwargs) == 0:
-            data = obj.data
-            if data.shape != (1,):
-                loop_over_data(func, data, args, kwargs)
-            else:
-                obj.data_tmp = data[0]
-                data[0] = func(*args, **kwargs)
-
-        else:
-
-            orig_data = obj.data
-            for lp in loop_info_args:
-                for i in range(len(lp['axis'])-1,-1,-1):
-                    data_shape = obj.data.shape
-                    lp_axis = lp['axis'][i]
-                    lp_length = lp['shape'][i]
-                    new_dim, axis = get_new_dim_loop(data_shape, lp_axis, lp_length)
-                    lp['axis'][i] = axis
-                    obj.data = update_dimension(obj.data, new_dim)
-
-                    if lp['setpnt'] is not None:
-                        lp['setpnt'][i].axis = axis
-                        obj._setpoints += lp['setpnt'][i]
-
-            for lp in loop_info_kwargs:
-                for i in range(len(lp['axis'])-1,-1,-1):
-                    new_dim, axis = get_new_dim_loop(obj.data.shape, lp['axis'][i], lp['shape'][i])
-                    lp['axis'][i] = axis
-                    obj.data = update_dimension(obj.data, new_dim)
-
-                    if lp['setpnt'] is not None:
-                        lp['setpnt'][i].axis = axis
-                        obj._setpoints += lp['setpnt'][i]
-
-            if orig_data is not obj.data:
-                print(f'data {obj.name} change {orig_data.shape}  -> {obj.data.shape}')
-
-            loop_over_data_lp(func, obj_data, args, loop_info_args, kwargs, loop_info_kwargs)
-
-    return wrapper
-
-
-def loop_controller_post_processing(func):
-    '''
-    Checks if there are there are parameters given that are loopable.
-
-    If loop:
-        * then check how many new loop parameters on which axis
-        * extend data format to the right shape (simple python list used).
-        * loop over the data and add called function
-
-    loop controller that works on the *pulse_data_all* object. This acts just before rendering. When rendering is done, all the actions of this looper are done.
-    '''
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        obj = args[0]
-
-        loop_info_args = []
-        loop_info_kwargs = []
-
-        for i in range(1,len(args)):
-            if isinstance(args[i], loop_obj):
-                loop_info_args.append(_get_loop_info(args[i], i))
-
-        for key in kwargs.keys():
-            if isinstance(kwargs[key], loop_obj):
-                loop_info_kwargs.append(_get_loop_info(kwargs[key], key))
-
-        for lp in loop_info_args:
-            for i in range(len(lp['axis'])-1,-1,-1):
-                new_dim, axis = get_new_dim_loop(obj.pulse_data_all.shape, lp['axis'][i], lp['shape'][i])
-                lp['axis'][i] = axis
-                obj._pulse_data_all = update_dimension(obj.pulse_data_all, new_dim)
-
-                if lp['setpnt'] is not None:
-                    lp['setpnt'][i].axis = axis
-                    obj._setpoints += lp['setpnt'][i]
-
-        # todo update : (not used atm, but just to be generaric.)
-        for lp in loop_info_kwargs:
-            new_dim = get_new_dim_loop(obj.pulse_data_all.shape, lp)
-            obj.pulse_data_all = update_dimension(obj.pulse_data_all, new_dim)
-
-        obj_data = obj.pulse_data_all
-        if len(loop_info_args) > 0 or len(loop_info_kwargs) > 0:
-            loop_over_data_lp(func, obj_data, args, loop_info_args, kwargs, loop_info_kwargs)
-        else:
-            loop_over_data(func, obj_data, args, kwargs)
-
-    return wrapper
-
-
-def loop_over_data_lp(func, data, args, args_info, kwargs, kwargs_info):
-    '''
-    Recursive function to apply the func to data with looping args
-
-    Args:
-        func : function to execute
-        data : data of the segment
-        args: arugments that are provided
-        args_info : argument info is provided (e.g. axis updates)
-        kwargs : kwargs provided
-        kwarfs_info : same as args_info
-    '''
-    shape = data.shape
-    n_dim = len(shape)
-
-    # copy the input --> we will fill in the arrays
-    # only copy when there are loops
-    if len(args_info) > 0:
-        # copy to new list
-        args_cpy = list(args)
-    else:
-        args_cpy = args
-    if len(kwargs_info) > 0:
-        kwargs_cpy = kwargs.copy()
-    else:
-        kwargs_cpy = kwargs
-
-    for i in range(shape[0]):
-        for arg in args_info:
-            if n_dim-1 in arg['axis']:
-                index = arg['arg_index']
-                args_cpy[index] = args[index][i]
-        for kwarg in kwargs_info:
-            if n_dim-1 in kwarg['axis']:
-                index = kwarg['arg_index']
-                kwargs_cpy[index] = kwargs[index][i]
-
-        if n_dim == 1:
-            # we are at the lowest level of the loop.
-            args[0].data_tmp = data[i]
-            data[i] = func(*args_cpy, **kwargs_cpy)
-        else:
-            # clean up args, kwargs
-            loop_over_data_lp(func, data[i], args_cpy, args_info, kwargs_cpy, kwargs_info)
-
-
-def loop_over_data(func, data, args, kwargs):
-    '''
-    Recursive function to apply func to data
-
-    Args:
-        func : function to execute
-        data : data of the segment
-        args: arugments that are provided
-        kwargs : kwargs provided
-    '''
-    shape = data.shape
-    n_dim = len(shape)
-
-    for i in range(shape[0]):
-
-        if n_dim == 1:
-            # we are at the lowest level of the loop.
-            args[0].data_tmp = data[i]
-            data[i] = func(*args, **kwargs)
-        else:
-            loop_over_data(func, data[i], args, kwargs)
-
-
-def get_new_dim_loop(current_dim, axis, shape):
+def _get_new_dim_loop(current_dim, axis, shape):
     '''
     function to get new dimensions from a loop spec.
 
@@ -384,114 +165,189 @@ def get_new_dim_loop(current_dim, axis, shape):
                     Please change loop axis or update the length.".format(axis,
                     current_dim[-axis-1], shape))
 
-    return new_dim, axis
-
-def update_labels(segment, loop_spec):
-    """
-    Update the labels in the current segment.
-
-    Args:
-        segment (segment_single) : segment object of which to update the labels
-        loop_spec (dict) : dict containing the loop specification, with the updata data.
-    """
-    units = ['a.u.']*segment.ndim
-    names = ['undefined']*segment.ndim
-    setvals  = []*segment.ndim
-
-    units[:len(segment._units)] = segment._units
-    names[:len(segment._units)] = segment._names
-    setvals[:len(segment._units)] = segment._setvals
-
-    for loop in loop_spec:
-        for i in range(len(loop['axis'])):
-            if loop['data_obj'].units[i] != 'a.u.':
-                units[loop['axis'][i]] = loop['data_obj'].units[i]
-            if loop['data_obj'].names[i] != 'undefined':
-                names[loop['axis'][i]] = loop['data_obj'].names[i]
-            setvals[loop['axis'][i]] = loop['data_obj'].setvals[i]
+    return tuple(new_dim), axis
 
 
-    segment._units = units
+def _update_segment_dims(segment, lp, arg_index, rendering=False):
+    axes = list(lp.axis)
+    data = segment.data if not rendering else segment.pulse_data_all
+    for i in range(len(lp.axis)-1,-1,-1):
 
-def get_union_of_shapes(shape1, shape2):
-    """
-    function that combines the shape of two shapes.
-    Args:
-        shape1 (tuple/array) : shape of the first array
-        shape2 (tuple/array) : shape of the second array
+        data_shape = data.shape
+        lp_axis = lp.axis[i]
+        lp_length = lp.shape[i]
+        new_shape, axis = _get_new_dim_loop(data_shape, lp_axis, lp_length)
+        if new_shape != data_shape:
+            if segment.is_slice:
+                raise Exception(f'Cannot resize data in slice (Indexing)')
 
-    Returns
-        new_shape (tuple) : shape of the combined array
-    """
-    shape1 = list(shape1)
-    shape2 = list(shape2)
-    len_1 = len(shape1)
-    len_2 = len(shape2)
-    max_len = np.max([len_1, len_2])
-    min_len = np.min([len_1, len_2])
-    new_shape = [1]*max_len
+        axes[i] = axis
+        data = update_dimension(data, new_shape)
 
-    if len_1>len_2:
-        new_shape = shape1
-    elif len_2>len_1:
-        new_shape = shape2
+        if not lp.no_setpoints and lp.setvals is not None:
+            sp = setpoint(axis, label=(lp.labels[i],), unit=(lp.units[i],), setpoint=(lp.setvals[i],))
+            segment._setpoints += sp
 
-    for i in range(-1, -1-min_len, -1):
-        if shape1[i] == shape2[i]:
-            new_shape[i] = shape1[i]
-        elif shape1[i] == 1:
-            new_shape[i] = shape2[i]
-        elif shape2[i] == 1:
-            new_shape[i] = shape1[i]
+    if not rendering:
+        segment.data = data
+    else:
+        segment._pulse_data_all = data
+
+    return {'arg_index':arg_index, 'axes':axes}
+
+_in_loop = False
+def loop_controller(func):
+    '''
+    Checks if there are there are parameters given that are loopable.
+
+    If loop:
+        * then check how many new loop parameters on which axis
+        * extend data format to the right shape (simple python list used).
+        * loop over the data and add called function
+
+    if no loop, just apply func on all data (easy)
+    '''
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        global _in_loop
+        if _in_loop:
+            raise Exception('NESTED LOOPS')
+        _in_loop = True
+        obj = args[0]
+
+        loop_info_args = []
+        loop_info_kwargs = []
+
+        for i,arg in enumerate(args):
+            if isinstance(arg, loop_obj):
+                loop_info = _update_segment_dims(obj, arg, i)
+                loop_info_args.append(loop_info)
+
+        for key,kwarg in kwargs.items():
+            if isinstance(kwarg, loop_obj):
+                loop_info = _update_segment_dims(obj, kwarg, key)
+                loop_info_kwargs.append(loop_info)
+
+        obj_data = obj.data
+
+        if len(loop_info_args) == 0 and len(loop_info_kwargs) == 0:
+            data = obj_data
+            if data.shape != (1,):
+                loop_over_data(func, data, args, kwargs)
+            else:
+                obj.data_tmp = data[0]
+                data[0] = func(*args, **kwargs)
         else:
-            raise ValueError("Dimension Mismatch when trying to combine two data object. The first object has on axis {} a dimension of {}, where the second one has a dimension of {}".format(i, shape1[i], shape2[i]))
-    return tuple(new_shape)
+            loop_over_data_lp(func, obj_data, args, loop_info_args, kwargs, loop_info_kwargs)
+        _in_loop = False
 
-def upconvert_dimension(arr, shape):
-    """
-    upconverts the dimension of the array.
+    return wrapper
+
+
+def loop_controller_post_processing(func):
+    '''
+    Checks if there are there are parameters given that are loopable.
+
+    If loop:
+        * then check how many new loop parameters on which axis
+        * extend data format to the right shape (simple python list used).
+        * loop over the data and add called function
+
+    loop controller that works on the *pulse_data_all* object. This acts just before rendering. When rendering is done, all the actions of this looper are done.
+    '''
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        obj = args[0]
+
+
+        loop_info_args = []
+        loop_info_kwargs = []
+
+        for i,arg in enumerate(args):
+            if isinstance(arg, loop_obj):
+                loop_info = _update_segment_dims(obj, arg, i, rendering=True)
+                loop_info_args.append(loop_info)
+
+        for key,kwarg in kwargs.items():
+            if isinstance(kwarg, loop_obj):
+                loop_info = _update_segment_dims(obj, kwarg, key, rendering=True)
+                loop_info_kwargs.append(loop_info)
+
+        obj_data = obj.pulse_data_all
+        if len(loop_info_args) > 0 or len(loop_info_kwargs) > 0:
+            loop_over_data_lp(func, obj_data, args, loop_info_args, kwargs, loop_info_kwargs)
+        else:
+            loop_over_data(func, obj_data, args, kwargs)
+
+    return wrapper
+
+def loop_over_data_lp(func, data, args, args_info, kwargs, kwargs_info):
+    '''
+    Recursive function to apply the func to data with looping args
 
     Args:
-        arr (np.ndarray) : input array
-        shape (tuple) : wanted final shape.
+        func : function to execute
+        data : data of the segment
+        args: arugments that are provided
+        args_info : argument info is provided (e.g. axis updates)
+        kwargs : kwargs provided
+        kwarfs_info : same as args_info
+    '''
+    shape = data.shape
+    n_dim = len(shape)
 
-    Returns:
-        new_arr (np.ndarray) : upconverted array
-    """
+    # copy the input --> we will fill in the arrays
+    # only copy when there are loops
+    if len(args_info) > 0:
+        # copy to new list
+        args_cpy = list(args)
+    else:
+        args_cpy = args
+    if len(kwargs_info) > 0:
+        kwargs_cpy = kwargs.copy()
+    else:
+        kwargs_cpy = kwargs
 
-    if arr.shape == shape:
-        return arr
+    for i in range(shape[0]):
+        for arg in args_info:
+            if n_dim-1 in arg['axes']:
+                index = arg['arg_index']
+                args_cpy[index] = args[index][i]
+        for kwarg in kwargs_info:
+            if n_dim-1 in kwarg['axes']:
+                index = kwarg['arg_index']
+                kwargs_cpy[index] = kwargs[index][i]
 
-    new_arr = np.empty(shape, arr.dtype)
-    input_shape = arr.shape
-    axis_filled = []
-    for i in range(len(input_shape)):
-        if input_shape[i] != 1:
-            axis_filled.append(len(arr.shape) -1 - i)
+        if n_dim == 1:
+            # we are at the lowest level of the loop.
+            args[0].data_tmp = data[i]
+            data[i] = func(*args_cpy, **kwargs_cpy)
+        else:
+            # clean up args, kwargs
+            loop_over_data_lp(func, data[i], args_cpy, args_info, kwargs_cpy, kwargs_info)
 
-    # swap axis to all data in lower axis numbers
-    j = 0
-    axis_swapped = []
-    for i in axis_filled:
-        if i!=j:
-            arr = np.swapaxes(arr, len(arr.shape) -1 - i,len(arr.shape) -1 -  j)
-            new_arr = np.swapaxes(new_arr, len(new_arr.shape) -1 - j, len(new_arr.shape) -1 - i)
-            axis_swapped.append((len(arr.shape) -1 - i,len(arr.shape) -1 -  j, len(new_arr.shape) -1 - j, len(new_arr.shape) -1 - i))
 
-        j += 1
+def loop_over_data(func, data, args, kwargs):
+    '''
+    Recursive function to apply func to data
 
-    # reshape to easy copy dat form arr in new arr
-    old_shape = new_arr.shape
-    new_arr = new_arr.reshape([int(new_arr.size/arr.size),int(arr.size)])
-    new_arr[:] = arr.flatten()
+    Args:
+        func : function to execute
+        data : data of the segment
+        args: arugments that are provided
+        kwargs : kwargs provided
+    '''
+    shape = data.shape
+    n_dim = len(shape)
 
-    new_arr = new_arr.reshape(old_shape)
-    # swap back all the axis.
-    for i in axis_swapped[::-1]:
-        arr = np.swapaxes(arr, i[0], i[1])
-        new_arr = np.swapaxes(new_arr, i[2], i[3])
+    for i in range(shape[0]):
 
-    return new_arr
+        if n_dim == 1:
+            # we are at the lowest level of the loop.
+            args[0].data_tmp = data[i]
+            data[i] = func(*args, **kwargs)
+        else:
+            loop_over_data(func, data[i], args, kwargs)
 
 
 def reduce_arr(arr):

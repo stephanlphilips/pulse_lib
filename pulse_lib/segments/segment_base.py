@@ -5,7 +5,7 @@ File containing the parent class where all segment objects are derived from.
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pulse_lib.segments.utility.data_handling_functions import loop_controller, get_union_of_shapes, update_dimension, find_common_dimension
+from pulse_lib.segments.utility.data_handling_functions import loop_controller
 from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
@@ -51,6 +51,7 @@ class segment_base():
 
         # setpoints of the loops (with labels and units)
         self._setpoints = setpoint_mgr()
+        self.is_slice = False
 
     def _copy(self, cpy):
         cpy.type = copy.copy(self.type)
@@ -87,7 +88,7 @@ class segment_base():
         '''
         self.data_tmp.wait(time)
         if reset_time:
-            self.reset_time()
+            self.data_tmp.reset_time(None)
         return self.data_tmp
 
 
@@ -101,12 +102,7 @@ class segment_base():
         '''
         new_segment = copy.copy(self)
         if isinstance(other, segment_base):
-            shape1 = new_segment.data.shape
-            shape2 = other.data.shape
-            new_shape = get_union_of_shapes(shape1, shape2)
-            other_data = update_dimension(other.data, new_shape)
-            new_segment.data= update_dimension(new_segment.data, new_shape)
-            new_segment.data += other_data
+            new_segment.data = new_segment.data + other.data
 
         elif type(other) == int or type(other) == float:
             new_segment.data += other
@@ -158,6 +154,7 @@ class segment_base():
                 item._data_hvi_variable = item._data_hvi_variable[key[0]]
             else:
                 item._data_hvi_variable = item.data
+        item.is_slice = True
         return item
 
     def append(self, other):
@@ -261,20 +258,18 @@ class segment_base():
         pulse data object that contains the counted op data of all the reference channels (e.g. IQ and virtual gates).
         '''
         if self._pulse_data_all is None:
-            self._pulse_data_all = copy.copy(self.data)
-            for ref_chan in self.reference_channels:
-                # make sure both have the same size.
-                my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.segment.shape)
-                self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape)
-                self._pulse_data_all += ref_chan.segment.pulse_data_all*ref_chan.multiplication_factor
-            for ref_chan in self.IQ_ref_channels:
-                my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.virtual_channel.shape)
-                self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape)
-                self._pulse_data_all += ref_chan.virtual_channel.get_IQ_data(ref_chan.out_channel)
-            for ref_chan in self.references_markers:
-                my_shape = find_common_dimension(self._pulse_data_all.shape, ref_chan.IQ_channel_ptr.shape)
-                self._pulse_data_all = update_dimension(self._pulse_data_all, my_shape)
-                self._pulse_data_all += ref_chan.IQ_channel_ptr.get_marker_data()
+            if (len(self.reference_channels) == 0
+                and len(self.references_markers) == 0
+                and len(self.IQ_ref_channels)== 0):
+                self._pulse_data_all = self.data
+            else:
+                self._pulse_data_all = copy.copy(self.data)
+                for ref_chan in self.reference_channels:
+                    self._pulse_data_all = self._pulse_data_all + ref_chan.segment.pulse_data_all*ref_chan.multiplication_factor
+                for ref_chan in self.IQ_ref_channels:
+                    self._pulse_data_all = self.pulse_data_all + ref_chan.virtual_channel.get_IQ_data(ref_chan.out_channel)
+                for ref_chan in self.references_markers:
+                    self._pulse_data_all = self._pulse_data_all + ref_chan.IQ_channel_ptr.get_marker_data()
 
         return self._pulse_data_all
 
@@ -373,6 +368,7 @@ class segment_base():
             LO = self._qubit_channel.iq_channel.LO
         except:
             LO = None
+
         y = pulse_data_curr_seg.render(sample_rate, LO=LO)
         x = np.linspace(0, pulse_data_curr_seg.total_time, len(y))
         plt.plot(x, y, line, label=self.name)

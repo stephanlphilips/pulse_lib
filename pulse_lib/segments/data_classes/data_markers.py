@@ -141,8 +141,7 @@ class marker_data(parent_data):
             raise ValueError("only markers can be added to markers. No other types allowed.")
 
         new_data = marker_data()
-        new_data.my_marker_data += self.my_marker_data
-        new_data.my_marker_data += other.my_marker_data
+        new_data.my_marker_data = self.my_marker_data + other.my_marker_data
 
         new_data.start_time = self.start_time
         new_data.end_time= self.end_time

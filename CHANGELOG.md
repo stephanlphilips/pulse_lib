@@ -3,11 +3,15 @@ All notable changes to Pulselib will be documented in this file.
 
 ## \[1.6.0] - 2022-10-@@@
 
-- Performance improvements in looping arguments
-- Removed segment_container append(), slice_time(), last_edit
 - Added segment_container.update_dim
-- Performance improvement segment_container.reset_time()
-
+- Removed segment_container append(), slice_time(), last_edit
+- Improved performance of looping arguments
+- Improved performance of segment_container.reset_time()
+- Improved performance of segment and segment_container indexing
+- Improved performance of sequence pre-rendering
+_ Reduced memory usage
+- Added sanity checks on looping arguments
+- Fixed addition of 2 segment_containers to construct simultaneous driving
 
 ## \[1.5.6] - 2022-10-10
 

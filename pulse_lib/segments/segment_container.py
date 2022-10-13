@@ -11,8 +11,8 @@ from pulse_lib.segments.segment_acquisition import segment_acquisition
 from pulse_lib.segments.segment_measurements import segment_measurements
 
 import pulse_lib.segments.utility.looping as lp
-from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension, reduce_arr, upconvert_dimension
-from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
+from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension, reduce_arr
+from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr, setpoint
 from pulse_lib.segments.data_classes.data_generic import map_index
 
 import uuid
@@ -42,9 +42,10 @@ class segment_container():
             sample_rate (float): Optional sample rate of segment container. This sample rate overrules the default set on the sequence.
         """
         # physical + virtual channels + digitizer channels
-        self.channels = []
+        self.channels = {}
         self.render_mode = False
         self._total_times = None
+        self._render_shape = None
         self.id = uuid.uuid4()
         self._software_markers = segment_HVI_variables("HVI_markers")
         self._segment_measurements = segment_measurements()
@@ -57,61 +58,69 @@ class segment_container():
 
         # define real channels (+ markers)
         for name in channel_names:
-            setattr(self, name, segment_pulse(name, self._software_markers))
-            self.channels.append(name)
+            segment = segment_pulse(name, self._software_markers)
+            setattr(self, name, segment)
+            self.channels[name] = segment
         for name in markers:
-            setattr(self, name, segment_marker(name, self._software_markers))
-            self.channels.append(name)
+            segment = segment_marker(name, self._software_markers)
+            setattr(self, name, segment)
+            self.channels[name] = segment
 
         # define virtual gates
         if self._virtual_gate_matrices:
             # make segments for virtual gates.
             for virtual_gate_name in self._virtual_gate_matrices.virtual_gate_names:
-                setattr(self, virtual_gate_name, segment_pulse(virtual_gate_name, self._software_markers, 'virtual_baseband'))
-                self.channels.append(virtual_gate_name)
+                segment = segment_pulse(virtual_gate_name, self._software_markers, 'virtual_baseband')
+                setattr(self, virtual_gate_name, segment)
+                self.channels[virtual_gate_name] = segment
 
         # define virtual IQ channels
         for IQ_channels_obj in IQ_channels_objs:
             for qubit_channel in IQ_channels_obj.qubit_channels:
                 channel_name = qubit_channel.channel_name
-                setattr(self, channel_name,
-                        segment_IQ(channel_name, qubit_channel, self._software_markers))
-                self.channels.append(channel_name)
+                segment = segment_IQ(channel_name, qubit_channel, self._software_markers)
+                setattr(self, channel_name, segment)
+                self.channels[channel_name] = segment
 
         # add the reference between channels for baseband pulses (->virtual gates) and IQ channels.
         add_reference_channels(self, self._virtual_gate_matrices, self._IQ_channel_objs)
 
         for digitizer_channel in self._digitizer_channels:
             name = digitizer_channel.name
-            setattr(self, name, segment_acquisition(name, self._segment_measurements))
-            self.channels.append(name)
+            segment = segment_acquisition(name, self._segment_measurements)
+            setattr(self, name, segment)
+            self.channels[name] = segment
 
         self._setpoints = setpoint_mgr()
+        self._shape = (1,)
 
     def __getitem__(self, index):
         if isinstance(index, str):
-            if index not in self.channels:
-                raise ValueError(f'Unknown channel {index}')
-            return getattr(self, index)
+            name = index
+            if name not in self.channels:
+                raise ValueError(f'Unknown channel {name}')
+            return self.channels[name]
         elif isinstance(index, int):
-            # TODO @@@ use numpy style slicing instead of only index.
+
+            self._extend_dim(self.shape)
+
             new = segment_container([])
 
             new._virtual_gate_matrices = self._virtual_gate_matrices
             new._IQ_channel_objs = self._IQ_channel_objs
 
-            new.channels = self.channels
+            new.channels = {}
 
-            self.extend_dim(self.shape)
+            for name,channel in self.channels.items():
+                new_chan = channel[index]
+                setattr(new, name,new_chan)
+                new.channels[name] = new_chan
 
-            for chan_name in self.channels:
-                chan = getattr(self, chan_name)
-                new_chan = chan[index]
-                setattr(new, chan_name,new_chan)
-
-            new.render_mode = copy.copy(self.render_mode)
             new._software_markers =self._software_markers[index]
-            new._setpoints = self._setpoints
+            new._setpoints = self._setpoints # @@@ -1 setpoint...
+            new._shape = self._shape[1:]
+            if new._shape == ():
+                new._shape = (1,)
 
             # update the references in of all the channels
             add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
@@ -126,12 +135,12 @@ class segment_container():
         new._virtual_gate_matrices = self._virtual_gate_matrices
         new._IQ_channel_objs = self._IQ_channel_objs
 
-        new.channels = copy.copy(self.channels)
+        new.channels = {}
 
-        for chan_name in self.channels:
-            chan = getattr(self, chan_name)
+        for chan_name, chan in self.channels.items():
             new_chan = copy.copy(chan)
             setattr(new, chan_name,new_chan)
+            new.channels[chan_name] = new_chan
 
         new.render_mode = copy.copy(self.render_mode)
         new._software_markers = copy.copy(self._software_markers)
@@ -145,11 +154,17 @@ class segment_container():
 
     def __add__(self, other):
         new = self.__copy__()
-        for name in self.channels:
-            setattr(new, name, new[name] + other[name])
+        for name in self.channels.keys():
+            new_chan = new[name] + other[name]
+            setattr(new, name, new_chan)
+            new.channels[name] = new_chan
         new._software_markers += other._software_markers
         new._segment_measurements += other._segment_measurements
+        new._setpoints = copy.copy(self._setpoints)
+        new._setpoints += other._setpoints
 
+        # update the references in of all the channels
+        add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
         return new
 
     @property
@@ -178,14 +193,18 @@ class segment_container():
         '''
         get combined shape of all the waveforms
         '''
-        my_shape = (1,)
-        for i in self.channels:
-            dim = getattr(self, i).shape
+        if self.render_mode and self._render_shape is not None:
+            return self._render_shape
+        my_shape = self._shape
+        for channel in self.channels.values():
+            dim = channel.shape
             my_shape = find_common_dimension(my_shape, dim)
 
         dim = self._software_markers.shape
         my_shape = find_common_dimension(my_shape, dim)
 
+        if self.render_mode:
+            self._render_shape = my_shape
         return my_shape
 
     @property
@@ -193,8 +212,17 @@ class segment_container():
         return len(self.shape)
 
     def update_dim(self, loop_obj):
-        # use 1 channel to set the axis. Other axis will follow where needed.
-        self._software_markers.update_dim(loop_obj)
+        if len(loop_obj.axis) != 1:
+            raise Exception('Only 1D loops can be added')
+        axis = loop_obj.axis[0]
+        loop_shape = (len(loop_obj.setvals[0]),) + (1,)*(axis)
+        # add to shape and setpoints
+        self._shape = np.broadcast_shapes(self._shape, loop_shape)
+        self._setpoints += setpoint(
+                loop_obj.axis[0],
+                label=(loop_obj.labels[0],),
+                unit=(loop_obj.units[0],),
+                setpoint=(loop_obj.setvals[0],))
 
     @property
     def total_time(self):
@@ -206,13 +234,12 @@ class segment_container():
         if self.render_mode and self._total_times is not None:
             return self._total_times
 
-        shape = list(self.shape)
         n_channels = len(self.channels)
 
-        time_data = np.empty([n_channels] + shape)
+        time_data = np.empty((n_channels,) + self.shape)
 
-        for i, channel in enumerate(self.channels):
-            time_data[i] = upconvert_dimension(self[channel].total_time, shape)
+        for i, channel in enumerate(self.channels.values()):
+            time_data[i] = channel.total_time
 
         times = np.amax(time_data, axis = 0)
 
@@ -232,13 +259,13 @@ class segment_container():
             times (np.ndarray) : numpy array with the total time (maximum of all the channels), for all the different loops executed.
         '''
 
-        shape = list(self.shape)
+        shape = self.shape
         n_channels = len(self.channels)
 
-        time_data = np.empty([n_channels] + shape)
+        time_data = np.empty((n_channels,) + shape)
 
-        for i in range(len(self.channels)):
-            time_data[i] = upconvert_dimension(getattr(self, self.channels[i]).start_time, shape)
+        for i, channel in enumerate(self.channels.values()):
+            time_data[i] = channel.start_time
 
         times = np.amax(time_data, axis = 0)
 
@@ -249,9 +276,8 @@ class segment_container():
 
         comb_setpoints = copy.deepcopy(self._setpoints)
 
-        for channel in self.channels:
-            segment = self[channel]
-            comb_setpoints += segment.setpoints
+        for channel in self.channels.values():
+            comb_setpoints += channel.setpoints
 
         comb_setpoints += self._software_markers.setpoints
 
@@ -259,9 +285,6 @@ class segment_container():
 
     def reset_time(self):
         '''
-        Args:
-            extend_only (bool) : will just extend the time in the segment and not reset it if set to true [do not use when composing wavoforms...].
-
         Alligns all segments togeter and sets the input time to 0,
         e.g. ,
         chan1 : waveform until 70 ns
@@ -274,8 +297,8 @@ class segment_container():
         if shape != [1]:
             n_channels = len(self.channels)
             time_data = np.empty([n_channels] + shape)
-            for i,channel in enumerate(self.channels):
-                time_data[i] = upconvert_dimension(self[channel].total_time, shape)
+            for i,channel in enumerate(self.channels.values()):
+                time_data[i] = channel.total_time
 
             times = np.amax(time_data, axis = 0)
             times, axis = reduce_arr(times)
@@ -285,16 +308,14 @@ class segment_container():
                 loop_obj = lp.loop_obj(no_setpoints=True)
                 loop_obj.add_data(times, axis)
 
-            for channel in self.channels:
-                segment = self[channel]
-                segment.reset_time(loop_obj)
+            for channel in self.channels.values():
+                channel.reset_time(loop_obj)
         else:
             time = 0
-            for channel in self.channels:
-                time = max(time, self[channel].total_time[0])
-            for channel in self.channels:
-                segment = self[channel]
-                segment.reset_time(time)
+            for channel in self.channels.values():
+                time = max(time, channel.total_time[0])
+            for channel in self.channels.values():
+                channel.reset_time(time)
 
 
     def get_waveform(self, channel, index = [0], sample_rate=1e9, ref_channel_states=None):
@@ -308,28 +329,17 @@ class segment_container():
         '''
         return getattr(self, channel).get_segment(index, sample_rate, ref_channel_states)
 
-    def extend_dim(self, shape=None):
+    def _extend_dim(self, shape):
         '''
         extend the dimensions of the waveform to a given shape.
         Args:
             shape (tuple) : shape of the new waveform
-        If referencing is True, a pre-render will already be performed to make sure nothing is rendered double.
         '''
-        if shape is None:
-            shape = self.shape
-
-
-        for i in self.channels:
-            if self.render_mode == False:
-                getattr(self, i).data = update_dimension(getattr(self, i).data, shape)
-
-            if getattr(self, i).type == 'render' and self.render_mode == True:
-                getattr(self, i)._pulse_data_all = update_dimension(getattr(self, i)._pulse_data_all, shape)
-
-        if self.render_mode == False:
-            self._software_markers.data = update_dimension(self._software_markers.data, shape)
-        else:
-            self._software_markers._pulse_data_all = update_dimension(self._software_markers.pulse_data_all, shape)
+        if self.render_mode:
+            raise Exception('extend_dim is not expected to be called in render mode')
+        for channel in self.channels.values():
+            channel.data = update_dimension(channel.data, shape)
+        self._software_markers.data = update_dimension(self._software_markers.data, shape)
 
     def wait(self, time, channels=None, reset_time=False):
         '''
@@ -340,9 +350,11 @@ class segment_container():
            reset_time (bool): reset time after adding pulses
         '''
         if channels is None:
-            channels = self.channels
-        for channel in channels:
-            self[channel].wait(time)
+            for channel in self.channels.values():
+                channel.wait(time)
+        else:
+            for channel in channels:
+                self[channel].wait(time)
         if reset_time:
             self.reset_time()
 
@@ -438,12 +450,11 @@ class segment_container():
         self.reset_time()
         self.render_mode = True
 
-        for name in self.channels:
-            ch = self[name]
-            ch.render_mode =  True
+        for channel in self.channels.values():
+            channel.render_mode =  True
             # make a pre-render of all the pulse data (e.g. compose channels, do not render in full).
-            if ch.type == 'render':
-                ch.pulse_data_all
+            if channel.type == 'render':
+                channel.pulse_data_all
 
     def add_master_clock(self, time):
         '''
@@ -463,9 +474,10 @@ class segment_container():
         '''
         self.render_mode = False
         self._total_times = None
-        for i in self.channels:
-            getattr(self, i).render_mode =  False
-            getattr(self, i)._pulse_data_all = None
+        self._render_shape = None
+        for channel in self.channels.values():
+            channel.render_mode =  False
+            channel._pulse_data_all = None
 
     def plot(self, index=(0,), channels=None, sample_rate=1e9, render_full=True):
         '''
@@ -488,7 +500,7 @@ class segment_container():
                 self.exit_rendering_mode()
         else:
             if channels is None:
-                channels = self.channels
+                channels = self.channels.keys()
             for channel_name in channels:
                 self[channel_name].plot_segment(index, sample_rate=sample_rate, render_full=render_full)
 
@@ -498,8 +510,8 @@ class segment_container():
         '''
         metadata = {}
         metadata['_total_time'] = self.total_time
-        for ch in self.channels:
-            metadata.update(self[ch].get_metadata())
+        for channel in self.channels.values():
+            metadata.update(channel.get_metadata())
         return metadata
 
 @dataclass
@@ -569,11 +581,11 @@ if __name__ == '__main__':
     q1_channel = QubitChannel('q1', None, None)
     chan_q1 = segment_IQ("q1", q1_channel)
     setattr(seg, "q1", chan_q1)
+    seg.channels["q1"] = chan_q1
 
     chan_M = segment_marker("M1")
     setattr(seg, "M1", chan_M)
-    seg.channels.append("q1")
-    seg.channels.append("M1")
+    seg.channels["M1"] = chan_M
     # print(seg.channels)
     # print(seg.q1)
     I_out = IQ_out_channel_info('AWG1_I', 'I', '+')

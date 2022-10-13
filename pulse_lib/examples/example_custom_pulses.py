@@ -84,15 +84,15 @@ seg.vP2.wait(20)
 seq = p.mk_sequence([seg])
 seq.set_hw_schedule(HardwareScheduleMock())
 
-seq.upload((0,0))
-seq.play((0,0))
+seq.upload()
+seq.play()
 
 plot_awgs(awgs)
 pt.title('AWG upload with DC compensation pulse at end')
 
 
 pt.figure()
-seg.P1.plot_segment([0,0])
+seg.P1.plot_segment()
 
 pt.figure(4)
 for i in range(2):

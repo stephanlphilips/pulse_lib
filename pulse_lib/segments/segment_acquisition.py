@@ -47,6 +47,7 @@ class segment_acquisition():
         # setpoints of the loops (with labels and units)
         self._setpoints = setpoint_mgr()
         self.render_mode = False
+        self.is_slice = False
 
     def acquire(self, start, t_measure=None, ref=None,
                 n_repeat=None, interval=None,
@@ -144,6 +145,7 @@ class segment_acquisition():
         self.data = data_org
 
         item.data = data_item
+        item.is_slice = True
         return item
 
     def append(self, other):

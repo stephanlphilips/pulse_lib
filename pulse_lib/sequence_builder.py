@@ -195,9 +195,7 @@ class sequence_builder:
         self._segment = None
         segment = self._get_segment()
         segment.sample_rate = sample_rate
-        # just pick first channel to set wait time
-        segment[segment.channels[0]].wait(t_wait)
-        self.reset_time()
+        segment.wait(t_wait, reset_time=True)
         self._segment = None
 
     def append(self, other):

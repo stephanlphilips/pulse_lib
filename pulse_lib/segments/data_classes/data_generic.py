@@ -164,6 +164,8 @@ class data_container(np.ndarray):
     @property
     def total_time(self):
         shape = self.shape
+        if shape == (1,):
+            return np.array([self[0].total_time])
 
         self = self.flatten()
         times = np.empty(self.shape)
