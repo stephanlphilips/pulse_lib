@@ -30,7 +30,7 @@ class setpoint_mgr():
 
         if isinstance(other, setpoint):
             if other.axis in self._setpoints.keys():
-                output._setpoints[other.axis] += other
+                output._setpoints[other.axis] = other
             else:
                 output._setpoints.update({other.axis : other})
 
