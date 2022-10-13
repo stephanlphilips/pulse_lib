@@ -2,8 +2,8 @@ from pulse_lib.base_pulse import pulselib
 from pulse_lib.virtual_channel_constructors import virtual_gates_constructor, IQ_channel_constructor
 import numpy as np
 
-_backend = 'Qblox'
-#_backend = 'Keysight'
+#_backend = 'Qblox'
+_backend = 'Keysight'
 #_backend = 'Keysight_QS'
 
 _ch_offset = 0
@@ -51,7 +51,7 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
     pulse.define_channel('Q2', awg2, 3 + _ch_offset)
 
     pulse.define_marker('M1', awg1, 0, setup_ns=40, hold_ns=20)
-    pulse.define_marker('M2', awg2, 2, setup_ns=40, hold_ns=20)
+    pulse.define_marker('M2', awg2, 0, setup_ns=40, hold_ns=20)
 
 
     dig_name = digitizers[0].name if len(digitizers) > 0 else 'Dig1'
