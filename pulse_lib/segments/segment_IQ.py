@@ -47,6 +47,10 @@ class segment_IQ(segment_base):
         self._qubit_channel = qubit_channel
 
 
+    def __copy__(self):
+        cpy = segment_IQ(self.name, self._qubit_channel, self._data_hvi_variable)
+        return self._copy(cpy)
+
     @loop_controller
     def add_global_phase(self,phase):
         """
