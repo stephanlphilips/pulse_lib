@@ -82,8 +82,8 @@ class PulsarUploader:
             out_ch = []
             rf_source = dig_ch.rf_source
             if rf_source is not None:
-                if rf_source.mode != 'continuous' and rf_source.trigger_offset_ns is None:
-                    raise Exception(f"'{self.name}' RF source mode {rf_source.mode} trigger_offset_ns not specified")
+                if rf_source.trigger_offset_ns is None:
+                    raise Exception(f"'{self.name}' RF source mode trigger_offset_ns not specified")
                 out = rf_source.output
                 if out is str or len(out) != 2:
                     raise Exception(f'Resonator must be defined as (module_name,channel). '
@@ -495,6 +495,13 @@ class UploadAggregator:
             delays.append(channel.delay - channel.setup_ns)
             delays.append(channel.delay + channel.hold_ns)
 
+        for channel in digitizer_channels.values():
+            delays.append(channel.delay)
+            if channel.rf_source:
+                rf_source = channel.rf_source
+                rf_source.trigger_offset_ns = PulsarConfig.floor(rf_source.trigger_offset_ns)
+                delays.append(-rf_source.trigger_offset_ns)
+
         self.max_pre_start_ns = -min(0, *delays)
         self.max_post_end_ns = max(0, *delays)
 
@@ -682,7 +689,11 @@ class UploadAggregator:
 
         # TODO @@@ Check: LO frequency can change during sweep
         lo_freq = qubit_channel.iq_channel.LO
+        if qubit_channel.reference_frequency is None:
+            raise Exception(f'Qubit idle frequency not set for {channel_name}')
         nco_freq = qubit_channel.reference_frequency-lo_freq
+        if abs(nco_freq) > 300e6:
+            raise Exception(f'NCO frequency {nco_freq/1e6:5.1f} MHz out of range')
 
         seq = IQSequenceBuilder(channel_name, self.program[channel_name],
                                 nco_freq,
