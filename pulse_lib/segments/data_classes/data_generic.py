@@ -15,7 +15,6 @@ class parent_data(ABC):
         makes a template for default functions that are expected in a data object
     """
     start_time = 0
-    software_marker_data = dict()
 
     waveform_cache = LruCache(100)
 
@@ -80,16 +79,6 @@ class parent_data(ABC):
         make a full rendering of the waveform at a predetermined sample rate. This should be defined in the child of this class.
         '''
         raise NotImplementedError()
-
-    def add_software_marker(self, marker_name, time):
-        '''
-        add a marker in software (used as arguments for HVI commands)
-
-        Args:
-            marker_name (str) : name of the maker
-            time (double) : time in ns where to apply the marker
-        '''
-        self.software_marker_data[marker_name] = time
 
     def render(self, sample_rate=1e9, ref_channel_states=None, LO=None):
         '''
@@ -165,29 +154,29 @@ class data_container(np.ndarray):
     def total_time(self):
         shape = self.shape
         if shape == (1,):
-            return np.array([self[0].total_time])
+            # fast short cut
+            times = np.empty(shape)
+            times[0] = self[0].total_time
+            return times
 
-        self = self.flatten()
-        times = np.empty(self.shape)
+        flat = self.flatten()
+        times = np.empty(flat.shape)
 
         for i in range(len(times)):
-            times[i] = self[i].total_time
+            times[i] = flat[i].total_time
 
-        self = self.reshape(shape)
         times = times.reshape(shape)
         return times
 
     @property
     def start_time(self):
         shape = self.shape
-
-        self = self.flatten()
-        times = np.empty(self.shape)
+        flat = self.flatten()
+        times = np.empty(flat.shape)
 
         for i in range(len(times)):
-            times[i] = self[i].start_time
+            times[i] = flat[i].start_time
 
-        self = self.reshape(shape)
         times = times.reshape(shape)
         return times
 
