@@ -28,7 +28,6 @@ from pulse_lib.segments.data_classes.data_markers import marker_data
 from pulse_lib.segments.data_classes.data_generic import data_container
 
 
-
 class segment_IQ(segment_base):
     """
     Standard single segment for IQ purposes
@@ -42,26 +41,13 @@ class segment_IQ(segment_base):
 
         Tip, make on of these segments for each qubit. Then you get a very clean implementation of reference frame changes!
         '''
-        # @@@ Fix segment_type with looping refactor
+        # @@@ Fix segment_type with rendering refactoring
         super().__init__(name, pulse_data(), HVI_variable_data) #, segment_type = 'IQ_virtual')
         self._qubit_channel = qubit_channel
-
 
     def __copy__(self):
         cpy = segment_IQ(self.name, self._qubit_channel, self._data_hvi_variable)
         return self._copy(cpy)
-
-    @loop_controller
-    def add_global_phase(self,phase):
-        """
-        global shift in phase for all the pulses that are subsequently added.
-        Args:
-            phase (double) : phase in radians
-
-        Use this function to apply a reference change for the qubit.
-        """
-        self.data_tmp.global_phase += phase
-        return self.data_tmp
 
     @loop_controller
     def add_phase_shift(self, t, phase):
@@ -85,7 +71,7 @@ class segment_IQ(segment_base):
         MW_data = IQ_data_single(t0 + self.data_tmp.start_time,
                                  t1 + self.data_tmp.start_time,
                                  amp, freq,
-                                 phase + self.data_tmp.global_phase,
+                                 phase,
                                  envelope_generator(AM, PM),
                                  self.name)
         self.data_tmp.add_MW_data(MW_data)
@@ -170,7 +156,6 @@ class segment_IQ(segment_base):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    from pulse_lib.segments.data_classes.data_IQ import envelope_generator
     from scipy import signal
 
     def gaussian_sloped_envelope(delta_t, sample_rate = 1):

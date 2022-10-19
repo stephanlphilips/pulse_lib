@@ -3,17 +3,20 @@ All notable changes to Pulselib will be documented in this file.
 
 ## \[1.6.0] - 2022-10-@@@
 
-- Added segment_container.update_dim
+- Refactored looping and segment indexing:
+  - Added segment_container.update_dim
+  - Added numpy array operations to looping variables
+  - Improved performance of looping arguments
+  - Improved performance of segment_container.reset_time()
+  - Improved performance of segment and segment_container indexing
+  - Improved performance of sequence pre-rendering
+  - Reduced memory usage
+  - Added sanity checks on looping arguments
 - Removed segment_container append(), slice_time(), last_edit
-- Improved performance of looping arguments
-- Improved performance of segment_container.reset_time()
-- Improved performance of segment and segment_container indexing
-- Improved performance of sequence pre-rendering
-_ Reduced memory usage
-- Added sanity checks on looping arguments
+- Removed segment_IQ.add_global_phase()
 - Fixed addition of 2 segment_containers to construct simultaneous driving
 - Added checks on frequency when rendering MW pulses
-- Added numpy array operations to looping variables
+- Internal interface changes marked with [v1.6.0]
 
 ## \[1.5.6] - 2022-10-10
 
