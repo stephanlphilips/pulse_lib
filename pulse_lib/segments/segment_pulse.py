@@ -32,7 +32,6 @@ class segment_pulse(segment_base):
         '''
         super().__init__(name, pulse_data(), HVI_variable_data,segment_type)
 
-
     @loop_controller
     def add_block(self,start,stop, amplitude):
         '''
@@ -99,7 +98,6 @@ class segment_pulse(segment_base):
 
         return self.data_tmp
 
-
     @loop_controller
     def wait(self, wait):
         '''
@@ -120,7 +118,7 @@ class segment_pulse(segment_base):
             stop (double) : stop time in ns of the pulse
             amp (double) : amplitude of the pulse
             freq (double) : frequency of the pulse
-            phase_offset (double) : offset in phase is needed
+            phase_offset (double) : offset in phase
         '''
         self.data_tmp.add_MW_data(IQ_data_single(start + self.data_tmp.start_time,
                                                  stop + self.data_tmp.start_time,
@@ -129,7 +127,6 @@ class segment_pulse(segment_base):
                                                  None, # no envelope
                                                  self.name))
         return self.data_tmp
-
 
     @loop_controller
     def add_custom_pulse(self, start, stop, amplitude, custom_func, **kwargs):
@@ -154,7 +151,6 @@ class segment_pulse(segment_base):
                                           amplitude, custom_func, kwargs)
         self.data_tmp.add_custom_pulse_data(pulse_data)
         return self.data_tmp
-
 
     def add_reference_channel(self, virtual_channel_reference_info):
         '''
@@ -193,11 +189,6 @@ class segment_pulse(segment_base):
 
 
 if __name__ == '__main__':
-    # @@@ test timing of 200 * 200 2D loop with 100 pulse segments
-    # a) adding pulses
-    # b) rendering pulse segments
-
-#    import matplotlib.pyplot as plt
 
     from pulse_lib.segments.segment_HVI_variables import segment_HVI_variables
     test_HVI_marker = segment_HVI_variables("name")
