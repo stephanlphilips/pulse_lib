@@ -67,10 +67,10 @@ class pulse_delta:
 
     @property
     def is_near_zero(self):
-        # near zero if |step| < 1 uV and |ramp| < 1e-9 mV/ns (= 1 mV/s)
+        # near zero if |step| < 0.001 uV and |ramp| < 1e-9 mV/ns (= 1 mV/s)
         # note: max ramp: 2V/ns = 2000 mV/ns, min ramp: 1 mV/s = 1e-9 mV/ns. ~ 12 orders of magnitude.
         # Regular floats have 16 digits precision.
-        return -1e-3 < self.step < 1e-3 and -1e-9 < self.ramp < 1e-9
+        return -1e-6 < self.step < 1e-6 and -1e-9 < self.ramp < 1e-9
 
 @dataclass
 class custom_pulse_element:
@@ -119,16 +119,17 @@ class PhaseShift:
     def start(self):
         return self.time
 
+    @property
+    def stop(self):
+        return self.time
+
+# Changed [v1.6.0]
 @dataclass
 class OffsetRamp:
-    time: float
-    duration: float # time till next OffsetRamp
+    start: float
+    stop: float # time of next OffsetRamp
     v_start: float
     v_stop: float
-
-    @property
-    def start(self):
-        return self.time
 
 # keep till end: start = np.inf
 # slicing:
@@ -152,7 +153,6 @@ class pulse_data(parent_data):
 
         self.start_time = 0
         self._end_time = 0
-        self.global_phase = 0
         self._consolidated = False
         self._preprocessed = False
 
@@ -290,8 +290,8 @@ class pulse_data(parent_data):
         Args:
             frequency (float) : frequency you want to shift
         '''
-        for IQ_data_single_object in self.MW_pulse_data:
-            IQ_data_single_object.frequency -= frequency
+        for mw_pulse in self.MW_pulse_data:
+            mw_pulse.frequency -= frequency
 
     def shift_MW_phases(self, phase_shift):
         '''
@@ -303,8 +303,8 @@ class pulse_data(parent_data):
         if phase_shift == 0:
             return
 
-        for IQ_data_single_object in self.MW_pulse_data:
-            IQ_data_single_object.start_phase += phase_shift
+        for mw_pulse in self.MW_pulse_data:
+            mw_pulse.start_phase += phase_shift
 
 
     '''
@@ -319,8 +319,6 @@ class pulse_data(parent_data):
         my_copy.phase_shifts = copy.copy(self.phase_shifts)
         my_copy.custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
         my_copy.start_time = copy.copy(self.start_time)
-        my_copy.software_marker_data = copy.copy(self.software_marker_data)
-        my_copy.global_phase = copy.copy(self.global_phase)
         my_copy._end_time = self._end_time
         my_copy._consolidated = self._consolidated
 
@@ -332,7 +330,6 @@ class pulse_data(parent_data):
         '''
         new_data = pulse_data()
         new_data.start_time = copy.copy(self.start_time)
-        new_data.global_phase = copy.copy(self.global_phase)
 
         if isinstance(other, pulse_data):
             new_data.pulse_deltas = self.pulse_deltas + other.pulse_deltas
@@ -383,6 +380,8 @@ class pulse_data(parent_data):
         '''
         multiplication operator for segment_single
         '''
+        # consolidate to reduce number of elements.
+        # multiplication is applied during rendering a good moment to reduce number of elements.
         self._consolidate()
         new_data = pulse_data()
 
@@ -393,8 +392,8 @@ class pulse_data(parent_data):
                 delta *= other
 
             new_data.MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
-            for IQ_data_single_object in new_data.MW_pulse_data:
-                IQ_data_single_object.amplitude *=other
+            for mw_pulse in new_data.MW_pulse_data:
+                mw_pulse.amplitude *=other
 
             new_data.custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
             for custom_pulse in new_data.custom_pulse_data:
@@ -403,8 +402,6 @@ class pulse_data(parent_data):
             new_data.phase_shifts = copy.copy(self.phase_shifts)
             new_data._end_time = self._end_time
             new_data.start_time = self.start_time
-            new_data.software_marker_data = copy.copy(self.software_marker_data)
-            new_data.global_phase = self.global_phase
             new_data._consolidated = True
         else:
             raise TypeError(f'Cannot multiply pulse_data with {type(other)}')
@@ -498,28 +495,16 @@ class pulse_data(parent_data):
         return integrated_value
 
     def get_data_elements(self):
-        def typeorder(obj):
-            if isinstance(obj, PhaseShift):
-                return 0.1
-            if isinstance(obj, OffsetRamp):
-                return 0.2
-            if isinstance(obj, IQ_data_single):
-                return 0.3
-            if isinstance(obj, custom_pulse_element):
-                return 0.4
-
         elements = []
         self._pre_process()
         for time, duration, v_start, v_stop in zip(self._times, self._intervals,
                                                    self._amplitudes, self._amplitudes_end):
-            elements.append(OffsetRamp(time, duration, v_start, v_stop))
+            elements.append(OffsetRamp(time, time+duration, v_start, v_stop))
         elements += self.custom_pulse_data
         elements += self.MW_pulse_data
         elements += self.phase_shifts
-        # Sort on rounded time, next: PhaseShift,Offset,MW_pulse,custom
-        elements.sort(key=lambda p:(int(p.start+0.5)+typeorder(p)))
+        elements.sort(key=lambda p:(p.start,p.stop))
         return elements
-
 
     def _render(self, sample_rate, ref_channel_states, LO):
         '''
@@ -555,28 +540,28 @@ class pulse_data(parent_data):
             ps_ch = phase_shifts_channels.setdefault(ps.channel_name, [])
             ps_ch.append(ps)
 
-        for IQ_data_single_object in self.MW_pulse_data:
+        for mw_pulse in self.MW_pulse_data:
             # start stop time of MW pulse
 
-            start_pulse = IQ_data_single_object.start
-            stop_pulse = IQ_data_single_object.stop
+            start_pulse = mw_pulse.start
+            stop_pulse = mw_pulse.stop
 
             # max amp, freq and phase.
-            amp  =  IQ_data_single_object.amplitude
-            freq =  IQ_data_single_object.frequency
+            amp  =  mw_pulse.amplitude
+            freq =  mw_pulse.frequency
             if LO:
                 freq -= LO
             if abs(freq) > sample_rate*1e9/2:
                 raise Exception(f'Frequency {freq*1e-6:5.1f} MHz is above Nyquist frequency ({sample_rate*1e3/2} MHz)')
             # TODO add check on configurable bandwidth.
-            phase = IQ_data_single_object.start_phase
-            if ref_channel_states and IQ_data_single_object.ref_channel in ref_channel_states.start_phase:
+            phase = mw_pulse.start_phase
+            if ref_channel_states and mw_pulse.ref_channel in ref_channel_states.start_phase:
                 ref_start_time = ref_channel_states.start_time
-                ref_start_phase = ref_channel_states.start_phase[IQ_data_single_object.ref_channel]
-                if IQ_data_single_object.ref_channel in phase_shifts_channels:
+                ref_start_phase = ref_channel_states.start_phase[mw_pulse.ref_channel]
+                if mw_pulse.ref_channel in phase_shifts_channels:
                     phase_shifts = [
                             ps.phase_shift
-                            for ps in phase_shifts_channels[IQ_data_single_object.ref_channel]
+                            for ps in phase_shifts_channels[mw_pulse.ref_channel]
                             if ps.time <= start_pulse
                             ]
                     phase_shift = sum(phase_shifts)
@@ -588,11 +573,11 @@ class pulse_data(parent_data):
                 phase_shift = 0
 
             # envelope data of the pulse
-            if IQ_data_single_object.envelope is None:
-                IQ_data_single_object.envelope = envelope_generator()
+            if mw_pulse.envelope is None:
+                mw_pulse.envelope = envelope_generator()
 
-            amp_envelope = IQ_data_single_object.envelope.get_AM_envelope((stop_pulse - start_pulse), sample_rate)
-            phase_envelope = np.asarray(IQ_data_single_object.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate))
+            amp_envelope = mw_pulse.envelope.get_AM_envelope((stop_pulse - start_pulse), sample_rate)
+            phase_envelope = np.asarray(mw_pulse.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate))
 
             #self.baseband_pulse_data[-1,0] convert to point numbers
             n_pt = int((stop_pulse - start_pulse) * sample_rate) if isinstance(amp_envelope, float) else len(amp_envelope)
@@ -638,7 +623,7 @@ class pulse_data(parent_data):
         result.append(last)
         return result
 
-    def render_MW_and_custom(self, sample_rate, ref_channel_states): # @@@ Is this method used somewhere?
+    def render_MW_and_custom(self, sample_rate, ref_channel_states): # @@@ Is this method used anywhere?
         '''
         Render MW pulses and custom data in 'rendered_elements'.
         '''
@@ -656,22 +641,22 @@ class pulse_data(parent_data):
             ps_ch = phase_shifts_channels.setdefault(ps.channel_name, [])
             ps_ch.append(ps)
 
-        for IQ_data_single_object in self.MW_pulse_data:
+        for mw_pulse in self.MW_pulse_data:
             # start stop time of MW pulse
 
-            start_pulse = IQ_data_single_object.start
-            stop_pulse = IQ_data_single_object.stop
+            start_pulse = mw_pulse.start
+            stop_pulse = mw_pulse.stop
 
             # max amp, freq and phase.
-            amp  =  IQ_data_single_object.amplitude
-            freq =  IQ_data_single_object.frequency
-            phase = IQ_data_single_object.start_phase
-            if ref_channel_states and IQ_data_single_object.ref_channel in ref_channel_states.start_phase:
+            amp  =  mw_pulse.amplitude
+            freq =  mw_pulse.frequency
+            phase = mw_pulse.start_phase
+            if ref_channel_states and mw_pulse.ref_channel in ref_channel_states.start_phase:
                 ref_start_time = ref_channel_states.start_time
-                ref_start_phase = ref_channel_states.start_phase[IQ_data_single_object.ref_channel]
+                ref_start_phase = ref_channel_states.start_phase[mw_pulse.ref_channel]
                 phase_shift = 0
-                if IQ_data_single_object.ref_channel in phase_shifts_channels:
-                    for ps in phase_shifts_channels[IQ_data_single_object.ref_channel]:
+                if mw_pulse.ref_channel in phase_shifts_channels:
+                    for ps in phase_shifts_channels[mw_pulse.ref_channel]:
                          if ps.time <= start_pulse:
                              phase_shift += ps.phase_shift
             else:
@@ -680,11 +665,11 @@ class pulse_data(parent_data):
                 phase_shift = 0
 
             # envelope data of the pulse
-            if IQ_data_single_object.envelope is None:
-                IQ_data_single_object.envelope = envelope_generator()
+            if mw_pulse.envelope is None:
+                mw_pulse.envelope = envelope_generator()
 
-            amp_envelope = IQ_data_single_object.envelope.get_AM_envelope((stop_pulse - start_pulse), sample_rate)
-            phase_envelope = IQ_data_single_object.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate)
+            amp_envelope = mw_pulse.envelope.get_AM_envelope((stop_pulse - start_pulse), sample_rate)
+            phase_envelope = mw_pulse.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate)
 
             #self.baseband_pulse_data[-1,0] convert to point numbers
             n_pt = int((stop_pulse - start_pulse) * sample_rate) if isinstance(amp_envelope, float) else len(amp_envelope)

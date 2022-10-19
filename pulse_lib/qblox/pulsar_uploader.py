@@ -459,7 +459,7 @@ class SegmentRenderInfo:
 
 
 class UploadAggregator:
-    verbose = True
+    verbose = False
 
     def __init__(self, q1instrument, awg_channels, marker_channels, digitizer_channels,
                  qubit_channels, awg_voltage_channels, marker_sequencers, seq_markers):
@@ -630,8 +630,8 @@ class UploadAggregator:
             entries = data.get_data_elements()
             for e in entries:
                 if isinstance(e, OffsetRamp):
-                    t = PulsarConfig.align(e.time + seg_start)
-                    t_end = PulsarConfig.align(e.time + seg_start + e.duration)
+                    t = PulsarConfig.align(e.start + seg_start)
+                    t_end = PulsarConfig.align(e.stop + seg_start)
                     v_start = scaling * e.v_start
                     v_stop = scaling * e.v_stop
                     duration = t_end - t
