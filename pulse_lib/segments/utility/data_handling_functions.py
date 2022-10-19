@@ -4,7 +4,6 @@ from pulse_lib.segments.utility.setpoint_mgr import setpoint
 from functools import wraps
 import numpy as np
 import copy
-import logging
 
 def find_common_dimension(dim_1, dim_2):
     '''
@@ -208,12 +207,11 @@ def loop_controller(func):
     if no loop, just apply func on all data (easy)
     '''
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(obj, *args, **kwargs):
         global _in_loop
         if _in_loop:
             raise Exception('NESTED LOOPS')
         _in_loop = True
-        obj = args[0]
 
         loop_info_args = []
         loop_info_kwargs = []
@@ -228,17 +226,16 @@ def loop_controller(func):
                 loop_info = _update_segment_dims(obj, kwarg, key)
                 loop_info_kwargs.append(loop_info)
 
-        obj_data = obj.data
+        data = obj.data
 
         if len(loop_info_args) == 0 and len(loop_info_kwargs) == 0:
-            data = obj_data
             if data.shape != (1,):
-                loop_over_data(func, data, args, kwargs)
+                loop_over_data(func, obj, data, args, kwargs)
             else:
                 obj.data_tmp = data[0]
-                data[0] = func(*args, **kwargs)
+                data[0] = func(obj, *args, **kwargs)
         else:
-            loop_over_data_lp(func, obj_data, args, loop_info_args, kwargs, loop_info_kwargs)
+            loop_over_data_lp(func, obj, data, args, loop_info_args, kwargs, loop_info_kwargs)
         _in_loop = False
 
     return wrapper
@@ -256,9 +253,7 @@ def loop_controller_post_processing(func):
     loop controller that works on the *pulse_data_all* object. This acts just before rendering. When rendering is done, all the actions of this looper are done.
     '''
     @wraps(func)
-    def wrapper(*args, **kwargs):
-        obj = args[0]
-
+    def wrapper(obj, *args, **kwargs):
 
         loop_info_args = []
         loop_info_kwargs = []
@@ -273,20 +268,21 @@ def loop_controller_post_processing(func):
                 loop_info = _update_segment_dims(obj, kwarg, key, rendering=True)
                 loop_info_kwargs.append(loop_info)
 
-        obj_data = obj.pulse_data_all
+        data = obj.pulse_data_all
         if len(loop_info_args) > 0 or len(loop_info_kwargs) > 0:
-            loop_over_data_lp(func, obj_data, args, loop_info_args, kwargs, loop_info_kwargs)
+            loop_over_data_lp(func, obj, data, args, loop_info_args, kwargs, loop_info_kwargs)
         else:
-            loop_over_data(func, obj_data, args, kwargs)
+            loop_over_data(func, obj, data, args, kwargs)
 
     return wrapper
 
-def loop_over_data_lp(func, data, args, args_info, kwargs, kwargs_info):
+def loop_over_data_lp(func, obj, data, args, args_info, kwargs, kwargs_info):
     '''
     Recursive function to apply the func to data with looping args
 
     Args:
         func : function to execute
+        obj: segment function is called on
         data : data of the segment
         args: arugments that are provided
         args_info : argument info is provided (e.g. axis updates)
@@ -320,19 +316,20 @@ def loop_over_data_lp(func, data, args, args_info, kwargs, kwargs_info):
 
         if n_dim == 1:
             # we are at the lowest level of the loop.
-            args[0].data_tmp = data[i]
-            data[i] = func(*args_cpy, **kwargs_cpy)
+            obj.data_tmp = data[i]
+            data[i] = func(obj, *args_cpy, **kwargs_cpy)
         else:
             # clean up args, kwargs
-            loop_over_data_lp(func, data[i], args_cpy, args_info, kwargs_cpy, kwargs_info)
+            loop_over_data_lp(func, obj, data[i], args_cpy, args_info, kwargs_cpy, kwargs_info)
 
 
-def loop_over_data(func, data, args, kwargs):
+def loop_over_data(func, obj, data, args, kwargs):
     '''
     Recursive function to apply func to data
 
     Args:
         func : function to execute
+        obj: segment function is called on
         data : data of the segment
         args: arugments that are provided
         kwargs : kwargs provided
@@ -344,10 +341,10 @@ def loop_over_data(func, data, args, kwargs):
 
         if n_dim == 1:
             # we are at the lowest level of the loop.
-            args[0].data_tmp = data[i]
-            data[i] = func(*args, **kwargs)
+            obj.data_tmp = data[i]
+            data[i] = func(obj, *args, **kwargs)
         else:
-            loop_over_data(func, data[i], args, kwargs)
+            loop_over_data(func, obj, data[i], args, kwargs)
 
 
 def reduce_arr(arr):
