@@ -218,9 +218,10 @@ class loop_obj():
             else:
                 cpy.data = ufunc(self.data, *args, **kwargs)
             return cpy
-        if len(inputs) > 1 and inputs[1] is self and method == '__call__':
-            data = ufunc(inputs[0], self.data, *inputs[2:], **kwargs)
-            return data
+        elif inputs[0] is self:
+            return getattr(ufunc, method)(self.data, *inputs[1:], **kwargs)
+        elif len(inputs) > 1 and inputs[1] is self and method == '__call__':
+            return ufunc(inputs[0], self.data, *inputs[2:], **kwargs)
         return NotImplemented
 
     def __copy__(self):
