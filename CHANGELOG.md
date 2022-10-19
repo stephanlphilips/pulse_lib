@@ -12,6 +12,8 @@ All notable changes to Pulselib will be documented in this file.
 _ Reduced memory usage
 - Added sanity checks on looping arguments
 - Fixed addition of 2 segment_containers to construct simultaneous driving
+- Added checks on frequency when rendering MW pulses
+- Added numpy array operations to looping variables
 
 ## \[1.5.6] - 2022-10-10
 

@@ -9,6 +9,7 @@ class loop_obj():
     def __init__(self, no_setpoints=False):
         self.no_setpoints = no_setpoints
         # little inspiration from qcodes parameter ...
+        self.names = list()
         self.labels = list()
         self.units = list()
         self.axis = list()
@@ -16,12 +17,13 @@ class loop_obj():
         self.setvals = None
         self.setvals_set = False
 
-    def add_data(self, data, axis = None, labels = None, units = None, setvals = None):
+    def add_data(self, data, axis=None, names=None, labels=None, units=None, setvals=None):
         '''
         add data to the loop object.
         data (array/np.ndarray) : n dimensional array with a regular shape (any allowed by numpy) of values you want to sweep
         axis (int/tuple<int>) : loop axis, if none is provided, a new loop axis is generated when the loop object is used in the pulse library.
-        labels (str/tuple<str>) : name of the data that is swept. This will for example be used as an axis label
+        names (str/tuple<str>) : name of the data that is swept.
+        labels (str/tuple<str>) : label of the data that is swept. This will for example be used as an axis label
         units (str/tuple<str>) : unit of the sweep data
         setvals (array/np.ndarray) : if you want to display different things on the axis than the normal data point. When None, setvals is the same as the data varaible.
         '''
@@ -39,13 +41,27 @@ class loop_obj():
                 raise ValueError("Axis must be defined in descending order, e.g. [1,0]")
             self.axis = axis
 
+        if names is None:
+            names = labels
+        elif labels is None:
+            labels = names
+
+        if names is None:
+            self.names = tuple(['no_name']*self.ndim)
+        elif type(names) == str:
+            self.names = (names, )
+        else:
+            if len(names) != len(self.data.shape):
+                raise ValueError("Provided incorrect names.")
+            self.names = names
+
         if labels is None:
             self.labels = tuple(['no_label']*self.ndim)
         elif type(labels) == str:
             self.labels = (labels, )
         else:
             if len(labels) != len(self.data.shape):
-                raise ValueError("Provided incorrect dimensions for the axis.")
+                raise ValueError("Provided incorrect labels.")
             self.labels = labels
 
         if units is None:
@@ -54,7 +70,7 @@ class loop_obj():
             self.units = (units, )
         else:
             if len(units) != len(self.data.shape):
-                raise ValueError("Provided incorrect dimensions for the axis.")
+                raise ValueError("Provided incorrect units.")
             self.units = units
 
         if not self.no_setpoints:
@@ -99,7 +115,8 @@ class loop_obj():
             return self.data[key]
         else:
             partial = loop_obj()
-            partial.labels =self.labels[1:]
+            partial.names = self.names[1:]
+            partial.labels = self.labels[1:]
             partial.units = self.units[1:]
             partial.axis = self.axis[1:]
             partial.dtype = self.dtype
@@ -109,19 +126,9 @@ class loop_obj():
     def __add__(self, other):
         cpy = copy.copy(self)
         if isinstance(other, loop_obj):
-            loop_obj.__combine_axis(cpy, other)
-            if self.ndim == 1 and other.ndim == 1 and self.axis[0] != other.axis[0]:
-                if self.axis[0] < other.axis[0]:
-                    first, second = other, cpy
-                else:
-                    first, second = cpy, other
-
-                cpy.data = np.array(first.data)[:,np.newaxis] + np.array(second.data)[np.newaxis,:]
-            elif self.ndim == 1 and other.ndim == 1 and self.axis[0] == other.axis[0]:
-                cpy.data += other.data
-            else:
-                raise Exception(f'Adding loop objects not supported, {self}, {other}')
-            # TODO equal axis and multiple dimensions
+            # combine axis returns the reshaped data
+            cpy_data, other_data = loop_obj.__combine_axis(cpy, other)
+            cpy.data = cpy_data + other_data
         else:
             cpy.data += other
         return cpy
@@ -133,19 +140,8 @@ class loop_obj():
     def __mul__(self, other):
         cpy = copy.copy(self)
         if isinstance(other, loop_obj):
-            loop_obj.__combine_axis(cpy, other)
-            if self.ndim == 1 and other.ndim == 1 and self.axis[0] != other.axis[0]:
-                if self.axis[0] < other.axis[0]:
-                    first, second = other, cpy
-                else:
-                    first, second = cpy, other
-
-                cpy.data = np.array(first.data)[:,np.newaxis] * np.array(second.data)[np.newaxis,:]
-            elif self.ndim == 1 and other.ndim == 1 and self.axis[0] == other.axis[0]:
-                cpy.data *= other.data
-            else:
-                raise Exception('Adding loop objects not supported')
-            # TODO equal axis and multiple dimensions
+            cpy_data, other_data = loop_obj.__combine_axis(cpy, other)
+            cpy.data = cpy_data * other_data
         else:
             cpy.data *= other
         return cpy
@@ -158,7 +154,11 @@ class loop_obj():
 
     def __sub__(self, other):
         cpy = copy.copy(self)
-        cpy.data -= other
+        if isinstance(other, loop_obj):
+            cpy_data, other_data = loop_obj.__combine_axis(cpy, other)
+            cpy.data = cpy_data - other_data
+        else:
+            cpy.data -= other
         return cpy
 
     def __rsub__(self, other):
@@ -174,11 +174,58 @@ class loop_obj():
 
     def __truediv__(self, other):
         cpy = copy.copy(self)
-        cpy.data = self.data/other
+        if isinstance(other, loop_obj):
+            cpy_data, other_data = loop_obj.__combine_axis(cpy, other)
+            cpy.data = cpy_data / other_data
+        else:
+            cpy.data /= other
         return cpy
+
+    def __round__(self, ndigits=None):
+        cpy = copy.copy(self)
+        cpy.data = np.round(self.data, ndigits)
+        return cpy
+
+    def __trunc__(self):
+        cpy = copy.copy(self)
+        cpy.data = np.trunc(self.data)
+        return cpy
+
+    def __floor__(self):
+        cpy = copy.copy(self)
+        cpy.data = np.floor(self.data)
+        return cpy
+
+    def __ceil__(self):
+        cpy = copy.copy(self)
+        cpy.data = np.ceil(self.data)
+        return cpy
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        '''
+        Called by numpy when numpy method is applied to loop_obj.
+        Applies ufunc on self.data and returns new loop_obj.
+        See numpy documentation.
+        '''
+        if inputs[0] is self and method == '__call__':
+            cpy = copy.copy(self)
+            if 'out' in kwargs:
+                raise Exception('out not yet supported.')
+            args = list(inputs[1:])
+            if len(args) > 0 and isinstance(args[0], loop_obj):
+                self_data, other_data = loop_obj.__combine_axis(cpy, args[0])
+                cpy.data = ufunc(self_data, other_data, *args[1:], **kwargs)
+            else:
+                cpy.data = ufunc(self.data, *args, **kwargs)
+            return cpy
+        if len(inputs) > 1 and inputs[1] is self and method == '__call__':
+            data = ufunc(inputs[0], self.data, *inputs[2:], **kwargs)
+            return data
+        return NotImplemented
 
     def __copy__(self):
         cpy = loop_obj()
+        cpy.names = copy.copy(self.names)
         cpy.labels = copy.copy(self.labels)
         cpy.setvals = copy.copy(self.setvals)
         cpy.setvals_set = copy.copy(self.setvals_set)
@@ -193,57 +240,63 @@ class loop_obj():
     @staticmethod
     def __combine_axis(this, other):
         if isinstance(other, loop_obj):
-            if this.ndim == 1 and other.ndim == 1:
-                if this.axis[0] == other.axis[0]:
-                    if this.shape != other.shape:
-                        raise Exception(f'Cannot combine loops with shapes {this.shape} and {other.shape}')
-                    # assume axis are the same
-                    # TODO check equality of units, setpoins, ...
-                    return
-                elif this.axis[0] < other.axis[0]:
+            if this.ndim != 1 and other.ndim != 1:
+                raise Exception(f'Cannot combine loops with shapes {this.shape} and {other.shape}')
+
+            this_data = this.data
+            other_data = other.data
+            if this.axis[0] == other.axis[0]:
+                if this.shape != other.shape:
+                    raise Exception(f'Cannot combine loops with shapes {this.shape} and {other.shape}')
+                # assume axis are the same
+                # TODO check equality of units, setpoins, ...
+            else:
+                if this.axis[0] < other.axis[0]:
                     first, second = other, this
+                    other_data = other_data[:,np.newaxis]
                 else:
                     first, second = this, other
+                    this_data = this_data[:,np.newaxis]
 
                 this.axis = [first.axis[0], second.axis[0]]
+                this.names = (first.names[0], second.names[0])
                 this.labels = (first.labels[0], second.labels[0])
                 this.units = (first.units[0], second.units[0])
                 this.setvals = (first.setvals[0], second.setvals[0])
-            else:
-                raise Exception(f'Combining loops with shapes {this.shape} and {other.shape} not supported')
-                # TODO support multiple dimensions
+
+            return this_data, other_data
 
 
     def __repr__(self):
-        return f'loop(axis:{self.axis}, labels:{self.labels}, units: {self.units}, setvals: {self.setvals})'
+        return f'loop(names: {self.names}, axis:{self.axis}, labels:{self.labels}, units: {self.units}, setvals: {self.setvals})'
 
 
 class linspace(loop_obj):
     """docstring for linspace"""
-    def __init__(self, start, stop, n_steps = 50,
-                 name = None, unit = None, axis = -1, setvals = None,
+    def __init__(self, start, stop, n_steps=50,
+                 name=None, label=None, unit=None, axis=-1, setvals=None,
                  endpoint=True):
         super().__init__()
         super().add_data(np.linspace(start, stop, n_steps, endpoint=endpoint),
-                         axis = axis, labels = name, units = unit, setvals= setvals)
+                         axis=axis, names=name, labels=label, units=unit, setvals=setvals)
 
 class logspace(loop_obj):
     """docstring for logspace"""
-    def __init__(self, start, stop, n_steps = 50,
-                 name = None, unit = None, axis = -1, setvals = None,
+    def __init__(self, start, stop, n_steps=50,
+                 name=None, label=None, unit=None, axis=-1, setvals=None,
                  endpoint=True):
         super().__init__()
         super().add_data(np.logspace(start, stop, n_steps, endpoint=endpoint),
-                         axis = axis, labels = name, units = unit, setvals = setvals)
+                         axis=axis, names=name, labels=label, units=unit, setvals=setvals)
 
 class geomspace(loop_obj):
     """docstring for geomspace"""
     def __init__(self, start, stop, n_steps = 50,
-                 name = None, unit = None, axis = -1, setvals = None,
+                 name=None, label=None, unit=None, axis=-1, setvals=None,
                  endpoint=True):
         super().__init__()
         super().add_data(np.geomspace(start, stop, n_steps, endpoint=endpoint),
-                         axis = axis, labels = name, units = unit, setvals= setvals)
+                         axis=axis, names=name, labels=label, units=unit, setvals=setvals)
 
 if __name__ == '__main__':
     lp = loop_obj()
