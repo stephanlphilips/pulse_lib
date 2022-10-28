@@ -845,11 +845,19 @@ class UploadAggregator:
 
         times.append(['done', time.perf_counter()])
 
-        # NOTE: compilation is ~20% faster with listing=False, add_comments=False
+        # NOTE: compilation is ~25% faster with listing=False, add_comments=False
         if UploadAggregator.verbose:
             self.program.compile(listing=True, json=True)
         else:
-            self.program.compile(add_comments=False, listing=False, json=False)
+            retry = False
+            try:
+                self.program.compile(add_comments=False, listing=False, json=False)
+            except Exception as ex:
+                retry = True
+                print(f'Exception {ex} was raised during compilation. Compiling again with comments.')
+            if retry:
+                # retry with listing and comments.
+                self.program.compile(add_comments=True, listing=True, json=True)
 
         times.append(['compile', time.perf_counter()])
 
