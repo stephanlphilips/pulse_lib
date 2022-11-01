@@ -50,6 +50,10 @@ class DigitizerSequenceEntry:
     pxi_trigger: Optional[int] = None
     n_cycles : int = 1
 
+@dataclass
+class PhaseShift:
+    t: float
+    phase_shift: float
 
 # TODO:
 #  instruction is 'raw' waveform like segment
@@ -62,21 +66,41 @@ class IQSequenceBuilder:
         self.lo_freq = lo_freq
         self.end_pulse = self.time
         self.last_instruction = None
+        self._pending_phase_shift = None
         self.sequence = []
         self.waveforms = []
 
     def pulse(self, t_pulse, iq_pulse):
         # TODO: split long pulses in start + stop pulse (Rabi)
         # TODO: Frequency chirp with prescaler: pass as FM i.s.o. PM, or Chirp?
+        self._flush_phase_shifts(t_pulse)
+        if self._pending_phase_shift is not None:
+            prephase = self._pending_phase_shift
+            self._pending_phase_shift = None
+        else:
+            prephase = 0
 
         offset = self._get_wvf_offset(t_pulse)
-        waveform_index, duration = self._render_waveform(iq_pulse, self.lo_freq, offset)
+        waveform_index, duration = self._render_waveform(iq_pulse, self.lo_freq, offset,
+                                                         prephase=prephase)
         t_end = t_pulse + duration
         self._append_instruction(t_pulse, t_end, waveform_index)
 
     def shift_phase(self, t, phase_shift):
-        # TODO @@@ merge pulse and shift when on same clock cycle
+        self._flush_phase_shifts(t)
+        if self._pending_phase_shift is not None:
+            pending_phase = self._pending_phase_shift.phase_shift
+        else:
+            pending_phase = 0
+        self._pending_phase_shift = PhaseShift(t, pending_phase + phase_shift)
 
+    def _flush_phase_shifts(self, t):
+        pending = self._pending_phase_shift
+        if pending is not None and pending.t < t:
+            self._append_phase_shift(pending.t, pending.phase_shift)
+            self._pending_phase_shift = None
+
+    def _append_phase_shift(self, t, phase_shift):
         waveform_index, duration = self._render_phase_shift(phase_shift)
         t_end = t + duration
         self._append_instruction(t, t_end, waveform_index)
@@ -84,6 +108,9 @@ class IQSequenceBuilder:
     def conditional_pulses(self, t_instr, segment_start, pulses, order,
                            condition_register):
 
+        self._flush_phase_shifts(t_instr)
+        if self._pending_phase_shift is not None:
+            raise Exception('Error joining phase shift with conditional pulse')
         self._wait_till(t_instr)
         # start of aligned waveform
         t_instr = self.time
@@ -119,6 +146,11 @@ class IQSequenceBuilder:
             entry.waveform_indices.append(wvf_indices[ibranch])
 
     def close(self):
+        pending = self._pending_phase_shift
+        if pending is not None:
+            self._append_phase_shift(pending.t, pending.phase_shift)
+            self._pending_phase_shift = None
+
         # set wait time of last instruction
         if self.last_instruction is not None and self.end_pulse > self.time:
             t_wait = self.end_pulse - self.time
