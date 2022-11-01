@@ -932,22 +932,18 @@ class UploadAggregator:
                                          qubit_channel.iq_channel.LO)
             job.iq_sequences[channel_name] = sequence
 
-
             for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
                 if not isinstance(seg, conditional_segment):
                     seg_ch = seg[channel_name]
                     data = seg_ch._get_data_all_at(job.index)
-                    # TODO @@@ Fix mw_pulses and phase shifts with same start !
-                    mw_data = {pulse.start:pulse for pulse in data.MW_pulse_data}
-                    mw_data.update({ps.time:ps for ps in data.phase_shifts if ps.phase_shift != 0})
-
-                    for mw_time,mw_entry in sorted(mw_data.items()):
-                        t_pulse = seg_render.t_start + mw_time
-
-                        if isinstance(mw_entry, IQ_data_single):
-                            sequence.pulse(t_pulse, mw_entry)
+                    entries = data.get_data_elements()
+                    # mw_pulses and phase shifts with same start are handled in IQSequenceBuilder
+                    for e in entries:
+                        t_pulse = seg_render.t_start + e.start
+                        if isinstance(e, IQ_data_single):
+                            sequence.pulse(t_pulse, e)
                         else:
-                            sequence.shift_phase(t_pulse, mw_entry.phase_shift)
+                            sequence.shift_phase(t_pulse, e.phase_shift)
                 else:
                     logging.debug(f'conditional for {channel_name}:{iseg} start:{seg_render.t_start}')
                     cond_ch = get_conditional_channel(seg, channel_name, sequenced=True, index=job.index)
