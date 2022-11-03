@@ -34,7 +34,7 @@ class SequenceBuilderBase:
         self.max_output_voltage = sequencer.max_output_voltage
         self.offset_ns = 0
 
-    def set_offset(self, offset_ns):
+    def set_time_offset(self, offset_ns):
         self.offset_ns = offset_ns
 
     def register_sinewave(self, waveform):

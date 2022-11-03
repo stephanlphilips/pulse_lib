@@ -602,7 +602,7 @@ class UploadAggregator:
 
         seq = VoltageSequenceBuilder(channel_name, self.program[channel_name],
                                      rc_time=channel_info.bias_T_RC_time)
-        seq.set_offset(t_offset)
+        seq.set_time_offset(t_offset)
         scaling = 1/(channel_info.attenuation * seq.max_output_voltage*1000)
 
         markers = self.get_markers_seq(job, channel_name)
@@ -684,7 +684,7 @@ class UploadAggregator:
                                 nco_freq,
                                 mixer_gain=qubit_channel.correction_gain,
                                 mixer_phase_offset=qubit_channel.correction_phase)
-        seq.set_offset(t_offset)
+        seq.set_time_offset(t_offset)
         attenuation = 1.0 # TODO @@@ check if this is always true..
         scaling = 1/(attenuation * seq.max_output_voltage*1000)
 
@@ -746,7 +746,7 @@ class UploadAggregator:
         seq = AcquisitionSequenceBuilder(channel_name, self.program[channel_name], n_rep,
                                          nco_frequency=nco_freq,
                                          rf_source=digitizer_channel.rf_source)
-        seq.set_offset(t_offset)
+        seq.set_time_offset(t_offset)
         if digitizer_channel.rf_source is not None:
             seq.offset_rf_ns = PulsarConfig.align(self.max_pre_start_ns + digitizer_channel.rf_source.delay)
 
