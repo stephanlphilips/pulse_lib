@@ -27,7 +27,7 @@ class loop_obj():
         units (str/tuple<str>) : unit of the sweep data
         setvals (array/np.ndarray) : if you want to display different things on the axis than the normal data point. When None, setvals is the same as the data varaible.
         '''
-        self.data = np.asarray(data)
+        self.data = np.asarray(data).astype(float)
         self.dtype = self.data.dtype
 
         if axis is None:
@@ -75,7 +75,7 @@ class loop_obj():
 
         if not self.no_setpoints:
             if setvals is None:
-                if len(data.shape) == 1:
+                if len(self.data.shape) == 1:
                     self.setvals = (self.data, )
                 else:
                     raise ValueError ('Multidimensional setpoints cannot be inferred from input.')
@@ -298,6 +298,14 @@ class geomspace(loop_obj):
         super().__init__()
         super().add_data(np.geomspace(start, stop, n_steps, endpoint=endpoint),
                          axis=axis, names=name, labels=label, units=unit, setvals=setvals)
+
+class array(loop_obj):
+    def __init__(self, data,
+                 name=None, label=None, unit=None, axis=-1, setvals=None):
+        super().__init__()
+        super().add_data(data,
+                         axis=axis, names=name, labels=label, units=unit, setvals=setvals)
+
 
 if __name__ == '__main__':
     lp = loop_obj()
