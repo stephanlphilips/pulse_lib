@@ -391,7 +391,7 @@ class sequencer():
         return param
 
     def get_measurement_param(self, name='seq_measurements', upload=None,
-                              raw=True, states=True, values=True,
+                              states=True, values=True,
                               selectors=True, total_selected=True, accept_mask=True,
                               iq_complex=True):
         '''
@@ -409,16 +409,14 @@ class sequencer():
                 When sample_rate is set with set_acquisition(sample_rate=sr),
                 then the data contains time traces in a 2D array indexed
                 [index_repetition][time_step].
-                Only present when `raw=True` and `iq_complex=True` or
-                channel contains IQ data.
+                Only present when `iq_complex=True` or when
+                channel contains no IQ data.
             "{name}_I":
                 Similar to "{name}", but contains I component of IQ.
-                Only present when channel contains IQ data,
-                `raw=True`, and `iq_complex=False`.
+                Only present when channel contains IQ data, and `iq_complex=False`.
             "{name}_Q":
                 Similar to "{name}", but contains Q component of IQ.
-                Only present when channel contains IQ data,
-                `raw=True`, and `iq_complex=False`.
+                Only present when channel contains IQ data, and `iq_complex=False`.
             "{name}_state":
                 Qubit states in 1 D array.
                 Only present when `states=True`, threshold is set,
@@ -451,8 +449,6 @@ class sequencer():
             upload (str):
                 If 'auto' uploads, plays and retrieves data.
                 Otherwise only retrieves data.
-            raw (bool):
-                If True return raw measurement data.
             states (bool): If True return the qubit state after applying threshold.
             values (bool): If True returns the fraction of qubits with state = |1>.
             selectors (bool):
@@ -475,7 +471,7 @@ class sequencer():
         else:
             reader = self
         mc = self._get_measurement_converter()
-        selection = DataSelection(raw=raw, states=states, values=values,
+        selection = DataSelection(raw=True, states=states, values=values,
                                   selectors=selectors, total_selected=total_selected,
                                   accept_mask=accept_mask,
                                   iq_complex=iq_complex)
