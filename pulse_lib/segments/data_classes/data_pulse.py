@@ -140,7 +140,7 @@ class PhaseShift:
         eps = 2*np.pi/2**32
         return -eps < self.phase_shift < eps
 
-# Changed [v1.6.0]
+# Changed [v1.6.0] time,duration -> start,stop
 @dataclass
 class OffsetRamp:
     start: float
@@ -162,7 +162,6 @@ class pulse_data(parent_data):
     """
     def __init__(self):
         super().__init__()
-#        self.baseband_pulse_data = pulse_data_single_sequence()
         self.pulse_deltas = list()
         self.MW_pulse_data = list()
         self.custom_pulse_data = list()
