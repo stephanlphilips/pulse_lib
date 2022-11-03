@@ -252,9 +252,9 @@ class IQSequenceBuilder:
 
 
 class AcquisitionSequenceBuilder:
-    def __init__(self, name, t_start):
+    def __init__(self, name):
         self.name = name
-        self.time = t_start
+        self.time = 0
         self.end_pulse = self.time
         self.last_instruction = None
         self.sequence = []

@@ -1,22 +1,37 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.6.0] - 2022-10-@@@
+## \[1.6.0] - 2022-11-@@@
 
+### Attention !!
+- Digitizer trigger timing has been corrected for channel delays !!
+- Digitizer RF source API has changed.
+- Looping has been refactored to add functionality and improve performance.
+- Important internal interface changes are marked with [v1.6.0] in the code.
+
+### Added
+- Added segment_container.update_dim for looping with index
+- Added numpy array operations to looping variables
+- Added digitizer_channel.delay
+- Added `prolongation_ns` to RF source configuration
+
+### Changed
+- Changed RF source `trigger_offset_ns` to `startup_time_ns`.
 - Refactored looping and segment indexing:
-  - Added segment_container.update_dim
-  - Added numpy array operations to looping variables
   - Improved performance of looping arguments
   - Improved performance of segment_container.reset_time()
   - Improved performance of segment and segment_container indexing
   - Improved performance of sequence pre-rendering
   - Reduced memory usage
   - Added sanity checks on looping arguments
+- Added checks on frequency when rendering MW pulses
+
+### Removed
 - Removed segment_container append(), slice_time(), last_edit
 - Removed segment_IQ.add_global_phase()
+
+### Fixed
 - Fixed addition of 2 segment_containers to construct simultaneous driving
-- Added checks on frequency when rendering MW pulses
-- Internal interface changes marked with [v1.6.0]
 
 ## \[1.5.6] - 2022-10-10
 

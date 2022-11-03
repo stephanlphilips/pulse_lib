@@ -12,7 +12,8 @@ from .pulsar_sequencers import (
         VoltageSequenceBuilder,
         IQSequenceBuilder,
         AcquisitionSequenceBuilder,
-        SequenceBuilderBase)
+        SequenceBuilderBase,
+        PulsarConfig)
 
 from q1pulse import Q1Instrument
 
@@ -24,24 +25,9 @@ from pulse_lib.segments.data_classes.data_pulse import (
 def iround(value):
     return int(value+0.5)
 
-class PulsarConfig:
-    ALIGNMENT = 4 # pulses must be aligned on 4 ns boundaries
-
-    @staticmethod
-    def align(value):
-        return int(value / PulsarConfig.ALIGNMENT + 0.5) * PulsarConfig.ALIGNMENT
-
-    @staticmethod
-    def ceil(value):
-        return int(np.ceil(value / PulsarConfig.ALIGNMENT) * PulsarConfig.ALIGNMENT)
-
-    @staticmethod
-    def floor(value):
-        return int(np.floor(value / PulsarConfig.ALIGNMENT) * PulsarConfig.ALIGNMENT)
-
 
 class PulsarUploader:
-    verbose = True
+    verbose = False
     output_dir = None
 
     def __init__(self, awg_devices, awg_channels, marker_channels,
@@ -82,8 +68,6 @@ class PulsarUploader:
             out_ch = []
             rf_source = dig_ch.rf_source
             if rf_source is not None:
-                if rf_source.trigger_offset_ns is None:
-                    raise Exception(f"'{self.name}' RF source mode trigger_offset_ns not specified")
                 out = rf_source.output
                 if out is str or len(out) != 2:
                     raise Exception(f'Resonator must be defined as (module_name,channel). '
@@ -497,10 +481,10 @@ class UploadAggregator:
 
         for channel in digitizer_channels.values():
             delays.append(channel.delay)
-            if channel.rf_source:
+            if channel.rf_source is not None:
                 rf_source = channel.rf_source
-                rf_source.trigger_offset_ns = PulsarConfig.floor(rf_source.trigger_offset_ns)
-                delays.append(-rf_source.trigger_offset_ns)
+                delays.append(rf_source.delay - rf_source.startup_time_ns)
+                delays.append(rf_source.delay + rf_source.prolongation_ns)
 
         self.max_pre_start_ns = -min(0, *delays)
         self.max_post_end_ns = max(0, *delays)
@@ -618,13 +602,14 @@ class UploadAggregator:
 
         seq = VoltageSequenceBuilder(channel_name, self.program[channel_name],
                                      rc_time=channel_info.bias_T_RC_time)
+        seq.set_offset(t_offset)
         scaling = 1/(channel_info.attenuation * seq.max_output_voltage*1000)
 
         markers = self.get_markers_seq(job, channel_name)
         seq.add_markers(markers)
 
         for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
-            seg_start = seg_render.t_start + t_offset
+            seg_start = seg_render.t_start
             seg_ch = seg[channel_name]
             data = seg_ch._get_data_all_at(job.index)
             entries = data.get_data_elements()
@@ -660,7 +645,7 @@ class UploadAggregator:
                 else:
                     raise Exception(f'Unknown pulse element {type(e)}')
 
-        t_end = PulsarConfig.align(seg_render.t_end + t_offset)
+        t_end = PulsarConfig.align(seg_render.t_end)
         seq.set_offset(t_end, 0, 0.0)
 
         compensation_ns = job.upload_info.dc_compensation_duration_ns
@@ -699,6 +684,7 @@ class UploadAggregator:
                                 nco_freq,
                                 mixer_gain=qubit_channel.correction_gain,
                                 mixer_phase_offset=qubit_channel.correction_phase)
+        seq.set_offset(t_offset)
         attenuation = 1.0 # TODO @@@ check if this is always true..
         scaling = 1/(attenuation * seq.max_output_voltage*1000)
 
@@ -706,7 +692,7 @@ class UploadAggregator:
         seq.add_markers(markers)
 
         for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
-            seg_start = seg_render.t_start + t_offset
+            seg_start = seg_render.t_start
 
             seg_ch = seg[channel_name]
             data = seg_ch._get_data_all_at(job.index)
@@ -742,7 +728,7 @@ class UploadAggregator:
                 logging.error(f'Trigger with HVI variable is not support for Qblox')
 
         channel_name = digitizer_channel.name
-        t_offset = PulsarConfig.align(self.max_pre_start_ns)
+        t_offset = PulsarConfig.align(self.max_pre_start_ns + digitizer_channel.delay)
 
         acq_conf = job.acquisition_conf
 
@@ -760,6 +746,9 @@ class UploadAggregator:
         seq = AcquisitionSequenceBuilder(channel_name, self.program[channel_name], n_rep,
                                          nco_frequency=nco_freq,
                                          rf_source=digitizer_channel.rf_source)
+        seq.set_offset(t_offset)
+        if digitizer_channel.rf_source is not None:
+            seq.offset_rf_ns = PulsarConfig.align(self.max_pre_start_ns + digitizer_channel.rf_source.delay)
 
         markers = self.get_markers_seq(job, channel_name)
         seq.add_markers(markers)
@@ -767,7 +756,7 @@ class UploadAggregator:
             seq.reset_bin_counter(t=0)
 
         for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
-            seg_start = seg_render.t_start + t_offset
+            seg_start = seg_render.t_start
             seg_ch = seg[channel_name]
             acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
 
@@ -845,7 +834,7 @@ class UploadAggregator:
 
         times.append(['done', time.perf_counter()])
 
-        # NOTE: compilation is ~25% faster with listing=False, add_comments=False
+        # NOTE: compilation is 20...30% faster with listing=False, add_comments=False
         if UploadAggregator.verbose:
             self.program.compile(listing=True, json=True)
         else:

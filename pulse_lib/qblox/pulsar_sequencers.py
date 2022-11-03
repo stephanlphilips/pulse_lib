@@ -6,6 +6,23 @@ from dataclasses import dataclass
 
 import numpy as np
 
+
+class PulsarConfig:
+    ALIGNMENT = 4 # pulses must be aligned on 4 ns boundaries
+
+    @staticmethod
+    def align(value):
+        return int(value / PulsarConfig.ALIGNMENT + 0.5) * PulsarConfig.ALIGNMENT
+
+    @staticmethod
+    def ceil(value):
+        return int(np.ceil(value / PulsarConfig.ALIGNMENT) * PulsarConfig.ALIGNMENT)
+
+    @staticmethod
+    def floor(value):
+        return int(np.floor(value / PulsarConfig.ALIGNMENT) * PulsarConfig.ALIGNMENT)
+
+
 class SequenceBuilderBase:
     def __init__(self, name, sequencer):
         self.name = name
@@ -15,6 +32,10 @@ class SequenceBuilderBase:
         self.t_next_marker = None
         self.imarker = 0
         self.max_output_voltage = sequencer.max_output_voltage
+        self.offset_ns = 0
+
+    def set_offset(self, offset_ns):
+        self.offset_ns = offset_ns
 
     def register_sinewave(self, waveform):
         try:
@@ -54,7 +75,7 @@ class SequenceBuilderBase:
             self.t_next_marker = None
 
     def insert_markers(self, t):
-        while self.t_next_marker is not None and t > self.t_next_marker:
+        while self.t_next_marker is not None and t >= self.t_next_marker:
             marker = self.markers[self.imarker]
             self._set_markers(marker[0], marker[1])
             self.set_next_marker()
@@ -94,6 +115,7 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
             self.compensation_factor = 0.0
 
     def ramp(self, t, duration, v_start, v_end):
+        t += self.offset_ns
         self._update_time_and_markers(t, duration)
         v_start_comp = self._compensate_bias_T(v_start)
         v_end_comp = self._compensate_bias_T(v_end)
@@ -101,6 +123,7 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
         self.seq.ramp(duration, v_start_comp, v_end_comp, t_offset=t, v_after=None)
 
     def set_offset(self, t, duration, v):
+        t += self.offset_ns
         # sequencer only updates offset, no continuing action: duration=0
         self._update_time_and_markers(t, 0)
         v_comp = self._compensate_bias_T(v)
@@ -113,12 +136,14 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
             self.seq.set_offset(v_comp, t_offset=t)
 
     def pulse(self, t, duration, amplitude, waveform):
+        t += self.offset_ns
         self._update_time_and_markers(t, duration)
         # TODO @@@ add 2*np.pi*t*frequency*1e-9 to phase ??
         wave_id = self.register_sinewave(waveform)
         self.seq.shaped_pulse(wave_id, amplitude, t_offset=t)
 
     def custom_pulse(self, t, duration, amplitude, custom_pulse):
+        t += self.offset_ns
         self._update_time_and_markers(t, duration)
         wave_id = self.register_custom_pulse(custom_pulse, amplitude)
         self.seq.shaped_pulse(wave_id, 1.0, t_offset=t)
@@ -152,6 +177,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
             self.seq.mixer_phase_offset_degree = mixer_phase_offset/np.pi*180
 
     def pulse(self, t, duration, amplitude, waveform):
+        t += self.offset_ns
         self._update_time_and_markers(t, duration)
         self.add_comment(f'MW pulse {waveform.frequency/1e6:6.2f} MHz {waveform.duration} ns')
         waveform = copy(waveform)
@@ -199,6 +225,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
         Arguments:
             phase (float): phase in rad.
         '''
+        t += self.offset_ns
         self._update_time_and_markers(t, 0.0)
         # normalize phase to -1.0 .. + 1.0 for Q1Pulse sequencer
         norm_phase = (phase/np.pi + 1) % 2 - 1
@@ -224,7 +251,10 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._commands = []
         self.rf_source_mode = rf_source.mode if rf_source is not None else None
         self._pulse_end = -1
+        self.offset_rf_ns = 0
         if rf_source is not None:
+            if isinstance(rf_source.output,str):
+                raise Exception(f'Qblox RF source must be configured using module name and channel numbers')
             scaling = 1/(rf_source.attenuation * self.max_output_voltage*1000)
             self._rf_amplitude = rf_source.amplitude * scaling
             self._n_out_ch = 1 if isinstance(rf_source.output[1], int) else 2
@@ -251,6 +281,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
                               self.seq.set_markers, value, t_offset=t)
 
     def acquire(self, t, t_integrate):
+        t += self.offset_ns
         self._update_time(t, t_integrate)
         self.integration_time = t_integrate
         self.n_triggers += 1
@@ -262,6 +293,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
             self._add_pulse(t, t_integrate)
 
     def repeated_acquire(self, t, t_integrate, n, t_period):
+        t += self.offset_ns
         duration = n * t_period
         self._update_time(t, duration)
         self.integration_time = t_integrate
@@ -274,6 +306,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
             self._add_pulse(t, duration)
 
     def reset_bin_counter(self, t):
+        t += self.offset_ns
         # enqueue: self.seq.reset_bin_counter('default')
         self._add_command(t,
                           self.seq.reset_bin_counter, 'default')
@@ -289,8 +322,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
 
         if self.rf_source_mode == 'continuous':
             self._add_pulse(0, self.t_end)
-        if self._pulse_end > 0:
-            self._add_pulse_end()
+        self._add_pulse_end()
 
         self._commands.sort(key=lambda cmd:cmd.time)
         for cmd in self._commands:
@@ -318,13 +350,20 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._commands.append(_SeqCommand(t, func, args, kwargs))
 
     def _add_pulse(self, t, duration):
-        t_start = t - self.rf_source.trigger_offset_ns
+        # subtract offset of acquistion and add offset of rf source
+        t -= self.offset_ns
+        t += self.offset_rf_ns
+
+        t_start = t
+        t_end = t + duration
+        if self.rf_source_mode == 'pulsed':
+            t_start -= self.rf_source.startup_time_ns
+            t_end += self.rf_source.prolongation_ns
+
         if t_start < 0:
             raise Exception('RF source has negative start time. Acquisition triggered too early. '
                             f'Acquisition start: {t}, RF source start: {t_start}')
-        t_end = t + duration
-        if self.rf_source_mode == 'shaped':
-            t_end -= self.rf_source.trigger_offset_ns
+        t_start = PulsarConfig.align(t_start)
         if t_start > self._pulse_end:
             self._add_pulse_end()
             amp0 = self._rf_amplitude
@@ -336,6 +375,8 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
     def _add_pulse_end(self):
         if self._pulse_end > 0:
             t = self._pulse_end
+            t = PulsarConfig.align(t)
             amp1 = 0.0 if self._n_out_ch == 2 else None
             self._add_command(t,
                               self.seq.set_offset, 0.0, amp1, t_offset=t)
+            self._pulse_end = -1

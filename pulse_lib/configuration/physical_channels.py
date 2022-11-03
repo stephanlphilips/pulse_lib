@@ -55,6 +55,7 @@ class marker_channel:
 #    measurement_converter generates 1 or 2 raw data outputs depending on iq_out
 
 
+# Changed [v1.6.0] trigger_offset_ns -> delay + startup_time_ns
 @dataclass
 class resonator_rf_source:
     '''
@@ -77,15 +78,22 @@ class resonator_rf_source:
     '''
     amplitude of the RF source in mV.
     '''
-    trigger_offset_ns: float = 0.0
-    '''
-    offset in [ns] for pulsed and shaped RF source enabling.
-    '''
     attenuation : float = 1.0
     '''
     Attenuation of the source channel.
     '''
-
+    delay: float = 0.0
+    '''
+    rf channel delay [ns]. The signal is delayed with specified amount.
+    '''
+    startup_time_ns: float = 0.0
+    '''
+    startup time [ns] of the resonator. Amount of time the source is started before acquisition.
+    '''
+    prolongation_ns: float = 0.0
+    '''
+    prolongation [ns] of the pulse after acquisition end in pulsed and continuous mode.
+    '''
 
 @dataclass
 class digitizer_channel:
@@ -127,6 +135,10 @@ class digitizer_channel:
     rf_source: resonator_rf_source = None
     '''
     Optional rf_source to generate the resonator drive signal.
+    '''
+    delay: float = 0.0
+    '''
+    Channel delay in ns.
     '''
 
     def __post_init__(self):

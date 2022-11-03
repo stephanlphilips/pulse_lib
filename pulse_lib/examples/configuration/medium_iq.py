@@ -61,7 +61,7 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
     pulse.set_digitizer_rf_source('SD1', output=(dig_name, 0),
                                   amplitude=400,
                                   mode='pulsed',
-                                  trigger_offset_ns=500)
+                                  startup_time_ns=500)
 
 
     # add limits on voltages for DC channel compensation (if no limit is specified, no compensation is performed).

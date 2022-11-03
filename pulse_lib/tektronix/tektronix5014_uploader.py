@@ -277,6 +277,7 @@ class Job(object):
         self.delete_list = delete_list
         self.alignment = alignment
         self.playback_time = 0 #total playtime of the waveform
+        self.acquisition_conf = None
 
         self.released = False
         self.job_id = self._get_job_id()
@@ -307,6 +308,7 @@ class Job(object):
 
     def set_acquisition_conf(self, conf):
         self.acquisition_conf = conf
+
     def release(self):
         if self.released:
             logging.warning(f'job {self.job_id:04X} ({self.seq_id}-{self.index}) already released')
@@ -380,11 +382,18 @@ class SegmentRenderInfo:
     def t_end(self):
         return self.t_start + self.npt / self.sample_rate
 
+
 @dataclass
 class RefChannels:
     start_time: float
     start_phase: Dict[str,float] = field(default_factory=dict)
     start_phases_all: List[Dict[str,float]] = field(default_factory=list)
+
+
+@dataclass
+class RfMarkerPulse:
+    start: float
+    stop: float
 
 
 class UploadAggregator:
@@ -431,6 +440,13 @@ class UploadAggregator:
             sync_latency = 0 if slave is None else slave.sync_latency
             delays.append(channel.delay - sync_latency - channel.setup_ns)
             delays.append(channel.delay - sync_latency + channel.hold_ns)
+
+        for channel in digitizer_channels.values():
+            delays.append(channel.delay)
+            if channel.rf_source is not None:
+                rf_source = channel.rf_source
+                delays.append(rf_source.delay - rf_source.startup_time_ns)
+                delays.append(rf_source.delay + rf_source.prolongation_ns)
 
         self.max_pre_start_ns = -min(0, *delays)
         self.max_post_end_ns = max(0, *delays)
@@ -580,17 +596,41 @@ class UploadAggregator:
 
     def _generate_digitizer_triggers(self, job):
         triggers = set()
+        self.rf_marker_pulses = {}
 
         for name, value in job.schedule_params.items():
             if name.startswith('dig_trigger_'):
                 triggers.add(value)
 
         for channel_name, channel in self.digitizer_channels.items():
+            rf_source = channel.rf_source
+            if rf_source is not None:
+                rf_marker_pulses = []
+                self.rf_marker_pulses[rf_source.output] = rf_marker_pulses
+
+            t_end = None
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
-                seg_ch = getattr(seg, channel_name)
+                seg_ch = seg[channel_name]
                 acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
                 for acquisition in acquisition_data:
-                    triggers.add(seg_render.t_start + acquisition.start)
+                    t = seg_render.t_start + acquisition.start
+                    triggers.add(t + channel.delay)
+                    t_measure = acquisition.t_measure if acquisition.t_measure is not None else job.acquisition_conf.t_measure
+                    t_end = t+t_measure
+                    if rf_source is not None and rf_source.mode != 'continuous':
+                        rf_marker_pulses.append(RfMarkerPulse(t, t_end))
+
+            if (rf_source is not None
+                and rf_source.mode == 'continuous'
+                and t_end is not None):
+                    rf_marker_pulses.append(RfMarkerPulse(0, t_end))
+
+            for rf_pulse in rf_marker_pulses:
+                rf_pulse.start += rf_source.delay
+                rf_pulse.stop += rf_source.delay
+                if rf_source.mode in ['pulsed', 'continuous']:
+                    rf_pulse.start -= rf_source.startup_time_ns
+                    rf_pulse.stop += rf_source.prolongation_ns
 
         job.digitizer_triggers = list(triggers)
         job.digitizer_triggers.sort()
@@ -600,7 +640,7 @@ class UploadAggregator:
         pulse_duration = max(100, 1e9/job.default_sample_rate) # 1 Sample or 100 ns
         marker_data = []
         for t in job.digitizer_triggers:
-                marker_data.append(marker_pulse(t, t + pulse_duration))
+            marker_data.append(marker_pulse(t, t + pulse_duration))
         return marker_data
 
     def _render_markers(self, job):
@@ -608,7 +648,13 @@ class UploadAggregator:
 
         for channel_name, marker_channel in self.marker_channels.items():
             logging.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV, {marker_channel.delay:+2.0f} ns)')
+            offset = marker_channel.delay
             start_stop = []
+            if channel_name in self.rf_marker_pulses:
+                for pulse in self.rf_marker_pulses[channel_name]:
+                    start_stop.append((offset + pulse.start - marker_channel.setup_ns, +1))
+                    start_stop.append((offset + pulse.stop + marker_channel.hold_ns, -1))
+
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
 
                 seg_ch = getattr(seg, channel_name)
@@ -703,10 +749,6 @@ class UploadAggregator:
         if channel_number not in awg_data:
             l = len(data)
             channel_data = ChannelData(f'ch_{channel_number}_x{job.job_id:04X}', l)
-#            # @@@ todo improve/simplify np data. Use None.
-#            channel_data.wvf = np.zeros(l, dtype=np.uint16)
-#            channel_data.m1 = np.zeros(l, dtype=np.uint16)
-#            channel_data.m2 = np.zeros(l, dtype=np.uint16)
             awg_data[channel_number] = channel_data
         else:
             channel_data = awg_data[channel_number]

@@ -193,10 +193,17 @@ class pulselib:
         '''
         self.digitizer_channels[channel_name].frequency = frequency
 
-    def set_digitizer_rf_source(self, channel_name, output, amplitude,
+    # Changed [v1.6.0] amplitude optional
+    # Changed [v1.6.0] trigger_offset_ns -> delay + startup_time_ns
+    def set_digitizer_rf_source(self, channel_name, output,
                                 mode='pulsed',
+                                amplitude=0,
+                                attenuation=1.0,
+                                startup_time_ns=0,
+                                prolongation_ns=0,
+                                source_delay_ns=0,
                                 trigger_offset_ns=None,
-                                attenuation=1.0):
+                                ):
         '''
         Adds a resonator RF source to the digitizer channel.
         The resonator will be driven with the frequency specified for the digitizer
@@ -210,22 +217,35 @@ class pulselib:
                 (str) name of awg_channel
                 (Tuple[str, int]) name of module and channel number
                 (Tuple[str, List[int]]) name of module and channel numbers
-            amplitude (float): amplitude of the RF source in mV.
             mode (str):
                 'continuous' enables output from start of sequence till after last acquisition.
-                'pulsed' enables output `trigger_offset_ns` before each acquisition till end of the acquisition.
-                'shaped' generates a pulse equal to the acquisition envelope starting `trigger_offset_ns` before
-                   the acquisition.
-            trigger_offset_ns (float): offset in [ns] for RF source enabling.
+                'pulsed' enables output `startup_time_ns` before each acquisition till end of the acquisition.
+                'shaped' generates a pulse equal to the acquisition envelope.
+            amplitude (float): amplitude of the RF source in mV.
             attenuation (float): Attenuation of the source channel.
+            startup_time_ns (float):
+                startup time [ns] of the resonator. In pulsed and continuous mode the RF source is started
+                `startup_time_ns` before acquisition..
+            prolongation_ns (float):
+                prolongation time [ns] of the RF source after acquisition end in pulsed mode.
+            source_delay_ns (float):
+                delay to be added to the source signal [ns].
+            trigger_offset_ns (float):
+                DEPRECATED. This argument has been replaced by startup_time_ns and source_delay_ns.
         Note:
             The output specification depends on the driver.
             Qblox driver only supports module name with channel number(s).
         '''
+        if trigger_offset_ns is not None:
+            print(f'Warning: trigger_offset_ns is deprecated. Use startup_time_ns and/or source_delay_ns')
+            if startup_time_ns == 0:
+                startup_time_ns = trigger_offset_ns
         rf_source = resonator_rf_source(output=output, mode=mode,
                                         amplitude=amplitude,
-                                        trigger_offset_ns=trigger_offset_ns,
-                                        attenuation=attenuation)
+                                        attenuation=attenuation,
+                                        startup_time_ns=startup_time_ns,
+                                        prolongation_ns=prolongation_ns,
+                                        delay=source_delay_ns)
         self.digitizer_channels[channel_name].rf_source = rf_source
 
     def set_digitizer_iq_out(self, channel_name, iq_out):
@@ -246,12 +266,14 @@ class pulselib:
 
         Args:
             channel (str) : channel name as defined in self.define_channel().
-            delay (int): delay of the current coax line (this may be a postive or negative number)
+            delay (int): delay to be added to the channel (this may be a postive or negative number).
         '''
         if channel in self.awg_channels:
             self.awg_channels[channel].delay = delay
         elif channel in self.marker_channels:
             self.marker_channels[channel].delay = delay
+        elif channel in self.digitizer_channels:
+            self.digitizer_channels[channel].delay = delay
         else:
             raise ValueError(f"Channel delay error: Channel '{channel}' is not defined")
 
