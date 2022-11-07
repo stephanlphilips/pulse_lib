@@ -620,17 +620,16 @@ class UploadAggregator:
                     if rf_source is not None and rf_source.mode != 'continuous':
                         rf_marker_pulses.append(RfMarkerPulse(t, t_end))
 
-            if (rf_source is not None
-                and rf_source.mode == 'continuous'
-                and t_end is not None):
+            if rf_source is not None:
+                if rf_source.mode == 'continuous' and t_end is not None:
                     rf_marker_pulses.append(RfMarkerPulse(0, t_end))
 
-            for rf_pulse in rf_marker_pulses:
-                rf_pulse.start += rf_source.delay
-                rf_pulse.stop += rf_source.delay
-                if rf_source.mode in ['pulsed', 'continuous']:
-                    rf_pulse.start -= rf_source.startup_time_ns
-                    rf_pulse.stop += rf_source.prolongation_ns
+                for rf_pulse in rf_marker_pulses:
+                    rf_pulse.start += rf_source.delay
+                    rf_pulse.stop += rf_source.delay
+                    if rf_source.mode in ['pulsed', 'continuous']:
+                        rf_pulse.start -= rf_source.startup_time_ns
+                        rf_pulse.stop += rf_source.prolongation_ns
 
         job.digitizer_triggers = list(triggers)
         job.digitizer_triggers.sort()
