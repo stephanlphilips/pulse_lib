@@ -12,6 +12,9 @@ class MockM3102A(Instrument):
 
         self.measure = ChannelData()
 
+    def get_idn(self):
+        return dict(vendor='Pulselib', model=type(self).__name__, serial='', firmware='')
+
     def chassis_number(self):
         return self._chassis_numnber
 

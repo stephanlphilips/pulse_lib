@@ -54,6 +54,9 @@ class MockM3102A_QS(Instrument):
         for i in range(1,5):
             self._sequencers[i] = SequencerChannel(self, i)
 
+    def get_idn(self):
+        return dict(vendor='Pulselib', model=type(self).__name__, serial='', firmware='')
+
     def slot_number(self):
         return self._slot_number
 

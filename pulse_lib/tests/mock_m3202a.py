@@ -56,6 +56,9 @@ class MockM3202A(Instrument):
         self.chassis = chassis
         self.slot = slot
 
+    def get_idn(self):
+        return dict(vendor='Pulselib', model=type(self).__name__, serial='', firmware='')
+
     def slot_number(self):
         return self._slot_number
 
