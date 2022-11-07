@@ -24,9 +24,9 @@ else:
 
 def station_get_or_create(func):
     def wrapper(name, *args, **kwargs):
-        try:
+        if name in station.components:
             return station[name]
-        except:
+        else:
             component = func(name, *args, **kwargs)
             station.add_component(component)
             return component

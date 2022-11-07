@@ -11,9 +11,9 @@ else:
 _use_dummy=True
 
 def add_awg(name, slot_nr):
-    try:
+    if name in station.components:
         awg = station[name]
-    except:
+    else:
         awg = MockM3202A_QS(name, 0, slot_nr)
         station.add_component(awg)
     return awg
@@ -27,4 +27,5 @@ def add_dig(name, slot_nr):
     return dig
 
 awg1 = add_awg('AWG1', 2)
-dig1 = add_dig('Dig1', 5)
+awg2 = add_awg('AWG2', 5)
+dig1 = add_dig('Dig1', 7)

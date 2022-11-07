@@ -12,13 +12,14 @@ except:
 
 
 def add_module(module_type, name, ip_addr):
-    try:
+    if name in station.components:
         pulsar = station[name]
-    except:
+    else:
         if _use_simulator:
             if not _q1simulator_found:
                 raise Exception('q1simulator not found')
             pulsar = Q1Simulator(name, sim_type=module_type)
+            # pulsar.config('trace', True)
         elif _use_dummy:
             print(f'Starting {module_type} {name} dummy')
             pulsar = Pulsar(name, ip_addr, dummy_type='Pulsar '+module_type)
