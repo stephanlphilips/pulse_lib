@@ -21,9 +21,8 @@ def init_hardware():
         return [awg1,awg2], [dig1]
     if _backend == 'Keysight_QS':
         _ch_offset = 1
-        from .init_keysight_qs import awg1, dig1
-        TODO()
-        return [awg1], [dig1]
+        from .init_keysight_qs import awg1, awg2, dig1
+        return [awg1,awg2], [dig1]
 
 
 def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
