@@ -1,10 +1,9 @@
 from pulse_lib.base_pulse import pulselib
-from pulse_lib.virtual_channel_constructors import virtual_gates_constructor, IQ_channel_constructor
-import numpy as np
+from pulse_lib.virtual_channel_constructors import IQ_channel_constructor
 
-_backend = 'Qblox'
+#_backend = 'Qblox'
 #_backend = 'Keysight'
-#_backend = 'Keysight_QS'
+_backend = 'Keysight_QS'
 
 _ch_offset = 0
 
