@@ -138,7 +138,7 @@ class MockM3202A(Instrument):
     def plot(self, bias_T_rc_time=0):
         for channel in range(1,5):
             data, prescaler = self.get_data_prescaler(channel)
-            print(f'{self.name}.{channel} data: {[(len(s),p) for s,p in zip(data,prescaler)]}')
+            #print(f'{self.name}.{channel} data: {[(len(s),p) for s,p in zip(data,prescaler)]}')
 
             if len(data) == 0:
                 continue
