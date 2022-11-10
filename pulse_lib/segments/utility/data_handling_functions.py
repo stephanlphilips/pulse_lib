@@ -178,7 +178,9 @@ def _update_segment_dims(segment, lp, arg_index, rendering=False):
         new_shape, axis = _get_new_dim_loop(data_shape, lp_axis, lp_length)
         if new_shape != data_shape:
             if segment.is_slice:
-                raise Exception(f'Cannot resize data in slice (Indexing)')
+                # TODO: Fix this with refactored indexing.
+                raise Exception(f'Cannot resize data in slice (Indexing). '
+                                'All loop axes must be added before indexing segment.')
 
         axes[i] = axis
         data = update_dimension(data, new_shape)
