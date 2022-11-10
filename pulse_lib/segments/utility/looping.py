@@ -181,6 +181,11 @@ class loop_obj():
             cpy.data /= other
         return cpy
 
+    def __rtruediv__(self, lhs):
+        cpy = copy.copy(self)
+        cpy.data = lhs / cpy.data
+        return cpy
+
     def __round__(self, ndigits=None):
         cpy = copy.copy(self)
         cpy.data = np.round(self.data, ndigits)
@@ -242,13 +247,15 @@ class loop_obj():
     def __combine_axis(this, other):
         if isinstance(other, loop_obj):
             if this.ndim != 1 and other.ndim != 1:
-                raise Exception(f'Cannot combine loops with shapes {this.shape} and {other.shape}')
+                raise Exception(f'Cannot combine loops {this.names} and {other.names}'
+                                f' with shapes {this.shape} and {other.shape}')
 
             this_data = this.data
             other_data = other.data
             if this.axis[0] == other.axis[0]:
                 if this.shape != other.shape:
-                    raise Exception(f'Cannot combine loops with shapes {this.shape} and {other.shape}')
+                    raise Exception(f'Cannot combine loops {this.names} and {other.names}'
+                                    f' with shapes {this.shape} and {other.shape}')
                 # assume axis are the same
                 # TODO check equality of units, setpoins, ...
             else:
