@@ -73,33 +73,35 @@ class Tektronix5014_Uploader:
         max_amplitude = 4500 / 2
         min_amplitude = 20 / 2
         for channel in self.awg_channels.values():
+            amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.DEFAULT_AMPLITUDE
             awg = self.awgs[channel.awg_name]
-            if channel.amplitude > max_amplitude or channel.amplitude < min_amplitude:
-                raise ValueError(f'amplitude ({channel.amplitude}) out of range [{min_amplitude}, {max_amplitude}] mV')
+            if amplitude > max_amplitude or amplitude < min_amplitude:
+                raise ValueError(f'amplitude ({amplitude}) out of range [{min_amplitude}, {max_amplitude}] mV')
             ch_num = channel.channel_number
             # NOTE: Tektronix setting is Vpp, not amplitude.
-            awg.set(f'ch{ch_num}_amp', channel.amplitude/1000*2)
+            awg.set(f'ch{ch_num}_amp', amplitude/1000*2)
             offset = channel.offset if channel.offset is not None else 0
             awg.set(f'ch{ch_num}_offset', offset/1000)
 
         for channel in self.marker_channels.values():
             awg = self.awgs[channel.module_name]
+            amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.DEFAULT_AMPLITUDE
             if isinstance(channel.channel_number, tuple):
-                if channel.amplitude > 2700 or channel.amplitude < -900:
-                    raise ValueError(f'marker amplitude ({channel.amplitude}) out of range [-900, 2700] mV')
+                if amplitude > 2700 or amplitude < -900:
+                    raise ValueError(f'marker amplitude ({amplitude}) out of range [-900, 2700] mV')
                 channel_number = channel.channel_number[0]
                 marker_number = channel.channel_number[1]
                 if channel.invert:
-                    awg.set(f'ch{channel_number}_m{marker_number}_low', channel.amplitude/1000)
+                    awg.set(f'ch{channel_number}_m{marker_number}_low', amplitude/1000)
                     awg.set(f'ch{channel_number}_m{marker_number}_high', 0.0)
                 else:
-                    awg.set(f'ch{channel_number}_m{marker_number}_high', channel.amplitude/1000)
+                    awg.set(f'ch{channel_number}_m{marker_number}_high', amplitude/1000)
                     awg.set(f'ch{channel_number}_m{marker_number}_low', 0.0)
             else:
-                if channel.amplitude > max_amplitude or channel.amplitude < min_amplitude:
-                    raise ValueError(f'amplitude ({channel.amplitude}) out of range [{min_amplitude}, {max_amplitude}] mV')
+                if amplitude > max_amplitude or amplitude < min_amplitude:
+                    raise ValueError(f'amplitude ({amplitude}) out of range [{min_amplitude}, {max_amplitude}] mV')
                 ch_num = channel.channel_number
-                awg.set(f'ch{ch_num}_amp', channel.amplitude/1000*2)
+                awg.set(f'ch{ch_num}_amp', amplitude/1000*2)
 
     def get_effective_sample_rate(self, sample_rate):
         """
