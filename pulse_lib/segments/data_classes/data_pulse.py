@@ -535,7 +535,7 @@ class pulse_data(parent_data):
             if not last.is_near_zero:
                 new_shifts.append(last)
 
-            self.pulse_deltas = new_shifts
+            self.phase_shifts = new_shifts
 
         self._phase_shifts_consolidated = True
 
