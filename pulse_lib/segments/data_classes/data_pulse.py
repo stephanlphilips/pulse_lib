@@ -604,18 +604,18 @@ class pulse_data(parent_data):
             if ref_channel_states and mw_pulse.ref_channel in ref_channel_states.start_phase:
                 ref_start_time = ref_channel_states.start_time
                 ref_start_phase = ref_channel_states.start_phase[mw_pulse.ref_channel]
-                if mw_pulse.ref_channel in phase_shifts_channels:
-                    phase_shifts = [
-                            ps.phase_shift
-                            for ps in phase_shifts_channels[mw_pulse.ref_channel]
-                            if ps.time <= start_pulse
-                            ]
-                    phase_shift = sum(phase_shifts)
-                else:
-                    phase_shift = 0
             else:
                 ref_start_time = 0
                 ref_start_phase = 0
+
+            if mw_pulse.ref_channel in phase_shifts_channels:
+                phase_shifts = [
+                        ps.phase_shift
+                        for ps in phase_shifts_channels[mw_pulse.ref_channel]
+                        if ps.time <= start_pulse
+                        ]
+                phase_shift = sum(phase_shifts)
+            else:
                 phase_shift = 0
 
             # envelope data of the pulse
