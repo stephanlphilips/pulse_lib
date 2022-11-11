@@ -27,6 +27,7 @@ class loop_obj():
         units (str/tuple<str>) : unit of the sweep data
         setvals (array/np.ndarray) : if you want to display different things on the axis than the normal data point. When None, setvals is the same as the data varaible.
         '''
+        # NOTE: data MUST be float for qcodes save_metadata
         self.data = np.asarray(data).astype(float)
         self.dtype = self.data.dtype
 
