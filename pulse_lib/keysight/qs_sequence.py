@@ -75,7 +75,7 @@ class IQSequenceBuilder:
         # TODO: Frequency chirp with prescaler: pass as FM i.s.o. PM, or Chirp?
         self._flush_phase_shifts(t_pulse)
         if self._pending_phase_shift is not None:
-            prephase = self._pending_phase_shift
+            prephase = self._pending_phase_shift.phase_shift
             self._pending_phase_shift = None
         else:
             prephase = 0
