@@ -1,0 +1,16 @@
+# selection used in databrowser. Any is an allowed value here.
+setup: Test
+project: Pulselib
+sample: yaml_configuration
+
+local_database:
+    user: sdesnoo
+    password: FastSp!ns
+    database: sds_test
+
+logging:
+    disabled: true
+
+databrowser:
+    datasource: local # required value
+

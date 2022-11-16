@@ -1,0 +1,39 @@
+instruments:
+
+  sig_gen1:
+    type: qcodes.tests.instrument_mocks.DummyInstrument
+    enable_forced_reconnect: true
+    init:
+      gates: ['frequency','power']
+    parameters:
+      frequency:
+        limits: [0,20e9]
+
+  sig_gen2:
+    type: qcodes.tests.instrument_mocks.DummyInstrument
+    enable_forced_reconnect: true
+    init:
+      gates: ['frequency','power']
+    parameters:
+      frequency:
+        limits: [0,20e9]
+
+  AWG1:
+    type: pulse_lib.tests.mock_tektronix5014.MockTektronix5014
+    enable_forced_reconnect : True
+
+  AWG2:
+    type: pulse_lib.tests.mock_tektronix5014.MockTektronix5014
+    enable_forced_reconnect : True
+
+  AWG3:
+    type: pulse_lib.tests.mock_tektronix5014.MockTektronix5014
+    enable_forced_reconnect : True
+
+  AWG4:
+    type: pulse_lib.tests.mock_tektronix5014.MockTektronix5014
+    enable_forced_reconnect : True
+
+  Dig1:
+    type: pulse_lib.tests.mock_m4i.MockM4i
+    enable_forced_reconnect: true

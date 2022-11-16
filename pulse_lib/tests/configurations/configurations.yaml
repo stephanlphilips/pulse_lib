@@ -1,0 +1,92 @@
+default: KeysightMocked
+
+KeysightMocked:
+    station: keysight_mocked.yaml
+    backend: Keysight
+    awg_channels:
+        AWG1: [P1,P2,P3,]
+        AWG2: [P4,P5,P6,P7]
+        AWG3: [I1,Q1,I2,Q2]
+    markers:
+        M1: [AWG1,4]
+        M_IQ: [AWG3,0]
+    sensors:
+        SD1: [Dig1,1]
+        SD2: [Dig1,2]
+    rf:
+        SD2:
+            output: M1
+            startup_time: 500
+    runner: qcodes
+
+
+KeysightQSMocked:
+    station: keysight_qs_mocked.yaml
+    backend: Keysight_QS
+    awg_channels:
+        AWG1: [P1,P2,P3,]
+        AWG2: [P4,P5,P6,P7]
+        AWG3: [I1,Q1,I2,Q2]
+    markers:
+        M1: [AWG1,4]
+        M_IQ: [AWG3,0]
+    sensors:
+        SD1: [Dig1,1]
+        SD2: [Dig1,2]
+    runner: core_tools
+
+
+QbloxMocked:
+    station: qblox_mocked.yaml
+    backend: Qblox
+    awg_channels:
+        QCM1: [P1,P2,P3,]
+        QCM2: [P4,P5,P6,P7]
+        QCM3: [I1,Q1,I2,Q2]
+    markers:
+        M1: [QCM1,1]
+        M_IQ: [QCM3,1]
+    sensors:
+        SD1: [QRM1,1]
+        SD2: [QRM1,2]
+    rf:
+        SD2:
+            output: [QRM1,1]
+            frequency: 2e6
+            amplitude: 400
+            startup_time: 0
+    runner: core_tools
+
+
+TektronixMocked:
+    station: tektronix_mocked.yaml
+    backend: Tektronix_5014
+    awg_channels:
+        AWG1: [P1,P2,P3,]
+        AWG2: [P4,P5,P6,P7]
+        AWG3: [I1,Q1,I2,Q2]
+    markers:
+        M1: [AWG1,[1,1]]
+        M_M4i: [AWG1,[4,2]]
+        M_IQ: [AWG3,[1,1]]
+    sensors:
+        SD1: [Dig1,1]
+        SD2: [Dig1,2]
+    runner: qcodes
+
+
+QbloxV1:
+    station: qblox_v1.yaml
+    backend: Qblox
+    awg_channels:
+        Qblox_module2: [P1,P2,P3,]
+        Qblox_module4: [P4,P5,P6,P7]
+        Qblox_module6: [I1,Q1,I2,Q2]
+    markers:
+        M1: [Qblox_module2,1]
+        M_IQ: [Qblox_module6,1]
+    dig_channels:
+        SD1: [Qblox_module8,1]
+        SD2: [Qblox_module8,2]
+    runner: core_tools
+
