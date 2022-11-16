@@ -342,6 +342,6 @@ class _scan_parameter(MultiParameter):
 
     def __del__(self):
         if not self.my_seq is None and not self.pulse_lib is None:
-            logging.warning(f'Automatic cleanup in __del__(); Calling stop()')
+            logging.debug(f'Automatic cleanup in __del__(); Calling stop()')
             self.stop()
 
