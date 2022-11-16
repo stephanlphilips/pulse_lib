@@ -51,8 +51,9 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
     pulse.define_digitizer_channel('SD1', dig_name, 0 + _ch_offset)
     if _backend == 'Qblox':
         # No modulation. Just output a rectangular pulse during acquisition.
-        pulse.set_digitizer_rf_source('SD1', (dig_name, 0), 500,
+        pulse.set_digitizer_rf_source('SD1', (dig_name, 0),
                                       mode='pulsed',
+                                      amplitude=500,
                                       startup_time_ns=500,
                                       attenuation=1.0)
     else:
@@ -63,8 +64,9 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
     pulse.define_digitizer_channel('SD2', dig_name, 1 + _ch_offset, iq_out=True)
     if _backend == 'Qblox':
         pulse.set_digitizer_frequency('SD2', 100e6)
-        pulse.set_digitizer_rf_source('SD2', (dig_name, 1), 400,
+        pulse.set_digitizer_rf_source('SD2', (dig_name, 1),
                                       mode='pulsed',
+                                      amplitude=400,
                                       startup_time_ns=500,
                                       attenuation=1.0)
 
