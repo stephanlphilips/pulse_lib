@@ -86,7 +86,7 @@ class Tektronix5014_Uploader:
         for channel in self.marker_channels.values():
             awg = self.awgs[channel.module_name]
             amplitude = channel.amplitude if channel.amplitude is not None else AwgConfig.DEFAULT_AMPLITUDE
-            if isinstance(channel.channel_number, tuple):
+            if isinstance(channel.channel_number, (tuple, list)):
                 if amplitude > 2700 or amplitude < -900:
                     raise ValueError(f'marker amplitude ({amplitude}) out of range [-900, 2700] mV')
                 channel_number = channel.channel_number[0]
@@ -483,7 +483,7 @@ class UploadAggregator:
         for seg in job.sequence:
             # work with sample rate in GSa/s
             if seg.sample_rate and seg.sample_rate != job.default_sample_rate:
-                raise Exception('multipe sample rates is not supported for Tektronix')
+                raise Exception('multiple sample rates is not supported for Tektronix')
             duration = seg.get_total_time(job.index)
             npt =  int(duration * sample_rate + 0.5)
             info = SegmentRenderInfo(sample_rate, t_start, npt)
@@ -705,7 +705,7 @@ class UploadAggregator:
                 logging.error(f'Marker error {marker_channel.name} {on_off}')
             if s == 1 and on_off[1] == 1:
                 t_on = on_off[0]
-            if s == 0 and on_off[1] == -1:
+            elif s == 0 and on_off[1] == -1:
                 t_off = on_off[0]
                 logging.debug(f'Marker: {t_on} - {t_off} ({section.t_start:+}ns)')
                 # search start section
@@ -713,14 +713,15 @@ class UploadAggregator:
                     logging.error(f'Failed to render marker t_on > start')
                 pt_on = int((t_on - section.t_start) * section.sample_rate)
                 if pt_on < 0:
-                    logging.info(f'Warning: Marker setup before waveform; aligned with start')
+                    logging.warning(f'Warning: Marker setup before waveform; aligned with start')
                     pt_on = 0
-                if t_off < section.t_end:
-                    pt_off = int((t_off - section.t_start) * section.sample_rate)
-                    buffer[pt_on:pt_off] = 1
-                else:
-                    logging.error(f'Failed to render marker t_off > end')
+                if t_off > section.t_end:
+                    logging.warning(f'Truncated marker {marker_channel.name} at {section.t_end}')
+                    t_off = section.t_end
+                pt_off = int((t_off - section.t_start) * section.sample_rate)
+                buffer[pt_on:pt_off] = 1
 
+        buffer[-1] = 0
 #        self._upload_wvf(job, marker_channel.name, buffer, 1.0, 1.0)
         self._add_channel_data(job, marker_channel.name, buffer)
 
@@ -860,7 +861,7 @@ def _send_waveform_to_list(awg, length, wf, m1, m2, name):
         wfmname: waveform name
     '''
     if wf is None:
-        packed_wf = np.zeros(length)
+        packed_wf = np.zeros(length, dtype='<u2')
     else:
         # Note: we use np.trunc here rather than np.round
         # as it is an order of magnitude faster
@@ -871,7 +872,6 @@ def _send_waveform_to_list(awg, length, wf, m1, m2, name):
         packed_wf += 32768 * m2
 
     raw_data = packed_wf.tobytes()
-    l = len(wf)
 
     # if we create a waveform with the same name but different size,
     # it will not get over written
@@ -881,7 +881,7 @@ def _send_waveform_to_list(awg, length, wf, m1, m2, name):
     awg.write(s)
 
     # create the waveform
-    s = f'WLISt:WAVeform:NEW "{name}",{l},INTEGER'
+    s = f'WLISt:WAVeform:NEW "{name}",{length},INTEGER'
     awg.write(s)
 
     # upload data

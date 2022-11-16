@@ -33,6 +33,7 @@ All notable changes to Pulselib will be documented in this file.
 
 ### Fixed
 - Fixed addition of 2 segment_containers to construct simultaneous driving
+- Tektronix marker on unused AWG channel
 
 ## \[1.5.6] - 2022-10-10
 
