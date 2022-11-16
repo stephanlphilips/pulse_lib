@@ -29,6 +29,7 @@ seg2.P2.wait(t_wait)
 seg2.reset_time()
 seg2.SD1.acquire(50, t_measure=t_measure_loop)
 seg2.SD2.acquire(50, t_measure=t_measure_loop) # @@@ test multiple channels with Keysight
+seg2.wait(t_measure_loop)
 #seg2.add_HVI_marker('dig_trigger_1', t_off=50)
 seg2.P1.add_block(0, 100, v_param)
 #seg2.add_HVI_variable('t_measure', t_measure_loop)
