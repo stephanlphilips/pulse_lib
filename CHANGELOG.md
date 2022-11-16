@@ -12,6 +12,7 @@ All notable changes to Pulselib will be documented in this file.
 ### Added
 - Added segment_container.update_dim for looping with index
 - Added numpy array operations to looping variables
+- Added looping.array to loop over an arbitrary array of values
 - Added digitizer_channel.delay
 - Added `prolongation_ns` to RF source configuration
 
