@@ -111,8 +111,25 @@ class segment_base():
 
         return new_segment
 
+    def __iadd__(self, other):
+        '''
+        define addition operator for segment_single
+        '''
+        if isinstance(other, segment_base):
+            self.data = self.data + other.data
+
+        elif type(other) == int or type(other) == float:
+            self.data += other
+        else:
+            raise TypeError("Please add up segment_single type or a number ")
+
+        return self
+
     def __sub__(self, other):
         return self.__add__(other*-1)
+
+    def __isub__(self, other):
+        return self.__iadd__(other*-1)
 
     def __mul__(self, other):
         '''
