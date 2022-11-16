@@ -286,11 +286,11 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self.integration_time = t_integrate
         self.n_triggers += 1
         self._add_scaling(1/t_integrate, 1)
+        if self.rf_source_mode in ['pulsed', 'shaped']:
+            self._add_pulse(t, t_integrate)
         # enqueue: self.seq.acquire('default', 'increment', t_offset=t)
         self._add_command(t,
                           self.seq.acquire, 'default', 'increment', t_offset=t)
-        if self.rf_source_mode in ['pulsed', 'shaped']:
-            self._add_pulse(t, t_integrate)
 
     def repeated_acquire(self, t, t_integrate, n, t_period):
         t += self.offset_ns
@@ -299,11 +299,11 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self.integration_time = t_integrate
         self.n_triggers += n
         self._add_scaling(1/t_integrate, n)
+        if self.rf_source_mode in ['pulsed', 'shaped']:
+            self._add_pulse(t, duration)
         # enqueue: self.seq.repeated_acquire(n, t_period, 'default', 'increment', t_offset=t)
         self._add_command(t,
                           self.seq.repeated_acquire, n, t_period, 'default', 'increment', t_offset=t)
-        if self.rf_source_mode in ['pulsed', 'shaped']:
-            self._add_pulse(t, duration)
 
     def reset_bin_counter(self, t):
         t += self.offset_ns
