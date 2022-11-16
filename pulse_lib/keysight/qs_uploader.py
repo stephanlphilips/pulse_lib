@@ -185,6 +185,12 @@ class QsUploader:
             channel_number = awg_channel.channel_number
             # empty AWG queue
             self.AWGs[awg_name].awg_flush(channel_number)
+        for marker_channel in self.marker_channels.values():
+            awg_name = marker_channel.module_name
+            channel_number = marker_channel.channel_number
+            if channel_number > 0:
+                # empty AWG queue
+                self.AWGs[awg_name].awg_flush(channel_number)
 
         # queue waveforms
         for channel_name, queue in job.channel_queues.items():
