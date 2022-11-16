@@ -3,6 +3,7 @@ import logging
 class HardwareScheduleMock:
     def __init__(self):
         self.loaded = False
+        self.sequence_params = None
 
     def compile(self, sequencer_hardware):
         pass
@@ -25,6 +26,7 @@ class HardwareScheduleMock:
         logging.info(f'set configuration {args} {kwargs}')
 
     def start(self, waveform_duration, n_repetitions, sequence_params):
+        self.sequence_params = sequence_params
         logging.info(f'start {n_repetitions}*{waveform_duration} {sequence_params}')
 
     def is_running(self):

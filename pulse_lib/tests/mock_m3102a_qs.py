@@ -17,12 +17,21 @@ class InstructionBase:
 # NOTE: n_cycles > 1 cannot be combined with threshold
 @dataclass
 class DigitizerInstruction(InstructionBase):
-    address: int
     t_measure: Optional[float] = None
     n_cycles: int = 1
     threshold: Optional[float] = None
     pxi: Optional[int] = None
     measurement_id: Optional[int] = None
+
+    def __str__(self):
+        s = f'{self.address:2}: {str(self.t_measure):4}, wait_after {self.wait_after}'
+        if self.n_cycles != 1:
+            s += f', n_cycles {self.n_cycles}'
+        if self.threshold is not None:
+            s += f', threshold {self.threshold}'
+        if self.pxi is not None:
+            s += f', pxi {self.pxi}'
+        return s
 
 
 class SequencerChannel:
