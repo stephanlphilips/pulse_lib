@@ -153,6 +153,7 @@ class sequencer():
 
     def _get_measurement_converter(self):
         if self._measurement_converter is None:
+            self._measurements_description.calculate_measurement_offsets()
             self._measurement_converter = MeasurementConverter(self._measurements_description,
                                                                self.n_rep, self._acquisition_conf.sample_rate)
         return self._measurement_converter

@@ -17,7 +17,7 @@ All notable changes to Pulselib will be documented in this file.
 - Added `prolongation_ns` to RF source configuration
 
 ### Changed
-- Changed RF source `trigger_offset_ns` to `startup_time_ns`.
+- Changed set_digitizer_rf_source `trigger_offset_ns` to `startup_time_ns`.
 - Refactored looping and segment indexing:
   - Improved performance of looping arguments
   - Improved performance of segment_container.reset_time()
@@ -34,6 +34,8 @@ All notable changes to Pulselib will be documented in this file.
 ### Fixed
 - Fixed addition of 2 segment_containers to construct simultaneous driving
 - Tektronix marker on unused AWG channel
+- Measurement result inversion with zero_on_high
+- Multiple measurements on 1 channel with down-sampling
 
 ## \[1.5.6] - 2022-10-10
 

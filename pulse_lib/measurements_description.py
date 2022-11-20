@@ -22,11 +22,7 @@ class measurements_description:
             if isinstance(measurement, measurement_acquisition):
                 m = copy.copy(measurement)
                 acquisition_count = self.acquisition_count.setdefault(m.acquisition_channel, 0)
-                data_offset = self.channel_data_offset.setdefault(m.acquisition_channel, 0)
                 m.index += acquisition_count
-                m.data_offset = data_offset
-                n_samples = m.n_samples if m.n_samples is not None else 1
-                self.channel_data_offset[m.acquisition_channel] = data_offset + n_samples
 
                 if m.name is None:
                     m.name = f'{m.acquisition_channel}_{m.index+1}'
@@ -52,6 +48,15 @@ class measurements_description:
                 self.acquisitions[channel_name] = data
             else:
                 self.acquisitions[channel_name] = self.acquisitions[channel_name] + data
+
+    def calculate_measurement_offsets(self):
+        self.channel_data_offset  = {}
+        for m in self.measurements:
+            channel = m.acquisition_channel
+            data_offset = self.channel_data_offset.setdefault(channel, 0)
+            m.data_offset = data_offset
+            n_samples = m.n_samples if m.n_samples is not None else 1
+            self.channel_data_offset[channel] = data_offset + n_samples
 
     def add_HVI_variables(self, HVI_variables):
         dig_triggers = []
