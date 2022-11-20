@@ -201,7 +201,8 @@ class measurement_converter:
                 channel_name = m.acquisition_channel
                 result = self._channel_raw[channel_name][m.index] > m.threshold
                 if m.zero_on_high:
-                    result = not result
+                    # flip bit 0
+                    result = result ^ 1
                 result = result.astype(int)
             elif isinstance(m, measurement_expression):
                 result = m.expression.evaluate(last_result)

@@ -316,7 +316,7 @@ class MeasurementConverter:
                     continue
                 result = self._raw[i] > m.threshold
                 if m.zero_on_high:
-                    result = ~result
+                    result = result ^ 1
                 result = result.astype(int)
             elif isinstance(m, measurement_expression):
                 result = m.expression.evaluate(last_result)
