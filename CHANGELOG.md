@@ -15,6 +15,7 @@ All notable changes to Pulselib will be documented in this file.
 - Added looping.array to loop over an arbitrary array of values
 - Added digitizer_channel.delay
 - Added `prolongation_ns` to RF source configuration
+- Added `iq_complex` to fast_scan1D_param and fast_scan2D_param
 
 ### Changed
 - Changed set_digitizer_rf_source `trigger_offset_ns` to `startup_time_ns`.

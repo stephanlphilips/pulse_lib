@@ -12,7 +12,9 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
                       channel_map=None,
                       enabled_markers=[],
                       pulse_gates={},
-                      n_avg=1):
+                      n_avg=1,
+                      iq_complex=True,
+                      ):
     """
     Creates a parameter to do a 1D fast scan.
 
@@ -36,14 +38,14 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
             Gates to pulse during scan with pulse voltage in mV.
             E.g. {'vP1': 10.0, 'vB2': -29.1}
         n_avg (int): number of times to scan and average data.
+        iq_complex (bool):
+            If True return IQ data as complex value in 1 value, otherwise return IQ data
+            in two values with suffixes '_I' and '_Q'.
 
     Returns:
         Parameter (QCODES multiparameter) : parameter that can be used as input in a conversional scan function.
     """
     logging.info(f'fast scan 1D: {gate}')
-
-    vp = swing/2
-    line_margin = int(line_margin)
 
     # set up timing for the scan
     acquisition_delay = max(100, acquisition_delay_ns)
@@ -53,6 +55,11 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
         msg = f'Measurement time too short. Minimum is 1000'
         logging.error(msg)
         raise Exception(msg)
+
+    acq_channels,channel_map = _get_channels(pulse_lib, channel_map, channels, iq_complex)
+
+    vp = swing/2
+    line_margin = int(line_margin)
 
     n_ptx = n_pt + 2*line_margin
     vpx = vp * (n_ptx-1)/(n_pt-1)
@@ -67,15 +74,6 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
         voltages[1::2] = voltages_x[m:][::-1]
     else:
         voltages = voltages_x
-
-    if channel_map is None:
-        if channels is None:
-            acq_channels = list(pulse_lib.digitizer_channels.keys())
-        else:
-            acq_channels = channels
-        channel_map = {i:(i, np.real) for i in acq_channels}
-    else:
-        acq_channels = set(v[0] for v in channel_map.values())
 
     seg  = pulse_lib.mk_segment()
 
@@ -125,7 +123,9 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
                       channel_map=None,
                       enabled_markers=[],
                       pulse_gates={},
-                      n_avg=1):
+                      n_avg=1,
+                      iq_complex=True,
+                      ):
     """
     Creates a parameter to do a 2D fast scan.
 
@@ -153,6 +153,9 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
             Gates to pulse during scan with pulse voltage in mV.
             E.g. {'vP1': 10.0, 'vB2': -29.1}
         n_avg (int): number of times to scan and average data.
+        iq_complex (bool):
+            If True return IQ data as complex value in 1 value, otherwise return IQ data
+            in two values with suffixes '_I' and '_Q'.
 
     Returns:
         Parameter (QCODES multiparameter) : parameter that can be used as input in a conversional scan function.
@@ -168,14 +171,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
         logging.error(msg)
         raise Exception(msg)
 
-    if channel_map is None:
-        if channels is None:
-            acq_channels = list(pulse_lib.digitizer_channels.keys())
-        else:
-            acq_channels = channels
-        channel_map = {i:(i, np.real) for i in acq_channels}
-    else:
-        acq_channels = set(v[0] for v in channel_map.values())
+    acq_channels,channel_map = _get_channels(pulse_lib, channel_map, channels, iq_complex)
 
     line_margin = int(line_margin)
     add_pulse_gate_correction = biasT_corr and len(pulse_gates) > 0
@@ -266,6 +262,27 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
                            biasT_corr, channel_map)
 
 
+def _get_channels(pulse_lib, channel_map, channels, iq_complex):
+    if channel_map is not None:
+        acq_channels = set(v[0] for v in channel_map.values())
+    else:
+        dig_channels = pulse_lib.digitizer_channels
+        if channels is None:
+            acq_channels = list(dig_channels.keys())
+        else:
+            acq_channels = channels
+
+        channel_map = {}
+        for name in acq_channels:
+            dig_ch = dig_channels[name]
+            if dig_ch.iq_out and not iq_complex:
+                channel_map[name+'_I'] = (name, np.real)
+                channel_map[name+'_Q'] = (name, np.imag)
+            else:
+                channel_map[name] = (name, lambda x:x)
+
+    return acq_channels, channel_map
+
 
 class _scan_parameter(MultiParameter):
     """
@@ -318,7 +335,7 @@ class _scan_parameter(MultiParameter):
             data.append(func(ch_data))
 
         # make sure that data is put in the right order.
-        data_out = [np.zeros(self.shape) for i in range(len(data))]
+        data_out = [np.zeros(self.shape, dtype=d.dtype) for d in data]
 
         for i in range(len(data)):
             d = data[i]
