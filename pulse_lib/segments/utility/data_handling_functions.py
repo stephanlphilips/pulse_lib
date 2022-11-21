@@ -213,32 +213,34 @@ def loop_controller(func):
         global _in_loop
         if _in_loop:
             raise Exception('NESTED LOOPS')
-        _in_loop = True
+        try:
+            _in_loop = True
 
-        loop_info_args = []
-        loop_info_kwargs = []
+            loop_info_args = []
+            loop_info_kwargs = []
 
-        for i,arg in enumerate(args):
-            if isinstance(arg, loop_obj):
-                loop_info = _update_segment_dims(obj, arg, i)
-                loop_info_args.append(loop_info)
+            for i,arg in enumerate(args):
+                if isinstance(arg, loop_obj):
+                    loop_info = _update_segment_dims(obj, arg, i)
+                    loop_info_args.append(loop_info)
 
-        for key,kwarg in kwargs.items():
-            if isinstance(kwarg, loop_obj):
-                loop_info = _update_segment_dims(obj, kwarg, key)
-                loop_info_kwargs.append(loop_info)
+            for key,kwarg in kwargs.items():
+                if isinstance(kwarg, loop_obj):
+                    loop_info = _update_segment_dims(obj, kwarg, key)
+                    loop_info_kwargs.append(loop_info)
 
-        data = obj.data
+            data = obj.data
 
-        if len(loop_info_args) == 0 and len(loop_info_kwargs) == 0:
-            if data.shape != (1,):
-                loop_over_data(func, obj, data, args, kwargs)
+            if len(loop_info_args) == 0 and len(loop_info_kwargs) == 0:
+                if data.shape != (1,):
+                    loop_over_data(func, obj, data, args, kwargs)
+                else:
+                    obj.data_tmp = data[0]
+                    data[0] = func(obj, *args, **kwargs)
             else:
-                obj.data_tmp = data[0]
-                data[0] = func(obj, *args, **kwargs)
-        else:
-            loop_over_data_lp(func, obj, data, args, loop_info_args, kwargs, loop_info_kwargs)
-        _in_loop = False
+                loop_over_data_lp(func, obj, data, args, loop_info_args, kwargs, loop_info_kwargs)
+        finally:
+            _in_loop = False
 
     return wrapper
 
