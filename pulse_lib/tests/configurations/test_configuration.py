@@ -182,6 +182,7 @@ class Context:
                 if sensor not in pulse.digitizer_channels:
                     continue
                 if backend == 'Qblox':
+                    pulse.digitizer_channels[sensor].iq_out = True
                     pulse.set_digitizer_frequency(sensor, params['frequency'])
                     pulse.set_digitizer_rf_source(sensor,
                                                   output=params['output'],
@@ -222,13 +223,13 @@ class Context:
         elif backend == 'Tektronix_5014':
             sequence.set_hw_schedule(TektronixSchedule(self.pulse))
 
-    def run(self, name, sequence, *params):
+    def run(self, name, sequence, *params, silent=False):
         global _ct_configured
         runner = self._configuration['runner']
         if runner == 'qcodes':
             path = 'C:/measurements/test_pulselib'
             DataSet.default_io = DiskIO(path)
-            return qc_run(name, sequence, *params)
+            return qc_run(name, sequence, *params, quiet=silent)
 
         elif runner == 'core_tools':
             if not _ct_imported:
@@ -237,7 +238,7 @@ class Context:
                 ct.configure(os.path.join(self._dir, 'ct_config.yaml'))
                 _ct_configured = True
             ct.set_sample_info(sample=self.configuration_name)
-            return do0D(sequence, *params, name=name).run()
+            return do0D(sequence, *params, name=name, silent=silent).run()
 
         else:
             print(f'no implementation for {runner}')
