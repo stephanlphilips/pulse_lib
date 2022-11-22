@@ -84,6 +84,13 @@ class Context:
                 if name.startswith('Dig'):
                     digs.append(component)
 
+        cfg = self._configuration
+        backend = cfg['backend']
+        if backend in ['Keysight', 'KeysightQS']:
+            for dig in digs:
+                # Set mode AVERAGE
+                dig.set_acquisition_mode(1)
+
         self.awgs = awgs
         self.digitizers = digs
 
