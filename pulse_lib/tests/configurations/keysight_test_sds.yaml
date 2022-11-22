@@ -1,0 +1,55 @@
+instruments:
+
+  sig_gen1:
+    type: qcodes.tests.instrument_mocks.DummyInstrument
+    enable_forced_reconnect: true
+    init:
+      gates: ['frequency','power']
+    parameters:
+      frequency:
+        limits: [0,20e9]
+
+  sig_gen2:
+    type: qcodes.tests.instrument_mocks.DummyInstrument
+    enable_forced_reconnect: true
+    init:
+      gates: ['frequency','power']
+    parameters:
+      frequency:
+        limits: [0,20e9]
+
+  AWG1:
+    type: keysight_fpga.qcodes.M3202A_fpga.M3202A_fpga
+    enable_forced_reconnect : True
+    init:
+      chassis : 1
+      slot : 3
+
+  AWG2:
+    type: keysight_fpga.qcodes.M3202A_fpga.M3202A_fpga
+    enable_forced_reconnect : True
+    init:
+      chassis : 1
+      slot : 7
+
+  AWG3:
+    type: keysight_fpga.qcodes.M3202A_fpga.M3202A_fpga
+    enable_forced_reconnect : True
+    init:
+      chassis : 1
+      slot : 9
+
+  AWG4:
+    type: keysight_fpga.qcodes.M3202A_fpga.M3202A_fpga
+    enable_forced_reconnect : True
+    init:
+      chassis : 1
+      slot : 11
+
+  Dig1:
+    type: keysight_fpga.qcodes.M3102A_fpga.M3102A_fpga
+    enable_forced_reconnect: true
+    init:
+      chassis: 1
+      slot: 5
+

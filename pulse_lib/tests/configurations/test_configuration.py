@@ -217,10 +217,17 @@ class Context:
         pulse.define_marker(name, awg, channel, setup_ns=setup_ns, hold_ns=hold_ns)
 
     def add_hw_schedule(self, sequence):
-        backend = self._configuration['backend']
-        if backend in ['Keysight','Keysight_QS']:
+        cfg = self._configuration
+        schedule = cfg.get('schedule', None)
+        if schedule == 'Mock':
             sequence.set_hw_schedule(HardwareScheduleMock())
-        elif backend == 'Tektronix_5014':
+        elif schedule == 'HVI2':
+            hvi2_schedule = getattr(self, 'hvi2_schedule', None)
+            if hvi2_schedule == None:
+                from core_tools.HVI2.hvi2_schedule_loader import Hvi2ScheduleLoader
+                self.hvi2_schedule = Hvi2ScheduleLoader(self.pulse, "SingleShot")
+            sequence.set_hw_schedule(self.hvi2_schedule)
+        elif schedule == 'TektronixM4i':
             sequence.set_hw_schedule(TektronixSchedule(self.pulse))
 
     def run(self, name, sequence, *params, silent=False):
@@ -276,7 +283,26 @@ class Context:
             else:
                 print('No acquisition info for backend ' + backend)
 
+#    def plot_measurement(self, sequence, m_param):
+#        # average n_rep
+#        # time trace...
+#        s_params = sequence.params
+#        n_params = len(s_params)
+#        data = m_param()
+#        if n_params == 0:
+#            print({name:values[0] for name,values in zip(m_param.names, data)})
+#        elif n_params == 1:
+#            for name in m_param.names:
+#                pt.figure()
+#                pt.legend()
+#                pt.grid()
+#                pt.ylabel('amplitude [V]')
+#                pt.xlabel('time [ns]')
+#                pt.title(f'name')
+#                self._savefig()
+
     def plot_segments(self, segments, index=(0,), channels=None, awg_output=True):
+        # TODO: fix index if ndim > 1
         pt.ioff()
         for s in segments:
             pt.figure()
@@ -284,6 +310,12 @@ class Context:
             s.plot(index, channels=channels, render_full=awg_output)
             self._savefig()
 
+    def plot_ds(self, ds):
+        runner = self._configuration['runner']
+        if runner == 'core_tools':
+            pass
+        elif runner == 'qcodes':
+            pass
 
     def _savefig(self):
         backend = self._configuration['backend']
