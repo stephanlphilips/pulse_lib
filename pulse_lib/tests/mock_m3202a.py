@@ -70,9 +70,14 @@ class MockM3202A(Instrument):
 
     def upload_waveform(self, wave) -> WaveformReference:
         size = len(wave)
+        # discretize samples
+        data = (wave*2**15).astype(np.int16)
+        data &= 0xFFFC # 14 bit resolution
+        data = data.astype(float)
+        data /= 2**15
         slot = self.memory_manager.allocate(size)
         logging.info(f'{self.name}.upload_waveform({slot}, {size})')
-        return WaveformReference(slot, size, self.memory_manager, wave)
+        return WaveformReference(slot, size, self.memory_manager, data)
 
     def set_channel_amplitude(self, amplitude, channel):
         logging.info(f'{self.name}.set_channel_amplitude({amplitude}, {channel})')
