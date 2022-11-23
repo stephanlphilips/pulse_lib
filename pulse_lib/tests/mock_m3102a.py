@@ -24,6 +24,9 @@ class MockM3102A(Instrument):
     def set_operating_mode(self, value):
         pass
 
+    def set_acquisition_mode(self, value):
+        pass
+
     def set_active_channels(self, channel_list):
         self.measure._active_channels = set(channel_list)
 
