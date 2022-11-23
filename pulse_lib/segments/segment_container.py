@@ -30,7 +30,7 @@ class segment_container():
     '''
     def __init__(self, channel_names, markers=[], virtual_gate_matrices=None, IQ_channels_objs=[],
                  digitizer_channels = [],
-                 name=None, sample_rate=None):
+                 name=None, sample_rate=None, hres=False):
         """
         initialize a container for segments.
         Args:
@@ -58,7 +58,7 @@ class segment_container():
 
         # define real channels (+ markers)
         for name in channel_names:
-            segment = segment_pulse(name, self._software_markers)
+            segment = segment_pulse(name, self._software_markers, hres=hres)
             setattr(self, name, segment)
             self.channels[name] = segment
         for name in markers:

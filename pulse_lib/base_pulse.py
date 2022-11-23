@@ -461,7 +461,7 @@ class pulselib:
         else:
             raise Exception(f'Unknown backend: {self._backend}')
 
-    def mk_segment(self, name=None, sample_rate=None):
+    def mk_segment(self, name=None, sample_rate=None, hres=False):
         '''
         generate a new segment.
         Returns:
@@ -470,7 +470,7 @@ class pulselib:
         return segment_container(self.awg_channels.keys(), self.marker_channels.keys(),
                                  self._virtual_matrices, self.IQ_channels.values(),
                                  self.digitizer_channels.values(),
-                                 name=name, sample_rate=sample_rate)
+                                 name=name, sample_rate=sample_rate, hres=hres)
 
     def mk_sequence(self,seq):
         '''

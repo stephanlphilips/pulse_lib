@@ -160,7 +160,7 @@ class pulse_data(parent_data):
     """
     class defining base (utility) operations for baseband and microwave pulses.
     """
-    def __init__(self):
+    def __init__(self, hres=False):
         super().__init__()
         self.pulse_deltas = list()
         self.MW_pulse_data = list()
@@ -169,8 +169,10 @@ class pulse_data(parent_data):
 
         self.start_time = 0
         self._end_time = 0
+        self._hres = hres
         self._consolidated = False
         self._preprocessed = False
+        self._preprocessed_sample_rate = None
         self._phase_shifts_consolidated = False
 
     def add_delta(self, delta):
@@ -331,7 +333,8 @@ class pulse_data(parent_data):
     operators for the data object.
     '''
     def __copy__(self):
-        # NOTE: copy is called in pulse_data_all, before adding virtual channels.
+        # NOTE: Copy is called in pulse_data_all, before adding virtual channels.
+        #       It is also called when a dimension is added in looping.
         self._consolidate()
         my_copy = pulse_data()
         my_copy.pulse_deltas = copy.deepcopy(self.pulse_deltas)
@@ -340,6 +343,7 @@ class pulse_data(parent_data):
         my_copy.custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
         my_copy.start_time = copy.copy(self.start_time)
         my_copy._end_time = self._end_time
+        my_copy._hres = self._hres
         my_copy._consolidated = self._consolidated
         my_copy._phase_shifts_consolidated = self._phase_shifts_consolidated
 
@@ -351,6 +355,7 @@ class pulse_data(parent_data):
         '''
         new_data = pulse_data()
         new_data.start_time = copy.copy(self.start_time)
+        new_data._hres = self._hres
 
         if isinstance(other, pulse_data):
             new_data.pulse_deltas = self.pulse_deltas + other.pulse_deltas
@@ -424,6 +429,7 @@ class pulse_data(parent_data):
             new_data.phase_shifts = copy.copy(self.phase_shifts)
             new_data._end_time = self._end_time
             new_data.start_time = self.start_time
+            new_data._hres = self._hres
             new_data._consolidated = self._consolidated
             new_data._phase_shifts_consolidated = self._phase_shifts_consolidated
         else:
@@ -458,9 +464,9 @@ class pulse_data(parent_data):
         self._consolidated = True
         self._preprocessed = False
 
-    def _pre_process(self):
+    def _pre_process(self, sample_rate=None):
         self._consolidate()
-        if not self._preprocessed:
+        if not self._preprocessed or self._preprocessed_sample_rate != sample_rate:
             n = len(self.pulse_deltas)
             if n == 0:
                 times = np.zeros(0)
@@ -468,6 +474,7 @@ class pulse_data(parent_data):
                 amplitudes = np.zeros(0)
                 amplitudes_end = np.zeros(0)
                 ramps = np.zeros(0)
+                samples = np.zeros(0)
             else:
                 times = np.zeros(n)
                 intervals = np.zeros(n)
@@ -475,10 +482,25 @@ class pulse_data(parent_data):
                 ramps = np.zeros(n)
                 amplitudes = np.zeros(n)
                 amplitudes_end = np.zeros(n)
-                for i,delta in enumerate(self.pulse_deltas):
-                    times[i] = delta.time
-                    steps[i] = delta.step
-                    ramps[i] = delta.ramp
+                samples = np.zeros(n)
+                if self._hres and sample_rate is not None:
+                    t_sample = 1e9/sample_rate
+                    for i,delta in enumerate(self.pulse_deltas):
+                        if delta.time != np.inf:
+                            t = int(delta.time/t_sample)*t_sample
+                            dt = (delta.time - t)
+                        else:
+                            t = np.inf
+                            dt = 0.0
+                        times[i] = t
+                        ramps[i] = delta.ramp
+                        steps[i] = delta.step - dt*delta.ramp
+                        samples[i] = -dt*delta.step + dt*delta.ramp # - dt*(t_sample-dt)*delta.ramp
+                else:
+                    for i,delta in enumerate(self.pulse_deltas):
+                        times[i] = delta.time
+                        steps[i] = delta.step
+                        ramps[i] = delta.ramp
                 if times[-1] == np.inf:
                     times[-1] = self._end_time
                 intervals[:-1] = times[1:] - times[:-1]
@@ -491,8 +513,10 @@ class pulse_data(parent_data):
             self._intervals = intervals
             self._amplitudes = amplitudes
             self._amplitudes_end = amplitudes_end
+            self._samples = samples
             self._ramps = ramps
         self._preprocessed = True
+        self._preprocessed_sample_rate = sample_rate
 
     def integrate_waveform(self, sample_rate):
         '''
@@ -502,7 +526,7 @@ class pulse_data(parent_data):
         Returns:
             integrate (double) : the integrated value of the waveform (unit is mV/sec).
         '''
-        self._pre_process()
+        self._pre_process(sample_rate)
 
         integrated_value = 0
 
@@ -556,7 +580,7 @@ class pulse_data(parent_data):
         '''
         make a full rendering of the waveform at a predetermined sample rate.
         '''
-        self._pre_process()
+        self._pre_process(sample_rate)
 
         # express in Gs/s
         sample_rate = sample_rate*1e-9
@@ -578,6 +602,10 @@ class pulse_data(parent_data):
                     wvf[pt0:pt1] = np.linspace(self._amplitudes[i], self._amplitudes_end[i], pt1-pt0+1)[:-1]
                 else:
                     wvf[pt0:pt1] = self._amplitudes[i]
+
+        for i in range(len(t_pt)):
+            pt0 = t_pt[i]
+            wvf[pt0] += self._samples[i]
 
         # render MW pulses.
         # create list with phase shifts per ref_channel
