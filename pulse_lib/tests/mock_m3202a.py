@@ -135,7 +135,7 @@ class MockM3202A(Instrument):
         else:
             return 200e6/prescaler
 
-    def plot(self, bias_T_rc_time=0):
+    def plot(self, bias_T_rc_time=0, discrete=False):
         for channel in range(1,5):
             data, prescaler = self.get_data_prescaler(channel)
             #print(f'{self.name}.{channel} data: {[(len(s),p) for s,p in zip(data,prescaler)]}')
@@ -150,7 +150,7 @@ class MockM3202A(Instrument):
             zi = [0]
             for d,p in zip(data, prescaler):
                 sr = MockM3202A.convert_prescaler_to_sample_rate(p)
-                if p == 0:
+                if p == 0 and not discrete:
                     ts = np.arange(len(d))/sr + t0
                     t0 = ts[-1] + 1/sr
                     wd = d
@@ -213,6 +213,6 @@ class MockM3202A_fpga(MockM3202A):
 
             pt.plot(t, values, ':', label=f'{self.name}-T')
 
-    def plot(self, bias_T_rc_time=0):
-        super().plot(bias_T_rc_time=bias_T_rc_time)
+    def plot(self, bias_T_rc_time=0, discrete=False):
+        super().plot(bias_T_rc_time=bias_T_rc_time, discrete=discrete)
         self.plot_marker()
