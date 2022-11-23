@@ -266,6 +266,7 @@ class Context:
             if hasattr(awg, 'plot'):
                 pt.figure()
                 awg.plot()
+                # awg.plot(discrete=True)
                 pt.legend()
                 pt.grid()
                 pt.ylabel('amplitude [V]')
@@ -317,12 +318,12 @@ class Context:
             s.plot(index, channels=channels, render_full=awg_output)
             self._savefig()
 
-    def plot_ds(self, ds):
-        runner = self._configuration['runner']
-        if runner == 'core_tools':
-            pass
-        elif runner == 'qcodes':
-            pass
+#    def plot_ds(self, ds):
+#        runner = self._configuration['runner']
+#        if runner == 'core_tools':
+#            pass
+#        elif runner == 'qcodes':
+#            pass
 
     def _savefig(self):
         backend = self._configuration['backend']

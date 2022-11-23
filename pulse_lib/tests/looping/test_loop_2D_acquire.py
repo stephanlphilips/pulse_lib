@@ -1,7 +1,6 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
 import pulse_lib.segments.utility.looping as lp
-import time
 
 def test():
     pulse = context.init_pulselib(n_gates=1, n_sensors=1)
