@@ -87,6 +87,9 @@ class Context:
         cfg = self._configuration
         backend = cfg['backend']
         if backend in ['Keysight', 'KeysightQS']:
+            for awg in awgs:
+                # anti-ringing filter
+                awg.set_digital_filter_mode(3)
             for dig in digs:
                 # Set mode AVERAGE
                 dig.set_acquisition_mode(1)
