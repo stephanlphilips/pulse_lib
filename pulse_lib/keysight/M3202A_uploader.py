@@ -47,10 +47,10 @@ class M3202A_Uploader:
         self._config_marker_channels()
 
     def _init_awgs(self):
-        self.release_all_awg_memory()
         for awg in self.AWGs.values():
             for ch in [1,2,3,4]:
                 awg.awg_flush(ch)
+        self.release_all_awg_memory()
 
     def _config_marker_channels(self):
         for channel in self.marker_channels.values():
