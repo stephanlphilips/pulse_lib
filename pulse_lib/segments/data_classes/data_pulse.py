@@ -495,7 +495,7 @@ class pulse_data(parent_data):
                         times[i] = t
                         ramps[i] = delta.ramp
                         steps[i] = delta.step - dt*delta.ramp
-                        samples[i] = -dt*delta.step + dt*delta.ramp # - dt*(t_sample-dt)*delta.ramp
+                        samples[i] = -dt*delta.step + dt*delta.ramp - dt*(t_sample-dt)*delta.ramp/2
                 else:
                     for i,delta in enumerate(self.pulse_deltas):
                         times[i] = delta.time
