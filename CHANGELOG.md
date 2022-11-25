@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.6.0] - 2022-11-@@@
+## \[1.6.0] - 2022-11-25
 
 ### Attention !!
 - Digitizer trigger timing has been corrected for channel delays !!
