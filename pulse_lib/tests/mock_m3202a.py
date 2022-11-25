@@ -45,6 +45,7 @@ class MockM3202A(Instrument):
         super().__init__(name)
         self._slot_number = slot
         self._chassis_numnber = chassis
+        self.digital_filter_mode = 1
         self.memory_manager = MemoryManager()
         self.channel_data = {}
         self.channel_prescaler = {}
@@ -78,6 +79,9 @@ class MockM3202A(Instrument):
         slot = self.memory_manager.allocate(size)
         logging.info(f'{self.name}.upload_waveform({slot}, {size})')
         return WaveformReference(slot, size, self.memory_manager, data)
+
+    def set_digital_filter_mode(self, mode):
+        self.digital_filter_mode = mode
 
     def set_channel_amplitude(self, amplitude, channel):
         logging.info(f'{self.name}.set_channel_amplitude({amplitude}, {channel})')
