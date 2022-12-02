@@ -122,6 +122,7 @@ class Context:
         gates = []
         for i in range(n_gates):
             gate = f'P{i+1}'
+            gates.append(gate)
             awg_name,channel = gate_map[gate]
             if awg_name not in pulse.awg_devices:
                 pulse.add_awg(getattr(station, awg_name))
