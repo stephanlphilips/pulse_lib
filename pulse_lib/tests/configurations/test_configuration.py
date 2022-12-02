@@ -66,8 +66,9 @@ class Context:
         awgs = []
         digs = []
         # map Qblox Cluster to AWG1 and digitizer
-        if 'Cluster' in station.components:
-            cluster = station.Cluster
+        if 'Qblox' in station.components:
+            cluster = station.Qblox
+            cluster.reset()
             for module in cluster.modules:
                 if module.present():
                     rf = 'RF' if module.is_rf_type else ''
@@ -121,10 +122,10 @@ class Context:
         gates = []
         for i in range(n_gates):
             gate = f'P{i+1}'
-            awg,channel = gate_map[gate]
-            if awg not in pulse.awg_devices:
-                pulse.add_awg(station.components[awg])
-            pulse.define_channel(gate, awg, channel)
+            awg_name,channel = gate_map[gate]
+            if awg_name not in pulse.awg_devices:
+                pulse.add_awg(getattr(station, awg_name))
+            pulse.define_channel(gate, awg_name, channel)
             pulse.add_channel_compensation_limit(gate, (-100, 50))
 #        pulse.add_channel_attenuation(name, 0.2)
 #        pulse.add_channel_delay(name, value)
@@ -178,10 +179,10 @@ class Context:
             pulse.configure_digitizer = True
         for i in range(n_sensors):
             sensor = f'SD{i+1}'
-            digitizer,channel = cfg['sensors'][sensor]
-            if digitizer not in pulse.digitizers:
-                pulse.add_digitizer(station.components[digitizer])
-            pulse.define_digitizer_channel(sensor, digitizer, channel)
+            digitizer_name,channel = cfg['sensors'][sensor]
+            if digitizer_name not in pulse.digitizers:
+                pulse.add_digitizer(getattr(station, digitizer_name))
+            pulse.define_digitizer_channel(sensor, digitizer_name, channel)
 
         if n_sensors > 0 and backend == 'Tektronix_5014':
             self._add_marker('M_M4i')
@@ -209,7 +210,6 @@ class Context:
             # pulselib always wants a digitizer for Tektronix
             if 'Dig1' not in pulse.digitizers:
                 pulse.add_digitizer(station.components['Dig1'])
-
 
         if finish:
             pulse.finish_init()
