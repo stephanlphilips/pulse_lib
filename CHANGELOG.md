@@ -7,7 +7,7 @@ All notable changes to Pulselib will be documented in this file.
 - start_times to measurement_description
 
 ### Changed
-- measurement names do not have to be unique. They will get a postfix to make them unique.
+- measurement names do not have to be unique. A postfix makes them unique.
 
 ## \[1.6.0] - 2022-11-25
 
