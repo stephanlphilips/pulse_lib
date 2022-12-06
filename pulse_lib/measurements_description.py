@@ -11,6 +11,7 @@ class measurements_description:
         self.acquisition_count = {}
         self.channel_data_offset = {}
         self.digitizer_channels = digitizer_channels
+        self.start_times = {}
         self.end_times = {}
 
     def add_segment(self, segment, seg_start_times):
@@ -26,16 +27,23 @@ class measurements_description:
 
                 if m.name is None:
                     m.name = f'{m.acquisition_channel}_{m.index+1}'
-                if m.name in self.measurement_names:
-                    raise Exception(f'Duplicate measurement name: {m.name}')
+                else:
+                    # make duplicate names unique
+                    i = 0
+                    while m.name in self.measurement_names:
+                        i += 1
+                        m.name = measurement.name + f'_{i}'
                 self.measurement_names.append(m.name)
 
                 acq_channel = segment[m.acquisition_channel]
-                end_times = seg_start_times.copy()
+                start_times = seg_start_times.copy()
+                end_times = np.zeros(seg_start_times.shape)
                 for index in np.ndindex(seg_start_times.shape):
                     acq_data = acq_channel._get_data_all_at(index).data[measurement.index]
                     t_measure = acq_data.t_measure if acq_data.t_measure is not None else 0
-                    end_times[index] += acq_data.start + t_measure
+                    start_times[index] += acq_data.start
+                    end_times[index] = start_times[index] + t_measure
+                self.start_times[m.name] = start_times
                 self.end_times[m.name] = end_times
             else:
                 m = measurement

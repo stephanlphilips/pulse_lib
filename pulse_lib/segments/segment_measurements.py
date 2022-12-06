@@ -55,10 +55,6 @@ class segment_measurements:
             name = ref
         else:
             name = ref.name
-        if name is not None:
-            for m in self._measurements:
-                if m.name == name:
-                    raise Exception(f'Duplicate measurement name: {name}')
         self._measurements.append(measurement_acquisition(name, accept_if, channel, index,
                                                           threshold, zero_on_high, ref,
                                                           t_measure, n_samples=n_repeat))

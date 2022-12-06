@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.1] - 2022-12-06
+
+### Added
+- start_times to measurement_description
+
+### Changed
+- measurement names do not have to be unique. They will get a postfix to make them unique.
+
 ## \[1.6.0] - 2022-11-25
 
 ### Attention !!
