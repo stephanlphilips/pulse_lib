@@ -42,7 +42,7 @@ class acquisition_data(parent_data):
         """
         acquisition.start += self.start_time
         if acquisition.start <= self._last_acquisition:
-            raise Exception('Acquisition cannot be inserted before other acquisition')
+            raise Exception('Acquisition cannot be added at same time or before other acquisition')
         self._last_acquisition = acquisition.start
         self.data.append(acquisition)
         end_time = acquisition.start
