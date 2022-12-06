@@ -109,13 +109,15 @@ class segment_acquisition():
         return self.data_tmp
 
     @loop_controller
-    def wait(self, time):
+    def wait(self, time, reset_time=False):
         '''
         resets the time back to zero after a certain point
         Args:
             time (double) : time in ns to wait
         '''
         self.data_tmp.wait(time)
+        if reset_time:
+            self.data_tmp.reset_time(None)
         return self.data_tmp
 
 
