@@ -962,6 +962,8 @@ class UploadAggregator:
                     else:
                         acq_name = acquisition.ref.name
                     acq_list.append(acq_name)
+                    if acquisition.n_repeat is not None:
+                        raise Exception('Acquisition n_repeat is not supported for Keysight')
                     t_measure = acquisition.t_measure if acquisition.t_measure is not None else job.acquisition_conf.t_measure
                     if ch_name in job.t_measure:
                         if t_measure != job.t_measure[ch_name]:
