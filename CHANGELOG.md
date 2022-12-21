@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.2] - 2022-12-22
+
+### Added
+- pulselib.get_channel_attenuations()
+
+### Changed
+- Sequencer upload and play only retry upload after specific Keysight exception.
+- Chirp is stored as an instruction to be rendered by backend.
+
 ## \[1.6.1] - 2022-12-06
 
 ### Added
