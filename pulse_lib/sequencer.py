@@ -153,6 +153,7 @@ class sequencer():
 
     def _get_measurement_converter(self):
         if self._measurement_converter is None:
+            self._set_num_samples()
             self._measurements_description.calculate_measurement_offsets()
             self._measurement_converter = MeasurementConverter(self._measurements_description,
                                                                self.n_rep, self._acquisition_conf.sample_rate)
@@ -338,16 +339,10 @@ class sequencer():
             raise Exception('Acquisition parameters cannot be changed after calling  '
                             'get_measurement_results or get_measurement_param')
         conf = self._acquisition_conf
-        update_num_samples = False
         if t_measure:
             conf.t_measure = t_measure
-            if sample_rate or conf.sample_rate:
-                update_num_samples = True
         if sample_rate:
             conf.sample_rate = sample_rate
-            update_num_samples = True
-        if update_num_samples:
-            self._set_num_samples()
         if channels != []:
             conf.channels = channels
         if average_repetitions is not None:
@@ -357,17 +352,23 @@ class sequencer():
         default_t_measure = self._acquisition_conf.t_measure
         sample_rate = self._acquisition_conf.sample_rate
         for m in self._measurements_description.measurements:
-            if m.t_measure is None:
-                if default_t_measure is None:
-                    raise Exception(f't_measure not specified for measurement {m}')
-                t_measure = default_t_measure
-            elif isinstance(m.t_measure, Number):
-                t_measure = m.t_measure
+            if m.n_repeat is not None:
+                m.n_samples = m.n_repeat
+                if sample_rate is not None:
+                    logging.info(f'Ignoring sample_rate for measurement {m.name} because n_repeat is set')
+            elif sample_rate is not None:
+                if m.t_measure is None:
+                    if default_t_measure is None:
+                        raise Exception(f't_measure not specified for measurement {m}')
+                    t_measure = default_t_measure
+                elif isinstance(m.t_measure, Number):
+                    t_measure = m.t_measure
+                else:
+                    raise Exception(f't_measure must be number and not a {type(m.t_measure)} for time traces')
+                m.n_samples = self.uploader.get_num_samples(
+                        m.acquisition_channel, t_measure, sample_rate) # @@@ implement QS, Tektronix
             else:
-                raise Exception(f't_measure must be number and not a {type(m.t_measure)} for time traces')
-            m.n_samples = self.uploader.get_num_samples(m.acquisition_channel,
-                                                        t_measure, sample_rate) # @@@ implement QS, Tektronix
-
+                m.n_samples = 1
 
     def get_acquisition_param(self, name, upload=None, n_triggers=None): # @@@ remove
         logging.warning('get_acquisition_param is deprecated. Use get_measurement_param')
@@ -479,6 +480,14 @@ class sequencer():
         param = MeasurementParameter(name, reader, mc, selection)
         return param
 
+    def _retry_upload(self, exception, n_retries, index):
+        # '-8033' is a Keysight waveform upload error that requires a new upload
+        if '(-8033)' in repr(exception) and n_retries > 0:
+            logging.info('Upload failure', exc_info=True)
+            logging.warning(f'Sequence upload failed at index {index}; retrying...')
+            return True
+        return False
+
     def upload(self, index=None):
         '''
         Sends the sequence with the provided index to the uploader module. Once he is done, the play function can do its work.
@@ -492,7 +501,7 @@ class sequencer():
         if index is None:
             index = self.sweep_index[::-1]
         self._validate_index(index)
-        n_failures = 0
+        n_retries = 3
         while True:
             try:
                 upload_job = self.uploader.create_job(self.sequence, index, self.id,
@@ -506,13 +515,11 @@ class sequencer():
 
                 self.uploader.add_upload_job(upload_job)
                 return upload_job
-            except Exception as e:
-                n_failures += 1
-                # '-8019' is a non-recoverable Keysight error
-                if '-8019' in repr(e) or n_failures == 3:
-                    raise Exception(e)
-                logging.warning(f'Sequence upload failed at index {index}; retry #{n_failures}')
-                logging.info('Upload exception', exc_info=True)
+            except Exception as ex:
+                if self._retry_upload(ex, n_retries, index):
+                    n_retries -= 1
+                else:
+                    raise
 
     def play(self, index=None, release= True):
         '''
@@ -526,19 +533,18 @@ class sequencer():
             index = self.sweep_index[::-1]
         self._validate_index(index)
 
-        n_failures = 0
+        n_retries = 3
         while True:
             try:
                 self.uploader.play(self.id, index, release)
                 return
-            except Exception as e:
-                n_failures += 1
-                # '-8019' is a non-recoverable Keysight error
-                if '-8019' in repr(e) or n_failures == 3:
-                    raise Exception(e)
-                logging.warning(f'Sequence play failed at index {index}; retry #{n_failures}')
-                logging.info('Play exception', exc_info=True)
-                self.upload(index)
+            except Exception as ex:
+                if self._retry_upload(ex, n_retries, index):
+                    n_retries -= 1
+                    # Retries are only done for Keysight and require a new upload of the waveform
+                    self.upload(index)
+                else:
+                    raise
 
 
     def plot(self, index=None, segments=None, awg_output=True, channels=None):
