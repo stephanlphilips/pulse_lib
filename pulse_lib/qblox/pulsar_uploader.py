@@ -17,7 +17,7 @@ from .pulsar_sequencers import (
 
 from q1pulse import Q1Instrument
 
-from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
+from pulse_lib.segments.data_classes.data_IQ import IQ_data_single, Chirp
 from pulse_lib.segments.data_classes.data_pulse import (
         PhaseShift, custom_pulse_element, OffsetRamp)
 
@@ -154,6 +154,8 @@ class PulsarUploader:
         # todo: remove code duplication with add_acquisition_channel
         trigger_period = PulsarConfig.align(1e9/sample_rate)
         n_samples = max(1, iround(t_measure / trigger_period))
+        # @@@ n_repeat not taken into account
+        # @@@ always minimum 1 sample: UploadAggregator raises an exception for 0 cycles.
         return n_samples
 
     def create_job(self, sequence, index, seq_id, n_rep, sample_rate,
@@ -181,6 +183,8 @@ class PulsarUploader:
         '''
         start = time.perf_counter()
 
+        self.jobs.append(job)
+
         aggregator = UploadAggregator(self.q1instrument, self.awg_channels,
                                       self.marker_channels, self.digitizer_channels,
                                       self.qubit_channels, self.awg_voltage_channels,
@@ -188,8 +192,6 @@ class PulsarUploader:
                                       )
 
         aggregator.build(job)
-
-        self.jobs.append(job)
 
         duration = time.perf_counter() - start
         logging.info(f'generated upload data {job.index} ({duration*1000:6.3f} ms)')
@@ -285,7 +287,6 @@ class PulsarUploader:
                         raw_ch = raw_ch.real
                     result[channel_name] = raw_ch
                 else:
-                    # @@@ is this a realistic scenario?
                     if in_ch[0] == 1:
                         # swap results
                         raw[0], raw[1] = raw[1], raw[0]
@@ -634,9 +635,9 @@ class UploadAggregator:
                     sinewave = SineWaveform(wave_duration, e.frequency, e.start_phase, amod, phmod)
                     seq.pulse(t, duration, e.amplitude*scaling, sinewave)
                 elif isinstance(e, PhaseShift):
-                    t = PulsarConfig.align(e.time + seg_start)
-                    e.phase_shift
                     raise Exception('Phase shift not supported for AWG channel')
+                elif isinstance(e, Chirp):
+                    raise Exception('Chirp is not supported for AWG channel')
                 elif isinstance(e, custom_pulse_element):
                     t = PulsarConfig.align(e.start + seg_start)
                     t_end = PulsarConfig.align(e.stop + seg_start)
@@ -711,8 +712,16 @@ class UploadAggregator:
                                             e.start_phase, amod, phmod)
                     seq.pulse(t, duration, e.amplitude*scaling, sinewave)
                 elif isinstance(e, PhaseShift):
-                    t = PulsarConfig.align(e.time + seg_start)
+                    t = PulsarConfig.align(e.start + seg_start)
                     seq.shift_phase(t, e.phase_shift)
+                elif isinstance(e, Chirp):
+                    t = PulsarConfig.align(e.start + seg_start)
+                    t_end = PulsarConfig.align(e.stop + seg_start)
+                    duration = t_end - t
+                    chirp = e
+                    start_frequency = chirp.start_frequency-lo_freq
+                    stop_frequency = chirp.stop_frequency-lo_freq
+                    seq.chirp(t, duration, chirp.amplitude*scaling, start_frequency, stop_frequency)
                 elif isinstance(e, custom_pulse_element):
                     raise Exception('Custom pulses are not supported for IQ channel')
                 else:
@@ -770,6 +779,8 @@ class UploadAggregator:
                 if acquisition.n_repeat:
                     seq.repeated_acquire(t, t_measure, acquisition.n_repeat,
                                          PulsarConfig.align(acquisition.interval))
+                    if acq_conf.sample_rate is not None:
+                        logging.info(f'Acquisition sample_rate is ignored when n_repeat is set')
                 elif trigger_period:
                     n_cycles = max(1, iround(t_measure / trigger_period))
                     if n_cycles < 1:

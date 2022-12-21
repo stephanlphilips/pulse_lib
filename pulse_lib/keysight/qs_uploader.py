@@ -8,7 +8,7 @@ from .sequencer_device import add_sequencers
 from .qs_conditional import get_conditional_channel, get_acquisition_names, QsConditionalSegment
 from .qs_sequence import AcquisitionSequenceBuilder, IQSequenceBuilder, SequenceConditionalEntry
 
-from pulse_lib.segments.data_classes.data_IQ import IQ_data_single
+from pulse_lib.segments.data_classes.data_IQ import IQ_data_single, Chirp
 from pulse_lib.segments.conditional_segment import conditional_segment
 from pulse_lib.tests.mock_m3202a_qs import AwgInstruction, AwgConditionalInstruction
 from pulse_lib.tests.mock_m3102a_qs import DigitizerInstruction
@@ -74,6 +74,9 @@ class QsUploader:
         """
         awg = list(self.AWGs.values())[0]
         return awg.convert_prescaler_to_sample_rate(awg.convert_sample_rate_to_prescaler(sample_rate))
+
+    def get_num_samples(self, acquisition_channel, t_measure, sample_rate):
+        raise NotImplementedError()
 
     def get_roundtrip_latency(self):
         # TODO @@@ put in configuration file.
@@ -968,6 +971,8 @@ class UploadAggregator:
                         t_pulse = seg_render.t_start + e.start
                         if isinstance(e, IQ_data_single):
                             sequence.pulse(t_pulse, e)
+                        elif isinstance(e, Chirp):
+                            sequence.chirp(t_pulse, e)
                         else:
                             sequence.shift_phase(t_pulse, e.phase_shift)
                 else:

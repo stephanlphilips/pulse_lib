@@ -6,6 +6,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from pulse_lib.segments.data_classes.data_IQ import make_chirp
+from .rendering import SineWaveform
 
 class PulsarConfig:
     ALIGNMENT = 4 # pulses must be aligned on 4 ns boundaries
@@ -230,6 +232,22 @@ class IQSequenceBuilder(SequenceBuilderBase):
         # normalize phase to -1.0 .. + 1.0 for Q1Pulse sequencer
         norm_phase = (phase/np.pi + 1) % 2 - 1
         self.seq.shift_phase(norm_phase, t_offset=t)
+
+    def chirp(self, t, duration, amplitude, start_frequency, stop_frequency):
+        if hasattr(self.seq, 'chirp'):
+            t += self.offset_ns
+            self._update_time_and_markers(t, 0.0)
+            self.seq.chirp(duration, amplitude,
+                           start_frequency, stop_frequency,
+                           t_offset=t)
+        else:
+            if duration > 8192:
+                raise Exception('Qblox instruments < v0.8 is limited to chirps of 8192 ns')
+            pm_gen = make_chirp(start_frequency, stop_frequency, 0, duration)
+            phmod = pm_gen(duration, 1.0)
+            waveform = SineWaveform(duration, start_frequency,
+                                    0.0, 1.0, phmod)
+            self.pulse(t, duration, amplitude, waveform)
 
 
 @dataclass

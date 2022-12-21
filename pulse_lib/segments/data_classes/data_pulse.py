@@ -69,8 +69,9 @@ class pulse_delta:
     def is_near_zero(self):
         # near zero if |step| < 0.001 uV and |ramp| < 1e-9 mV/ns (= 1 mV/s)
         # note: max ramp: 2V/ns = 2000 mV/ns, min ramp: 1 mV/s = 1e-9 mV/ns. ~ 12 orders of magnitude.
+        # max step: 2000 mV, min step: 1e9 mV. ~ 12 order of magnitude.
         # Regular floats have 16 digits precision.
-        return -1e-6 < self.step < 1e-6 and -1e-9 < self.ramp < 1e-9
+        return abs(self.step) < 1e-9 and abs(self.ramp) < 1e-9
 
 @dataclass
 class custom_pulse_element:
@@ -166,6 +167,7 @@ class pulse_data(parent_data):
         self.MW_pulse_data = list()
         self.custom_pulse_data = list()
         self.phase_shifts = list()
+        self.chirp_data = list()
 
         self.start_time = 0
         self._end_time = 0
@@ -195,6 +197,10 @@ class pulse_data(parent_data):
         """
         self.MW_pulse_data.append(MW_data_object)
         self._update_end_time(MW_data_object.stop)
+
+    def add_chirp(self, chirp):
+        self.chirp_data.append(chirp)
+        self._update_end_time(chirp.stop)
 
     def add_custom_pulse_data(self, custom_pulse:custom_pulse_element):
         self.custom_pulse_data.append(custom_pulse)
@@ -256,11 +262,14 @@ class pulse_data(parent_data):
         shift_time(other_phase_shifts, time)
         other_pulse_deltas = copy.deepcopy(other.pulse_deltas)
         shift_time(other_pulse_deltas, time)
+        other_chirps = copy.deepcopy(other.chirp_data)
+        shift_start_stop(other_chirps, time)
 
         self.pulse_deltas += other_pulse_deltas
         self.MW_pulse_data += other_MW_pulse_data
         self.custom_pulse_data += other_custom_pulse_data
         self.phase_shifts += other_phase_shifts
+        self.chirp_data += other_chirps
 
         self._consolidated = False
         self._phase_shifts_consolidated = False
@@ -278,6 +287,7 @@ class pulse_data(parent_data):
         new_MW_pulse_data =  copy.copy(self.MW_pulse_data)
         new_custom_pulse_data =  copy.copy(self.custom_pulse_data)
         new_phase_shifts =  copy.copy(self.phase_shifts)
+        new_chirp_data = copy.copy(self.chirp_data)
 
         for i in range(n):
             shifted_pulse_deltas = copy.deepcopy(self.pulse_deltas)
@@ -296,10 +306,15 @@ class pulse_data(parent_data):
             shift_time(shifted_phase_shifts, (i+1)*time)
             new_phase_shifts += shifted_phase_shifts
 
+            shifted_chirp_data = copy.deepcopy(self.chirp_data)
+            shift_start_stop(shifted_chirp_data, (i+1)*time)
+            new_chirp_data += shifted_chirp_data
+
         self.pulse_deltas = new_pulse_deltas
         self.MW_pulse_data = new_MW_pulse_data
         self.custom_pulse_data = new_custom_pulse_data
         self.phase_shifts = new_phase_shifts
+        self.chirp_data = new_chirp_data
 
         self._consolidated = False
         self._phase_shifts_consolidated = False
@@ -315,6 +330,10 @@ class pulse_data(parent_data):
         for mw_pulse in self.MW_pulse_data:
             mw_pulse.frequency -= frequency
 
+        for chirp in self.chirp_data:
+            chirp.start_frequency -= frequency
+            chirp.stop_frequency -= frequency
+
     def shift_MW_phases(self, phase_shift):
         '''
         Shift the phases of all the microwaves present in the MW data object
@@ -328,6 +347,8 @@ class pulse_data(parent_data):
         for mw_pulse in self.MW_pulse_data:
             mw_pulse.start_phase += phase_shift
 
+        for chirp in self.chirp_data:
+            chirp.phase += phase_shift
 
     '''
     operators for the data object.
@@ -341,6 +362,7 @@ class pulse_data(parent_data):
         my_copy.MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
         my_copy.phase_shifts = copy.copy(self.phase_shifts)
         my_copy.custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
+        my_copy.chirp_data = copy.deepcopy(self.chirp_data)
         my_copy.start_time = copy.copy(self.start_time)
         my_copy._end_time = self._end_time
         my_copy._hres = self._hres
@@ -362,6 +384,7 @@ class pulse_data(parent_data):
             new_data.MW_pulse_data = self.MW_pulse_data + other.MW_pulse_data
             new_data.phase_shifts = self.phase_shifts + other.phase_shifts
             new_data.custom_pulse_data = self.custom_pulse_data + other.custom_pulse_data
+            new_data.chirp_data = self.chirp_data + other.chirp_data
             new_data._end_time = max(self._end_time, other._end_time)
 
         elif isinstance(other, Number):
@@ -374,6 +397,7 @@ class pulse_data(parent_data):
             new_data.MW_pulse_data = copy.copy(self.MW_pulse_data)
             new_data.phase_shifts = copy.copy(self.phase_shifts)
             new_data.custom_pulse_data = copy.copy(self.custom_pulse_data)
+            new_data.chirp_data = copy.copy(self.chirp_data)
             new_data._end_time = self._end_time
 
         else:
@@ -390,6 +414,7 @@ class pulse_data(parent_data):
             self.MW_pulse_data += other.MW_pulse_data
             self.phase_shifts += other.phase_shifts
             self.custom_pulse_data += other.custom_pulse_data
+            self.chirp_data += other.chirp_data
             self._end_time = max(self._end_time, other._end_time)
             self._phase_shifts_consolidated = False
 
@@ -425,6 +450,10 @@ class pulse_data(parent_data):
             new_data.custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
             for custom_pulse in new_data.custom_pulse_data:
                 custom_pulse.scaling *= other
+
+            new_data.chirp_data = copy.deepcopy(self.chirp_data)
+            for chirp in new_data.chirp_data:
+                chirp.amplitude *=other
 
             new_data.phase_shifts = copy.copy(self.phase_shifts)
             new_data._end_time = self._end_time
@@ -573,6 +602,7 @@ class pulse_data(parent_data):
         elements += self.custom_pulse_data
         elements += self.MW_pulse_data
         elements += self.phase_shifts
+        elements += self.chirp_data
         elements.sort(key=lambda p:(p.start,p.stop))
         return elements
 
@@ -668,6 +698,25 @@ class pulse_data(parent_data):
             start_pt = iround(custom_pulse.start * sample_rate)
             stop_pt = start_pt + len(data)
             wvf[start_pt:stop_pt] += data
+
+        for chirp in self.chirp_data:
+            start_pulse = chirp.start
+            stop_pulse = chirp.stop
+            amp = chirp.amplitude
+            freq = chirp.start_frequency
+            if LO:
+                freq -= LO
+            if abs(freq) > sample_rate*1e9/2:
+                raise Exception(f'Frequency {freq*1e-6:5.1f} MHz is above Nyquist frequency ({sample_rate*1e3/2} MHz)')
+
+            n_pt = int((stop_pulse - start_pulse) * sample_rate)
+            start_pt = iround(start_pulse * sample_rate)
+            stop_pt = start_pt + n_pt
+
+            t = start_pt + np.arange(n_pt)
+            phgen = chirp.phase_mod_generator()
+            phase_envelope = chirp.phase + phgen((stop_pulse - start_pulse), sample_rate)
+            wvf[start_pt:stop_pt] += amp*np.sin(2*np.pi*freq/sample_rate*1e-9*t + phase_envelope)
 
         # remove last value. t_tot_pt = t_tot + 1. Last value is always 0. It is only needed in the loop on the pulses.
         return wvf[:-1]

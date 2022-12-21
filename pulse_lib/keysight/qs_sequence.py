@@ -81,8 +81,7 @@ class IQSequenceBuilder:
             prephase = 0
 
         offset = self._get_wvf_offset(t_pulse)
-        waveform_index, duration = self._render_waveform(iq_pulse, self.lo_freq, offset,
-                                                         prephase=prephase)
+        waveform_index, duration = self._render_waveform(iq_pulse, offset, prephase=prephase)
         t_end = t_pulse + duration
         self._append_instruction(t_pulse, t_end, waveform_index)
 
@@ -93,6 +92,13 @@ class IQSequenceBuilder:
         else:
             pending_phase = 0
         self._pending_phase_shift = PhaseShift(t, pending_phase + phase_shift)
+
+    def chirp(self, t_pulse, chirp):
+        self._flush_phase_shifts(t_pulse)
+        offset = self._get_wvf_offset(t_pulse)
+        waveform_index, duration = self._render_chirp(chirp, offset)
+        t_end = t_pulse + duration
+        self._append_instruction(t_pulse, t_end, waveform_index)
 
     def _flush_phase_shifts(self, t):
         pending = self._pending_phase_shift
@@ -130,7 +136,7 @@ class IQSequenceBuilder:
                 mw_entry = pulse.mw_pulse
                 t_pulse = segment_start + mw_entry.start
                 wvf_offset = iround(t_pulse - t_instr)
-                index, duration = self._render_waveform(mw_entry, self.lo_freq, wvf_offset,
+                index, duration = self._render_waveform(mw_entry, wvf_offset,
                                                         prephase=pulse.prephase,
                                                         postphase=pulse.postphase)
                 pulse_end = t_pulse + duration
@@ -201,8 +207,22 @@ class IQSequenceBuilder:
 
         self.time = t_instruction
 
+    def _render_chirp(self, chirp, offset):
+        duration = iround(chirp.stop - chirp.start)
+        frequency = chirp.start_frequency - self.lo_freq
+        ph_gen = chirp.phase_mod_generator()
+        waveform = Waveform(chirp.amplitude, 1.0, frequency,
+                            ph_gen(duration, 1.0),
+                            0, 0, duration, offset)
 
-    def _render_waveform(self, mw_pulse_data, lo_freq:float, offset:float, prephase=0, postphase=0) -> Waveform:
+        # post_phase and pm_envelope add 2 samples, but last sample is restore of NCO
+        # frequency and can be overwritten by next pulse without consequences.
+        extra = 1
+
+        index = self._get_waveform_index(waveform)
+        return index, duration + extra
+
+    def _render_waveform(self, mw_pulse_data, offset:float, prephase=0, postphase=0):
         # always render at 1e9 Sa/s
         duration = iround(mw_pulse_data.stop) - iround(mw_pulse_data.start)
         if mw_pulse_data.envelope is None:
@@ -214,7 +234,7 @@ class IQSequenceBuilder:
             pm_envelope = mw_pulse_data.envelope.get_PM_envelope(duration, 1.0)
             add_pm = not np.all(pm_envelope == 0)
 
-        frequency = mw_pulse_data.frequency - lo_freq
+        frequency = mw_pulse_data.frequency - self.lo_freq
         if abs(frequency) > 450e6:
             raise Exception(f'Waveform frequency {frequency/1e6:5.1f} MHz out of range')
 
@@ -232,7 +252,6 @@ class IQSequenceBuilder:
 
         index = self._get_waveform_index(waveform)
         return index, duration + extra
-
 
     def _render_phase_shift(self, phase_shift) -> Waveform:
         waveform = Waveform(prephase=phase_shift, duration=2)

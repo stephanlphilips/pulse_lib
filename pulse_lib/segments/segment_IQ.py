@@ -23,7 +23,7 @@ import copy
 from pulse_lib.segments.segment_base import segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, update_dimension
 from pulse_lib.segments.data_classes.data_pulse import pulse_data, PhaseShift
-from pulse_lib.segments.data_classes.data_IQ import envelope_generator, IQ_data_single, make_chirp
+from pulse_lib.segments.data_classes.data_IQ import envelope_generator, IQ_data_single, Chirp
 from pulse_lib.segments.data_classes.data_markers import marker_data
 from pulse_lib.segments.data_classes.data_generic import data_container
 
@@ -88,14 +88,10 @@ class segment_IQ(segment_base):
             f1 (float) : stop frequency
             amp (float) : amplitude of the pulse.
         '''
-        PM = make_chirp(f0, f1, t0, t1)
-        MW_data = IQ_data_single(t0 + self.data_tmp.start_time,
-                                 t1 + self.data_tmp.start_time, amp,
-                                 f0, 0,
-                                 envelope_generator(None, PM),
-                                 self.name)
-
-        self.data_tmp.add_MW_data(MW_data)
+        chirp = Chirp(t0 + self.data_tmp.start_time,
+                      t1 + self.data_tmp.start_time,
+                      amp, f0, f1, self.name)
+        self.data_tmp.add_chirp(chirp)
         return self.data_tmp
 
     def get_IQ_data(self, out_channel_info):

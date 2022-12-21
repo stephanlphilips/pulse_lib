@@ -107,9 +107,6 @@ def make_chirp(f_start, f_stop, time0, time1):
 
 @dataclass
 class IQ_data_single:
-    """
-    structure to save relevant information about marker data.
-    """
     start : float = 0
     stop : float = 0
     amplitude : float = 1
@@ -118,6 +115,21 @@ class IQ_data_single:
     envelope : envelope_generator = None
     ref_channel : str = None
 
+@dataclass
+class Chirp:
+    start : float
+    stop : float
+    amplitude : float
+    start_frequency : float
+    stop_frequency : float
+    ref_channel : str = None
+    phase : float = 0.0
+    ''' Phase of the chirp. Only used for I/Q rendering. '''
+
+    def phase_mod_generator(self):
+        return make_chirp(self.start_frequency,
+                          self.stop_frequency,
+                          self.start, self.stop)
 
 if __name__ == '__main__':
 
