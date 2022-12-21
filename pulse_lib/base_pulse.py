@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+from typing import Dict
 
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
@@ -358,12 +359,15 @@ class pulselib:
     def set_qubit_correction_gain(self, qubit_channel_name, correction_gain_I, correction_gain_Q):
         self.qubit_channels[qubit_channel_name].correction_gain = (correction_gain_I, correction_gain_Q)
 
-    def set_channel_attenuations(self, attenuation_dict):
+    def set_channel_attenuations(self, attenuation_dict:Dict[str, float]):
         for channel, attenuation in attenuation_dict.items():
             if channel not in self.awg_channels:
                 logging.info(f'Channel {channel} defined in hardware, but not in pulselib; skipping channel')
                 continue
             self.awg_channels[channel].attenuation = attenuation
+
+    def get_channel_attenuations(self) -> Dict[str, float]:
+        return {c.name: c.attenuation for c in self.awg_channels.values()}
 
     def add_virtual_matrix(self, name,
                            real_gate_names,
