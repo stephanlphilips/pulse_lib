@@ -88,7 +88,7 @@ class MeasurementParameter(MultiParameter):
             time_trace (bool): if True `func` returns a time trace with time dimension
             sample_rate (float): if not None specifies the sample rate of the time trace
             setpoints (Optional[np.ndarray]): setpoints
-            setpoint_unitss (Optional[np.ndarray]): setpoint units
+            setpoint_units (Optional[np.ndarray]): setpoint units
             setpoint_labels (Optional[np.ndarray]): setpoint labels
             setpoint_names (Optional[np.ndarray]): setpoint names
         '''
