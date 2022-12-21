@@ -7,8 +7,8 @@ from collections.abc import Sequence
 import qcodes.logger as logger
 from qcodes.logger import start_all_logging
 
-#from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
-from projects.keysight_measurement.hvi2.hvi2_schedule_loader import Hvi2ScheduleLoader
+from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
+#from projects.keysight_measurement.hvi2.hvi2_schedule_loader import Hvi2ScheduleLoader
 
 from configuration.medium_iq import init_hardware, init_pulselib
 from utils.plot import plot_awgs
@@ -46,7 +46,6 @@ def create_seq(pulse_lib):
 
     # generate the sequence and upload it.
     my_seq = pulse_lib.mk_sequence([seg1, seg2, seg3])
-#    my_seq.set_hw_schedule(HardwareScheduleMock())
     my_seq.n_rep = 10
 
     return my_seq
@@ -64,7 +63,8 @@ t_measure = 5_000
 pulse.set_digitizer_phase('SD2', -0.228*np.pi)
 
 my_seq = create_seq(pulse)
-my_seq.set_hw_schedule(Hvi2ScheduleLoader(pulse, "SingleShot", digs[0]))
+#my_seq.set_hw_schedule(Hvi2ScheduleLoader(pulse, "SingleShot", digs[0]))
+my_seq.set_hw_schedule(HardwareScheduleMock())
 my_seq.set_acquisition(t_measure=t_measure)
 
 param = my_seq.get_measurement_param('Test', upload='auto', iq_complex=False)
