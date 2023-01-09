@@ -21,7 +21,7 @@ class AwgConfig:
 
 
 class QsUploader:
-    verbose = True
+    verbose = False
     # Option to disable use of sequencers to test with fully generated waveforms.
     use_iq_sequencers = True
     use_baseband_sequencers = False
@@ -926,7 +926,8 @@ class UploadAggregator:
                 t_on = int(on_off[0])
             if s == 0 and on_off[1] == -1:
                 t_off = int(on_off[0])
-                logging.debug(f'Marker: {t_on} - {t_off}')
+                if UploadAggregator.verbose:
+                    logging.debug(f'Marker: {t_on} - {t_off}')
                 table.append((t_on + offset, t_off + offset))
 
     def _upload_wvf(self, job, channel_name, waveform, amplitude, attenuation, sample_rate, awg_upload_func):
