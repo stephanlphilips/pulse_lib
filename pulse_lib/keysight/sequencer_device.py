@@ -9,6 +9,7 @@ class SequencerInfo:
     channel_name: str # awg_channel or qubit_channel
     phases: List[float]
     gain_correction: List[float]
+    sequencer_offset: int
 
 
 # TODO @@@ retrieve sequencer configuration from M3202A_QS object
@@ -18,10 +19,13 @@ class SequencerDevice:
     name: str
     iq_channels: List[object] = field(default_factory=list) # iq channel objects
     sequencers: List[SequencerInfo] = field(default_factory=list)
+    sequencer_offset: int = 10
 
     def __post_init__(self):
         self.iq_channels = [None]*2
         self.sequencers = [None]*12
+        if hasattr(self.awg, 'get_sequencer_offset'):
+            self.sequencer_offset = self.awg.get_sequencer_offset()
 
     def add_iq_channel(self, IQ_channel, channel_numbers):
         if not channel_numbers in [[1,2], [2,1], [3,4], [4,3]]:
@@ -62,7 +66,8 @@ class SequencerDevice:
             #print(f'{qubit_channel.channel_name} {IQ_comps} {qubit_phases}')
 
             sequencer = SequencerInfo(self.name, seq_num,
-                                      qubit_channel.channel_name, qubit_phases, gain_correction)
+                                      qubit_channel.channel_name, qubit_phases,
+                                      gain_correction, self.sequencer_offset)
             self.sequencers[seq_num-1] = sequencer
             sequencers.append(sequencer)
 

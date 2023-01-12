@@ -115,7 +115,8 @@ class QsUploader:
         '''
         start = time.perf_counter()
 
-        aggregator = UploadAggregator(self.AWGs, self.awg_channels, self.marker_channels, self.digitizer_channels,
+        aggregator = UploadAggregator(self.AWGs, self.digitizers, self.awg_channels,
+                                      self.marker_channels, self.digitizer_channels,
                                       self.qubit_channels, self.sequencer_channels, self.sequencer_out_channels)
 
         aggregator.upload_job(job, self.__upload_to_awg) # @@@ TODO split generation and upload
@@ -507,9 +508,10 @@ class RfMarkerPulse:
 class UploadAggregator:
     verbose = False
 
-    def __init__(self, AWGs, awg_channels, marker_channels, digitizer_channels,
+    def __init__(self, AWGs, digitizers, awg_channels, marker_channels, digitizer_channels,
                  qubit_channels, sequencer_channels, sequencer_out_channels):
         self.AWGs = AWGs
+        self.digitizers = digitizers
         self.npt = 0
         self.marker_channels = marker_channels
         self.digitizer_channels = digitizer_channels
@@ -946,6 +948,9 @@ class UploadAggregator:
         segments = self.segments
 
         for channel_name, qubit_channel in self.qubit_channels.items():
+            if channel_name not in self.sequencer_channels:
+                logging.warning(f'QS driver (M3202A_QS) not loaded for qubit channel {channel_name}')
+                continue
             start = time.perf_counter()
             delays = []
             for i in range(2):
@@ -954,9 +959,10 @@ class UploadAggregator:
             if delays[0] != delays[1]:
                 raise Exception(f'I/Q Channel delays must be equal ({channel_name})')
 
+            sequencer_offset = self.sequencer_channels[channel_name].sequencer_offset
             # TODO improve for alignment on 1 ns. -> set channel delay in FPGA
-            # subtract 10 ns, because it's started 10 ns before 'classical' queued waveform
-            t_start = int((-self.max_pre_start_ns - delays[0]) / 5) * 5 -10
+            # subtract offset, because it's started before 'classical' queued waveform
+            t_start = int((-self.max_pre_start_ns - delays[0]) / 5) * 5 - sequencer_offset
 
             sequence = IQSequenceBuilder(channel_name, t_start,
                                          qubit_channel.iq_channel.LO)
@@ -1017,7 +1023,6 @@ class UploadAggregator:
     def _generate_digitizer_triggers(self, job):
         trigger_channels = {}
         digitizer_trigger_channels = {}
-        self.rf_marker_pulses = {}
         has_HVI_triggers = False
 
         for name, value in job.schedule_params.items():
@@ -1053,17 +1058,16 @@ class UploadAggregator:
                     if rf_source is not None and rf_source.mode != 'continuous':
                         rf_marker_pulses.append(RfMarkerPulse(t, t_end))
 
-            if (rf_source is not None
-                and rf_source.mode == 'continuous'
-                and t_end is not None):
+            if rf_source is not None:
+                if rf_source.mode == 'continuous' and t_end is not None:
                     rf_marker_pulses.append(RfMarkerPulse(0, t_end))
 
-            for rf_pulse in rf_marker_pulses:
-                rf_pulse.start += rf_source.delay
-                rf_pulse.stop += rf_source.delay
-                if rf_source.mode in ['pulsed', 'continuous']:
-                    rf_pulse.start -= rf_source.startup_time_ns
-                    rf_pulse.stop += rf_source.prolongation_ns
+                for rf_pulse in rf_marker_pulses:
+                    rf_pulse.start += rf_source.delay
+                    rf_pulse.stop += rf_source.delay
+                    if rf_source.mode in ['pulsed', 'continuous']:
+                        rf_pulse.start -= rf_source.startup_time_ns
+                        rf_pulse.stop += rf_source.prolongation_ns
 
         job.digitizer_triggers = list(trigger_channels.keys())
         job.digitizer_triggers.sort()
@@ -1092,9 +1096,11 @@ class UploadAggregator:
 
         logging.debug(f'PXI triggers: {pxi_triggers}')
 
-        self.rf_marker_pulses = {}
         segments = self.segments
         for channel_name, channel in self.digitizer_channels.items():
+            dig = self.digitizers[channel.module_name]
+            if not hasattr(dig, 'get_sequencer'):
+                raise Exception(f'QS driver (M3102A_QS) not configured for digitizer {channel.module_name}')
             sequence = AcquisitionSequenceBuilder(channel_name)
             job.digitizer_sequences[channel_name] = sequence
             rf_source = channel.rf_source
@@ -1158,6 +1164,7 @@ class UploadAggregator:
         job.digitizer_sequences = {}
         job.digitizer_triggers = {}
         job.digitizer_trigger_channels = {}
+        self.rf_marker_pulses = {}
 
         self._integrate(job)
 
