@@ -241,7 +241,8 @@ class PulsarUploader:
 
         logging.info(f'Play {index}')
 
-        self.q1instrument.run_program(job.program)
+        self.q1instrument.run_program(job.program) # sync
+#        self.q1instrument.start_program(job.program) # @@@ async
 
         if release_job:
             job.release()
@@ -444,7 +445,7 @@ class SegmentRenderInfo:
 
 
 class UploadAggregator:
-    verbose = False
+    verbose = True
 
     def __init__(self, q1instrument, awg_channels, marker_channels, digitizer_channels,
                  qubit_channels, awg_voltage_channels, marker_sequencers, seq_markers):
@@ -647,16 +648,19 @@ class UploadAggregator:
                     raise Exception(f'Unknown pulse element {type(e)}')
 
         t_end = PulsarConfig.align(seg_render.t_end)
-        seq.set_offset(t_end, 0, 0.0)
 
         compensation_ns = job.upload_info.dc_compensation_duration_ns
         if job.neutralize and compensation_ns > 0 and channel_info.dc_compensation:
             compensation_voltage = -channel_info.integral / compensation_ns * 1e9 * scaling
             job.upload_info.dc_compensation_voltages[channel_name] = compensation_voltage
             logging.debug(f'DC compensation {channel_name}: {compensation_voltage:6.1f} mV {compensation_ns} ns')
-            seq.add_comment(f'DC compensation: {compensation_voltage:6.1f} mV {compensation_ns} ns')
-            seq.set_offset(t_end, compensation_ns, compensation_voltage)
-            seq.set_offset(t_end + compensation_ns, 0, 0.0)
+            if abs(compensation_voltage) < 0.01:
+                # less than 1 LSB of QRM/QCM
+                logging.info(f'no compensation for {channel_name}')
+            else:
+                seq.add_comment(f'DC compensation: {compensation_voltage:6.1f} mV {compensation_ns} ns')
+                seq.set_offset(t_end, compensation_ns, compensation_voltage)
+                seq.set_offset(t_end + compensation_ns, 0, 0.0)
 
         seq.finalize()
 
