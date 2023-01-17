@@ -88,9 +88,9 @@ class Context:
         cfg = self._configuration
         backend = cfg['backend']
         if backend in ['Keysight', 'KeysightQS']:
-            for awg in awgs:
-                # anti-ringing filter
-                awg.set_digital_filter_mode(3)
+#            for awg in awgs:
+#                # anti-ringing filter
+#                awg.set_digital_filter_mode(3)
             for dig in digs:
                 # Set mode AVERAGE
                 dig.set_acquisition_mode(1)
@@ -261,7 +261,9 @@ class Context:
         else:
             print(f'no implementation for {runner}')
 
-    def plot_awgs(self, sequence, index=None, print_acquisitions=False, **kwargs):
+    def plot_awgs(self, sequence, index=None, print_acquisitions=False,
+                  analogue_out=False,
+                  **kwargs):
         job = sequence.upload(index)
         sequence.play(index)
         pulse = self.pulse
@@ -269,13 +271,16 @@ class Context:
         for awg in list(pulse.awg_devices.values()) + list(pulse.digitizers.values()):
             if hasattr(awg, 'plot'):
                 pt.figure()
-                awg.plot()
+                render_kwargs = {}
+                if analogue_out:
+                    render_kwargs['analogue'] = True
+                awg.plot(**render_kwargs)
                 # awg.plot(discrete=True)
                 pt.legend()
                 pt.grid()
                 pt.ylabel('amplitude [V]')
                 pt.xlabel('time [ns]')
-                pt.title(f'AWG upload {awg.name}')
+                pt.title(f'output {awg.name}')
                 for (method, arguments) in kwargs.items():
                     getattr(pt, method)(*arguments)
                 self._savefig()

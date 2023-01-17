@@ -15,5 +15,8 @@ setup(name="pulse_lib",
             'numpy>=1.20.0',
             ],
     license='MIT',
+    package_data={
+        "pulse_lib.tests.keysight_data": ["*.hdf5"],
+        },
 	)
 

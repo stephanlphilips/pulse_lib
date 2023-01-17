@@ -1,9 +1,10 @@
-
+import os
 import logging
 from dataclasses import dataclass
 from typing import List, Tuple
 
 import numpy as np
+import xarray as xr
 import scipy.signal as signal
 import matplotlib.pyplot as pt
 
@@ -144,7 +145,21 @@ class MockM3202A(Instrument):
         else:
             return 200e6/prescaler
 
-    def plot(self, bias_T_rc_time=0, discrete=False):
+    def _upconvert_filtered(self, t, wave):
+        t = np.linspace(t[0], t[-1]+1e-9, len(t)*10, endpoint=False)
+        d = np.zeros(len(wave)*10)
+        d[::10] = wave
+        fname = os.path.dirname(__file__) + f'/keysight_data/keysight_pulse_response_{self.digital_filter_mode}.hdf5'
+        pulse_response = xr.open_dataset(fname)
+        t_response = pulse_response.coords['t'].data
+        response = pulse_response['y'].data / 0.77
+        d = np.convolve(d, response)
+        n_before = round(-t_response[0]*10)
+        n_after = round(t_response[-1]*10)
+        return t, d[n_before: -n_after]
+
+
+    def plot(self, bias_T_rc_time=0, discrete=False, analogue=False):
         for channel in range(1,5):
             data, prescaler = self.get_data_prescaler(channel)
             #print(f'{self.name}.{channel} data: {[(len(s),p) for s,p in zip(data,prescaler)]}')
@@ -159,7 +174,15 @@ class MockM3202A(Instrument):
             zi = [0]
             for d,p in zip(data, prescaler):
                 sr = MockM3202A.convert_prescaler_to_sample_rate(p)
-                if p == 0 and not discrete:
+                if analogue:
+                    n = round(1e9/sr)
+                    ts = np.arange(len(d)*n)/1e9 + t0
+                    t0 = ts[-1] + 1/sr
+                    if n == 1:
+                        wd = d
+                    else:
+                        wd = np.repeat(d,n)
+                elif p == 0 and not discrete:
                     ts = np.arange(len(d))/sr + t0
                     t0 = ts[-1] + 1/sr
                     wd = d
@@ -184,6 +207,9 @@ class MockM3202A(Instrument):
 
             t = np.concatenate(t)*1e9
             pt.plot(t, wave, label=f'{self.name}-{channel}')
+            if analogue:
+                ta,da = self._upconvert_filtered(t, wave)
+                pt.plot(ta, da, label=f'{self.name}-{channel} Out')
             if bias_T_rc_time:
                 biased = np.concatenate(biased_data)
                 pt.plot(t, biased, ':', label=f'{self.name}-{channel} bias-T')
@@ -222,6 +248,6 @@ class MockM3202A_fpga(MockM3202A):
 
             pt.plot(t, values, ':', label=f'{self.name}-T')
 
-    def plot(self, bias_T_rc_time=0, discrete=False):
-        super().plot(bias_T_rc_time=bias_T_rc_time, discrete=discrete)
+    def plot(self, bias_T_rc_time=0, discrete=False, analogue=False):
+        super().plot(bias_T_rc_time=bias_T_rc_time, discrete=discrete, analogue=analogue)
         self.plot_marker()
