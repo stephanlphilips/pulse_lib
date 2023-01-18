@@ -316,7 +316,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
 
     def repeated_acquire(self, t, t_integrate, n, t_period):
         t += self.offset_ns
-        duration = n * t_period
+        duration = (n-1) * t_period + t_integrate
         self._update_time(t, duration)
         self.integration_time = t_integrate
         self.n_triggers += n
