@@ -1,6 +1,7 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
 
+#%%
 def test1():
     pulse = context.init_pulselib(n_gates=2, n_sensors=2)
 
@@ -40,7 +41,7 @@ def test2():
     s.wait(10000)
 
     sequence = pulse.mk_sequence([s])
-    sequence.n_rep = None
+    sequence.n_rep = 2
     sequence.set_acquisition(sample_rate=500e3)
     m_param = sequence.get_measurement_param()
     context.add_hw_schedule(sequence)

@@ -3,6 +3,7 @@ from qcodes import MultiParameter
 import numpy as np
 import logging
 
+from pulse_lib.acquisition.iq_modes import iq_mode2func
 
 def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
                       biasT_corr=False,
@@ -13,7 +14,8 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
                       enabled_markers=[],
                       pulse_gates={},
                       n_avg=1,
-                      iq_complex=True,
+                      iq_mode='Complex',
+                      iq_complex=None,
                       ):
     """
     Creates a parameter to do a 1D fast scan.
@@ -38,6 +40,16 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
             Gates to pulse during scan with pulse voltage in mV.
             E.g. {'vP1': 10.0, 'vB2': -29.1}
         n_avg (int): number of times to scan and average data.
+        iq_mode (str):
+            when channel contains IQ data, i.e. iq_input=True or frequency is not None,
+            then this parameter specifies how the complex I/Q value should be returned:
+                'Complex': return IQ data as complex value.
+                'I': return only I value.
+                'Q': return only Q value.
+                'abs': return absolute value (amplitude).
+                'angle:' return angle (phase) in radians,
+                'I+Q', return I and Q using channel name postfixes '_I', '_Q'.
+                'abs+angle'. return absolute value and angle using channel name postfixes '_abs', '_angle'.
         iq_complex (bool):
             If True return IQ data as complex value in 1 value, otherwise return IQ data
             in two values with suffixes '_I' and '_Q'.
@@ -56,7 +68,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
         logging.error(msg)
         raise Exception(msg)
 
-    acq_channels,channel_map = _get_channels(pulse_lib, channel_map, channels, iq_complex)
+    acq_channels,channel_map = _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex)
 
     vp = swing/2
     line_margin = int(line_margin)
@@ -124,7 +136,8 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
                       enabled_markers=[],
                       pulse_gates={},
                       n_avg=1,
-                      iq_complex=True,
+                      iq_mode='Complex',
+                      iq_complex=None,
                       ):
     """
     Creates a parameter to do a 2D fast scan.
@@ -153,6 +166,16 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
             Gates to pulse during scan with pulse voltage in mV.
             E.g. {'vP1': 10.0, 'vB2': -29.1}
         n_avg (int): number of times to scan and average data.
+        iq_mode (str):
+            when channel contains IQ data, i.e. iq_input=True or frequency is not None,
+            then this parameter specifies how the complex I/Q value should be returned:
+                'Complex': return IQ data as complex value.
+                'I': return only I value.
+                'Q': return only Q value.
+                'abs': return absolute value (amplitude).
+                'angle:' return angle (phase) in radians,
+                'I+Q', return I and Q using channel name postfixes '_I', '_Q'.
+                'abs+angle'. return absolute value and angle using channel name postfixes '_abs', '_angle'.
         iq_complex (bool):
             If True return IQ data as complex value in 1 value, otherwise return IQ data
             in two values with suffixes '_I' and '_Q'.
@@ -171,7 +194,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
         logging.error(msg)
         raise Exception(msg)
 
-    acq_channels,channel_map = _get_channels(pulse_lib, channel_map, channels, iq_complex)
+    acq_channels,channel_map = _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex)
 
     line_margin = int(line_margin)
     add_pulse_gate_correction = biasT_corr and len(pulse_gates) > 0
@@ -262,7 +285,9 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
                            biasT_corr, channel_map)
 
 
-def _get_channels(pulse_lib, channel_map, channels, iq_complex):
+def _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex):
+    if iq_complex == False:
+        iq_mode = 'I+Q'
     if channel_map is not None:
         acq_channels = set(v[0] for v in channel_map.values())
     else:
@@ -275,9 +300,13 @@ def _get_channels(pulse_lib, channel_map, channels, iq_complex):
         channel_map = {}
         for name in acq_channels:
             dig_ch = dig_channels[name]
-            if dig_ch.iq_out and not iq_complex:
-                channel_map[name+'_I'] = (name, np.real)
-                channel_map[name+'_Q'] = (name, np.imag)
+            if dig_ch.iq_out and not iq_mode != 'Complex':
+                ch_funcs = iq_mode2func(iq_mode)
+                if isinstance(ch_funcs, list):
+                    for postfix,func in ch_funcs:
+                        channel_map[name+postfix] = (name, func)
+                else:
+                    channel_map[name] = (name, ch_funcs)
             else:
                 channel_map[name] = (name, lambda x:x)
 

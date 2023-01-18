@@ -373,7 +373,7 @@ class sequencer():
     def get_measurement_param(self, name='seq_measurements', upload=None,
                               states=True, values=True,
                               selectors=True, total_selected=True, accept_mask=True,
-                              iq_complex=True):
+                              iq_mode='Complex', iq_complex=None):
         '''
         Returns a qcodes MultiParameter with an entry per measurement, i.e. per acquire call.
         The data consists of raw data and derived data.
@@ -389,14 +389,20 @@ class sequencer():
                 When sample_rate is set with set_acquisition(sample_rate=sr),
                 then the data contains time traces in a 2D array indexed
                 [index_repetition][time_step].
-                Only present when `iq_complex=True` or when
-                channel contains no IQ data.
+                Only present when channel contains no IQ data or
+                when `iq_complex=True` or `iq_mode in['Complex','I','Q','abs','angle']`.
             "{name}_I":
                 Similar to "{name}", but contains I component of IQ.
-                Only present when channel contains IQ data, and `iq_complex=False`.
+                Only present when channel contains IQ data and `iq_mode='I+Q'`.
             "{name}_Q":
                 Similar to "{name}", but contains Q component of IQ.
-                Only present when channel contains IQ data, and `iq_complex=False`.
+                Only present when channel contains IQ data and `iq_mode='I+Q'`.
+            "{name}_abs":
+                Similar to "{name}", but contains absolute value (amplitude) of IQ.
+                Only present when channel contains IQ data and `iq_mode='abs+angle'`.
+            "{name}_angle":
+                Similar to "{name}", but contains angle (phase) of IQ.
+                Only present when channel contains IQ data and `iq_mode='abs+angle'`.
             "{name}_state":
                 Qubit states in 1 D array.
                 Only present when `states=True`, threshold is set,
@@ -451,10 +457,12 @@ class sequencer():
         else:
             reader = self
         mc = self._get_measurement_converter()
+        if iq_complex == False:
+            iq_mode = 'I+Q'
         selection = DataSelection(raw=True, states=states, values=values,
                                   selectors=selectors, total_selected=total_selected,
                                   accept_mask=accept_mask,
-                                  iq_complex=iq_complex)
+                                  iq_mode=iq_mode)
         param = MeasurementParameter(name, reader, mc, selection)
         return param
 
@@ -547,7 +555,8 @@ class sequencer():
     def get_measurement_results(self, index=None,
                                 raw=True, states=True, values=True,
                                 selectors=True, total_selected=True,
-                                accept_mask=True, iq_complex=True):
+                                accept_mask=True, iq_mode='Complex',
+                                iq_complex=None):
         '''
         Returns data per measurement, i.e. per acquire call.
         The data consists of raw data and derived data.
@@ -563,16 +572,24 @@ class sequencer():
                 When sample_rate is set with set_acquisition(sample_rate=sr),
                 then the data contains time traces in a 2D array indexed
                 [index_repetition][time_step].
-                Only present when `raw=True` and `iq_complex=True` or
-                channel contains IQ data.
+                Only present when channel contains no IQ data or
+                when `iq_complex=True` or `iq_mode in['Complex','I','Q','abs','angle']`.
             "{name}_I":
                 Similar to "{name}", but contains I component of IQ.
                 Only present when channel contains IQ data,
-                `raw=True`, and `iq_complex=False`.
+                `raw=True`, and `iq_mode='I+Q'`.
             "{name}_Q":
                 Similar to "{name}", but contains Q component of IQ.
                 Only present when channel contains IQ data,
-                `raw=True`, and `iq_complex=False`.
+                `raw=True`, and `iq_mode='I+Q'`.
+            "{name}_abs":
+                Similar to "{name}", but contains absolute value (amplitude) of IQ.
+                Only present when channel contains IQ data,
+                `raw=True`, and `iq_mode='abs+angle'`.
+            "{name}_angle":
+                Similar to "{name}", but contains angle (phase) of IQ.
+                Only present when channel contains IQ data,
+                `raw=True`, and `iq_mode='abs+angle'`.
             "{name}_state":
                 Qubit states in 1 D array.
                 Only present when `states=True`, threshold is set,
@@ -624,22 +641,13 @@ class sequencer():
             index = self.sweep_index[::-1]
         mc = self._get_measurement_converter()
         mc.set_channel_data(self.get_channel_data(index))
+        if iq_complex == False:
+            iq_mode = 'I+Q'
         selection = DataSelection(raw=raw, states=states, values=values,
                                   selectors=selectors, total_selected=total_selected,
                                   accept_mask=accept_mask,
-                                  iq_complex=iq_complex)
+                                  iq_mode=iq_mode)
         return mc.get_measurements(selection)
-
-    def get_measurement_data(self, index=None):
-        '''
-        Deprecated
-        Returns channel data in V (!)
-        '''
-        logging.warning('get_measurement_data is deprecated. Use get_channel_data')
-        return {
-            name:value/1000.0
-            for name, value in self.get_channel_data(index).items()
-            }
 
 
     def get_channel_data(self, index=None):

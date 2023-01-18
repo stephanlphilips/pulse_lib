@@ -3,7 +3,7 @@ from typing import Tuple, List
 import logging
 import numpy as np
 from pulse_lib.segments.segment_measurements import measurement_acquisition, measurement_expression
-
+from pulse_lib.acquisition.iq_modes import iq_mode2func
 from qcodes import MultiParameter
 
 
@@ -32,6 +32,23 @@ class SetpointsSingle:
         self.setpoint_labels += (setpoint_label, )
         self.setpoint_units += (setpoint_unit, )
 
+    def with_attributes(self, name=None, unit=None):
+        label = self.label
+        if name is None:
+            name = self.name
+        else:
+            if label.startswith(self.name):
+                label = name + label[len(self.name):]
+        if unit is None:
+            unit = self.unit
+        return SetpointsSingle(name, label, unit,
+                               self.shape,
+                               self.setpoints,
+                               self.setpoint_names,
+                               self.setpoint_labels,
+                               self.setpoint_units)
+
+
 class SetpointsMulti:
     '''
     Pass to MultiParameter using __dict__ attribute. Example:
@@ -57,7 +74,7 @@ class DataSelection:
     selectors: bool = False
     total_selected: bool = False
     accept_mask: bool = False
-    iq_complex: bool =True
+    iq_mode: str = 'Complex'
 
 
 class MeasurementParameter(MultiParameter):
@@ -176,7 +193,7 @@ class MeasurementConverter:
         self._channel_raw = {}
 
         self._raw = []
-        self._raw_split = []
+        self._raw_is_iq = []
         self._states = []
         self._selectors = []
         self._values = []
@@ -184,7 +201,6 @@ class MeasurementConverter:
         self._accepted = []
 
         self.sp_raw = []
-        self.sp_raw_split = []
         self.sp_states = []
         self.sp_selectors = []
         self.sp_values = []
@@ -209,23 +225,10 @@ class MeasurementConverter:
             if m.interval is not None:
                 time = tuple(np.arange(m.n_samples) * m.interval)
                 sp_raw.append(time, 'time', 'time', 'ns')
-            channel = digitizer_channels[channel_name]
 
             self.sp_raw.append(sp_raw)
-
-            if channel.iq_out:
-                for suffix in ['_I', '_Q']:
-                    name = f'{m.name}{suffix}'
-                    label = f'{m.name}{suffix} ({channel_name}{suffix}:{m.index})'
-                    sp_raw = SetpointsSingle(name, label, 'mV',
-                                             sp_raw.shape,
-                                             sp_raw.setpoints,
-                                             sp_raw.setpoint_names,
-                                             sp_raw.setpoint_labels,
-                                             sp_raw.setpoint_units)
-                    self.sp_raw_split.append(sp_raw)
-            else:
-                self.sp_raw_split.append(sp_raw)
+            channel = digitizer_channels[channel_name]
+            self._raw_is_iq.append(channel.iq_out)
 
 
     def _generate_setpoints(self):
@@ -261,44 +264,21 @@ class MeasurementConverter:
             self.sp_total.append(SetpointsSingle('total_selected', 'total_selected', '#'))
 
     def _get_names(self, selection):
-        sp_list = []
-        if selection.raw:
-            if selection.iq_complex:
-                sp_list += self.sp_raw
-            else:
-                sp_list += self.sp_raw_split
-        if selection.states:
-            sp_list += self.sp_states
-        if selection.values:
-            sp_list += self.sp_values
-        if selection.selectors:
-            sp_list += self.sp_selectors
-        if selection.total_selected:
-            sp_list += self.sp_total
-        if selection.accept_mask:
-            sp_list += self.sp_mask
-        names = [sp.name for sp in sp_list]
-        return names
+        setpoints = self.get_setpoints(selection)
+        return setpoints.names
 
     def _set_data_raw(self):
-        digitizer_channels = self._description.digitizer_channels
         self._raw = []
         self._raw_split = []
         for m in self._description.measurements:
             if isinstance(m, measurement_acquisition):
                 channel_name = m.acquisition_channel
-                channel = digitizer_channels[channel_name]
                 if m.n_samples is None:
                     channel_raw = self._channel_raw[channel_name][...,m.data_offset]
                 else:
                     channel_raw = self._channel_raw[channel_name][...,m.data_offset:m.data_offset+m.n_samples]
 
                 self._raw.append(channel_raw)
-                if channel.iq_out:
-                    self._raw_split.append(channel_raw.real)
-                    self._raw_split.append(channel_raw.imag)
-                else:
-                    self._raw_split.append(channel_raw.real)
 
     def _set_states(self):
         # iterate through measurements and keep last named values in dictionary
@@ -351,10 +331,22 @@ class MeasurementConverter:
     def get_setpoints(self, selection):
         sp_list = []
         if selection.raw:
-            if selection.iq_complex:
-                sp_list += self.sp_raw
-            else:
-                sp_list += self.sp_raw_split
+            for sp,is_iq in zip(self.sp_raw, self._raw_is_iq):
+                if not is_iq:
+                    sp_list.append(sp)
+                else:
+                    funcs = iq_mode2func(selection.iq_mode)
+                    if isinstance(funcs, list):
+                        for postfix,_ in funcs:
+                            unit = 'rad' if postfix == '_angle' else  'mV'
+                            sp_new = sp.with_attributes(name=sp.name+postfix, unit=unit)
+                            sp_list.append(sp_new)
+                    else:
+                        if selection.iq_mode == 'angle':
+                            sp_new = sp.with_attributes(unit='rad')
+                            sp_list.append(sp_new)
+                        else:
+                            sp_list.append(sp)
         if selection.states:
             sp_list += self.sp_states
         if selection.values:
@@ -370,10 +362,16 @@ class MeasurementConverter:
     def get_measurement_data(self, selection):
         data = []
         if selection.raw:
-            if selection.iq_complex:
-                data += self._raw
-            else:
-                data += self._raw_split
+            for raw,is_iq in zip(self._raw, self._raw_is_iq):
+                if not is_iq:
+                    data.append(raw)
+                else:
+                    funcs = iq_mode2func(selection.iq_mode)
+                    if isinstance(funcs, list):
+                        for _,func in funcs:
+                            data.append(func(raw))
+                    else:
+                        data.append(funcs(raw))
         if selection.states:
             data += self._states
         if selection.values:
