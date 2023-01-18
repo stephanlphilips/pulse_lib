@@ -20,6 +20,7 @@ class measurement_acquisition(measurement_base):
     ref: Optional[MeasurementRef] = None
     t_measure: Optional[float] = None
     n_repeat: Optional[int] = None
+    interval: Optional[float] = None # [ns]
     n_samples: Optional[int] = None
     '''  Number of samples when using time traces. Value set by sequencer when downsampling. '''
     data_offset: int = 0
@@ -49,7 +50,8 @@ class segment_measurements:
                         zero_on_high=False,
                         ref:MeasurementRef=None,
                         accept_if=None,
-                        n_repeat=None):
+                        n_repeat=None,
+                        interval=None):
         if ref is None:
             name = None
         elif isinstance(ref, str):
@@ -58,7 +60,8 @@ class segment_measurements:
             name = ref.name
         self._measurements.append(measurement_acquisition(name, accept_if, channel, index,
                                                           threshold, zero_on_high, ref,
-                                                          t_measure, n_repeat=n_repeat))
+                                                          t_measure, n_repeat=n_repeat,
+                                                          interval=interval))
 
     def add_expression(self, expression:MeasurementExpressionBase, accept_if=None, name:str=None):
         if name is None:

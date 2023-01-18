@@ -12,7 +12,6 @@ from .segments.utility.looping import loop_obj
 from .segments.utility.measurement_ref import MeasurementRef
 from .measurements_description import measurements_description
 from .acquisition.acquisition_conf import AcquisitionConf
-from .acquisition.acquisition_param import AcquisitionParam
 from .acquisition.player import SequencePlayer
 from .acquisition.measurement_converter import MeasurementConverter, DataSelection, MeasurementParameter
 
@@ -367,30 +366,9 @@ class sequencer():
                     raise Exception(f't_measure must be number and not a {type(m.t_measure)} for time traces')
                 m.n_samples = self.uploader.get_num_samples(
                         m.acquisition_channel, t_measure, sample_rate) # @@@ implement QS, Tektronix
+                m.interval = round(1e9/sample_rate)
             else:
                 m.n_samples = 1
-
-    def get_acquisition_param(self, name, upload=None, n_triggers=None): # @@@ remove
-        logging.warning('get_acquisition_param is deprecated. Use get_measurement_param')
-        if not self.configure_digitizer:
-            raise Exception('configure_digitizer not set')
-        if upload == 'auto':
-            reader = SequencePlayer(self)
-        else:
-            reader = self
-
-        conf = self._acquisition_conf
-        acq_channels = conf.channels if conf.channels else list(self._digitizer_channels.keys())
-
-        param = AcquisitionParam(reader, name,
-                 acq_channels,
-                 n_rep=self.n_rep if self.n_rep and self.n_rep > 1 else None,
-                 n_triggers=n_triggers,
-                 t_measure=conf.t_measure,
-                 sample_rate=conf.sample_rate,
-                 average_repetitions=False)
-
-        return param
 
     def get_measurement_param(self, name='seq_measurements', upload=None,
                               states=True, values=True,

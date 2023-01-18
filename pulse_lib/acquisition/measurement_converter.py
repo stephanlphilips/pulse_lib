@@ -206,9 +206,8 @@ class MeasurementConverter:
             sp_raw = SetpointsSingle(name, label, 'mV')
             if n_rep:
                 sp_raw.append(np.arange(n_rep), 'repetition', 'repetition', '')
-            if m.n_samples is not None:
-                period = 1e9/self._sample_rate
-                time = tuple(np.arange(m.n_samples) * period)
+            if m.interval is not None:
+                time = tuple(np.arange(m.n_samples) * m.interval)
                 sp_raw.append(time, 'time', 'time', 'ns')
             channel = digitizer_channels[channel_name]
 

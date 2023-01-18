@@ -34,7 +34,7 @@ class acquisition_data(parent_data):
         self.end_time = 0
         self._last_acquisition = -1
 
-    def add_acquisition(self, acquisition):
+    def add_acquisition(self, acquisition, wait=False):
         """
         add an acquisition
         Args:
@@ -46,6 +46,10 @@ class acquisition_data(parent_data):
         self._last_acquisition = acquisition.start
         self.data.append(acquisition)
         end_time = acquisition.start
+        if wait:
+            if acquisition.t_measure is None:
+                raise Exception('t_measure must be specified when wait is not None in acquire()')
+            end_time += acquisition.t_measure
         if end_time > self.end_time:
             self.end_time = end_time
 

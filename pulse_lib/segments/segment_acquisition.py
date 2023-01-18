@@ -51,7 +51,8 @@ class segment_acquisition():
 
     def acquire(self, start, t_measure=None, ref=None,
                 n_repeat=None, interval=None,
-                threshold=None, zero_on_high=False, accept_if=None):
+                threshold=None, zero_on_high=False, accept_if=None,
+                wait=False):
         '''
         Adds an acquisition.
         Args:
@@ -66,6 +67,8 @@ class segment_acquisition():
                 if set the result of the sequence will only be accepted if the measurement
                 equals this condition.
         '''
+        if n_repeat is not None and interval is None:
+            raise Exception('interval must be specified when n_repeat is set')
         if isinstance(ref, MeasurementRef) and zero_on_high:
             ref.inverted()
         # TODO: measurements are not sorted in time. So, this works as long as they are added in right order.
@@ -76,19 +79,22 @@ class segment_acquisition():
                                                   zero_on_high=zero_on_high,
                                                   ref=ref,
                                                   accept_if=accept_if,
-                                                  n_repeat=n_repeat)
+                                                  n_repeat=n_repeat,
+                                                  interval=interval)
         self._acquire(start, t_measure, ref=ref,
                       n_repeat=n_repeat, interval=interval,
-                      threshold=threshold, zero_on_high=zero_on_high)
+                      threshold=threshold, zero_on_high=zero_on_high,
+                      wait=wait)
 
     @loop_controller
     def _acquire(self, start, t_measure, ref=None,
                  n_repeat=None, interval=None,
-                 threshold=None, zero_on_high=False):
+                 threshold=None, zero_on_high=False,
+                 wait=False):
         acq = acquisition(ref, start, t_measure,
                           n_repeat=n_repeat, interval=interval,
                           threshold=threshold, zero_on_high=zero_on_high)
-        self.data_tmp.add_acquisition(acq)
+        self.data_tmp.add_acquisition(acq, wait=wait)
         return self.data_tmp
 
 
