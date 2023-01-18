@@ -99,6 +99,10 @@ class SequenceBuilderBase:
     def add_comment(self, comment):
         self.seq.add_comment(comment)
 
+    def wait_till(self, t):
+        self._update_time(t, 0)
+        self.seq.wait(t)
+
     def finalize(self):
         for i in range(self.imarker, len(self.markers)):
             marker = self.markers[i]

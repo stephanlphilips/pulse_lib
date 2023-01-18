@@ -445,7 +445,7 @@ class SegmentRenderInfo:
 
 
 class UploadAggregator:
-    verbose = True
+    verbose = False
 
     def __init__(self, q1instrument, awg_channels, marker_channels, digitizer_channels,
                  qubit_channels, awg_voltage_channels, marker_sequencers, seq_markers):
@@ -648,6 +648,7 @@ class UploadAggregator:
                     raise Exception(f'Unknown pulse element {type(e)}')
 
         t_end = PulsarConfig.align(seg_render.t_end)
+        seq.wait_till(t_end)
 
         compensation_ns = job.upload_info.dc_compensation_duration_ns
         if job.neutralize and compensation_ns > 0 and channel_info.dc_compensation:
@@ -731,6 +732,8 @@ class UploadAggregator:
                 else:
                     raise Exception('Unknown pulse element {type(e)}')
 
+        t_end = PulsarConfig.align(seg_render.t_end)
+        seq.wait_till(t_end)
         # add final markers
         seq.finalize()
 
@@ -793,6 +796,8 @@ class UploadAggregator:
                 else:
                     seq.acquire(t, t_measure)
 
+        t_end = PulsarConfig.align(seg_render.t_end)
+        seq.wait_till(t_end)
         seq.finalize()
         job.acq_data_scaling[channel_name] = seq.get_data_scaling()
 
@@ -883,6 +888,8 @@ class UploadAggregator:
         Args:
             sample_rate (float) : rate at which the AWG runs.
         '''
+        if len(self.channels) == 0:
+            return 0
         return max(self.get_compensation_time(channel_info) for channel_info in self.channels.values())
 
     def get_compensation_time(self, channel_info):
