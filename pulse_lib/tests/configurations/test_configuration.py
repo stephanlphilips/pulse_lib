@@ -294,7 +294,7 @@ class Context:
                 for dig in pulse.digitizers.values():
                     dig.describe()
             elif backend == 'Qblox':
-                print('See .q1asm file for acquisition timing')
+                print('*** See .q1asm file for acquisition timing ***', flush=True)
             elif backend == 'Tektronix_5014':
                 print('triggers:', job.digitizer_triggers)
             else:
