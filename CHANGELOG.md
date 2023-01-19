@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.4] - 2022-01-19
+
+### Fixed
+- Qblox uploader overlapping pulses error
+
 ## \[1.6.3] - 2022-01-19
 
 ### Added

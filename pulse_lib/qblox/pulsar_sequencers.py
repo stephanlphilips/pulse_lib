@@ -100,6 +100,7 @@ class SequenceBuilderBase:
         self.seq.add_comment(comment)
 
     def wait_till(self, t):
+        t += self.offset_ns
         self._update_time(t, 0)
         self.seq.wait(t)
 

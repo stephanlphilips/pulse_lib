@@ -56,7 +56,7 @@ QbloxMocked:
             output: [QRM1,1]
             frequency: 2e6
             amplitude: 400
-            startup_time: 0
+            startup_time: 200
     runner: core_tools
 
 
