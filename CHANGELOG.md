@@ -1,6 +1,23 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.3] - 2022-01-19
+
+### Added
+- parameter iq_mode to sequencer.get_measurement_parameter(), get_measurement_data(), Qblox fast scan
+- read_channels() to read digitizer channels without pulsing AWG. (Currently Qblox only)
+- Keysight AWG mock rendering at 10 GSa/s using digital filter setting.
+- acquire(... wait=True) to add wait time for acquisition.
+
+### Fixed
+- Timing of Keysight_QS with 2022 firmware
+- Keysight_QS rf_source bug
+- Fixed n_samples in measurement_param
+- Fixed Qblox sequence generation when no pulses on AWG channels
+
+### Removed
+- get_acquisition_param. It was deprecated for quite some time.
+
 ## \[1.6.2] - 2022-12-22
 
 ### Added
