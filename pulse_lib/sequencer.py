@@ -390,19 +390,19 @@ class sequencer():
                 then the data contains time traces in a 2D array indexed
                 [index_repetition][time_step].
                 Only present when channel contains no IQ data or
-                when `iq_complex=True` or `iq_mode in['Complex','I','Q','abs','angle']`.
+                when `iq_complex=True` or `iq_mode in['Complex','I','Q','amplitude','phase']`.
             "{name}_I":
                 Similar to "{name}", but contains I component of IQ.
                 Only present when channel contains IQ data and `iq_mode='I+Q'`.
             "{name}_Q":
                 Similar to "{name}", but contains Q component of IQ.
                 Only present when channel contains IQ data and `iq_mode='I+Q'`.
-            "{name}_abs":
-                Similar to "{name}", but contains absolute value (amplitude) of IQ.
-                Only present when channel contains IQ data and `iq_mode='abs+angle'`.
-            "{name}_angle":
-                Similar to "{name}", but contains angle (phase) of IQ.
-                Only present when channel contains IQ data and `iq_mode='abs+angle'`.
+            "{name}_amp":
+                Similar to "{name}", but contains amplitude of IQ.
+                Only present when channel contains IQ data and `iq_mode='amplitude+phase'`.
+            "{name}_phase":
+                Similar to "{name}", but contains phase of IQ.
+                Only present when channel contains IQ data and `iq_mode='amplitude+phase'`.
             "{name}_state":
                 Qubit states in 1 D array.
                 Only present when `states=True`, threshold is set,
@@ -418,7 +418,6 @@ class sequencer():
                 condition returned in a 1D array.
                 Only present when `selectors=True`, threshold is set,
                 and accept_if is set.
-
             "total_selected":
                 The number of accepted sequence shots.
                 A shot is accepted when all selectors have the required value.
@@ -445,8 +444,18 @@ class sequencer():
                 A shot is accepted when all selectors have the required value.
             accept_mask (bool):
                 If True returns per shot whether it is accepted or not.
+            iq_mode (str):
+                when channel contains IQ data, i.e. iq_input=True or frequency is not None,
+                then this parameter specifies how the complex I/Q value should be returned:
+                    'Complex': return IQ data as complex value.
+                    'I': return only I value.
+                    'Q': return only Q value.
+                    'amplitude': return amplitude.
+                    'phase:' return phase [radians],
+                    'I+Q', return I and Q using channel name postfixes '_I', '_Q'.
+                    'amplitude+phase'. return amplitude and phase using channel name postfixes '_amp', '_phase'.
             iq_complex (bool):
-                If True return IQ data as complex value in raw data.
+                If False this is equivalent to `iq_mode='I+Q'`
 
         '''
         if not self.configure_digitizer:
@@ -573,7 +582,7 @@ class sequencer():
                 then the data contains time traces in a 2D array indexed
                 [index_repetition][time_step].
                 Only present when channel contains no IQ data or
-                when `iq_complex=True` or `iq_mode in['Complex','I','Q','abs','angle']`.
+                when `iq_complex=True` or `iq_mode in['Complex','I','Q','amplitude','phase']`.
             "{name}_I":
                 Similar to "{name}", but contains I component of IQ.
                 Only present when channel contains IQ data,
@@ -582,14 +591,14 @@ class sequencer():
                 Similar to "{name}", but contains Q component of IQ.
                 Only present when channel contains IQ data,
                 `raw=True`, and `iq_mode='I+Q'`.
-            "{name}_abs":
-                Similar to "{name}", but contains absolute value (amplitude) of IQ.
+            "{name}_amp":
+                Similar to "{name}", but contains amplitude of IQ.
                 Only present when channel contains IQ data,
-                `raw=True`, and `iq_mode='abs+angle'`.
-            "{name}_angle":
-                Similar to "{name}", but contains angle (phase) of IQ.
+                `raw=True`, and `iq_mode='amplitude+phase'`.
+            "{name}_phase":
+                Similar to "{name}", but contains phase of IQ.
                 Only present when channel contains IQ data,
-                `raw=True`, and `iq_mode='abs+angle'`.
+                `raw=True`, and ``iq_mode='amplitude+phase'`.
             "{name}_state":
                 Qubit states in 1 D array.
                 Only present when `states=True`, threshold is set,
@@ -605,7 +614,6 @@ class sequencer():
                 condition returned in a 1D array.
                 Only present when `selectors=True`, threshold is set,
                 and accept_if is set.
-
             "total_selected":
                 The number of accepted sequence shots.
                 A shot is accepted when all selectors have the required value.
@@ -633,8 +641,18 @@ class sequencer():
                 A shot is accepted when all selectors have the required value.
             accept_mask (bool):
                 If True returns per shot whether it is accepted or not.
+            iq_mode (str):
+                when channel contains IQ data, i.e. iq_input=True or frequency is not None,
+                then this parameter specifies how the complex I/Q value should be returned:
+                    'Complex': return IQ data as complex value.
+                    'I': return only I value.
+                    'Q': return only Q value.
+                    'amplitude': return amplitude.
+                    'phase:' return phase [radians],
+                    'I+Q', return I and Q using channel name postfixes '_I', '_Q'.
+                    'amplitude+phase'. return amplitude and phase using channel name postfixes '_amp', '_phase'.
             iq_complex (bool):
-                If True return IQ data as complex value in raw data.
+                If False this is equivalent to `iq_mode='I+Q'`
 
         '''
         if index is None:

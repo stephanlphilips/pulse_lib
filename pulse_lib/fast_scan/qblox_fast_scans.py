@@ -46,13 +46,12 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
                 'Complex': return IQ data as complex value.
                 'I': return only I value.
                 'Q': return only Q value.
-                'abs': return absolute value (amplitude).
-                'angle:' return angle (phase) in radians,
+                'amplitude': return amplitude.
+                'phase:' return phase [radians],
                 'I+Q', return I and Q using channel name postfixes '_I', '_Q'.
-                'abs+angle'. return absolute value and angle using channel name postfixes '_abs', '_angle'.
+                'amplitude+phase'. return amplitude and phase using channel name postfixes '_amp', '_phase'.
         iq_complex (bool):
-            If True return IQ data as complex value in 1 value, otherwise return IQ data
-            in two values with suffixes '_I' and '_Q'.
+            If False this is equivalent to `iq_mode='I+Q'`
 
     Returns:
         Parameter (QCODES multiparameter) : parameter that can be used as input in a conversional scan function.
@@ -172,13 +171,12 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
                 'Complex': return IQ data as complex value.
                 'I': return only I value.
                 'Q': return only Q value.
-                'abs': return absolute value (amplitude).
-                'angle:' return angle (phase) in radians,
+                'amplitude': return amplitude.
+                'phase:' return phase [radians],
                 'I+Q', return I and Q using channel name postfixes '_I', '_Q'.
-                'abs+angle'. return absolute value and angle using channel name postfixes '_abs', '_angle'.
+                'amplitude+phase'. return amplitude and phase using channel name postfixes '_amp', '_phase'.
         iq_complex (bool):
-            If True return IQ data as complex value in 1 value, otherwise return IQ data
-            in two values with suffixes '_I' and '_Q'.
+            If False this is equivalent to `iq_mode='I+Q'`
 
     Returns:
         Parameter (QCODES multiparameter) : parameter that can be used as input in a conversional scan function.

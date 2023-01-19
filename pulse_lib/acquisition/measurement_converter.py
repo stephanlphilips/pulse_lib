@@ -338,11 +338,11 @@ class MeasurementConverter:
                     funcs = iq_mode2func(selection.iq_mode)
                     if isinstance(funcs, list):
                         for postfix,_ in funcs:
-                            unit = 'rad' if postfix == '_angle' else  'mV'
+                            unit = 'rad' if postfix == '_phase' else  'mV'
                             sp_new = sp.with_attributes(name=sp.name+postfix, unit=unit)
                             sp_list.append(sp_new)
                     else:
-                        if selection.iq_mode == 'angle':
+                        if selection.iq_mode == 'phase':
                             sp_new = sp.with_attributes(unit='rad')
                             sp_list.append(sp_new)
                         else:
