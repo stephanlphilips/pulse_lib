@@ -191,7 +191,7 @@ class measurement_converter:
         selectors = []
         values_unfiltered = []
         last_result = {}
-        accepted_mask = np.ones(self.n_rep, dtype=np.int)
+        accepted_mask = np.ones(self.n_rep, dtype=int)
         for m in self._description.measurements:
             if isinstance(m, measurement_acquisition):
                 if not m.has_threshold:

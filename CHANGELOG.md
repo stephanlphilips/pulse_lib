@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.5] - 2022-01-23
+
+- Fixed numpy deprecation of np.int and np.float.
+
 ## \[1.6.4] - 2022-01-19
 
 ### Fixed

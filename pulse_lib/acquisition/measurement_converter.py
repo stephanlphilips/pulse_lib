@@ -287,7 +287,7 @@ class MeasurementConverter:
         values_unfiltered = []
         last_result = {}
         n_rep = self.n_rep if self.n_rep else 1
-        accepted_mask = np.ones(n_rep, dtype=np.int)
+        accepted_mask = np.ones(n_rep, dtype=int)
         for i,m in enumerate(self._description.measurements):
             if isinstance(m, measurement_acquisition):
                 if not m.has_threshold:

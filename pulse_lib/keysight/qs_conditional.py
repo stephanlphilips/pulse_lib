@@ -135,7 +135,7 @@ class QsConditionalSegment:
         all_values = np.array([[0,1,0,1],[0,0,1,1]])
         values = {key:all_values[i] for i,key in enumerate(self.acquisition_names)}
 
-        order = np.zeros(4, dtype=np.int)
+        order = np.zeros(4, dtype=int)
         for ref in refs:
             order = 2 * order + ref.evaluate(values)
         logging.info(f'reordered branches: {order}')
@@ -179,7 +179,7 @@ class QsConditionalChannel:
         all_values = np.array([[0,1,0,1],[0,0,1,1]])
         values = {key:all_values[i] for i,key in enumerate(self.acquisition_names)}
 
-        order = np.zeros(4, dtype=np.int)
+        order = np.zeros(4, dtype=int)
         for ref in refs:
             order = 2 * order + ref.evaluate(values)
         logging.info(f'reordered branches: {order}')
