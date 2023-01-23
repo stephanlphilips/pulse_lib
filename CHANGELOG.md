@@ -1,16 +1,16 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.6.5] - 2022-01-23
+## \[1.6.5] - 2023-01-23
 
 - Fixed numpy deprecation of np.int and np.float.
 
-## \[1.6.4] - 2022-01-19
+## \[1.6.4] - 2023-01-19
 
 ### Fixed
 - Qblox uploader overlapping pulses error
 
-## \[1.6.3] - 2022-01-19
+## \[1.6.3] - 2023-01-19
 
 ### Added
 - parameter iq_mode to sequencer.get_measurement_parameter(), get_measurement_data(), Qblox fast scan
