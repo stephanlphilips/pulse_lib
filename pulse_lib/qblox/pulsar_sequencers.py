@@ -390,7 +390,9 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         if t_start > self._pulse_end:
             self._add_pulse_end()
             amp0 = self._rf_amplitude
-            amp1 = amp0 if self._n_out_ch == 2 else None
+            # amplitude 1 should be 0.0. It's the Q-component used in IQ modulation.
+            # only the I-component is used to set the amplitude.
+            amp1 = 0.0 if self._n_out_ch == 2 else None
             self._add_command(t_start,
                               self.seq.set_offset, amp0, amp1, t_offset=t_start)
         self._pulse_end = t_end
