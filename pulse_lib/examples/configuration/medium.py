@@ -86,7 +86,13 @@ def init_pulselib(awgs, digitizers, virtual_gates=False, bias_T_rc_time=None):
         virtual_gate_set_1 = virtual_gates_constructor(pulse)
         virtual_gate_set_1.add_real_gates('P1','P2', 'P3', 'P4')
         virtual_gate_set_1.add_virtual_gates('vP1','vP2', 'vP3', 'vP4')
-        inv_matrix = 1.2*np.eye(4) - 0.05
+        inv_matrix = np.array(
+                [
+                [1.0, -0.1, -0.01, 0.0],
+                [0.1, 1.0, -0.1, -0.01],
+                [0.01, -0.1, 1.0, -0.1],
+                [0.0, -0.01, -0.1, 1.0],
+                ])
         virtual_gate_set_1.add_virtual_gate_matrix(np.linalg.inv(inv_matrix))
 
     pulse.finish_init()
