@@ -67,9 +67,9 @@ class pulse_delta:
 
     @property
     def is_near_zero(self):
-        # near zero if |step| < 0.001 uV and |ramp| < 1e-9 mV/ns (= 1 mV/s)
+        # near zero if |step| < 1e-9 mV and |ramp| < 1e-9 mV/ns (= 1 mV/s)
         # note: max ramp: 2V/ns = 2000 mV/ns, min ramp: 1 mV/s = 1e-9 mV/ns. ~ 12 orders of magnitude.
-        # max step: 2000 mV, min step: 1e9 mV. ~ 12 order of magnitude.
+        # max step: 2000 mV, min step: 1e-9 mV. ~ 12 order of magnitude.
         # Regular floats have 16 digits precision.
         return abs(self.step) < 1e-9 and abs(self.ramp) < 1e-9
 
@@ -137,8 +137,7 @@ class PhaseShift:
 
     @property
     def is_near_zero(self):
-        # near zero if |shift| < 2*pi/2**31
-        eps = 2*np.pi/2**32
+        eps = 1e-9
         return -eps < self.phase_shift < eps
 
 # Changed [v1.6.0] time,duration -> start,stop
@@ -207,8 +206,9 @@ class pulse_data(parent_data):
         self._update_end_time(custom_pulse.stop)
 
     def add_phase_shift(self, phase_shift:PhaseShift):
-        self._phase_shifts_consolidated = False
-        self.phase_shifts.append(phase_shift)
+        if not phase_shift.is_near_zero:
+            self._phase_shifts_consolidated = False
+            self.phase_shifts.append(phase_shift)
         self._update_end_time(phase_shift.time)
 
     @property
@@ -574,7 +574,8 @@ class pulse_data(parent_data):
         if self._phase_shifts_consolidated:
             return
 
-        if len(self.phase_shifts) > 1:
+        # consolidate also if there is only 1 phase shift. It can be 0.0.
+        if len(self.phase_shifts) > 0:
             self.phase_shifts.sort(key=lambda p:p.time)
             new_shifts = []
             last = self.phase_shifts[0]
