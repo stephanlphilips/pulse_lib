@@ -115,17 +115,16 @@ class QsUploader:
         '''
         start = time.perf_counter()
 
+        self.jobs.append(job) # @@@ add loaded=True to job.
+
         aggregator = UploadAggregator(self.AWGs, self.digitizers, self.awg_channels,
                                       self.marker_channels, self.digitizer_channels,
                                       self.qubit_channels, self.sequencer_channels, self.sequencer_out_channels)
 
         aggregator.upload_job(job, self.__upload_to_awg) # @@@ TODO split generation and upload
 
-        self.jobs.append(job)
-
         duration = time.perf_counter() - start
         logging.debug(f'generated upload data ({duration*1000:6.3f} ms)')
-
 
     def __upload_to_awg(self, channel_name, waveform):
 #        vmin = waveform.min()
