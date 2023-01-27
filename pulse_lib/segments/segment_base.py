@@ -1,6 +1,7 @@
 """
 File containing the parent class where all segment objects are derived from.
 """
+import copy
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,8 +11,7 @@ from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.data_classes.data_generic import map_index
-
-import copy
+from pulse_lib.segments.utility.data_handling_functions import update_dimension
 
 
 class segment_base():
@@ -168,6 +168,8 @@ class segment_base():
         item.data = data_item
         if self._data_hvi_variable is not None:
             if self._data_hvi_variable is not self.data:
+                # assert segment HVI variables has right shape.
+                item._data_hvi_variable.data = update_dimension(self._data_hvi_variable.data, self.shape)
                 item._data_hvi_variable = item._data_hvi_variable[key[0]]
             else:
                 item._data_hvi_variable = item.data
@@ -214,6 +216,8 @@ class segment_base():
         Args:
             loop_obj (loop_obj) : loop object with certain dimension to add.
         '''
+        if not isinstance(loop_obj, float):
+            raise Exception(f'update_dim failed. Reload pulselib!')
         return self.data_tmp
 
     def add_HVI_marker(self, marker_name, t_off = 0):
