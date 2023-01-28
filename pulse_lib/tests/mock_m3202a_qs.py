@@ -178,10 +178,13 @@ class SequencerChannel:
             self._plot(self._phaseQ/180*np.pi, label=f'{self._instrument.name}-{self._number}')
 
     def describe(self):
+        n_wvf = sum(map(lambda x:x is not None, self._waveforms))
+        if len(self._schedule) == 0 and n_wvf == 0:
+            return
         print(f'seq {self._number} schedule')
         for inst in self._schedule:
             print(inst)
-        if len(self._waveforms) > 0:
+        if n_wvf:
             print('waveforms')
         for wvf in self._waveforms:
             if wvf is not None:
