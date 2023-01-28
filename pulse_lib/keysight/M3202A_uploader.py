@@ -2,6 +2,7 @@ import time
 from uuid import UUID
 import numpy as np
 import logging
+import math
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
 
@@ -11,7 +12,7 @@ class AwgConfig:
     ALIGNMENT = 10 # waveform must be multiple 10 bytes
 
 def iround(value):
-    return int(value + 0.5)
+    return math.floor(value + 0.5)
 
 
 class M3202A_Uploader:
