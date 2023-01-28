@@ -176,6 +176,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
                  mixer_gain=None, mixer_phase_offset=None):
         super().__init__(name, sequencer)
         self.seq.nco_frequency = nco_frequency
+        self._pulsing = False
         self.add_comment(f'IQ: NCO={nco_frequency/1e6:7.2f} MHz')
 
         if mixer_gain is not None:
@@ -184,6 +185,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
             self.seq.mixer_phase_offset_degree = mixer_phase_offset/np.pi*180
 
     def pulse(self, t, duration, amplitude, waveform):
+        self._pulsing = True
         t += self.offset_ns
         self._update_time_and_markers(t, duration)
         self.add_comment(f'MW pulse {waveform.frequency/1e6:6.2f} MHz {waveform.duration} ns')
@@ -239,6 +241,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
         self.seq.shift_phase(norm_phase, t_offset=t)
 
     def chirp(self, t, duration, amplitude, start_frequency, stop_frequency):
+        self._pulsing = True
         if hasattr(self.seq, 'chirp'):
             t += self.offset_ns
             self._update_time_and_markers(t, 0.0)
@@ -254,6 +257,10 @@ class IQSequenceBuilder(SequenceBuilderBase):
                                     0.0, 1.0, phmod)
             self.pulse(t, duration, amplitude, waveform)
 
+    def finalize(self):
+        super().finalize()
+        if self._pulsing and abs(self.seq.nco_frequency) > 450e6:
+            raise Exception(f'{self.name}: NCO frequency {self.nco_frequency/1e6:5.1f} MHz out of range')
 
 @dataclass
 class _SeqCommand:

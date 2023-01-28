@@ -3,6 +3,7 @@ from uuid import UUID
 from datetime import datetime
 import numpy as np
 import logging
+import math
 from dataclasses import dataclass, field
 from typing import Dict, Optional, List, Union
 from numbers import Number
@@ -23,7 +24,7 @@ from pulse_lib.segments.data_classes.data_pulse import (
 
 
 def iround(value):
-    return int(value+0.5)
+    return math.floor(value+0.5)
 
 
 class PulsarUploader:
@@ -678,13 +679,10 @@ class UploadAggregator:
             raise Exception(f'I/Q Channel delays must be equal ({channel_name})')
         t_offset = PulsarConfig.align(self.max_pre_start_ns + delays[0])
 
-        # TODO @@@ Check: LO frequency can change during sweep
         lo_freq = qubit_channel.iq_channel.LO
         if qubit_channel.reference_frequency is None:
             raise Exception(f'Qubit idle frequency not set for {channel_name}')
         nco_freq = qubit_channel.reference_frequency-lo_freq
-        if abs(nco_freq) > 300e6:
-            raise Exception(f'NCO frequency {nco_freq/1e6:5.1f} MHz out of range')
 
         seq = IQSequenceBuilder(channel_name, self.program[channel_name],
                                 nco_freq,
@@ -797,7 +795,10 @@ class UploadAggregator:
                     seq.acquire(t, t_measure)
 
         t_end = PulsarConfig.align(seg_render.t_end)
-        seq.wait_till(t_end)
+        try:
+            seq.wait_till(t_end)
+        except:
+            raise Exception(f"Acquisition doesn't fit in sequence. Add a wait to extend the sequence.")
         seq.finalize()
         job.acq_data_scaling[channel_name] = seq.get_data_scaling()
 
