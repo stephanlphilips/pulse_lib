@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Union, Optional, List
-
+import math
 import numpy as np
 
 def iround(value):
-    return int(value + 0.5)
+    return math.floor(value + 0.5)
 
 @dataclass
 class Waveform:
@@ -17,6 +17,22 @@ class Waveform:
     duration: int = 0
     offset: int = 0
     restore_frequency: bool = True
+
+    @property
+    def extra_samples(self):
+        # post_phase and pm_envelope add 2 samples, but last sample is restore of NCO
+        # frequency and can be overwritten by next pulse without consequences.
+        if self.postphase != 0:
+            return 1
+        try:
+            # if pm_envelope is not an array, then this obviously fails.
+            return 1 if self.pm_envelope[-1] != 0.0 else 0
+        except:
+            return 0
+
+    @property
+    def instruction_duration(self):
+        return self.offset + self.duration + self.extra_samples
 
     def __eq__(self, other):
         return (self.amplitude == other.amplitude
@@ -41,6 +57,34 @@ class SequenceConditionalEntry:
     waveform_indices: List[int] = field(default_factory=list)
 
 @dataclass
+class Instruction:
+    t_start: int
+    ''' start time of instruction. Multiple on 5 ns. '''
+    waveform: Optional[Waveform] = None
+    phase_shift: Optional[float] = None
+
+    @property
+    def t_pulse_end(self):
+        ''' end time of instruction, exclusive. Multiple on 5 ns. '''
+        if self.waveform:
+            wvf = self.waveform
+            return self.t_start + wvf.duration + wvf.offset
+        else:
+            return self.t_start
+
+    @property
+    def t_instruction_end(self):
+        ''' end time of instruction, exclusive. Multiple on 5 ns. '''
+        if self.waveform:
+            wvf = self.waveform
+            duration = wvf.duration + wvf.offset + wvf.extra_samples
+            duration = (duration+4) // 5 * 5
+        else:
+            duration = 5
+        return self.t_start + duration
+
+
+@dataclass
 class DigitizerSequenceEntry:
     time_after: float = 0
     t_measure: Optional[float] = None
@@ -50,127 +94,177 @@ class DigitizerSequenceEntry:
     pxi_trigger: Optional[int] = None
     n_cycles : int = 1
 
-@dataclass
-class PhaseShift:
-    t: float
-    phase_shift: float
-
-# TODO:
-#  instruction is 'raw' waveform like segment
-#  flush segment when t >= t_end (aligned)
 
 class IQSequenceBuilder:
     def __init__(self, name, t_start, lo_freq):
         self.name = name
         self.time = iround(t_start)
-        self.lo_freq = lo_freq
         self.end_pulse = self.time
-        self.last_instruction = None
-        self._pending_phase_shift = None
+        self.lo_freq = lo_freq
+        self.pending_instruction = None
         self.sequence = []
         self.waveforms = []
 
+    def shift_phase(self, t, phase_shift):
+        if abs(phase_shift) < 2*np.pi/2**18:
+            # phase shift is too small for hardware
+            return
+        self._add_phase_shift(t, phase_shift)
+
     def pulse(self, t_pulse, iq_pulse):
         # TODO: split long pulses in start + stop pulse (Rabi)
-        # TODO: Frequency chirp with prescaler: pass as FM i.s.o. PM, or Chirp?
-        self._flush_phase_shifts(t_pulse)
-        if self._pending_phase_shift is not None:
-            prephase = self._pending_phase_shift.phase_shift
-            self._pending_phase_shift = None
-        else:
-            prephase = 0
-
-        offset = self._get_wvf_offset(t_pulse)
-        waveform_index, duration = self._render_waveform(iq_pulse, offset, prephase=prephase)
-        t_end = t_pulse + duration
-        self._append_instruction(t_pulse, t_end, waveform_index)
-
-    def shift_phase(self, t, phase_shift):
-        self._flush_phase_shifts(t)
-        if self._pending_phase_shift is not None:
-            pending_phase = self._pending_phase_shift.phase_shift
-        else:
-            pending_phase = 0
-        self._pending_phase_shift = PhaseShift(t, pending_phase + phase_shift)
+        waveform = self._render_waveform(iq_pulse)
+        self._add_waveform(t_pulse, waveform)
 
     def chirp(self, t_pulse, chirp):
-        self._flush_phase_shifts(t_pulse)
-        offset = self._get_wvf_offset(t_pulse)
-        waveform_index, duration = self._render_chirp(chirp, offset)
-        t_end = t_pulse + duration
-        self._append_instruction(t_pulse, t_end, waveform_index)
-
-    def _flush_phase_shifts(self, t):
-        pending = self._pending_phase_shift
-        if pending is not None and pending.t < t:
-            self._append_phase_shift(pending.t, pending.phase_shift)
-            self._pending_phase_shift = None
-
-    def _append_phase_shift(self, t, phase_shift):
-        waveform_index, duration = self._render_phase_shift(phase_shift)
-        t_end = t + duration
-        self._append_instruction(t, t_end, waveform_index)
+        # TODO: Frequency chirp with prescaler: pass as FM i.s.o. PM, or Chirp?
+        waveform = self._render_chirp(chirp)
+        self._add_waveform(t_pulse, waveform)
 
     def conditional_pulses(self, t_instr, segment_start, pulses, order,
                            condition_register):
-
-        self._flush_phase_shifts(t_instr)
-        if self._pending_phase_shift is not None:
-            raise Exception('Error joining phase shift with conditional pulse')
-        self._wait_till(t_instr)
-        # start of aligned waveform
-        t_instr = self.time
+        self._push_instruction()
+        t_instr = iround(t_instr) // 5 * 5
 
         entry = SequenceConditionalEntry(cr=condition_register)
-        self.sequence.append(entry)
-        self.last_instruction = entry
 
         t_end = t_instr
         wvf_indices = []
         for pulse in pulses:
             if pulse is None:
                 # a do nothing pulse
-                index, duration = self._render_phase_shift(0)
-                pulse_end = t_instr + duration
+                waveform = Waveform(duration=1)
+                pulse_end = t_instr + 1
             elif pulse.mw_pulse is not None:
                 mw_entry = pulse.mw_pulse
                 t_pulse = segment_start + mw_entry.start
-                wvf_offset = iround(t_pulse - t_instr)
-                index, duration = self._render_waveform(mw_entry, wvf_offset,
-                                                        prephase=pulse.prephase,
-                                                        postphase=pulse.postphase)
-                pulse_end = t_pulse + duration
+                wvf_offset = iround(t_pulse) - t_instr
+                waveform = self._render_waveform(mw_entry, prephase=pulse.prephase, postphase=pulse.postphase)
+                waveform.offset = wvf_offset
             else:
-                index, duration = self._render_phase_shift(pulse.prephase)
-                pulse_end = t_instr + duration
-            wvf_indices.append(index)
-            t_end = max(t_end, pulse_end)
+                waveform = Waveform(duration=2, prephase=pulse.prephase)
 
-        self._set_pulse_end(t_end)
+            index = self._get_waveform_index(waveform)
+            wvf_indices.append(index)
+            pulse_end = t_instr + waveform.instruction_duration
+            t_end = max(t_end, pulse_end)
 
         for ibranch in order:
             entry.waveform_indices.append(wvf_indices[ibranch])
 
-    def close(self):
-        pending = self._pending_phase_shift
-        if pending is not None:
-            self._append_phase_shift(pending.t, pending.phase_shift)
-            self._pending_phase_shift = None
+        self._append_sequence_entry(t_instr, entry)
+        self._set_pulse_end(t_end)
 
+    def close(self):
+        self._push_instruction()
         # set wait time of last instruction
-        if self.last_instruction is not None and self.end_pulse > self.time:
+        last_entry = self._get_last_entry()
+        if last_entry is not None and self.end_pulse > self.time:
             t_wait = self.end_pulse - self.time
             t = (iround(t_wait) // 5 + 1) * 5
-            self.last_instruction.time_after = t
-            self.last_instruction = None
+            last_entry.time_after = t
 
-    def _append_instruction(self, t_start, t_end, waveform_index):
-        self._wait_till(t_start)
+    def _render_chirp(self, chirp):
+        duration = iround(chirp.stop - chirp.start)
+        frequency = chirp.start_frequency - self.lo_freq
+        if abs(frequency) > 450e6:
+            raise Exception(f'Chirp NCO frequency {frequency/1e6:5.1f} MHz is out of range')
+        end_frequency = chirp.stop_frequency - self.lo_freq
+        if abs(end_frequency) > 450e6:
+            raise Exception(f'Chirp NCO frequency {end_frequency/1e6:5.1f} MHz is out of range')
+        ph_gen = chirp.phase_mod_generator()
+        return Waveform(chirp.amplitude, 1.0, frequency,
+                        ph_gen(duration, 1.0),
+                        0, 0, duration)
+
+    def _render_waveform(self, mw_pulse_data, prephase=0, postphase=0):
+        # always render at 1e9 Sa/s
+        duration = iround(mw_pulse_data.stop) - iround(mw_pulse_data.start)
+        if mw_pulse_data.envelope is None:
+            amp_envelope = 1.0
+            pm_envelope = 0.0
+        else:
+            amp_envelope = mw_pulse_data.envelope.get_AM_envelope(duration, 1.0)
+            pm_envelope = mw_pulse_data.envelope.get_PM_envelope(duration, 1.0)
+
+        frequency = mw_pulse_data.frequency - self.lo_freq
+        if abs(frequency) > 450e6:
+            raise Exception(f'Waveform NCO frequency {frequency/1e6:5.1f} MHz is out of range')
+
+        prephase += mw_pulse_data.start_phase
+        postphase -= mw_pulse_data.start_phase
+        return Waveform(mw_pulse_data.amplitude, amp_envelope,
+                        frequency, pm_envelope,
+                        prephase, postphase, duration)
+
+    def _add_waveform(self, t, waveform):
+        t = iround(t)
+        if t < self.time:
+            raise Exception(f'Oops! Pulses should be rendered in right order')
+        offset = t % 5
+        t_instruction = t - offset
+        waveform.offset = offset
+
+        if self.pending_instruction:
+            pending = self.pending_instruction
+            if t_instruction >= pending.t_instruction_end:
+                self._push_instruction()
+                self.pending_instruction = Instruction(t_instruction, waveform=waveform)
+            elif pending.waveform:
+                raise Exception(f'Overlapping MW pulses at {t_instruction}')
+            elif pending.phase_shift is not None:
+                waveform.prephase += pending.phase_shift
+                pending.waveform = waveform
+                pending.phase_shift = None
+            else:
+                raise Exception('Oops! instruction without waveform or pulse')
+        else:
+            # create new instruction with waveform
+            self.pending_instruction = Instruction(t_instruction, waveform=waveform)
+
+    def _add_phase_shift(self, t, phase_shift):
+        t = iround(t)
+        if t < self.time:
+            raise Exception(f'Oops! Pulses should be rendered in right order')
+        offset = t % 5
+        t_instruction = t - offset
+
+        if self.pending_instruction:
+            pending = self.pending_instruction
+            if t_instruction >= pending.t_instruction_end:
+                self._push_instruction()
+                self.pending_instruction = Instruction(t_instruction, phase_shift=phase_shift)
+            elif pending.waveform:
+                if t < pending.t_pulse_end:
+                    raise Exception(f'Cannot shift phase during MW pulse at {t}')
+                else:
+                    pending.waveform.postphase += phase_shift
+            elif pending.phase_shift is not None:
+                pending.phase_shift += phase_shift
+            else:
+                raise Exception('Oops! instruction without waveform or pulse')
+        else:
+            # create new instruction with phase_shift
+            self.pending_instruction = Instruction(t_instruction, phase_shift=phase_shift)
+
+    def _push_instruction(self):
+        pending = self.pending_instruction
+        if not pending:
+            return
+        if pending.waveform:
+            waveform = pending.waveform
+        elif pending.phase_shift is not None:
+            if pending.phase_shift != 0.0:
+                waveform = Waveform(prephase=pending.phase_shift, duration=2)
+            else:
+                return
+        else:
+            raise Exception('Oops! instruction without waveform or pulse')
         entry = SequenceEntry()
-        entry.waveform_index = waveform_index
-        self.sequence.append(entry)
-        self.last_instruction = entry
-        self._set_pulse_end(t_end)
+        entry.waveform_index = self._get_waveform_index(waveform)
+        self._append_sequence_entry(pending.t_start, entry)
+        self._set_pulse_end(pending.t_instruction_end)
+        self.pending_instruction = None
 
     def _set_pulse_end(self, t_end):
         self.end_pulse = max(self.end_pulse, iround(t_end))
@@ -180,19 +274,19 @@ class IQSequenceBuilder:
         if t_instruction < self.end_pulse:
             raise Exception(f'Overlapping pulses at {t_start} of {self.name}')
 
+        last_entry = self._get_last_entry()
         t_wait = t_instruction - self.time
-        if self.last_instruction is not None and t_wait < 5:
-            raise Exception(f'wait < 5 {self.name} at {t_start}')
-        elif self.last_instruction is None and t_wait < 0:
+        if t_wait < 0:
             raise Exception(f'wait < 0 {self.name} at {t_start}')
+        if last_entry is not None and t_wait < 5:
+            raise Exception(f'wait < 5 {self.name} at {t_start}')
 
         # set wait time of last instruction
-        if self.last_instruction is not None:
+        if last_entry is not None:
             # Max wait time for instruction with waveform ~ 32 ms
             max_wait = 5 * (2**16-1)
             t = min(max_wait, t_wait)
-            self.last_instruction.time_after = t
-            self.last_instruction = None
+            last_entry.time_after = t
             t_wait -= t
 
         # insert additional instructions till t_start
@@ -207,56 +301,14 @@ class IQSequenceBuilder:
 
         self.time = t_instruction
 
-    def _render_chirp(self, chirp, offset):
-        duration = iround(chirp.stop - chirp.start)
-        frequency = chirp.start_frequency - self.lo_freq
-        ph_gen = chirp.phase_mod_generator()
-        waveform = Waveform(chirp.amplitude, 1.0, frequency,
-                            ph_gen(duration, 1.0),
-                            0, 0, duration, offset)
+    def _append_sequence_entry(self, t_start, entry):
+        self._wait_till(t_start)
+        self.sequence.append(entry)
 
-        # post_phase and pm_envelope add 2 samples, but last sample is restore of NCO
-        # frequency and can be overwritten by next pulse without consequences.
-        extra = 1
-
-        index = self._get_waveform_index(waveform)
-        return index, duration + extra
-
-    def _render_waveform(self, mw_pulse_data, offset:float, prephase=0, postphase=0):
-        # always render at 1e9 Sa/s
-        duration = iround(mw_pulse_data.stop) - iround(mw_pulse_data.start)
-        if mw_pulse_data.envelope is None:
-            amp_envelope = 1.0
-            pm_envelope = 0.0
-            add_pm = False
-        else:
-            amp_envelope = mw_pulse_data.envelope.get_AM_envelope(duration, 1.0)
-            pm_envelope = mw_pulse_data.envelope.get_PM_envelope(duration, 1.0)
-            add_pm = not np.all(pm_envelope == 0)
-
-        frequency = mw_pulse_data.frequency - self.lo_freq
-        if abs(frequency) > 450e6:
-            raise Exception(f'Waveform frequency {frequency/1e6:5.1f} MHz out of range')
-
-        waveform = Waveform(mw_pulse_data.amplitude, amp_envelope,
-                            frequency, pm_envelope,
-                            mw_pulse_data.start_phase + prephase,
-                            -mw_pulse_data.start_phase + postphase,
-                            duration, offset)
-
-        extra = 0
-        # post_phase and pm_envelope add 2 samples, but last sample is restore of NCO
-        # frequency and can be overwritten by next pulse without consequences.
-        if -mw_pulse_data.start_phase + postphase != 0 or add_pm:
-            extra = 1
-
-        index = self._get_waveform_index(waveform)
-        return index, duration + extra
-
-    def _render_phase_shift(self, phase_shift) -> Waveform:
-        waveform = Waveform(prephase=phase_shift, duration=2)
-        index = self._get_waveform_index(waveform)
-        return index, 1
+    def _get_last_entry(self):
+        if len(self.sequence):
+            return self.sequence[-1]
+        return None
 
     def _get_waveform_index(self, waveform:Waveform):
         try:
@@ -265,9 +317,6 @@ class IQSequenceBuilder:
             index = len(self.waveforms)
             self.waveforms.append(waveform)
         return index
-
-    def _get_wvf_offset(self, t_pulse):
-        return iround(t_pulse) % 5
 
 
 class AcquisitionSequenceBuilder:

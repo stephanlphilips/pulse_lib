@@ -959,9 +959,8 @@ class UploadAggregator:
                 raise Exception(f'I/Q Channel delays must be equal ({channel_name})')
 
             sequencer_offset = self.sequencer_channels[channel_name].sequencer_offset
-            # TODO improve for alignment on 1 ns. -> set channel delay in FPGA
             # subtract offset, because it's started before 'classical' queued waveform
-            t_start = int((-self.max_pre_start_ns - delays[0]) / 5) * 5 - sequencer_offset
+            t_start = int(-self.max_pre_start_ns - delays[0]) - sequencer_offset
 
             sequence = IQSequenceBuilder(channel_name, t_start,
                                          qubit_channel.iq_channel.LO)
