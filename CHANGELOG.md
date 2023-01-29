@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.6] - 2023-01-30
+
+- Fixed errors when slicing segments after adding dimension with update_dim.
+- Remove phase shifts of 0.0 rad before rendering.
+- Fixed error in KeysightQS with phase-shift after MW pulse.
+- Added tests.utils.last_upload.get_last_upload to analyze upload after exception
+
 ## \[1.6.5] - 2023-01-23
 
 - Fixed numpy deprecation of np.int and np.float.
