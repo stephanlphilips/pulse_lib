@@ -212,6 +212,10 @@ class M3202A_Uploader:
         """
 
         job =  self.__get_job(seq_id, index)
+        continuous_mode = getattr(job.hw_schedule, 'script_name', '') == 'Continuous'
+        if continuous_mode:
+            for awg in self.AWGs.values():
+                awg.awg_stop_multiple(0b1111)
         self.wait_until_AWG_idle()
 
         for channel_name, marker_table in job.marker_tables.items():
@@ -247,7 +251,8 @@ class M3202A_Uploader:
 
                 start_delay = 0 # no start delay
                 trigger_mode = 1 # software/HVI trigger
-                cycles = 1
+                # cycles = 0 means infinite number of cycles
+                cycles = 1 if not continuous_mode else 0
                 for queue_item in queue:
                     awg = self.AWGs[awg_name]
                     prescaler = awg.convert_sample_rate_to_prescaler(queue_item.sample_rate)
