@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.8] - 2023-02-02
+
+- Fixed setpoints of measurment parameter for time traces > 2 seconds.
+- Fixed simultaneous pulses with indexing of segments on looping parameter.
+
 ## \[1.6.7] - 2023-02-01
 
 - Added continuous mode for Keysight AWG.

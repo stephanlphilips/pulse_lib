@@ -246,12 +246,25 @@ class pulse_data(parent_data):
 
     def append(self, other):
         '''
-        Append two segments to each other, where the other segment is places after the first segment.
+        Append segment data to this data segment, where the other segment is placed at the end of this segment.
         Args:
             other (pulse_data) : other pulse data object to be appended
-
         '''
-        time = self.total_time
+        self.add_data(other, time=-1)
+
+    def add_data(self, other, time=None):
+        '''
+        Add segment data to this data segment.
+        The data is added after time. If time is None, then it is added after start_time of this segment.
+        If time is -1, then it will be added after end_time
+        Args:
+            other (pulse_data) : other pulse data object to be appended
+            time (float) : time to add the data.
+        '''
+        if time is None:
+            time = self.start_time
+        elif time == -1:
+            time = self._end_time
 
         other_MW_pulse_data = copy.deepcopy(other.MW_pulse_data)
         shift_start_stop(other_MW_pulse_data, time)

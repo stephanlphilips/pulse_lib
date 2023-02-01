@@ -91,11 +91,26 @@ class marker_data(parent_data):
 
         ** what to do with start time argument?
         '''
-        end_time = self.end_time
+        self.add_data(other, -1)
 
-        other_shifted = other._shift_all_time(end_time)
+    def add_data(self, other, time=None):
+        '''
+        Add segment data to this data segment.
+        The data is added after time. If time is None, then it is added after start_time of this segment.
+        If time is -1, then it will be added after end_time
+        Args:
+            other (pulse_data) : other pulse data object to be appended
+            time (float) : time to add the data.
+        '''
+        if time is None:
+            time = self.start_time
+        elif time == -1:
+            time = self.end_time
+
+        other_shifted = other._shift_all_time(time)
         self.my_marker_data += other_shifted.my_marker_data
-        self.end_time += other.end_time
+
+        self.end_time = max(self.end_time, time + other.end_time)
 
     def __copy__(self):
         """
