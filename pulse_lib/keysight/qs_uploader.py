@@ -178,6 +178,9 @@ class QsUploader:
         """
 
         job =  self.__get_job(seq_id, index)
+        continuous_mode = getattr(job.hw_schedule, 'script_name', '') == 'Continuous'
+        if continuous_mode:
+            raise Exception('Continuous mode not supported with KeysightQS.')
         self.wait_until_AWG_idle()
 
         for channel_name, marker_table in job.marker_tables.items():
