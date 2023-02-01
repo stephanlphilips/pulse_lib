@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.7] - 2023-02-01
+
+- Added continuous mode for Keysight AWG.
+
 ## \[1.6.6] - 2023-01-30
 
 - Fixed errors when slicing segments after adding dimension with update_dim.
