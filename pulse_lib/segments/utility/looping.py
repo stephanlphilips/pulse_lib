@@ -17,7 +17,8 @@ class loop_obj():
         self.setvals = None
         self.setvals_set = False
 
-    def add_data(self, data, axis=None, names=None, labels=None, units=None, setvals=None):
+    def add_data(self, data, axis=None, names=None, labels=None, units=None, setvals=None,
+                 dtype=None):
         '''
         add data to the loop object.
         data (array/np.ndarray) : n dimensional array with a regular shape (any allowed by numpy) of values you want to sweep
@@ -28,7 +29,10 @@ class loop_obj():
         setvals (array/np.ndarray) : if you want to display different things on the axis than the normal data point. When None, setvals is the same as the data varaible.
         '''
         # NOTE: data MUST be float for qcodes save_metadata
-        self.data = np.asarray(data).astype(float)
+        if dtype is not object:
+            self.data = np.asarray(data).astype(float)
+        else:
+            self.data = np.asarray(data)
         self.dtype = self.data.dtype
 
         if axis is None:

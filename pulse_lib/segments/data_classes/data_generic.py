@@ -39,7 +39,11 @@ class parent_data(ABC):
         cls.waveform_cache = LruCache(cls.waveform_cache.max_size)
 
     @abstractmethod
-    def append(self):
+    def append(self, other):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def add_data(self, other, time=None):
         raise NotImplementedError()
 
     @abstractmethod

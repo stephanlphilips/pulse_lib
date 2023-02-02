@@ -223,7 +223,7 @@ class MeasurementConverter:
             if n_rep:
                 sp_raw.append(np.arange(n_rep), 'repetition', 'repetition', '')
             if m.interval is not None:
-                time = tuple(np.arange(m.n_samples) * m.interval)
+                time = tuple(np.arange(m.n_samples, dtype=float) * m.interval)
                 sp_raw.append(time, 'time', 'time', 'ns')
 
             self.sp_raw.append(sp_raw)
@@ -253,7 +253,7 @@ class MeasurementConverter:
             else:
                 name = f'{m.name}_fraction'
                 label = name
-                sp_result = SetpointsSingle(name, label, '%')
+                sp_result = SetpointsSingle(name, label, '')
                 self.sp_values.append(sp_result)
 
         if len(self.sp_selectors) > 0:

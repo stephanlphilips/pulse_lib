@@ -115,21 +115,15 @@ class sequence_builder:
     def add_simultaneous(self, templates):
         ### for now we do not support replacement arguments with simultaneous driving
         kwargs = dict()
-        # start new segment
-        self.reset_time()
-        self._segment = None
 
-        merged_segment = None
+        segment = self._get_segment()
         for template in templates:
             # note: building on segment, not on sequence_builder !!
-            segment = self._pulselib.mk_segment()
-            template.build(segment, reset=False, **kwargs)
-            if not merged_segment:
-                merged_segment = segment
-            else:
-                merged_segment += segment
+            sim_seg = self._pulselib.mk_segment()
+            template.build(sim_seg, reset=False, **kwargs)
+            segment.add(sim_seg)
 
-        self._segments.append(merged_segment)
+        self.reset_time()
 
     def add_block(self, channels, t, amplitudes, reset_time=True):
         '''

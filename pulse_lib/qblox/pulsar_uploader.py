@@ -242,8 +242,12 @@ class PulsarUploader:
 
         logging.info(f'Play {index}')
 
-        self.q1instrument.run_program(job.program) # sync
-#        self.q1instrument.start_program(job.program) # @@@ async
+        n_rep = job.n_rep if job.n_rep else 1
+        total_seconds = job.playback_time * n_rep * 1e-9
+        timeout_minutes = int(total_seconds*1.1 / 60) + 1
+
+        self.q1instrument.start_program(job.program)
+        self.q1instrument.wait_stopped(timeout_minutes=timeout_minutes)
 
         if release_job:
             job.release()

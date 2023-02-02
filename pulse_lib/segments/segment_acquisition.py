@@ -104,6 +104,30 @@ class segment_acquisition():
             raise Exception(f'Measurements cannot (yet) be combined')
         return segment_acquisition(self.name, self._measurement_segment)
 
+    def append(self, other):
+        '''
+        Append a segment to the end of this segment.
+        '''
+        self.add(other, time=-1)
+
+    def add(self, other, time=None):
+        '''
+        Add the other segment behind this segment.
+        Args:
+            other (segment) : the segment to be appended
+            time (double/loop_obj) : add at the given time. f None, append at total_time of the segment)
+
+        A time reset will be done after the other segment is added.
+        TODO: transfer of units
+        '''
+        other_loopobj = loop_obj()
+        other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)),
+                               dtype=object)
+        self._setpoints += other._setpoints
+        self.__add_segment(other_loopobj, time)
+
+        return self
+
     @loop_controller
     def reset_time(self, time=None):
         '''
@@ -156,20 +180,6 @@ class segment_acquisition():
         item.is_slice = True
         return item
 
-    def append(self, other):
-        '''
-        Put the other segment behind this one.
-        Args:
-            other (segment_single) : the segment to be appended
-
-        A time reset will be done after the other segment is added.
-        '''
-        other_loopobj = loop_obj()
-        other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)))
-        self._setpoints += other._setpoints
-        self.__append(other_loopobj)
-
-        return self
 
     @loop_controller
     def repeat(self, number):
@@ -197,14 +207,15 @@ class segment_acquisition():
         return self.data_tmp
 
     @loop_controller
-    def __append(self, other):
+    def __add_segment(self, other, time):
         """
-        Put the other segment behind this one (for single segment data object)
+        Add segment to this one. If time is not specified it will be added at start-time.
 
         Args:
-            other (segment_single) : the segment to be appended
+            other (segment_base) : the segment to be appended
+            time: time to add the segment.
         """
-        self.data_tmp.append(other)
+        self.data_tmp.add_data(other, time)
         return self.data_tmp
 
     # ==== getters on all_data
