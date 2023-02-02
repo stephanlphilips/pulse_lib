@@ -5,6 +5,7 @@ All notable changes to Pulselib will be documented in this file.
 
 - Fixed setpoints of measurment parameter for time traces > 2 seconds.
 - Fixed simultaneous pulses with indexing of segments on looping parameter.
+- Calculate timeout for get_acquisition_data from sequence.
 
 ## \[1.6.7] - 2023-02-01
 

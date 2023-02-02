@@ -24,8 +24,17 @@ def test3(iq_mode='I+Q'):
 
     return context.run('read_iq_'+iq_mode, dc_param)
 
+def test4():
+    # takes 200 seconds to run !!!
+    pulse = context.init_pulselib(n_gates=0, n_sensors=2, rf_sources=False)
+
+    dc_param = read_channels(pulse, 200e9, sample_rate=100) # 100 Hz, 200 seconds
+
+    return context.run('read', dc_param)
+
 #%%
 if __name__ == '__main__':
     ds1 = test1()
     ds2 = test2()
     ds3 = test3()
+    ds4 = test4()

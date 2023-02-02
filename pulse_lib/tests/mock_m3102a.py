@@ -45,6 +45,9 @@ class MockM3102A(Instrument):
         t_downsampling = downsampling_factor * 10
         return max(1, round(t_measure/t_downsampling))
 
+    def set_timeout(self, seconds):
+        self.timeout_seconds = seconds
+
     def set_daq_settings(self, channel, n_cycles, t_measure, downsampled_rate=None):
         self.measure._active_channels.add(channel)
         properties = self.measure._ch_properties[channel]

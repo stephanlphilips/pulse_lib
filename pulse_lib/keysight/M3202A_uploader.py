@@ -155,6 +155,10 @@ class M3202A_Uploader:
             acquisition_mode: set externally
             scale, impedance: set externally
         '''
+        n_rep = job.n_rep if job.n_rep else 1
+        total_seconds = job.playback_time * n_rep * 1e-9
+        timeout = int(total_seconds*1.1) + 3
+
         enabled_channels = {}
         channels = job.acquisition_conf.channels
         sample_rate = job.acquisition_conf.sample_rate
@@ -178,6 +182,8 @@ class M3202A_Uploader:
             dig = self.digitizers[dig_name]
             dig.set_operating_mode(2) # HVI
             dig.set_active_channels(channel_nums)
+            if hasattr(dig, 'set_timeout'):
+                dig.set_timeout(timeout)
 
         self.acq_description = AcqDescription(job.seq_id, job.index, channels,
                                               job.acquisitions, enabled_channels,
