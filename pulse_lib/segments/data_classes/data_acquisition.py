@@ -50,6 +50,8 @@ class acquisition_data(parent_data):
             if acquisition.t_measure is None:
                 raise Exception('t_measure must be specified when wait is not None in acquire()')
             end_time += acquisition.t_measure
+            if acquisition.n_repeat:
+                end_time += (acquisition.n_repeat-1) * acquisition.interval
         if end_time > self.end_time:
             self.end_time = end_time
 
