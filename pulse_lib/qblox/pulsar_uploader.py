@@ -791,9 +791,9 @@ class UploadAggregator:
                     if acq_conf.sample_rate is not None:
                         logging.info(f'Acquisition sample_rate is ignored when n_repeat is set')
                 elif trigger_period:
-                    n_cycles = max(1, iround(t_measure / trigger_period))
+                    n_cycles = iround(t_measure / trigger_period)
                     if n_cycles < 1:
-                        raise Exception(f'{channel_name} acquisition t_measure < {trigger_period} (1/sample_rate)')
+                        raise Exception(f'{channel_name} acquisition t_measure ({t_measure}) < 1/sample_rate ({trigger_period})')
                     seq.repeated_acquire(t, trigger_period, n_cycles, trigger_period)
                 else:
                     seq.acquire(t, t_measure)
