@@ -151,13 +151,8 @@ class PulsarUploader:
         """
         return 1e9
 
-    def get_num_samples(self, acquisition_channel, t_measure, sample_rate):
-        # todo: remove code duplication with add_acquisition_channel
-        trigger_period = PulsarConfig.align(1e9/sample_rate)
-        n_samples = max(1, iround(t_measure / trigger_period))
-        # @@@ n_repeat not taken into account
-        # @@@ always minimum 1 sample: UploadAggregator raises an exception for 0 cycles.
-        return n_samples
+    def actual_acquisition_points(self, acquisition_channel, t_measure, sample_rate):
+        return _actual_acquisition_points(t_measure, sample_rate)
 
     def create_job(self, sequence, index, seq_id, n_rep, sample_rate,
                    neutralize=True, alignment=None):
@@ -447,6 +442,13 @@ class SegmentRenderInfo:
     @property
     def t_end(self):
         return self.t_start + self.npt
+
+
+def _actual_acquisition_points(t_measure, sample_rate):
+    trigger_period = PulsarConfig.align(1e9/sample_rate)
+    t_measure = PulsarConfig.align(t_measure)
+    n_samples = t_measure // trigger_period
+    return n_samples, trigger_period
 
 
 class UploadAggregator:
@@ -750,11 +752,6 @@ class UploadAggregator:
 
         acq_conf = job.acquisition_conf
 
-        if acq_conf.sample_rate is not None:
-            trigger_period = PulsarConfig.align(1e9/acq_conf.sample_rate)
-        else:
-            trigger_period = None
-
         if acq_conf.average_repetitions or not job.n_rep:
             n_rep = 1
         else:
@@ -790,8 +787,8 @@ class UploadAggregator:
                                          PulsarConfig.align(acquisition.interval))
                     if acq_conf.sample_rate is not None:
                         logging.info(f'Acquisition sample_rate is ignored when n_repeat is set')
-                elif trigger_period:
-                    n_cycles = iround(t_measure / trigger_period)
+                elif acq_conf.sample_rate is not None:
+                    n_cycles, trigger_period = _actual_acquisition_points(t_measure, acq_conf.sample_rate)
                     if n_cycles < 1:
                         raise Exception(f'{channel_name} acquisition t_measure ({t_measure}) < 1/sample_rate ({trigger_period})')
                     seq.repeated_acquire(t, trigger_period, n_cycles, trigger_period)

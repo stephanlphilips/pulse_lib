@@ -177,7 +177,6 @@ class sequencer():
                 effective_rate = self.uploader.get_effective_sample_rate(seg_container.sample_rate)
                 msg = f"effective sampling rate for {seg_container.name} is set to {si_format(effective_rate, precision=1)}Sa/s"
                 logging.info(msg)
-                print("Info : " + msg)
 
         # update dimensionality of all sequence objects
         logging.debug('Enter pre-rendering')
@@ -364,9 +363,15 @@ class sequencer():
                     t_measure = m.t_measure
                 else:
                     raise Exception(f't_measure must be number and not a {type(m.t_measure)} for time traces')
-                m.n_samples = self.uploader.get_num_samples(
-                        m.acquisition_channel, t_measure, sample_rate) # @@@ implement QS, Tektronix
-                m.interval = round(1e9/sample_rate)
+                # @@@ implement QS, Tektronix
+                if hasattr(self.uploader, 'actual_acquisition_points'):
+                    m.n_samples, m.interval = self.uploader.actual_acquisition_points(m.acquisition_channel,
+                                                                                      t_measure, sample_rate)
+                else:
+                    print(f'WARNING {type(self.uploader)} is missing method actual_acquisition_points(); using old computation')
+                    m.n_samples = self.uploader.get_num_samples(
+                            m.acquisition_channel, t_measure, sample_rate)
+                    m.interval = round(1e9/sample_rate)
             else:
                 m.n_samples = 1
 

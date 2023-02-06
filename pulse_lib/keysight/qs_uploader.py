@@ -75,7 +75,7 @@ class QsUploader:
         awg = list(self.AWGs.values())[0]
         return awg.convert_prescaler_to_sample_rate(awg.convert_sample_rate_to_prescaler(sample_rate))
 
-    def get_num_samples(self, acquisition_channel, t_measure, sample_rate):
+    def actual_acquisition_points(self, acquisition_channel, t_measure, sample_rate):
         raise NotImplementedError()
 
     def get_roundtrip_latency(self):

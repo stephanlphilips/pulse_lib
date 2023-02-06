@@ -78,10 +78,19 @@ class M3202A_Uploader:
         awg = list(self.AWGs.values())[0]
         return awg.convert_prescaler_to_sample_rate(awg.convert_sample_rate_to_prescaler(sample_rate))
 
-    def get_num_samples(self, acquisition_channel, t_measure, sample_rate):
+    def actual_acquisition_points(self, acquisition_channel, t_measure, sample_rate):
+        '''
+        Returns the actual number of points and interval of an acquisition.
+        '''
         dig_ch = self.digitizer_channels[acquisition_channel]
         digitizer = self.digitizers[dig_ch.module_name]
-        return digitizer.get_samples_per_measurement(t_measure, sample_rate)
+        if hasattr(digitizer, 'actual_acquisition_points'):
+            n_samples, interval = digitizer.actual_acquisition_points(dig_ch, t_measure, sample_rate)
+        else:
+            # use old function and assume the digitizer is NOT in MODES.NORMAL
+            n_samples = digitizer.get_samples_per_measurement(t_measure, sample_rate)
+            interval = int(max(1, round(100e6 / sample_rate))) * 10
+        return n_samples, interval
 
     def create_job(self, sequence, index, seq_id, n_rep, sample_rate, neutralize=True, alignment=None):
         # TODO @@@ implement alignment
