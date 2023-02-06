@@ -13,6 +13,8 @@ from pulse_lib.segments.segment_markers import segment_marker
 
 from pulse_lib.segments.utility.measurement_ref import MeasurementRef
 
+logger = logging.getLogger(__name__)
+
 err_acqs = None
 
 class ConditionalAcquisition:
@@ -95,7 +97,7 @@ def get_acquisition_names(conditional:conditional_segment):
         acquisition_names.update(ref.keys)
 
     acquisition_names = list(acquisition_names)
-    logging.info(f'acquisitions: {acquisition_names}')
+    logger.info(f'acquisitions: {acquisition_names}')
     return acquisition_names
 
 
@@ -112,7 +114,7 @@ class QsConditionalSegment:
 
         self.order = self.get_branch_order(refs)
         duration = time.perf_counter() - start
-        logging.debug(f'duration {duration*1000:6.3f} ms')
+        logger.debug(f'duration {duration*1000:6.3f} ms')
 
     def get_acquisition_names(self, refs:List[MeasurementRef]):
         acquisition_names = set()
@@ -120,7 +122,7 @@ class QsConditionalSegment:
             acquisition_names.update(ref.keys)
 
         acquisition_names = list(acquisition_names)
-        logging.info(f'acquisitions: {acquisition_names}')
+        logger.info(f'acquisitions: {acquisition_names}')
         return acquisition_names
 
     def get_branch_order(self, refs):
@@ -138,7 +140,7 @@ class QsConditionalSegment:
         order = np.zeros(4, dtype=int)
         for ref in refs:
             order = 2 * order + ref.evaluate(values)
-        logging.info(f'reordered branches: {order}')
+        logger.info(f'reordered branches: {order}')
         return order
 
 
@@ -156,7 +158,7 @@ class QsConditionalChannel:
 
         self.order = self.get_branch_order(refs)
         duration = time.perf_counter() - start
-        logging.debug(f'duration {duration*1000:6.3f} ms')
+        logger.debug(f'duration {duration*1000:6.3f} ms')
 
     def get_acquisition_names(self, refs:List[MeasurementRef]):
         acquisition_names = set()
@@ -164,7 +166,7 @@ class QsConditionalChannel:
             acquisition_names.update(ref.keys)
 
         acquisition_names = list(acquisition_names)
-        logging.info(f'acquisitions: {acquisition_names}')
+        logger.info(f'acquisitions: {acquisition_names}')
         return acquisition_names
 
     def get_branch_order(self, refs):
@@ -182,7 +184,7 @@ class QsConditionalChannel:
         order = np.zeros(4, dtype=int)
         for ref in refs:
             order = 2 * order + ref.evaluate(values)
-        logging.info(f'reordered branches: {order}')
+        logger.info(f'reordered branches: {order}')
         return order
 
 
@@ -239,7 +241,7 @@ class QsConditionalMW():
     def add_phase(self, phase_shift, ibranch):
         for instr in self.conditional_instructions:
             if instr.end > phase_shift.time:
-                logging.debug(f'Instr: {instr} Phase: {phase_shift}')
+                logger.debug(f'Instr: {instr} Phase: {phase_shift}')
                 pulse = instr.pulses[ibranch]
                 # try to add phase shift to existing pulse
                 if not pulse:
@@ -263,22 +265,22 @@ class QsConditionalMW():
         # find time + duration of MW pulses
         for ibranch, branch in enumerate(self.seg_channels):
             pulse_data = branch._get_data_all_at(self.index).MW_pulse_data
-            # logging.debug(f'Adding MW pulses branch {ibranch} {pulse_data}')
+            # logger.debug(f'Adding MW pulses branch {ibranch} {pulse_data}')
             for pulse in pulse_data:
                 self.add_pulse(pulse, ibranch)
 
         self.conditional_instructions.sort(key=lambda x:x.start)
-        # logging.debug(f'Conditional instructions: {self.conditional_instructions}')
+        # logger.debug(f'Conditional instructions: {self.conditional_instructions}')
 
         # add phase shifts to pulses, pre-phase of post-phase. Sum phase-shifts
         for ibranch, branch in enumerate(self.seg_channels):
             phase_data = branch._get_data_all_at(self.index).phase_shifts
-            # logging.debug(f'Adding phase shifts branch {ibranch} {phase_data}')
+            # logger.debug(f'Adding phase shifts branch {ibranch} {phase_data}')
             for phase_shift in phase_data:
                 if phase_shift.phase_shift != 0.0:
                     self.add_phase(phase_shift, ibranch)
 
-        # logging.debug(f'Conditional instructions: {self.conditional_instructions}')
+        # logger.debug(f'Conditional instructions: {self.conditional_instructions}')
 
         # check pulse overlaps.
         last_end = -1

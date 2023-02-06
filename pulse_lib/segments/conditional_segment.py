@@ -17,6 +17,7 @@ import logging
 import copy
 from typing import List
 
+logger = logging.getLogger(__name__)
 
 class conditional_segment:
 
@@ -136,7 +137,7 @@ class conditional_segment:
 
         times = np.amax(time_data, axis=0)
         times, axis = reduce_arr(times)
-        logging.info(f'times {times}')
+        logger.info(f'times {times}')
         if len(axis) == 0:
             loop_obj = times
         else:

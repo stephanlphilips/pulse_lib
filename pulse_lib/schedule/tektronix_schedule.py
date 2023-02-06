@@ -3,6 +3,8 @@ from typing import List
 
 from .hardware_schedule import HardwareSchedule
 
+logger = logging.getLogger(__name__)
+
 class TektronixSchedule(HardwareSchedule):
     verbose = False
 
@@ -31,7 +33,7 @@ class TektronixSchedule(HardwareSchedule):
         pass
 
     def _trigger_instr(self):
-        logging.info('trigger')
+        logger.info('trigger')
         self.digitizer.start_triggered()
         for awg in self.awgs:
             if not self.awg_is_slave[awg.name]:
@@ -45,7 +47,7 @@ class TektronixSchedule(HardwareSchedule):
         timeout_ms = self._get_digitizer_timeout()
         duration_ms = waveform_duration * n_repetitions * 1e-6
         if duration_ms > timeout_ms:
-            logging.warning(f'Duration of sequence ({duration_ms:5.1f} ms) > digitizer timeout ({timeout_ms} ms)')
+            logger.warning(f'Duration of sequence ({duration_ms:5.1f} ms) > digitizer timeout ({timeout_ms} ms)')
 
         if not self.running:
             self.running = True
@@ -61,7 +63,7 @@ class TektronixSchedule(HardwareSchedule):
 
         self._trigger_instr()
 
-        logging.info('started')
+        logger.info('started')
 
     def stop(self):
         if self.running:
@@ -93,7 +95,7 @@ class TektronixAtsSchedule(TektronixSchedule):
                 awg.force_trigger()
 
     def _trigger_instr(self):
-        logging.info('set trigger in ATS acquisition controller')
+        logger.info('set trigger in ATS acquisition controller')
         self.acquisition_controller.pre_acquire = self._pre_acquire
 
 class TektronixUHFLISchedule(TektronixSchedule):
@@ -125,5 +127,5 @@ class TektronixUHFLISchedule(TektronixSchedule):
                 awg.force_trigger()
 
     def _trigger_instr(self):
-        logging.info('set trigger in modified lockin driver')
+        logger.info('set trigger in modified lockin driver')
         self.lockin.daq._daq_module.pre_acquire = self._pre_acquire

@@ -9,6 +9,8 @@ from pulse_lib.segments.data_classes.lru_cache import LruCache
 
 import copy
 
+logger = logging.getLogger(__name__)
+
 class parent_data(ABC):
     """
         Abstract class hosting some functions that take care of rendering and caching of data and
@@ -116,7 +118,7 @@ class parent_data(ABC):
         return self.waveform_cache[self.id]
 
     def get_metadata(self, name):
-        logging.warning(f'metadata not implemented for {name}')
+        logger.warning(f'metadata not implemented for {name}')
         return {}
 
 

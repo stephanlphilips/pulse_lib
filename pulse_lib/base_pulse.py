@@ -10,6 +10,7 @@ from pulse_lib.configuration.iq_channels import IQ_channel, QubitChannel
 from pulse_lib.configuration.devices import awg_slave
 from pulse_lib.virtual_matrix.virtual_gate_matrices import VirtualGateMatrices
 
+logger = logging.getLogger(__name__)
 
 class pulselib:
     '''
@@ -362,7 +363,7 @@ class pulselib:
     def set_channel_attenuations(self, attenuation_dict:Dict[str, float]):
         for channel, attenuation in attenuation_dict.items():
             if channel not in self.awg_channels:
-                logging.info(f'Channel {channel} defined in hardware, but not in pulselib; skipping channel')
+                logger.info(f'Channel {channel} defined in hardware, but not in pulselib; skipping channel')
                 continue
             self.awg_channels[channel].attenuation = attenuation
 
@@ -391,7 +392,7 @@ class pulselib:
         try:
             from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
         except (ImportError, OSError):
-            logging.error('Import of Keysight M3202A uploader failed', exc_info=True)
+            logger.error('Import of Keysight M3202A uploader failed', exc_info=True)
             raise
 
         self.uploader = M3202A_Uploader(self.awg_devices, self.awg_channels,
@@ -402,7 +403,7 @@ class pulselib:
         try:
             from pulse_lib.tektronix.tektronix5014_uploader import Tektronix5014_Uploader
         except ImportError:
-            logging.error('Import of Tektronix uploader failed', exc_info=True)
+            logger.error('Import of Tektronix uploader failed', exc_info=True)
             raise
 
         self.uploader = Tektronix5014_Uploader(self.awg_devices, self.awg_channels,
@@ -421,7 +422,7 @@ class pulselib:
         try:
             from pulse_lib.keysight.qs_uploader import QsUploader
         except ImportError:
-            logging.error('Import of KeysightQS uploader failed', exc_info=True)
+            logger.error('Import of KeysightQS uploader failed', exc_info=True)
             raise
 
         self.uploader = QsUploader(self.awg_devices, self.awg_channels,
@@ -433,7 +434,7 @@ class pulselib:
         try:
             from pulse_lib.qblox.pulsar_uploader import PulsarUploader
         except ImportError:
-            logging.error('Import of QbloxPulsar uploader failed', exc_info=True)
+            logger.error('Import of QbloxPulsar uploader failed', exc_info=True)
             raise
 
         self.uploader = PulsarUploader(self.awg_devices, self.awg_channels,
@@ -460,7 +461,7 @@ class pulselib:
             self._create_QbloxPulsar_uploader()
 
         elif self._backend in ["Demo", "None", None]:
-            logging.info('No backend defined')
+            logger.info('No backend defined')
             TODO('define demo backend')
         else:
             raise Exception(f'Unknown backend: {self._backend}')
@@ -495,7 +496,7 @@ class pulselib:
             return
 
         if self._backend not in ["Keysight", "Keysight_QS", "M3202A"]:
-            logging.info(f'release_awg_memory() not implemented for {self._backend}')
+            logger.info(f'release_awg_memory() not implemented for {self._backend}')
             return
 
         if wait_idle:
@@ -519,7 +520,7 @@ class pulselib:
         try:
             from core_tools.drivers.hardware.hardware import hardware as hw_cls
         except:
-            logging.warning('old version of core_tools detected ..')
+            logger.warning('old version of core_tools detected ..')
 
         try:
             new_hardware_class = isinstance(hardware, hw_cls)

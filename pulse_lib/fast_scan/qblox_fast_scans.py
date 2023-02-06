@@ -5,6 +5,8 @@ import logging
 
 from pulse_lib.acquisition.iq_modes import iq_mode2func
 
+logger = logging.getLogger(__name__)
+
 def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
                       biasT_corr=False,
                       acquisition_delay_ns=200,
@@ -56,7 +58,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
     Returns:
         Parameter (QCODES multiparameter) : parameter that can be used as input in a conversional scan function.
     """
-    logging.info(f'fast scan 1D: {gate}')
+    logger.info(f'fast scan 1D: {gate}')
 
     # set up timing for the scan
     acquisition_delay = max(100, acquisition_delay_ns)
@@ -64,7 +66,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
 
     if t_step < 1000:
         msg = f'Measurement time too short. Minimum is 1000'
-        logging.error(msg)
+        logger.error(msg)
         raise Exception(msg)
 
     acq_channels,channel_map = _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex)
@@ -118,7 +120,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
     # Note: uses hardware averaging with Qblox modules
     my_seq.set_acquisition(t_measure=t_step, channels=acq_channels, average_repetitions=True)
 
-    logging.info(f'Upload')
+    logger.info(f'Upload')
     my_seq.upload()
 
     return _scan_parameter(pulse_lib, my_seq, t_step,
@@ -181,7 +183,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
     Returns:
         Parameter (QCODES multiparameter) : parameter that can be used as input in a conversional scan function.
     """
-    logging.info(f'Fast scan 2D: {gate1} {gate2}')
+    logger.info(f'Fast scan 2D: {gate1} {gate2}')
 
     # set up timing for the scan
     acquisition_delay = max(100, acquisition_delay_ns)
@@ -189,7 +191,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
 
     if t_step < 1000:
         msg = f'Measurement time too short. Minimum is 1000'
-        logging.error(msg)
+        logger.error(msg)
         raise Exception(msg)
 
     acq_channels,channel_map = _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex)
@@ -274,7 +276,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
     # Note: uses hardware averaging with Qblox modules
     my_seq.set_acquisition(t_measure=t_step, channels=acq_channels, average_repetitions=True)
 
-    logging.info(f'Seq upload')
+    logger.info(f'Seq upload')
     my_seq.upload()
 
     return _scan_parameter(pulse_lib, my_seq, t_step,
@@ -377,7 +379,7 @@ class _scan_parameter(MultiParameter):
 
     def stop(self):
         if not self.my_seq is None and not self.pulse_lib is None:
-            logging.info('stop: release memory')
+            logger.info('stop: release memory')
             # remove pulse sequence from the AWG's memory, unload schedule and free memory.
             self.my_seq.close()
             self.my_seq = None
@@ -386,6 +388,6 @@ class _scan_parameter(MultiParameter):
 
     def __del__(self):
         if not self.my_seq is None and not self.pulse_lib is None:
-            logging.debug(f'Automatic cleanup in __del__(); Calling stop()')
+            logger.debug(f'Automatic cleanup in __del__(); Calling stop()')
             self.stop()
 

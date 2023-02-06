@@ -10,6 +10,7 @@ import matplotlib.pyplot as pt
 
 from qcodes.instrument.base import Instrument
 
+logger = logging.getLogger(__name__)
 
 class MemoryManager:
     def __init__(self):
@@ -19,13 +20,13 @@ class MemoryManager:
     def allocate(self, size):
         slot = self._free_slots.pop(0)
         self._used_slots[slot] = size
-        logging.info(f'allocated {slot}: {size}')
+        logger.info(f'allocated {slot}: {size}')
         return slot
 
     def free(self, slot):
         size = self._used_slots.pop(slot)
         self._free_slots.append(slot)
-        logging.info(f'freed {slot}: {size}')
+        logger.info(f'freed {slot}: {size}')
 
 @dataclass
 class WaveformReference:
@@ -78,29 +79,29 @@ class MockM3202A(Instrument):
         data = data.astype(float)
         data /= 2**15
         slot = self.memory_manager.allocate(size)
-        logging.info(f'{self.name}.upload_waveform({slot}, {size})')
+        logger.info(f'{self.name}.upload_waveform({slot}, {size})')
         return WaveformReference(slot, size, self.memory_manager, data)
 
     def set_digital_filter_mode(self, mode):
         self.digital_filter_mode = mode
 
     def set_channel_amplitude(self, amplitude, channel):
-        logging.info(f'{self.name}.set_channel_amplitude({amplitude}, {channel})')
+        logger.info(f'{self.name}.set_channel_amplitude({amplitude}, {channel})')
         self.amplitudes[channel] = amplitude
 
     def set_channel_offset(self, offset, channel):
-        logging.info(f'{self.name}.set_channel_offset({offset}, {channel})')
+        logger.info(f'{self.name}.set_channel_offset({offset}, {channel})')
 
     def awg_flush(self, channel):
-        logging.info(f'{self.name}.awg_flush({channel})')
+        logger.info(f'{self.name}.awg_flush({channel})')
         self.channel_data[channel] = []
         self.channel_prescaler[channel] = []
 
     def awg_stop(self, channel):
-        logging.info(f'{self.name}.awg_stop({channel})')
+        logger.info(f'{self.name}.awg_stop({channel})')
 
     def awg_queue_waveform(self, channel, waveform_ref, trigger_mode, start_delay, cycles, prescaler):
-        logging.info(f'{self.name}.awg_queue_waveform({channel}, {waveform_ref.wave_number}, {trigger_mode}, {start_delay}, {cycles}, {prescaler})')
+        logger.info(f'{self.name}.awg_queue_waveform({channel}, {waveform_ref.wave_number}, {trigger_mode}, {start_delay}, {cycles}, {prescaler})')
         self.channel_data[channel].append(waveform_ref.waveform * self.amplitudes[channel])
         self.channel_prescaler[channel].append(prescaler)
 
