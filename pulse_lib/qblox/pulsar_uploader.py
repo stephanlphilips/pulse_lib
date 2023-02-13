@@ -781,11 +781,11 @@ class UploadAggregator:
                 t_measure = acquisition.t_measure if acquisition.t_measure is not None else acq_conf.t_measure
                 if t_measure is None:
                     raise Exception('measurement time has not been configured')
-                t_measure = PulsarConfig.align(t_measure)
+                t_measure = PulsarConfig.floor(t_measure)
 
                 if acquisition.n_repeat:
                     seq.repeated_acquire(t, t_measure, acquisition.n_repeat,
-                                         PulsarConfig.align(acquisition.interval))
+                                         PulsarConfig.floor(acquisition.interval))
                     if acq_conf.sample_rate is not None:
                         logger.info(f'Acquisition sample_rate is ignored when n_repeat is set')
                 elif acq_conf.sample_rate is not None:

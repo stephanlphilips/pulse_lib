@@ -20,11 +20,11 @@ class PulsarConfig:
 
     @staticmethod
     def ceil(value):
-        return int(np.ceil(value / PulsarConfig.ALIGNMENT) * PulsarConfig.ALIGNMENT)
+        return int(np.ceil(value / PulsarConfig.ALIGNMENT - 1e-8) * PulsarConfig.ALIGNMENT)
 
     @staticmethod
     def floor(value):
-        return int(np.floor(value / PulsarConfig.ALIGNMENT) * PulsarConfig.ALIGNMENT)
+        return int(np.floor(value / PulsarConfig.ALIGNMENT + 1e-8) * PulsarConfig.ALIGNMENT)
 
 
 class SequenceBuilderBase:
