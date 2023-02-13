@@ -6,6 +6,7 @@ from .segments.conditional_segment import conditional_segment
 from .segments.data_classes.data_HVI_variables import marker_HVI_variable
 from .segments.data_classes.data_generic import data_container, parent_data
 from .segments.segment_container import segment_container
+from .segments.segment_measurements import measurement_acquisition
 from .segments.utility.data_handling_functions import find_common_dimension, update_dimension
 from .segments.utility.setpoint_mgr import setpoint_mgr
 from .segments.utility.looping import loop_obj
@@ -352,6 +353,8 @@ class sequencer():
         default_t_measure = self._acquisition_conf.t_measure
         sample_rate = self._acquisition_conf.sample_rate
         for m in self._measurements_description.measurements:
+            if not isinstance(m, measurement_acquisition):
+                continue
             if m.n_repeat is not None:
                 m.n_samples = m.n_repeat
                 if sample_rate is not None:
