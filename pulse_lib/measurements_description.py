@@ -60,6 +60,8 @@ class measurements_description:
     def calculate_measurement_offsets(self):
         self.channel_data_offset  = {}
         for m in self.measurements:
+            if not isinstance(m, measurement_acquisition):
+                continue
             channel = m.acquisition_channel
             data_offset = self.channel_data_offset.setdefault(channel, 0)
             m.data_offset = data_offset
