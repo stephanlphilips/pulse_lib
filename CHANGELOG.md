@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.10] - 2023-02-13
+
+- Round acquisition time towards zero in uploader
+- Fix for measurement expressions in sequence
+- Fix for simultaneous driving
+- Fixed majority vote in expression
+
 ## \[1.6.9] - 2023-02-06
 
 - Fixed acquire wait=True with n_repeat
@@ -11,7 +18,7 @@ All notable changes to Pulselib will be documented in this file.
 
 ## \[1.6.8] - 2023-02-02
 
-- Fixed setpoints of measurment parameter for time traces > 2 seconds.
+- Fixed setpoints of measurement parameter for time traces > 2 seconds.
 - Fixed simultaneous pulses with indexing of segments on looping parameter.
 - Calculate timeout for get_acquisition_data from sequence.
 
