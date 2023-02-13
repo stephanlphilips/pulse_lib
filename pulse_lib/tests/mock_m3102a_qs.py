@@ -6,7 +6,7 @@ from typing import List, Tuple, Optional
 import numpy as np
 import matplotlib.pyplot as pt
 
-from qcodes.instrument.base import Instrument
+from .mock_m3102a import MockM3102A
 
 logger = logging.getLogger(__name__)
 
@@ -53,26 +53,14 @@ class SequencerChannel:
 
 
 # mock for M3102A
-class MockM3102A_QS(Instrument):
+class MockM3102A_QS(MockM3102A):
 
     def __init__(self, name, chassis, slot):
-        super().__init__(name)
-
-        self.chassis = chassis
-        self.slot = slot
+        super().__init__(name, chassis, slot)
 
         self._sequencers = {}
         for i in range(1,5):
             self._sequencers[i] = SequencerChannel(self, i)
-
-    def get_idn(self):
-        return dict(vendor='Pulselib', model=type(self).__name__, serial='', firmware='')
-
-    def slot_number(self):
-        return self._slot_number
-
-    def chassis_number(self):
-        return self._chassis_numnber
 
     def get_sequencer(self, number):
         return self._sequencers[number]
@@ -84,3 +72,4 @@ class MockM3102A_QS(Instrument):
     def describe(self):
         for i,seq in self._sequencers.items():
             seq.describe()
+
