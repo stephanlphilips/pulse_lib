@@ -101,6 +101,10 @@ class MeasurementBinaryExpression(MeasurementExpressionBase):
 
 class MeasurementMajority(MeasurementExpressionBase):
     def __init__(self, measurements, threshold=0.5):
+        keys = []
+        for m in measurements:
+            keys += m.keys
+        super().__init__(keys)
         self._measurements = measurements
         self._threshold = threshold
 
@@ -201,6 +205,10 @@ if __name__ == '__main__':
     maj = MeasurementMajority([m1, m2, m3, m4, m5])
     print(maj)
     print(maj.evaluate(res))
+    inv_maj = ~maj
+    print(inv_maj)
+    print(inv_maj.evaluate(res))
+    # show('majority', maj, 5)
 
 # np.array2string(read1.matrix.astype(int)).replace('\n','')
 # str(read1.matrix.astype(int)).replace('\n','')
