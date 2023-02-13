@@ -12,6 +12,9 @@ from pulse_lib.segments.utility.rounding import iround
 from pulse_lib.segments.data_classes.data_generic import parent_data
 from pulse_lib.segments.data_classes.data_IQ import envelope_generator
 
+
+logger = logging.getLogger(__name__)
+
 total_pulse_deltas = 0
 
 def get_total_deltas():
@@ -484,7 +487,7 @@ class pulse_data(parent_data):
         if self._consolidated:
             return
         if len(self.pulse_deltas) == 1:
-            logging.error(f'Asjemenou {self.pulse_deltas}')
+            logger.error(f'Asjemenou {self.pulse_deltas}')
             raise Exception(f'Error in pulse data: {self.pulse_deltas}')
 
         if len(self.pulse_deltas) > 1:
@@ -550,7 +553,7 @@ class pulse_data(parent_data):
                 amplitudes[1:] = ramps[:-1] * intervals[:-1]
                 amplitudes = np.cumsum(amplitudes) + np.cumsum(steps)
                 amplitudes_end[:-1] = amplitudes[1:] - steps[1:]
-    #            logging.debug(f'points: {list(zip(times, amplitudes))}')
+    #            logger.debug(f'points: {list(zip(times, amplitudes))}')
             self._times = times
             self._intervals = intervals
             self._amplitudes = amplitudes

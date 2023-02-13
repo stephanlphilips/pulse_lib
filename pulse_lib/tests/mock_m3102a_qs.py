@@ -8,6 +8,8 @@ import matplotlib.pyplot as pt
 
 from qcodes.instrument.base import Instrument
 
+logger = logging.getLogger(__name__)
+
 @dataclass
 class InstructionBase:
     address: int

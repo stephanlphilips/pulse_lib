@@ -23,6 +23,9 @@ def read_channels(pulselib, t_measure, channels=None, sample_rate=None, iq_mode=
     Note:
         The frequency and phase for IQ modulation is configured on the pulselib digitizer channel.
     '''
+    if sample_rate and int(t_measure) < int(1e9/sample_rate):
+        raise Exception(f't_measure ({t_measure} ns) < 1/sample_rate ({int(1e9/sample_rate)} ns)')
+
     # set sample rate for Keysight upload.
     if t_measure > 200_000:
         awg_sample_rate = 1e7

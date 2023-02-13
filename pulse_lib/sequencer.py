@@ -24,6 +24,8 @@ import numpy as np
 import uuid
 import logging
 
+logger = logging.getLogger(__name__)
+
 class sequencer():
     """
     Class to make sequences for segments.
@@ -135,7 +137,7 @@ class sequencer():
         self._sample_rate = self.uploader.get_effective_sample_rate(rate)
 
         msg = f"effective sampling rate is set to {si_format(self._sample_rate, precision=1)}Sa/s"
-        logging.info(msg)
+        logger.info(msg)
         print("Info : " + msg)
 
     @property
@@ -176,15 +178,14 @@ class sequencer():
             if seg_container.sample_rate is not None:
                 effective_rate = self.uploader.get_effective_sample_rate(seg_container.sample_rate)
                 msg = f"effective sampling rate for {seg_container.name} is set to {si_format(effective_rate, precision=1)}Sa/s"
-                logging.info(msg)
-                print("Info : " + msg)
+                logger.info(msg)
 
         # update dimensionality of all sequence objects
-        logging.debug('Enter pre-rendering')
+        logger.debug('Enter pre-rendering')
         for seg_container in self.sequence:
             seg_container.enter_rendering_mode()
             self._shape = find_common_dimension(self._shape, seg_container.shape)
-        logging.debug('Done pre-render')
+        logger.debug('Done pre-render')
         # Set the waveform cache equal to the sum over all channels and segments of the max axis length.
         # The cache will than be big enough for 1D iterations along every axis. This gives best performance
         total_axis_length = 0
@@ -204,7 +205,7 @@ class sequencer():
         # limit cache to 8 GB
         max_cache = int(1e9 / n_samples)
         cache_size = min(total_axis_length, max_cache)
-        logging.info(f'waveform cache: {cache_size} waveforms of max {n_samples} samples')
+        logger.info(f'waveform cache: {cache_size} waveforms of max {n_samples} samples')
         parent_data.set_waveform_cache_size(cache_size)
 
         self._shape = tuple(self._shape)
@@ -263,11 +264,11 @@ class sequencer():
 
         # Lookup acquistions for condition
         acquisition_names = self._get_acquisition_names(refs)
-        logging.info(f'acquisitions: {acquisition_names}')
+        logger.info(f'acquisitions: {acquisition_names}')
 
         # check start of conditional pulse
         min_slack = self._get_min_slack(acquisition_names, total_time)
-        logging.info(f'min slack for conditional {min_slack} ns. (Must be < 0)')
+        logger.info(f'min slack for conditional {min_slack} ns. (Must be < 0)')
         if min_slack < 0:
             raise Exception(f'condition triggered {-min_slack} ns too early')
 
@@ -354,7 +355,7 @@ class sequencer():
             if m.n_repeat is not None:
                 m.n_samples = m.n_repeat
                 if sample_rate is not None:
-                    logging.info(f'Ignoring sample_rate for measurement {m.name} because n_repeat is set')
+                    logger.info(f'Ignoring sample_rate for measurement {m.name} because n_repeat is set')
             elif sample_rate is not None:
                 if m.t_measure is None:
                     if default_t_measure is None:
@@ -364,9 +365,15 @@ class sequencer():
                     t_measure = m.t_measure
                 else:
                     raise Exception(f't_measure must be number and not a {type(m.t_measure)} for time traces')
-                m.n_samples = self.uploader.get_num_samples(
-                        m.acquisition_channel, t_measure, sample_rate) # @@@ implement QS, Tektronix
-                m.interval = round(1e9/sample_rate)
+                # @@@ implement QS, Tektronix
+                if hasattr(self.uploader, 'actual_acquisition_points'):
+                    m.n_samples, m.interval = self.uploader.actual_acquisition_points(m.acquisition_channel,
+                                                                                      t_measure, sample_rate)
+                else:
+                    print(f'WARNING {type(self.uploader)} is missing method actual_acquisition_points(); using old computation')
+                    m.n_samples = self.uploader.get_num_samples(
+                            m.acquisition_channel, t_measure, sample_rate)
+                    m.interval = round(1e9/sample_rate)
             else:
                 m.n_samples = 1
 
@@ -478,8 +485,8 @@ class sequencer():
     def _retry_upload(self, exception, n_retries, index):
         # '-8033' is a Keysight waveform upload error that requires a new upload
         if '(-8033)' in repr(exception) and n_retries > 0:
-            logging.info('Upload failure', exc_info=True)
-            logging.warning(f'Sequence upload failed at index {index}; retrying...')
+            logger.info('Upload failure', exc_info=True)
+            logger.warning(f'Sequence upload failed at index {index}; retrying...')
             return True
         return False
 
@@ -718,7 +725,7 @@ class sequencer():
         self._sweep_index[dim] = value
 
     def __del__(self):
-        logging.debug(f'destructor seq: {self.id}')
+        logger.debug(f'destructor seq: {self.id}')
         self.release_memory()
 
     def _validate_index(self, index):

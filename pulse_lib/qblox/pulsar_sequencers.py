@@ -9,6 +9,8 @@ import numpy as np
 from pulse_lib.segments.data_classes.data_IQ import make_chirp
 from .rendering import SineWaveform
 
+logger = logging.getLogger(__name__)
+
 class PulsarConfig:
     ALIGNMENT = 4 # pulses must be aligned on 4 ns boundaries
 
@@ -18,11 +20,11 @@ class PulsarConfig:
 
     @staticmethod
     def ceil(value):
-        return int(np.ceil(value / PulsarConfig.ALIGNMENT) * PulsarConfig.ALIGNMENT)
+        return int(np.ceil(value / PulsarConfig.ALIGNMENT - 1e-8) * PulsarConfig.ALIGNMENT)
 
     @staticmethod
     def floor(value):
-        return int(np.floor(value / PulsarConfig.ALIGNMENT) * PulsarConfig.ALIGNMENT)
+        return int(np.floor(value / PulsarConfig.ALIGNMENT + 1e-8) * PulsarConfig.ALIGNMENT)
 
 
 class SequenceBuilderBase:
@@ -298,7 +300,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         if value is None:
             raise ValueError('integration time cannot be None')
         if self._integration_time is None:
-            logging.info(f'{self.name}: integration time {value}')
+            logger.info(f'{self.name}: integration time {value}')
             self._integration_time = value
             self.seq.integration_length_acq = value
         elif self._integration_time != value:

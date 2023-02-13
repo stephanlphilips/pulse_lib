@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.9] - 2023-02-06
+
+- Fixed acquire wait=True with n_repeat
+- Added checks on t_measure and sample rate in read_channels.
+- Fixed actual number of points and interval for acquisition:
+  n_samples, interval = uploader.actual_acquisition_points(acquisition_channel, t_measure, sample_rate)
+- Replaced logging by logger
+
 ## \[1.6.8] - 2023-02-02
 
 - Fixed setpoints of measurment parameter for time traces > 2 seconds.
