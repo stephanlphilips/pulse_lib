@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.11] - 2023-02-17
+
+- Fixed measurement parameter for acquisition with accept_if not None
+
 ## \[1.6.10] - 2023-02-13
 
 - Round acquisition time towards zero in uploader
