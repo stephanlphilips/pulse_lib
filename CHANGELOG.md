@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.12] - 2023-02-@@@
+
+- QuantumSequencer: split long constant waveforms in start and stop waveform.
+
 ## \[1.6.11] - 2023-02-17
 
 - Fixed measurement parameter for acquisition with accept_if not None

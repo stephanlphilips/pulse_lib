@@ -82,6 +82,57 @@ class Waveform:
         else:
             return np.concatenate([np.zeros(self.offset), modulated_wave])
 
+    def render_wvf(self):
+        amplitude = np.zeros(self.offset + self.duration)
+        add_pm = self.pm_envelope is not None and not np.all(self.pm_envelope == 0)
+        extension = 0
+        if self.amplitude:
+            amplitude[self.offset:] = self.amplitude/1500 * self.am_envelope
+
+        # @@@ phase correction sample if self.postphase or self.pm_envelope[-1] != 0.0
+        if self.postphase: # not None and not 0.0
+            extension = 2
+        elif add_pm and self.pm_envelope[-1] != 0.0:
+            extension = 2
+        elif add_pm and self.pm_envelope[-2] != 0.0:
+            extension = 1
+        elif self.append_zero or self.frequency != self.end_frequency:
+            extension = 1
+
+        if extension:
+            amplitude = np.concatenate((amplitude, [0.0]*extension))
+
+        frequency = np.full(len(amplitude), self.frequency/500e6)
+        frequency[0:self.offset] = self.start_frequency/500e6
+        if extension:
+            frequency[-extension:] = self.end_frequency/500e6
+        if add_pm:
+            # wave must have one additional sample
+            i_start = self.offset
+            i_end = self.offset+len(self.pm_envelope)
+            pm = self.pm_envelope/np.pi
+            frequency[i_start:i_end] += pm
+            frequency[i_start+1:i_end+1] -= pm
+            frequency = (frequency + 1) % 2 - 1
+        if self.prephase: # not None and not 0.0
+            # phase step per sample is [-1.0, 1.0] for [-pi, +pi]
+            f_step = frequency[self.offset]
+            phase_step = self.prephase/np.pi
+            # map total phase step to [-1, +1]
+            step = (f_step + phase_step + 1) % 2 - 1
+            frequency[self.offset] = step
+        if self.postphase: # not None and not 0.0
+            f_step = frequency[-2]
+            phase_step = self.postphase/np.pi
+            # map total phase step to [-1, +1]
+            step = (f_step + phase_step + 1) % 2 - 1
+            frequency[-2] = step
+        if np.any(np.abs(amplitude) > 1.0):
+            raise Exception('Amplitude out-of-range')
+        if np.any(np.abs(frequency) > 1.0):
+            raise Exception('Frequency out-of-range')
+        return (amplitude, frequency)
+
     @property
     def phase_shift(self):
         freq_diff = 0
@@ -94,6 +145,7 @@ class Waveform:
     def describe(self):
         print(f'{self.offset} {self.duration} a:{self.amplitude} f:{self.frequency} '
               f'pre:{self.prephase*180/np.pi:5.1f} post:{self.postphase*180/np.pi:5.1f}')
+
 
 class SequencerChannel:
     def __init__(self, instrument, number):
@@ -128,14 +180,13 @@ class SequencerChannel:
 
     def upload_waveform(self, number, offset, duration,
                         amplitude, am_envelope=None, frequency=None, pm_envelope=None,
-                        prephase=None, postphase=None, restore_frequency=True, append_zero=False):
-        if not restore_frequency:
-            # note: requires also a start_frequency for the next wave
-            raise NotImplementedError()
+                        prephase=None, postphase=None, restore_frequency=True, append_zero=True):
+        if frequency is None:
+            frequency = self._frequency
         self._waveforms[number] = Waveform(offset, duration, amplitude, am_envelope,
                        frequency, pm_envelope, prephase, postphase,
                        self._frequency,
-                       self._frequency if frequency and restore_frequency else frequency,
+                       self._frequency if restore_frequency else frequency,
                        append_zero)
 
     def flush_waveforms(self):
@@ -156,11 +207,31 @@ class SequencerChannel:
             wvf_nr = inst.wave_numbers[0] if isinstance(inst, AwgConditionalInstruction) else inst.wave_number
             if wvf_nr is not None:
                 waveform = self._waveforms[wvf_nr]
-                data = waveform.render(starttime, phase)
-                if duration == 0:
-                    duration = len(data)
-                wave = np.concatenate([wave, data, np.zeros(int(duration)-len(data))])
-                phase += waveform.phase_shift
+                print(starttime, waveform)
+#                data = waveform.render(starttime, phase)
+#                if duration == 0:
+#                    duration = len(data)
+#                wave = np.concatenate([wave, data, np.zeros(int(duration)-len(data))])
+#                phase += waveform.phase_shift
+
+                amplitude, frequency = waveform.render_wvf()
+                amplitude *= 1.5
+                angle = np.cumsum(frequency)*np.pi + phase
+                data = np.cos(angle)*amplitude
+                if duration > len(data):
+                    after = int(duration)-len(data)
+                    print(data, amplitude, frequency)
+                    angle_after = np.arange(1, after+1) * frequency[-1]*np.pi + angle[-1]
+                    data_after = np.cos(angle_after) * amplitude[-1]
+                    wave = np.concatenate([wave, data, data_after])
+                    phase = angle_after[-1]
+                    print(len(data), len(data_after))
+                else:
+                    if duration > 0:
+                        data = data[:duration]
+                        angle = angle[:duration]
+                    wave = np.concatenate([wave, data])
+                    phase = angle[-1]
             else:
                 wave = np.concatenate([wave, np.zeros(int(duration))])
             starttime += duration
