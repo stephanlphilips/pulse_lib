@@ -269,7 +269,9 @@ class QsUploader:
                     seq.upload_waveform(number, wvf.offset, wvf.duration,
                                         wvf.amplitude, wvf.am_envelope,
                                         wvf.frequency, wvf.pm_envelope,
-                                        wvf.prephase, wvf.postphase, wvf.restore_frequency)
+                                        wvf.prephase, wvf.postphase,
+                                        wvf.restore_frequency, 
+                                        append_zero=wvf.restore_frequency)
 
                 t2 = time.perf_counter()
                 for i,entry in enumerate(sequence.sequence):

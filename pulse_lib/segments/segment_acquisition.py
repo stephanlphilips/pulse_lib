@@ -120,11 +120,14 @@ class segment_acquisition():
         A time reset will be done after the other segment is added.
         TODO: transfer of units
         '''
-        other_loopobj = loop_obj()
-        other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)),
-                               dtype=object)
-        self._setpoints += other._setpoints
-        self.__add_segment(other_loopobj, time)
+        if other.shape != (1,):
+            other_loopobj = loop_obj()
+            other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)),
+                                   dtype=object)
+            self._setpoints += other._setpoints
+            self.__add_segment(other_loopobj, time)
+        else:
+            self.__add_segment(other.data[0], time)
 
         return self
 

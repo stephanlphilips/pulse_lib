@@ -203,7 +203,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
                                   t_offset=t)
             # Adjust NCO after driving with other frequency
             delta_phase = 2*np.pi*waveform.frequency*duration*1e-9
-            self.shift_phase(t+duration, delta_phase)
+            self.shift_phase(t-self.offset_ns+duration, delta_phase)
 
         elif not isinstance(waveform.phmod, Number):
             wave_ids = self.register_sinewave_iq(waveform)

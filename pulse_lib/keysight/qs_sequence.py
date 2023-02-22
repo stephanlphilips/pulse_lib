@@ -112,9 +112,21 @@ class IQSequenceBuilder:
         self._add_phase_shift(t, phase_shift)
 
     def pulse(self, t_pulse, iq_pulse):
-        # TODO: split long pulses in start + stop pulse (Rabi)
-        waveform = self._render_waveform(iq_pulse)
-        self._add_waveform(t_pulse, waveform)
+        if (iq_pulse.envelope.AM_envelope_function is None
+            and iq_pulse.envelope.PM_envelope_function is None
+            and (iq_pulse.stop - iq_pulse.start > 200)):
+            # split long pulses in start + stop pulse (Rabi)
+            duration = iround(iq_pulse.stop - iq_pulse.start)
+            start_wvf, stop_wvf = self._render_waveform_start_stop(iq_pulse)
+            self._add_waveform(t_pulse, start_wvf)
+            # align stop using duration. Make sure instruction offset is 0
+            t_stop = iround(t_pulse) + duration
+            duration_end = t_stop % 5
+            t_stop_instruction = t_stop - duration_end
+            self._add_waveform(t_stop_instruction, stop_wvf)
+        else:
+            waveform = self._render_waveform(iq_pulse)
+            self._add_waveform(t_pulse, waveform)
 
     def chirp(self, t_pulse, chirp):
         # TODO: Frequency chirp with prescaler: pass as FM i.s.o. PM, or Chirp?
@@ -196,6 +208,23 @@ class IQSequenceBuilder:
         return Waveform(mw_pulse_data.amplitude, amp_envelope,
                         frequency, pm_envelope,
                         prephase, postphase, duration)
+
+    def _render_waveform_start_stop(self, mw_pulse_data):
+        frequency = mw_pulse_data.frequency - self.lo_freq
+        if abs(frequency) > 450e6:
+            raise Exception(f'Waveform NCO frequency {frequency/1e6:5.1f} MHz is out of range')
+
+        prephase = mw_pulse_data.start_phase
+        postphase = -mw_pulse_data.start_phase
+        start_wvf = Waveform(mw_pulse_data.amplitude, 1.0,
+                             frequency, 0.0,
+                             prephase=prephase,
+                             duration=2, restore_frequency=False)
+        stop_wvf = Waveform(mw_pulse_data.amplitude, 1.0,
+                            frequency, 0.0,
+                            postphase=postphase)
+        return start_wvf, stop_wvf
+
 
     def _add_waveform(self, t, waveform):
         t = iround(t)

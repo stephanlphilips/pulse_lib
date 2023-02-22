@@ -275,7 +275,7 @@ class MeasurementConverter:
         for m in self._description.measurements:
             if isinstance(m, measurement_acquisition):
                 channel_name = m.acquisition_channel
-                if m.n_samples is None:
+                if m.interval is None:
                     channel_raw = self._channel_raw[channel_name][...,m.data_offset]
                 else:
                     channel_raw = self._channel_raw[channel_name][...,m.data_offset:m.data_offset+m.n_samples]
@@ -320,6 +320,7 @@ class MeasurementConverter:
             self._total_selected = [total_selected]
         self._selectors = selectors
         if total_selected > 0:
+            # @@@ this is not correct for time traces.
             self._values = [np.sum(result*accepted_mask)/total_selected for result in values_unfiltered]
         else:
             logger.warning('No shot is accepted')
