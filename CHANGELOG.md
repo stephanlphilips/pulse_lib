@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.6.12] - 2023-02-@@@
+## \[1.6.12] - 2023-02-23
 
 - QuantumSequencer: split long constant waveforms in start and stop waveform.
 
