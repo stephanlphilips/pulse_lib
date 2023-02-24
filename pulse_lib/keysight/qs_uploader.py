@@ -257,9 +257,10 @@ class QsUploader:
 
                 # TODO cleanup frequency update hack
                 qubit_channel = self.qubit_channels[awg_sequencer.channel_name]
-                seq._frequency = qubit_channel.reference_frequency - qubit_channel.iq_channel.LO
-                if abs(seq._frequency) > 450e6:
-                    raise Exception(f'Sequencer frequency {seq._frequency/1e6:5.1f} MHz out of range')
+                if len(sequence.waveforms) > 0:
+                    seq._frequency = qubit_channel.reference_frequency - qubit_channel.iq_channel.LO
+                    if abs(seq._frequency) > 450e6:
+                        raise Exception(f'Sequencer frequency {seq._frequency/1e6:5.1f} MHz out of range')
 
                 # @@@ IQSequence.upload() OR Sequence.upload()
                 for number,wvf in enumerate(sequence.waveforms):
@@ -267,7 +268,7 @@ class QsUploader:
                                         wvf.amplitude, wvf.am_envelope,
                                         wvf.frequency, wvf.pm_envelope,
                                         wvf.prephase, wvf.postphase,
-                                        wvf.restore_frequency, 
+                                        wvf.restore_frequency,
                                         append_zero=wvf.restore_frequency)
 
                 t2 = time.perf_counter()
