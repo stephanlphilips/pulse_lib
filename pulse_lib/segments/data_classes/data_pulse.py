@@ -693,12 +693,12 @@ class pulse_data(parent_data):
             else:
                 phase_shift = 0
 
-            # envelope data of the pulse
             if mw_pulse.envelope is None:
-                mw_pulse.envelope = envelope_generator()
-
-            amp_envelope = mw_pulse.envelope.get_AM_envelope((stop_pulse - start_pulse), sample_rate)
-            phase_envelope = np.asarray(mw_pulse.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate))
+                amp_envelope = 1.0
+                phase_envelope = 0.0
+            else:
+                amp_envelope = mw_pulse.envelope.get_AM_envelope((stop_pulse - start_pulse), sample_rate)
+                phase_envelope = np.asarray(mw_pulse.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate))
 
             #self.baseband_pulse_data[-1,0] convert to point numbers
             n_pt = int((stop_pulse - start_pulse) * sample_rate) if isinstance(amp_envelope, float) else len(amp_envelope)

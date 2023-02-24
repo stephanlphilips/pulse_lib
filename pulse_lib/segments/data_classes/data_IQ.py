@@ -39,7 +39,7 @@ class envelope_generator():
 
         n_points = delta_t*sample_rate
         if n_points < 1: #skip
-            return 0
+            return 0.0
 
         if self.AM_envelope_function is None:
             envelope = 1.0  #assume constant envelope
