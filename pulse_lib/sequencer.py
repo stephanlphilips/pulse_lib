@@ -82,7 +82,7 @@ class sequencer():
         if self._measurement_converter is not None:
             raise Exception('Cannot change n_rep after calling get_measurement_results or '
                             'get_measurement_param')
-        self._n_rep = value
+        self._n_rep = int(value)
 
     @property
     def sweep_index(self):
