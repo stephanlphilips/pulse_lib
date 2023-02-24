@@ -103,7 +103,10 @@ class MeasurementMajority(MeasurementExpressionBase):
     def __init__(self, measurements, threshold=0.5):
         keys = []
         for m in measurements:
-            keys += m.keys
+            if hasattr(m, 'keys'):
+                keys += m.keys
+            else:
+                keys.append(m.name)
         super().__init__(keys)
         self._measurements = measurements
         self._threshold = threshold
