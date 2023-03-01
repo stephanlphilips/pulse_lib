@@ -1,6 +1,8 @@
 import logging
 import numpy as np
-from typing import Dict
+from typing import Dict, Union
+
+from qcodes import Parameter
 
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
@@ -9,6 +11,7 @@ from pulse_lib.configuration.physical_channels import (
 from pulse_lib.configuration.iq_channels import IQ_channel, QubitChannel
 from pulse_lib.configuration.devices import awg_slave
 from pulse_lib.virtual_matrix.virtual_gate_matrices import VirtualGateMatrices
+from pulse_lib.virtual_channel_constructors import IQ_channel_constructor
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +30,7 @@ class pulselib:
         self._virtual_matrices = VirtualGateMatrices()
         self.qubit_channels = dict()
         self.IQ_channels = dict()
+        self._iq_channel_constructors = dict[str, IQ_channel_constructor]()
 
         # Tektronix features
         self.digitizer_markers = dict()
@@ -333,17 +337,37 @@ class pulselib:
         self.IQ_channels[name] = channel
         return channel
 
+    # pylint: disable-next=too-many-arguments
+    def define_iq_channel(
+            self, name: str, i_name: str = "", i_image: str = "+", q_name: str = "", q_image: str = "+"
+    ) -> None:
+        iq_constructor = IQ_channel_constructor(self, name)
+        if i_name != "":
+            iq_constructor.add_IQ_chan(i_name, "I", i_image)
+        if q_name != "":
+            iq_constructor.add_IQ_chan(q_name, "Q", q_image)
+        self._iq_channel_constructors[name] = iq_constructor
+
+    def add_iq_marker(
+            self, iq_channel_name: str, marker_channel_name: str, pre_delay: int = 0, post_delay: int = 0
+    ) -> None:
+        self._iq_channel_constructors[iq_channel_name].add_marker(marker_channel_name, pre_delay, post_delay)
+
+    def set_iq_lo(self, iq_channel_name: str, lo: Union[Parameter, float]) -> None:
+        self._iq_channel_constructors[iq_channel_name].set_LO(lo)
+
     def define_qubit_channel(self, qubit_channel_name, IQ_channel_name,
                              reference_frequency=None,
-                             correction_phase=0.0, correction_gain=(1.0,1.0)):
+                             correction_phase=0.0, correction_gain=(1.0, 1.0)):
         """
-        Make a virtual channel that hold IQ signals. Each virtual channel can hold their own phase information.
-        It is recommended to make one IQ channel per qubit (assuming you are multiplexing for multiple qubits)
+        Make a virtual qubit channel that hold IQ signals. Each virtual channel can hold its own phase information.
+        It is recommended to make one qubit channel per qubit (assuming you are multiplexing for multiple qubits)
         Args:
-            virtual_channel_name (str) : channel name (e.g. qubit_1)
-            LO_freq (float) : frequency of the qubit when not driving and default for driving.
+            qubit_channel_name (str) : channel name (e.g. qubit_1)
+            IQ_channel_name (str) : name of IQ channel to which this qubit channel maps
+            reference_frequency (float) : frequency of the qubit when not driving and default for driving.
             correction_phase (float) : phase in rad added to Q component of IQ channel
-            correction_gain (float) : correction of I and Q amplitude
+            correction_gain (float, float) : correction of I and Q amplitude
         """
         iq_channel = self.IQ_channels[IQ_channel_name]
         qubit = QubitChannel(qubit_channel_name, reference_frequency, iq_channel,
@@ -574,7 +598,6 @@ class pulselib:
 
 
 if __name__ == '__main__':
-    from pulse_lib.virtual_channel_constructors import IQ_channel_constructor
     from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
 
     p = pulselib()
