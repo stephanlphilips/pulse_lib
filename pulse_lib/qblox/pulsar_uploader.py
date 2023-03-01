@@ -535,7 +535,7 @@ class UploadAggregator:
         # add DC compensation
         compensation_time = self.get_max_compensation_time()
         compensation_time_ns = PulsarConfig.ceil(compensation_time*1e9)
-        logger.debug(f'DC compensation time: {compensation_time_ns} ns')
+        logger.info(f'DC compensation time: {compensation_time_ns} ns')
 
         job.upload_info.dc_compensation_duration_ns = compensation_time_ns
 
@@ -660,16 +660,12 @@ class UploadAggregator:
 
         compensation_ns = job.upload_info.dc_compensation_duration_ns
         if job.neutralize and compensation_ns > 0 and channel_info.dc_compensation:
-            compensation_voltage = -channel_info.integral / compensation_ns * 1e9 * scaling
-            job.upload_info.dc_compensation_voltages[channel_name] = compensation_voltage
-            logger.debug(f'DC compensation {channel_name}: {compensation_voltage:6.1f} mV {compensation_ns} ns')
-            if abs(compensation_voltage) < 0.01:
-                # less than 1 LSB of QRM/QCM
-                logger.info(f'no compensation for {channel_name}')
-            else:
-                seq.add_comment(f'DC compensation: {compensation_voltage:6.1f} mV {compensation_ns} ns')
-                seq.set_offset(t_end, compensation_ns, compensation_voltage)
-                seq.set_offset(t_end + compensation_ns, 0, 0.0)
+            compensation_voltage_mV = -channel_info.integral / compensation_ns * 1e9 /channel_info.attenuation
+            job.upload_info.dc_compensation_voltages[channel_name] = compensation_voltage_mV
+            seq.add_comment(f'DC compensation: {compensation_voltage_mV:6.2f} mV {compensation_ns} ns')
+            logger.debug(f'DC compensation {channel_name}: {compensation_voltage_mV:6.1f} mV {compensation_ns} ns')
+            seq.set_offset(t_end, compensation_ns, compensation_voltage_mV/(1000*seq.max_output_voltage))
+            seq.set_offset(t_end + compensation_ns, 0, 0.0)
 
         seq.finalize()
 
