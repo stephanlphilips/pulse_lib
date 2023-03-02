@@ -1,7 +1,13 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.6.12] - 2023-02-@@@
+## \[1.6.13] - 2023-03-01
+
+- Fixed MeasurementMajority to work with pulse_templates.
+- Fixed DC compensation on Qblox.
+- Fixed some edge cases.
+
+## \[1.6.12] - 2023-02-23
 
 - QuantumSequencer: split long constant waveforms in start and stop waveform.
 
