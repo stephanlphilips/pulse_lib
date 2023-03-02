@@ -1,0 +1,28 @@
+instruments:
+
+  sig_gen1:
+    type: qcodes.tests.instrument_mocks.DummyInstrument
+    enable_forced_reconnect: true
+    init:
+      gates: ['frequency','power']
+    parameters:
+      frequency:
+        limits: [0,20e9]
+
+  sig_gen2:
+    type: qcodes.tests.instrument_mocks.DummyInstrument
+    enable_forced_reconnect: true
+    init:
+      gates: ['frequency','power']
+    parameters:
+      frequency:
+        limits: [0,20e9]
+
+  Qblox:
+    type: qblox_instruments.Cluster
+    enable_forced_reconnect: true
+
+    init:
+      identifier: '192.168.0.11'
+      debug: 0
+

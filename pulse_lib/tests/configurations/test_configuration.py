@@ -73,7 +73,7 @@ class Context:
                 if module.present():
                     rf = 'RF' if module.is_rf_type else ''
                     print(f'  Add {module.name}: {module.module_type}{rf}')
-                    setattr(station, module.name, module)
+                    station.add_component(module, module.name)
                     if module.is_qcm_type:
                         awgs.append(module)
                     else:
