@@ -18,32 +18,13 @@ instruments:
       frequency:
         limits: [0,20e9]
 
-  QCM1:
-    type: q1simulator.Q1Simulator
+  Qblox:
+    type: q1simulator.Cluster
     enable_forced_reconnect : True
     init:
-      sim_type: QCM
-
-  QCM2:
-    type: q1simulator.Q1Simulator
-    enable_forced_reconnect : True
-    init:
-      sim_type: QCM
-
-  QCM3:
-    type: q1simulator.Q1Simulator
-    enable_forced_reconnect : True
-    init:
-      sim_type: QCM
-
-  QRM1:
-    type: q1simulator.Q1Simulator
-    enable_forced_reconnect : True
-    init:
-      sim_type: QRM
-
-  QRM2:
-    type: q1simulator.Q1Simulator
-    enable_forced_reconnect : True
-    init:
-      sim_type: QRM
+      modules:
+        1: QCM
+        2: QCM
+        3: QCM
+        4: QRM
+        5: QRM
