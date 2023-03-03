@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.14] - 2023-03-03
+
+- Fixed missing IQ marker around chirp
+
 ## \[1.6.13] - 2023-03-01
 
 - Fixed MeasurementMajority to work with pulse_templates.
