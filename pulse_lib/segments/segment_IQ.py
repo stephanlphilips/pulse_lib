@@ -140,6 +140,8 @@ class segment_IQ(segment_base):
         for i in range(len(local_data)):
             for MW_pulse_info in local_data[i].MW_pulse_data:
                 my_marker_data[i].add_marker(MW_pulse_info.start, MW_pulse_info.stop)
+            for chirp in local_data[i].chirp_data:
+                my_marker_data[i].add_marker(chirp.start, chirp.stop)
 
         my_marker_data = my_marker_data.reshape(self.shape)
 
