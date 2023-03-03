@@ -439,11 +439,7 @@ class SegmentRenderInfo:
     # original times from sequence, cummulative start/end times
     # first segment starts at t_start = 0
     t_start: float
-    npt: int # sample rate = 1GSa/s
-
-    @property
-    def t_end(self):
-        return self.t_start + self.npt
+    t_end: float
 
 
 def _actual_acquisition_points(t_measure, sample_rate):
@@ -525,11 +521,9 @@ class UploadAggregator:
         segments = self.segments
         t_start = 0
         for seg in job.sequence:
-            # work with sample rate in GSa/s
-            sample_rate = 1
             duration = seg.get_total_time(job.index)
-            npt =  int((duration * sample_rate)+0.5)
-            info = SegmentRenderInfo(t_start, npt)
+            t_end = t_start+duration
+            info = SegmentRenderInfo(t_start, t_end)
             segments.append(info)
             t_start = info.t_end
 
