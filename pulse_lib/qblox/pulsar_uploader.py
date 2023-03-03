@@ -111,15 +111,16 @@ class PulsarUploader:
             if name not in iq_out_channels:
                 self.awg_voltage_channels[name] = awg_channel
 
-
-
     def _link_markers_to_seq(self):
         default_iq_markers = {}
-        for qubit_channel in self.qubit_channels.values():
-            iq_channel = qubit_channel.iq_channel
+        for iq_channel in self.IQ_channels.values():
             marker_channels = iq_channel.marker_channels
+            I_channel_name = iq_channel.IQ_out_channels[0].awg_channel_name
+            awg_module_name = self.awg_channels[I_channel_name].awg_name
+            if len(iq_channel.qubit_channels) == 0:
+                continue
+            qubit_channel = iq_channel.qubit_channels[0]
             for marker_name in marker_channels:
-                awg_module_name = iq_channel.IQ_out_channels[0].awg_channel_name
                 m_ch = self.marker_channels[marker_name]
                 if awg_module_name == m_ch.module_name:
                     default_iq_markers[m_ch.name] = qubit_channel.channel_name
