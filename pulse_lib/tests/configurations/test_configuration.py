@@ -157,24 +157,25 @@ class Context:
             pulse.add_channel_delay(Q, -40)
             sig_gen = station.components[f'sig_gen{i+1}']
 
-            IQ_pair = IQ_channel_constructor(pulse, f'IQ{i+1}')
-            IQ_pair.add_IQ_chan(I, 'I')
-            IQ_pair.add_IQ_chan(Q, 'Q')
-            IQ_pair.set_LO(sig_gen.frequency)
+            iq_channel_name = f'IQ{i+1}'
             if i == 0:
-                self._add_marker('M_IQ', setup_ns=20, hold_ns=20)
-                pulse.add_channel_delay('M_IQ', -40)
-                IQ_pair.add_marker('M_IQ')
+                iq_marker = 'M_IQ'
+                self._add_marker(iq_marker, setup_ns=20, hold_ns=20)
+                pulse.add_channel_delay(iq_marker, -40)
+            else:
+                iq_marker = ''
+            pulse.define_iq_channel(iq_channel_name, i_name=I, q_name=Q,
+                                    marker_name=iq_marker)
+            pulse.set_iq_lo(iq_channel_name, sig_gen.frequency)
 
             sig_gen.frequency(2.400e9 + i*0.400e9)
-            # 2.400, 2.800
-            # 2.450, 2.550, 2.650, 2.750
-            # add qubits: q1 and q2
+            # LO freqs: 2.400, 2.800
+            # qubit freqs: 2.450, 2.550, 2.650, 2.750
             for j in range(2):
                 qubit = 2*i+j+1
                 if qubit < n_qubits+1:
                     idle_frequency = 2.350e9 + qubit*0.100e9
-                    IQ_pair.add_virtual_IQ_channel(f"q{qubit}", idle_frequency)
+                    pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, idle_frequency)
 
         if n_sensors > 0 and backend in ['Keysight']:
             pulse.configure_digitizer = True

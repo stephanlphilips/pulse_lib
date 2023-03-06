@@ -1,7 +1,4 @@
-import numpy as np
-
-from .configuration.iq_channels import IQ_channel, IQ_out_channel_info
-
+from .configuration.iq_channels import IQ_channel
 
 class virtual_gates_constructor(object):
     """
@@ -83,10 +80,12 @@ class IQ_channel_constructor(object):
         Args:
             pulse_lib_obj (pulse_lib) : add a pulse lib object to whom properties need to be added.
         """
+        # TODO @@@ next release: logger.warning('IQ_channel_constructor is deprecated. Use pulse_lib.define_iq_channel')
         self.pulse_lib_obj = pulse_lib_obj
         if name is None:
             name = f'_IQ-{len(pulse_lib_obj.IQ_channels)}'
-        self.IQ_channel:IQ_channel = pulse_lib_obj.define_IQ_channel(name)
+        pulse_lib_obj.define_iq_channel(name)
+        self.IQ_channel:IQ_channel = pulse_lib_obj.IQ_channels[name]
 
     def add_IQ_chan(self, channel_name, IQ_comp, image = "+"):
         """
@@ -96,17 +95,11 @@ class IQ_channel_constructor(object):
             IQ_comp (str) : "I" or "Q" singal that needs to be generated
             image (str) : "+" or "-", specify only when differential inputs are needed.
         """
-
         self.__check_awg_channel_name(channel_name)
 
         IQ_comp = IQ_comp.upper()
-        if IQ_comp not in ["I", "Q"]:
-            raise ValueError("The compenent of the IQ signal is not specified properly (current given {}, expected \"I\" or \"Q\")".format(IQ_comp))
 
-        if image not in ["+", "-"]:
-            raise ValueError("The image of the IQ signal is not specified properly (current given {}, expected \"+\" or \"-\")".format(image))
-
-        self.IQ_channel.IQ_out_channels.append(IQ_out_channel_info(channel_name, IQ_comp, image))
+        self.IQ_channel.add_awg_out_chan(channel_name, IQ_comp, image)
 
     def add_marker(self, channel_name, pre_delay=0, post_delay=0):
         """
@@ -119,7 +112,7 @@ class IQ_channel_constructor(object):
         if pre_delay or post_delay:
             raise Exception(f'delays must be set with pulse_lib.define_marker(name, setup_ns=pre_delay, hold_ns=post_delay)')
         self.__check_marker_channel_name(channel_name)
-        self.IQ_channel.marker_channels.append(channel_name)
+        self.IQ_channel.add_marker(channel_name)
 
     def set_LO(self, LO):
         """

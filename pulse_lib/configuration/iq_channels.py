@@ -41,3 +41,26 @@ class IQ_channel:
         else:
             raise ValueError("Local oscillator not set in the IQ_channel.")
 
+    def add_awg_out_chan(self, awg_channel_name, IQ_comp, image = "+"):
+        """
+        AWG output channel for I or Q component.
+        Args:
+            awg_channel_name (str) : name of the channel in the AWG used to output
+            IQ_comp (str) : "I" or "Q" singal that needs to be generated
+            image (str) : "+" or "-", specify only when differential inputs are needed.
+        """
+        if IQ_comp not in ["I", "Q"]:
+            raise ValueError(f"IQ component must be 'I' or 'Q', not '{IQ_comp}'")
+
+        if image not in ["+", "-"]:
+            raise ValueError(f"The image of the IQ signal must be '+' or '-', not '{image}'")
+
+        self.IQ_out_channels.append(IQ_out_channel_info(awg_channel_name, IQ_comp, image))
+
+    def add_marker(self, marker_channel_name):
+        """
+        Channel for in phase information of the IQ channel (postive image)
+        Args:
+            marker_channel_name (str) : name of the channel in the AWG used to output
+        """
+        self.marker_channels.append(marker_channel_name)

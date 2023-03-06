@@ -1,6 +1,8 @@
 import logging
 import numpy as np
-from typing import Dict
+from typing import Dict, Union
+
+from qcodes import Parameter
 
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.sequencer import sequencer
@@ -328,17 +330,58 @@ class pulselib:
         else:
             raise ValueError(f"Channel '{channel_name}' is not defined")
 
+    # pylint: disable-next=too-many-arguments
+    def define_iq_channel(
+            self, name: str, i_name: str = "", q_name: str = "",
+            i_neg_name: str = "", q_neg_name: str = "",
+            marker_name: str = ""
+    ) -> None:
+        '''
+        Defines a new IQ pair for IQ modulated MW pulse generation via qubit channels.
+
+        For balanced IQ signals two additional channels may be specified for the
+        negative image of I and Q signal.
+
+        Args:
+            i_name: awg channel name of the I component (+)
+            q_name: awg channel name of the Q component (+)
+            i_neg_name: [optional] awg channel name of the I component (-)
+            q_neg_name: [optional] awg channel name of the Q component (-)
+            marker_name: [optional] marker to use for pulse modulation.
+        '''
+        iq_channel = IQ_channel(name)
+        self.IQ_channels[name] = iq_channel
+
+        if i_name:
+            iq_channel.add_awg_out_chan(i_name, "I", "+")
+        if q_name:
+            iq_channel.add_awg_out_chan(q_name, "Q", "+")
+        if i_neg_name:
+            iq_channel.add_awg_out_chan(i_neg_name, "I", "-")
+        if q_neg_name:
+            iq_channel.add_awg_out_chan(q_neg_name, "Q", "-")
+        if marker_name:
+            iq_channel.add_marker(marker_name)
+
+    def set_iq_lo(self, iq_channel_name: str, lo: Union[Parameter, float]) -> None:
+        '''
+        Sets the LO frequency (parameter) for the IQ channel.
+
+        '''
+        self.IQ_channels[iq_channel_name].LO_parameter = lo
+
     def define_IQ_channel(self, name):
-        channel = IQ_channel(name)
-        self.IQ_channels[name] = channel
-        return channel
+        print("WARNING: define_IQ_channel is deprecated use define_iq_channel")
+        self.define_iq_channel(name)
+        return self.IQ_channels[name]
 
     def define_qubit_channel(self, qubit_channel_name, IQ_channel_name,
                              reference_frequency=None,
                              correction_phase=0.0, correction_gain=(1.0,1.0)):
         """
-        Make a virtual channel that hold IQ signals. Each virtual channel can hold their own phase information.
-        It is recommended to make one IQ channel per qubit (assuming you are multiplexing for multiple qubits)
+        Creates a qubit channel on an IQ channel. A qubit channel keeps track of the
+        qubit's phase required for coherent quantum gates.
+
         Args:
             virtual_channel_name (str) : channel name (e.g. qubit_1)
             LO_freq (float) : frequency of the qubit when not driving and default for driving.
