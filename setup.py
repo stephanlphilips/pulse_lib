@@ -16,6 +16,7 @@ setup(name="pulse_lib",
             ],
     license='MIT',
     package_data={
+        "pulse_lib": ["py.typed"],
         "pulse_lib.tests.keysight_data": ["*.hdf5"],
         },
 	)
