@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.15] - 2023-03-06
+
+- Fixed rounding errors on segment boundaries in Qblox uploader.
+- Qblox uploader assign IQ marker to sequencer of first qubit on IQ output.
+- Refactored IQ channel definition: pulse_lib.define_iq_channel()
+- Added lp.arange() similar to numpy.arange()
+
 ## \[1.6.14] - 2023-03-03
 
 - Fixed missing IQ marker around chirp
