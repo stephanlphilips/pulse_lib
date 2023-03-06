@@ -311,6 +311,16 @@ class geomspace(loop_obj):
         super().add_data(np.geomspace(start, stop, n_steps, endpoint=endpoint),
                          axis=axis, names=name, labels=label, units=unit, setvals=setvals)
 
+class arange(loop_obj):
+    def __init__(self, start, stop=None, step=1,
+                 name=None, label=None, unit=None, axis=-1, setvals=None):
+        super().__init__()
+        if stop is None:
+            stop = start
+            start = 0
+        super().add_data(np.arange(start, stop, step),
+                         axis=axis, names=name, labels=label, units=unit, setvals=setvals)
+
 class array(loop_obj):
     def __init__(self, data,
                  name=None, label=None, unit=None, axis=-1, setvals=None):
