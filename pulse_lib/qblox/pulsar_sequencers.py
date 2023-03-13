@@ -177,8 +177,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
     def __init__(self, name, sequencer, nco_frequency,
                  mixer_gain=None, mixer_phase_offset=None):
         super().__init__(name, sequencer)
-        self.seq.nco_frequency = nco_frequency
-        self._pulsing = False
+        self.nco_frequency = nco_frequency
         self.add_comment(f'IQ: NCO={nco_frequency/1e6:7.2f} MHz')
 
         if mixer_gain is not None:
@@ -187,12 +186,12 @@ class IQSequenceBuilder(SequenceBuilderBase):
             self.seq.mixer_phase_offset_degree = mixer_phase_offset/np.pi*180
 
     def pulse(self, t, duration, amplitude, waveform):
-        self._pulsing = True
+        self._check_set_nco_freq()
         t += self.offset_ns
         self._update_time_and_markers(t, duration)
         self.add_comment(f'MW pulse {waveform.frequency/1e6:6.2f} MHz {waveform.duration} ns')
         waveform = copy(waveform)
-        waveform.frequency -= self.seq.nco_frequency
+        waveform.frequency -= self.nco_frequency
 
         if abs(waveform.frequency) > 1:
             if abs(waveform.frequency) > 400e6:
@@ -243,26 +242,20 @@ class IQSequenceBuilder(SequenceBuilderBase):
         self.seq.shift_phase(norm_phase, t_offset=t)
 
     def chirp(self, t, duration, amplitude, start_frequency, stop_frequency):
-        self._pulsing = True
-        if hasattr(self.seq, 'chirp'):
-            t += self.offset_ns
-            self._update_time_and_markers(t, 0.0)
-            self.seq.chirp(duration, amplitude,
-                           start_frequency, stop_frequency,
-                           t_offset=t)
-        else:
-            if duration > 8192:
-                raise Exception('Qblox instruments < v0.8 is limited to chirps of 8192 ns')
-            pm_gen = make_chirp(start_frequency, stop_frequency, 0, duration)
-            phmod = pm_gen(duration, 1.0)
-            waveform = SineWaveform(duration, start_frequency,
-                                    0.0, 1.0, phmod)
-            self.pulse(t, duration, amplitude, waveform)
+        t += self.offset_ns
+        self._update_time_and_markers(t, 0.0)
+        self.seq.chirp(duration, amplitude,
+                       start_frequency, stop_frequency,
+                       t_offset=t)
+        # restore NCO frequency if it is valid.
+        if abs(self.nco_frequency) <= 450e6:
+            self.seq.set_frequency(self.nco_frequency)
 
-    def finalize(self):
-        super().finalize()
-        if self._pulsing and abs(self.seq.nco_frequency) > 450e6:
+    def _check_set_nco_freq(self):
+        if abs(self.nco_frequency) > 450e6:
             raise Exception(f'{self.name}: NCO frequency {self.nco_frequency/1e6:5.1f} MHz out of range')
+        else:
+            self.seq.nco_frequency = self.nco_frequency
 
 @dataclass
 class _SeqCommand:
