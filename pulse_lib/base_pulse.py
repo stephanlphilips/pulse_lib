@@ -366,7 +366,9 @@ class pulselib:
     def set_iq_lo(self, iq_channel_name: str, lo: Union[Parameter, float]) -> None:
         '''
         Sets the LO frequency (parameter) for the IQ channel.
-
+        Args:
+            iq_channel_name: name of IQ channel
+            lo: qcodes parameter for LO frequency or float value [Hz]
         '''
         self.IQ_channels[iq_channel_name].LO_parameter = lo
 
@@ -386,7 +388,7 @@ class pulselib:
             virtual_channel_name (str) : channel name (e.g. qubit_1)
             LO_freq (float) : frequency of the qubit when not driving and default for driving.
             correction_phase (float) : phase in rad added to Q component of IQ channel
-            correction_gain (float) : correction of I and Q amplitude
+            correction_gain (float,float) : correction of I and Q amplitude
         """
         iq_channel = self.IQ_channels[IQ_channel_name]
         qubit = QubitChannel(qubit_channel_name, reference_frequency, iq_channel,
