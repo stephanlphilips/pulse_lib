@@ -217,16 +217,16 @@ class IQSequenceBuilder(SequenceBuilderBase):
             cycles = 2*np.pi*(waveform.phase + waveform.phmod)
             if isinstance(waveform.amod, Number):
                 # TODO @@@ add option to use waveform for short pulses with 1 ns resolution
-                ampI = amplitude * waveform.amod * np.sin(cycles)
-                ampQ = amplitude * waveform.amod * np.cos(cycles)
+                ampI = amplitude * waveform.amod * np.cos(cycles)
+                ampQ = amplitude * waveform.amod * np.sin(cycles)
                 # generate block pulse
                 self.seq.block_pulse(duration, ampI, ampQ, t_offset=t)
             else:
                 # phase is accounted for in ampI, ampQ
-                waveform.phase = np.pi*0.5 # TODO @@@ Why this phase???
+                waveform.phase = np.pi/2 # pi/2, because waveform.render uses sin instead of cos.
                 waveform.phmod = 0
-                ampI = amplitude * np.sin(cycles)
-                ampQ = amplitude * np.cos(cycles)
+                ampI = amplitude * np.cos(cycles)
+                ampQ = amplitude * np.sin(cycles)
                 # same wave for I and Q
                 wave_id = self.register_sinewave(waveform)
                 self.seq.shaped_pulse(wave_id, ampI, wave_id, ampQ, t_offset=t)
