@@ -242,6 +242,11 @@ class IQSequenceBuilder(SequenceBuilderBase):
         self.seq.shift_phase(norm_phase, t_offset=t)
 
     def chirp(self, t, duration, amplitude, start_frequency, stop_frequency):
+        # set NCO frequency if valid. Otherwise set 0.0 to enable modulation
+        if abs(self.nco_frequency) <= 450e6:
+            self.seq.nco_frequency = self.nco_frequency
+        else:
+            self.seq.nco_frequency = 0.0
         t += self.offset_ns
         self._update_time_and_markers(t, 0.0)
         self.seq.chirp(duration, amplitude,
@@ -249,7 +254,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
                        t_offset=t)
         # restore NCO frequency if it is valid.
         if abs(self.nco_frequency) <= 450e6:
-            self.seq.set_frequency(self.nco_frequency)
+            self.seq.set_frequency(self.nco_frequency, t_offset=t+duration)
 
     def _check_set_nco_freq(self):
         if abs(self.nco_frequency) > 450e6:
