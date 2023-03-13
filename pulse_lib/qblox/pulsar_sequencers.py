@@ -213,7 +213,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
             # frequency is less than 1 Hz make it 0.
             waveform.frequency = 0
             # phase is constant
-            cycles = 2*np.pi*(waveform.phase + waveform.phmod)
+            cycles = waveform.phase + waveform.phmod
             if isinstance(waveform.amod, Number):
                 # TODO @@@ add option to use waveform for short pulses with 1 ns resolution
                 ampI = amplitude * waveform.amod * np.cos(cycles)
