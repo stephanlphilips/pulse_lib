@@ -23,17 +23,6 @@ class conditional_segment:
 
     def __init__(self, condition, branches:List[segment_container],
                  name=None, sample_rate=None):
-        """
-        initialize a container for segments.
-        Args:
-            channel_names (list<str>) : list with names of physical output channels on the AWG
-            markers (list<str>) : declaration which of these channels are markers
-            virtual_gates_objs (list<virtual_gates_constructor>) : list of object that define virtual gates
-            IQ_channels_objs (list<IQ_channel_constructor>) : list of objects that define virtual IQ channels.
-            Name (str): Optional name of segment container
-            sample_rate (float): Optional sample rate of segment container. This sample rate overrules the default set on the sequence.
-        """
-
         # create N segment_container
         self.condition = condition
         self.branches = branches
@@ -161,7 +150,7 @@ class conditional_segment:
         for branch in self.branches:
             branch.exit_rendering_mode()
 
-    def plot(self, index=(0,), channels=None, sample_rate=1e9):
+    def plot(self, index=(0,), channels=None, sample_rate=1e9, render_full=False):
         pass
 
     def get_metadata(self):

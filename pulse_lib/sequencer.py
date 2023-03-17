@@ -567,9 +567,17 @@ class sequencer():
         if segments is None:
             segments = range(len(self.sequence))
         for s in segments:
-            pt.figure()
-            pt.title(f'Segment {s} index:{index}')
-            self.sequence[s].plot(index, channels=channels, render_full=awg_output)
+            seg = self.sequence[s]
+            if isinstance(seg, conditional_segment):
+                n_conditions = int(np.log2(len(seg.branches))+1e-8)
+                for i,branch in enumerate(seg.branches):
+                    pt.figure()
+                    pt.title(f'Conditional segment {s}-{i:0{n_conditions}b} index:{index}')
+                    branch.plot(index, channels=channels, render_full=awg_output)
+            else:
+                pt.figure()
+                pt.title(f'Segment {s} index:{index}')
+                seg.plot(index, channels=channels, render_full=awg_output)
 
     def get_measurement_results(self, index=None,
                                 raw=True, states=True, values=True,
