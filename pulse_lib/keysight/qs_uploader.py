@@ -1,8 +1,10 @@
 import time
 import numpy as np
 import logging
+from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
+from uuid import UUID
 
 from .sequencer_device import add_sequencers
 from .qs_conditional import get_conditional_channel, get_acquisition_names, QsConditionalSegment
@@ -169,6 +171,56 @@ class QsUploader:
         raise ValueError(f'Sequence with id {seq_id}, index {index} not placed for upload .. . Always make sure to first upload your segment and then do the playback.')
 
 
+    def _configure_digitizers(self, job):
+        if not job.acquisition_conf.configure_digitizer:
+            return
+        '''
+        Configure per digitizer channel:
+            n_triggers: job.n_triggers per channel
+            t_measure: job.t_measure per channel
+            downsampled_rate:
+            acquisition_mode: set externally
+            scale, impedance: set externally
+        '''
+        n_rep = job.n_rep if job.n_rep else 1
+        total_seconds = job.playback_time * n_rep * 1e-9
+        timeout = int(total_seconds*1.1) + 3
+
+        enabled_channels = defaultdict(list)
+        channels = job.acquisition_conf.channels
+        if channels is None:
+            channels = list(job.n_acq_samples.keys())
+        if QsUploader.use_digitizer_sequencers:
+            # sample_rate is in digitizer instruction table
+            sample_rate = None
+        else:
+            sample_rate = job.acquisition_conf.sample_rate
+        for channel_name,t_measure in job.t_measure.items():
+            if channel_name not in channels:
+                continue
+            n_triggers = job.n_acq_samples[channel_name]
+            channel_conf = self.digitizer_channels[channel_name]
+            dig_name = channel_conf.module_name
+            dig = self.digitizers[dig_name]
+            for ch in channel_conf.channel_numbers:
+                n_rep = job.n_rep if job.n_rep else 1
+                dig.set_daq_settings(ch, n_triggers*n_rep, t_measure,
+                                     downsampled_rate=sample_rate)
+                enabled_channels[dig_name].append(ch)
+
+        # disable not used channels of digitizer
+        for dig_name,channel_nums in enabled_channels.items():
+            dig = self.digitizers[dig_name]
+            dig.set_operating_mode(2) # HVI
+            dig.set_active_channels(channel_nums)
+            if hasattr(dig, 'set_timeout'):
+                dig.set_timeout(timeout)
+
+        self.acq_description = AcqDescription(job.seq_id, job.index, channels,
+                                              job.n_acq_samples, enabled_channels,
+                                              job.n_rep,
+                                              job.acquisition_conf.average_repetitions)
+
     def play(self, seq_id, index, release_job = True):
         """
         start playback of a sequence that has been uploaded.
@@ -309,6 +361,8 @@ class QsUploader:
 
         logger.debug(f'loaded dig sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
 
+        self._configure_digitizers(job)
+
         # start hvi (start function loads schedule if not yet loaded)
         acquire_triggers = {f'dig_trigger_{i+1}':t for i,t in enumerate(job.digitizer_triggers)}
         trigger_channels = {f'dig_trigger_channels_{dig_name}':triggers
@@ -323,6 +377,48 @@ class QsUploader:
         if release_job:
             job.release()
 
+    def get_channel_data(self, seq_id, index):
+        acq_desc = self.acq_description
+        if (acq_desc.seq_id != seq_id
+            or (index is not None and acq_desc.index != index)):
+            raise Exception(f'Data for index {index} not available')
+
+        dig_data = {}
+        for dig_name,channel_nums in acq_desc.enabled_channels.items():
+            dig = self.digitizers[dig_name]
+            dig_data[dig_name] = {}
+            active_channels = dig.active_channels
+            data = dig.measure.get_data()
+            for ch_num, ch_data in zip(active_channels, data):
+                dig_data[dig_name][ch_num] = ch_data
+
+        result = {}
+        for channel_name in acq_desc.channels:
+            channel = self.digitizer_channels[channel_name]
+            dig_name = channel.module_name
+            in_ch = channel.channel_numbers
+            # Note: Digitizer FPGA returns IQ in complex value.
+            #       2 input channels are used with external IQ demodulation without processing in FPGA.
+            if len(in_ch) == 2:
+                raw_I = dig_data[dig_name][in_ch[0]]
+                raw_Q = dig_data[dig_name][in_ch[1]]
+                raw_ch = (raw_I + 1j * raw_Q) * np.exp(1j*channel.phase)
+            else:
+                # this can be complex valued output with LO modulation or phase shift in digitizer (FPGA)
+                raw_ch = dig_data[dig_name][in_ch[0]]
+
+            if not channel.iq_out:
+                raw_ch = raw_ch.real
+
+            result[channel_name] = raw_ch
+
+        if acq_desc.n_rep:
+            for key,value in result.items():
+                result[key] = value.reshape((acq_desc.n_rep, -1))
+                if acq_desc.average_repetitions:
+                    result[key] = np.mean(result[key], axis=0)
+
+        return result
 
     def release_memory(self, seq_id=None, index=None):
         """
@@ -365,6 +461,15 @@ class AwgQueueItem:
     wave_reference: object
     sample_rate: float
 
+@dataclass
+class AcqDescription:
+    seq_id: UUID
+    index: List[int]
+    channels: List[str]
+    n_acq_samples: Dict[str, int]
+    enabled_channels: Dict[str, List[int]]
+    n_rep: int
+    average_repetitions: bool
 
 class Job(object):
     """docstring for upload_job"""
@@ -1025,14 +1130,28 @@ class UploadAggregator:
 #                wvf = seg_ch.get_segment(job.index, sample_rate*1e9)
 #                duration = time.perf_counter() - start
 
-    def _generate_digitizer_triggers(self, job):
-        trigger_channels = {}
-        digitizer_trigger_channels = {}
-        has_HVI_triggers = False
+    def _count_hvi_measurements(self, hvi_params):
+        n = 0
+        while(True):
+            if n == 0 and 'dig_wait' in hvi_params:
+                n += 1
+            elif f'dig_wait_{n+1}' in hvi_params or f'dig_trigger_{n+1}' in hvi_params:
+                n += 1
+            else:
+                return n
 
-        for name, value in job.schedule_params.items():
-            if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
-                has_HVI_triggers = True
+    def _generate_digitizer_triggers(self, job):
+        trigger_channels = defaultdict(list)
+        digitizer_trigger_channels = {}
+        job.n_acq_samples = defaultdict(int)
+        job.t_measure = {}
+
+        n_hvi_triggers = self._count_hvi_measurements(job.schedule_params)
+        has_HVI_triggers = n_hvi_triggers > 0
+        if has_HVI_triggers:
+            for ch_name in self.digitizer_channels:
+                job.n_acq_samples[ch_name] = n_hvi_triggers
+                job.t_measure[ch_name] = job.acquisition_conf.t_measure
 
         # TODO @@@: cleanup this messy code.
         for channel_name, channel in self.digitizer_channels.items():
@@ -1053,12 +1172,23 @@ class UploadAggregator:
                 for acquisition in acquisition_data:
                     if has_HVI_triggers:
                         raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
+                    if acquisition.n_repeat is not None:
+                        raise Exception('Acquisition n_repeat is not supported for Keysight')
+                    job.n_acq_samples[ch_name] += 1
                     t = seg_render.t_start + acquisition.start
                     for ch in channel.channel_numbers:
-                        trigger_channels.setdefault(t+offset, []).append((channel.module_name, ch))
+                        trigger_channels[t+offset].append((channel.module_name, ch))
                     # set empty list. Fill later after sorting all triggers
                     digitizer_trigger_channels[channel.module_name] = []
                     t_measure = acquisition.t_measure if acquisition.t_measure is not None else job.acquisition_conf.t_measure
+                    if channel_name in job.t_measure:
+                        if t_measure != job.t_measure[channel_name]:
+                            raise Exception(
+                                    't_measure must be same for all triggers, '
+                                    f'channel:{channel_name}, '
+                                    f'{t_measure}!={job.t_measure[channel_name]}')
+                    else:
+                        job.t_measure[channel_name] = t_measure
                     t_end = t+t_measure
                     if rf_source is not None and rf_source.mode != 'continuous':
                         rf_marker_pulses.append(RfMarkerPulse(t, t_end))
@@ -1089,6 +1219,9 @@ class UploadAggregator:
         for name, value in job.schedule_params.items():
             if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
                 raise Exception('HVI triggers not supported with QS')
+
+        job.n_acq_samples = defaultdict(int)
+        job.t_measure = {}
 
         pxi_triggers = {}
         for seg in job.sequence:
@@ -1125,7 +1258,6 @@ class UploadAggregator:
                 acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
                 for acquisition in acquisition_data:
                     t = seg_render.t_start + acquisition.start
-
                     if acquisition.t_measure is not None:
                         t_measure = acquisition.t_measure
                     else:
@@ -1137,11 +1269,13 @@ class UploadAggregator:
                     else:
                         t_integrate = t_measure
                         n_cycles = 1
+                    job.n_acq_samples[channel_name] += n_cycles
                     pxi_trigger = pxi_triggers.get(str(acquisition.ref), None)
                     sequence.acquire(t + offset, t_integrate, n_cycles,
                                      threshold=acquisition.threshold,
                                      pxi_trigger=pxi_trigger)
 
+                    job.t_measure[channel_name] = t_measure
                     logger.debug(f'Acq: {acquisition.ref}: {pxi_trigger}')
                     t_end = t+t_measure
                     if rf_source is not None and rf_source.mode != 'continuous':

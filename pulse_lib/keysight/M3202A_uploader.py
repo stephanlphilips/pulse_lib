@@ -3,6 +3,7 @@ from uuid import UUID
 import numpy as np
 import logging
 import math
+from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
 
@@ -169,15 +170,15 @@ class M3202A_Uploader:
         total_seconds = job.playback_time * n_rep * 1e-9
         timeout = int(total_seconds*1.1) + 3
 
-        enabled_channels = {}
+        enabled_channels = defaultdict(list)
         channels = job.acquisition_conf.channels
-        sample_rate = job.acquisition_conf.sample_rate
         if channels is None:
-            channels = list(job.acquisitions.keys())
+            channels = list(job.n_acq_samples.keys())
+        sample_rate = job.acquisition_conf.sample_rate
         for channel_name,t_measure in job.t_measure.items():
             if channel_name not in channels:
                 continue
-            n_triggers = len(job.acquisitions[channel_name])
+            n_triggers = job.n_acq_samples[channel_name]
             channel_conf = self.digitizer_channels[channel_name]
             dig_name = channel_conf.module_name
             dig = self.digitizers[dig_name]
@@ -185,7 +186,7 @@ class M3202A_Uploader:
                 n_rep = job.n_rep if job.n_rep else 1
                 dig.set_daq_settings(ch, n_triggers*n_rep, t_measure,
                                      downsampled_rate=sample_rate)
-                enabled_channels.setdefault(dig_name, []).append(ch)
+                enabled_channels[dig_name].append(ch)
 
         # disable not used channels of digitizer
         for dig_name,channel_nums in enabled_channels.items():
@@ -196,7 +197,7 @@ class M3202A_Uploader:
                 dig.set_timeout(timeout)
 
         self.acq_description = AcqDescription(job.seq_id, job.index, channels,
-                                              job.acquisitions, enabled_channels,
+                                              job.n_acq_samples, enabled_channels,
                                               job.n_rep,
                                               job.acquisition_conf.average_repetitions)
 
@@ -331,9 +332,11 @@ class M3202A_Uploader:
 
             result[channel_name] = raw_ch
 
-        if not acq_desc.average_repetitions and acq_desc.n_rep:
+        if acq_desc.n_rep:
             for key,value in result.items():
                 result[key] = value.reshape((acq_desc.n_rep, -1))
+                if acq_desc.average_repetitions:
+                    result[key] = np.mean(result[key], axis=0)
 
         return result
 
@@ -378,7 +381,7 @@ class AcqDescription:
     seq_id: UUID
     index: List[int]
     channels: List[str]
-    acquisitions: Dict[str, List[str]]
+    n_acq_samples: Dict[str, int]
     enabled_channels: Dict[str, List[int]]
     n_rep: int
     average_repetitions: bool
@@ -947,9 +950,9 @@ class UploadAggregator:
                 return n
 
     def _generate_digitizer_triggers(self, job):
-        trigger_channels = {}
+        trigger_channels = defaultdict(list)
         digitizer_trigger_channels = {}
-        job.acquisitions = {}
+        job.n_acq_samples = defaultdict(int)
         job.t_measure = {}
         self.rf_marker_pulses = {}
 
@@ -957,7 +960,7 @@ class UploadAggregator:
         has_HVI_triggers = n_hvi_triggers > 0
         if has_HVI_triggers:
             for ch_name in self.digitizer_channels:
-                job.acquisitions[ch_name] = [f'{ch_name}_{i+1}' for i in range(n_hvi_triggers)]
+                job.n_acq_samples[ch_name] = n_hvi_triggers
                 job.t_measure[ch_name] = job.acquisition_conf.t_measure
 
         # TODO @@@: cleanup this messy code.
@@ -975,17 +978,10 @@ class UploadAggregator:
                 if has_HVI_triggers and len(acquisition_data) > 0:
                     raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
                 for acquisition in acquisition_data:
-                    t = seg_render.t_start + acquisition.start
-                    acq_list = job.acquisitions.setdefault(ch_name, [])
-                    if acquisition.ref is None:
-                        acq_name = f'{ch_name}_{len(acq_list)+1}'
-                    elif isinstance(acquisition.ref, str):
-                        acq_name = acquisition.ref
-                    else:
-                        acq_name = acquisition.ref.name
-                    acq_list.append(acq_name)
                     if acquisition.n_repeat is not None:
                         raise Exception('Acquisition n_repeat is not supported for Keysight')
+                    t = seg_render.t_start + acquisition.start
+                    job.n_acq_samples[ch_name] += 1
                     t_measure = acquisition.t_measure if acquisition.t_measure is not None else job.acquisition_conf.t_measure
                     if ch_name in job.t_measure:
                         if t_measure != job.t_measure[ch_name]:
@@ -997,7 +993,7 @@ class UploadAggregator:
                         job.t_measure[ch_name] = t_measure
 
                     for ch in channel.channel_numbers:
-                        trigger_channels.setdefault(t+offset, []).append((channel.module_name, ch))
+                        trigger_channels[t+offset].append((channel.module_name, ch))
                     # set empty list. Fill later after sorting all triggers
                     digitizer_trigger_channels[channel.module_name] = []
                     t_end = t+t_measure
