@@ -115,6 +115,16 @@ class loop_obj():
     def ndim(self):
         return self.data.ndim
 
+    def at(self, seg_index):
+        '''
+        Returns the value for this specific index in the segment.
+        E.g. If axis = [0] and seg_index is (10,20,30) then
+        it returns self[30].
+        Note: In pulse-lib axis 0 is the right-most axis of the shape.
+        '''
+        key = tuple(seg_index[-i-1] for i in self.axis)
+        return self.data[key]
+
     def __getitem__(self, key):
         if self.ndim == 1:
             return self.data[key]
