@@ -174,8 +174,8 @@ class Context:
             for j in range(2):
                 qubit = 2*i+j+1
                 if qubit < n_qubits+1:
-                    idle_frequency = 2.350e9 + qubit*0.100e9
-                    pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, idle_frequency)
+                    resonance_frequency = 2.350e9 + qubit*0.100e9
+                    pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
 
         if n_sensors > 0 and backend in ['Keysight']:
             pulse.configure_digitizer = True

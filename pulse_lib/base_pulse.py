@@ -378,26 +378,38 @@ class pulselib:
         return self.IQ_channels[name]
 
     def define_qubit_channel(self, qubit_channel_name, IQ_channel_name,
-                             reference_frequency=None,
-                             correction_phase=0.0, correction_gain=(1.0,1.0)):
+                             resonance_frequency=None,
+                             correction_phase=0.0, correction_gain=(1.0,1.0),
+                             reference_frequency=None, # TODO: remove in next release.
+                             ):
         """
         Creates a qubit channel on an IQ channel. A qubit channel keeps track of the
         qubit's phase required for coherent quantum gates.
 
         Args:
-            virtual_channel_name (str) : channel name (e.g. qubit_1)
-            LO_freq (float) : frequency of the qubit when not driving and default for driving.
+            qubit_channel_name (str) : channel name (e.g. q1)
+            IQ_channel_name: name of the IQ pair.
+            resonance_frequency (float) : frequency of the qubit when not driving and default for driving.
             correction_phase (float) : phase in rad added to Q component of IQ channel
             correction_gain (float,float) : correction of I and Q amplitude
         """
+        if reference_frequency is not None:
+            print('WARNING: argument reference_frequency of define_qubit_channel() is deprecated')
+            if resonance_frequency is None:
+                resonance_frequency = reference_frequency
+
         iq_channel = self.IQ_channels[IQ_channel_name]
-        qubit = QubitChannel(qubit_channel_name, reference_frequency, iq_channel,
+        qubit = QubitChannel(qubit_channel_name, resonance_frequency, iq_channel,
                              correction_phase, correction_gain)
         iq_channel.qubit_channels.append(qubit)
         self.qubit_channels[qubit_channel_name] = qubit
 
-    def set_qubit_idle_frequency(self, qubit_channel_name, idle_frequency):
-        self.qubit_channels[qubit_channel_name].reference_frequency = idle_frequency
+    def set_qubit_idle_frequency(self, qubit_channel_name, resonance_frequency):
+        print('set_qubit_idle_frequency is deprecated. Use set_qubit_resonance_frequency')
+        self.set_qubit_resonance_frequency(qubit_channel_name, resonance_frequency)
+
+    def set_qubit_resonance_frequency(self, qubit_channel_name, resonance_frequency):
+        self.qubit_channels[qubit_channel_name].resonance_frequency = resonance_frequency
 
     def set_qubit_correction_phase(self, qubit_channel_name, correction_phase):
         self.qubit_channels[qubit_channel_name].correction_phase = correction_phase

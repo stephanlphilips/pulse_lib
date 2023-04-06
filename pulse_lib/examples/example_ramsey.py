@@ -25,7 +25,7 @@ f_drive = 2.420e9
 t_X90 = 60
 amplitude = 50
 
-p.qubit_channels['q1'].reference_frequency = 2.420e9
+p.qubit_channels['q1'].resonance_frequency = 2.420e9
 
 t_wait = lp.linspace(0, 200, 11, axis=0)
 

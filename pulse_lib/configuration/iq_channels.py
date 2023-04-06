@@ -15,11 +15,20 @@ class IQ_out_channel_info:
 @dataclass
 class QubitChannel:
     channel_name : str
-    reference_frequency : float
+    resonance_frequency : float
     iq_channel: 'IQ_channel'
     correction_phase: Optional[float] = None
     correction_gain: Optional[Tuple[float]] = None
 
+    @property
+    def reference_frequency(self):
+        print('reference_frequency is deprecated')
+        return self.resonance_frequency
+
+    @reference_frequency.setter
+    def reference_frequency(self, value):
+        print('reference_frequency is deprecated')
+        self.resonance_frequency = value
 
 @dataclass
 class IQ_channel:

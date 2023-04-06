@@ -313,7 +313,7 @@ class QsUploader:
                 # TODO cleanup frequency update hack
                 qubit_channel = self.qubit_channels[awg_sequencer.channel_name]
                 if len(sequence.waveforms) > 0:
-                    seq._frequency = qubit_channel.reference_frequency - qubit_channel.iq_channel.LO
+                    seq._frequency = qubit_channel.resonance_frequency - qubit_channel.iq_channel.LO
                     if abs(seq._frequency) > 450e6:
                         raise Exception(f'Sequencer frequency {seq._frequency/1e6:5.1f} MHz out of range')
 

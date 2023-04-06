@@ -20,10 +20,10 @@ p = init_pulselib(awgs, digs)
 
 # set qubit frequencies for nice figures
 
-p.set_qubit_idle_frequency('q1', 2.420e9)
-p.set_qubit_idle_frequency('q2', 2.440e9)
-p.set_qubit_idle_frequency('q3', 2.840e9)
-p.set_qubit_idle_frequency('q4', 2.840e9)
+p.set_qubit_resonance_frequency('q1', 2.420e9)
+p.set_qubit_resonance_frequency('q2', 2.440e9)
+p.set_qubit_resonance_frequency('q3', 2.840e9)
+p.set_qubit_resonance_frequency('q4', 2.840e9)
 
 p.set_qubit_correction_gain('q2', 0.9, 1.0)
 p.set_qubit_correction_gain('q3', 1.0, 0.9)

@@ -136,7 +136,7 @@ class IQ_channel_constructor(object):
             correction_gain (float) : correction of I and Q gain
         """
         self.pulse_lib_obj.define_qubit_channel(virtual_channel_name, self.IQ_channel.name,
-                                                reference_frequency=LO_freq,
+                                                resonance_frequency=LO_freq,
                                                 correction_phase=correction_phase,
                                                 correction_gain=correction_gain)
 
