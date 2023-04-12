@@ -8,7 +8,7 @@ from .segments.data_classes.data_generic import data_container, parent_data
 from .segments.segment_container import segment_container
 from .segments.segment_measurements import measurement_acquisition
 from .segments.utility.data_handling_functions import find_common_dimension, update_dimension
-from .segments.utility.setpoint_mgr import setpoint_mgr
+from .segments.utility.setpoint_mgr import setpoint_mgr, setpoint
 from .segments.utility.looping import loop_obj
 from .segments.utility.measurement_ref import MeasurementRef
 from .measurements_description import measurements_description
@@ -66,6 +66,7 @@ class sequencer():
         self._alignment = None
         self._acquisition_conf = AcquisitionConf()
         self._measurement_converter = None
+        self._qubit_resonance_frequencies = {}
 
     @property
     def n_rep(self):
@@ -98,11 +99,7 @@ class sequencer():
 
     @property
     def setpoint_data(self):
-        setpoint_data = setpoint_mgr()
-        for seg_container in self.sequence:
-            setpoint_data += seg_container.setpoint_data
-
-        return setpoint_data
+        return self._setpoint_data
 
     @property
     def units(self):
@@ -183,9 +180,11 @@ class sequencer():
 
         # update dimensionality of all sequence objects
         logger.debug('Enter pre-rendering')
+        setpoint_data = setpoint_mgr()
         for seg_container in self.sequence:
             seg_container.enter_rendering_mode()
             self._shape = find_common_dimension(self._shape, seg_container.shape)
+            setpoint_data += seg_container.setpoint_data
         logger.debug('Done pre-render')
         # Set the waveform cache equal to the sum over all channels and segments of the max axis length.
         # The cache will than be big enough for 1D iterations along every axis. This gives best performance
@@ -209,6 +208,7 @@ class sequencer():
         logger.info(f'waveform cache: {cache_size} waveforms of max {n_samples} samples')
         parent_data.set_waveform_cache_size(cache_size)
 
+        self._setpoint_data = setpoint_data
         self._shape = tuple(self._shape)
         self._sweep_index = [0]*self.ndim
         self._HVI_variables = data_container(marker_HVI_variable())
@@ -311,6 +311,26 @@ class sequencer():
         self.hw_schedule = hw_schedule
         self.hw_schedule.set_schedule_parameters(**kwargs)
 
+    def set_qubit_resonance_frequency(self, qubit_channel_name, frequency):
+        '''
+        Sets qubit resonance frequency for this sequence.
+        Args:
+            qubit_channel_name (str): name of qubit channel
+            frequency (float or loopobj): frequency for the qubit.
+        '''
+        if isinstance(frequency, loop_obj):
+            if len(frequency.axis) != 1:
+                raise Exception('Only 1D loops can be added')
+            axis = frequency.axis[0]
+            loop_shape = (len(frequency.setvals[0]),) + (1,)*(axis)
+            # add to shape and setpoints
+            self._shape = np.broadcast_shapes(self._shape, loop_shape)
+            self._setpoints += setpoint(
+                    axis,
+                    label=(frequency.labels[0],),
+                    unit=(frequency.units[0],),
+                    setpoint=(frequency.setvals[0],))
+        self._qubit_resonance_frequencies[qubit_channel_name] = frequency
 
     @property
     def configure_digitizer(self):
@@ -485,11 +505,19 @@ class sequencer():
         param = MeasurementParameter(name, reader, mc, selection)
         return param
 
-    def _retry_upload(self, exception, n_retries, index):
+    def _retry_upload(self, exception, index):
         # '-8033' is a Keysight waveform upload error that requires a new upload
-        if '(-8033)' in repr(exception) and n_retries > 0:
+        if '(-8033)' in repr(exception):
             logger.info('Upload failure', exc_info=True)
             logger.warning(f'Sequence upload failed at index {index}; retrying...')
+            return True
+        return False
+
+    def _retry_play(self, exception, index):
+        # 'RT EXEC COMMAND UNDERFLOW' is a Qblox specific that requires a new play
+        if 'RT EXEC COMMAND UNDERFLOW' in repr(exception):
+            logger.info('Play failure', exc_info=True)
+            logger.warning(f'Sequence play failed at index {index}; retrying...')
             return True
         return False
 
@@ -506,14 +534,14 @@ class sequencer():
         if index is None:
             index = self.sweep_index[::-1]
         self._validate_index(index)
-        n_retries = 3
+        n_retries = 2
         while True:
             try:
                 upload_job = self.uploader.create_job(self.sequence, index, self.id,
                                                       self.n_rep, self._sample_rate,
                                                       self.neutralize, alignment=self._alignment)
                 upload_job.set_acquisition_conf(self._acquisition_conf)
-
+                upload_job.qubit_resonance_frequencies = self._qubit_resonance_frequencies
                 if self.hw_schedule is not None:
                     hvi_markers = self._HVI_variables.item(tuple(index)).HVI_markers
                     upload_job.add_hw_schedule(self.hw_schedule, hvi_markers)
@@ -521,7 +549,9 @@ class sequencer():
                 self.uploader.add_upload_job(upload_job)
                 return upload_job
             except Exception as ex:
-                if self._retry_upload(ex, n_retries, index):
+                if n_retries <= 0:
+                    raise
+                if self._retry_upload(ex, index):
                     n_retries -= 1
                 else:
                     raise
@@ -538,13 +568,17 @@ class sequencer():
             index = self.sweep_index[::-1]
         self._validate_index(index)
 
-        n_retries = 3
+        n_retries = 2
         while True:
             try:
                 self.uploader.play(self.id, index, release)
                 return
             except Exception as ex:
-                if self._retry_upload(ex, n_retries, index):
+                if n_retries <= 0:
+                    raise
+                if self._retry_play(ex, index):
+                    n_retries -= 1
+                elif self._retry_upload(ex, index):
                     n_retries -= 1
                     # Retries are only done for Keysight and require a new upload of the waveform
                     self.upload(index)
@@ -671,7 +705,6 @@ class sequencer():
                     'amplitude+phase'. return amplitude and phase using channel name postfixes '_amp', '_phase'.
             iq_complex (bool):
                 If False this is equivalent to `iq_mode='I+Q'`
-
         '''
         if index is None:
             index = self.sweep_index[::-1]

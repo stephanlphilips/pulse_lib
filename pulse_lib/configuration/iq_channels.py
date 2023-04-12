@@ -11,11 +11,16 @@ class IQ_out_channel_info:
     # make the negative of positive image of the signal (*-1)
     image: str
 
+FrequencyUndefined = 'FrequencyUndefined'
 
 @dataclass
 class QubitChannel:
     channel_name : str
-    resonance_frequency : float
+    resonance_frequency : Union[float, None, str]
+    ''' qubit resonance frequency.
+    None is not set.
+    'UndefinedFrequency' implies non-coherent pulses using NCO frequency = 0.0
+    '''
     iq_channel: 'IQ_channel'
     correction_phase: Optional[float] = None
     correction_gain: Optional[Tuple[float]] = None

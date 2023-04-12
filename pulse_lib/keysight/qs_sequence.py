@@ -312,7 +312,7 @@ class IQSequenceBuilder:
 
         # set wait time of last instruction
         if last_entry is not None:
-            # Max wait time for instruction with waveform ~ 32 ms
+            # Max wait time for instruction with waveform ~ 327 us
             max_wait = 5 * (2**16-1)
             t = min(max_wait, t_wait)
             last_entry.time_after = t

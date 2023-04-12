@@ -15,6 +15,7 @@ from pulse_lib.segments.conditional_segment import conditional_segment
 from pulse_lib.tests.mock_m3202a_qs import AwgInstruction, AwgConditionalInstruction
 from pulse_lib.tests.mock_m3102a_qs import DigitizerInstruction
 from pulse_lib.segments.utility.rounding import iround
+from pulse_lib.uploader.job_funcs import get_iq_nco_idle_frequency
 
 logger = logging.getLogger(__name__)
 
@@ -310,12 +311,14 @@ class QsUploader:
                 t1 = time.perf_counter()
                 sequence = job.iq_sequences[awg_sequencer.channel_name]
 
-                # TODO cleanup frequency update hack
+                # TODO move NCO frequency to iq_sequence object
                 qubit_channel = self.qubit_channels[awg_sequencer.channel_name]
                 if len(sequence.waveforms) > 0:
-                    seq._frequency = qubit_channel.resonance_frequency - qubit_channel.iq_channel.LO
+                    seq._frequency = get_iq_nco_idle_frequency(job, qubit_channel, index)
+                    if seq._frequency is None:
+                        raise Exception('Qubit resonance frequency must be configured for QS')
                     if abs(seq._frequency) > 450e6:
-                        raise Exception(f'Sequencer frequency {seq._frequency/1e6:5.1f} MHz out of range')
+                        raise Exception(f'Sequencer IQ frequency {seq._frequency/1e6:5.1f} MHz is out of range')
 
                 # @@@ IQSequence.upload() OR Sequence.upload()
                 for number,wvf in enumerate(sequence.waveforms):

@@ -6,9 +6,6 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from pulse_lib.segments.data_classes.data_IQ import make_chirp
-from .rendering import SineWaveform
-
 logger = logging.getLogger(__name__)
 
 class PulsarConfig:
@@ -243,7 +240,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
 
     def chirp(self, t, duration, amplitude, start_frequency, stop_frequency):
         # set NCO frequency if valid. Otherwise set 0.0 to enable modulation
-        if abs(self.nco_frequency) <= 450e6:
+        if self._has_valid_nco_freq():
             self.seq.nco_frequency = self.nco_frequency
         else:
             self.seq.nco_frequency = 0.0
@@ -253,14 +250,18 @@ class IQSequenceBuilder(SequenceBuilderBase):
                        start_frequency, stop_frequency,
                        t_offset=t)
         # restore NCO frequency if it is valid.
-        if abs(self.nco_frequency) <= 450e6:
+        if self._has_valid_nco_freq():
             self.seq.set_frequency(self.nco_frequency, t_offset=t+duration)
 
+    def _has_valid_nco_freq(self):
+        return self.nco_frequency is not None and abs(self.nco_frequency) <= 450e6
+
     def _check_set_nco_freq(self):
+        if self.nco_frequency is None:
+            raise Exception(f'{self.name}: Qubit resonance frequency has not been set')
         if abs(self.nco_frequency) > 450e6:
             raise Exception(f'{self.name}: NCO frequency {self.nco_frequency/1e6:5.1f} MHz out of range')
-        else:
-            self.seq.nco_frequency = self.nco_frequency
+        self.seq.nco_frequency = self.nco_frequency
 
 @dataclass
 class _SeqCommand:

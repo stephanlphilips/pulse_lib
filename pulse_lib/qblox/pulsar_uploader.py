@@ -21,6 +21,7 @@ from q1pulse import Q1Instrument
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single, Chirp
 from pulse_lib.segments.data_classes.data_pulse import (
         PhaseShift, custom_pulse_element, OffsetRamp)
+from pulse_lib.uploader.job_funcs import get_iq_nco_idle_frequency
 
 logger = logging.getLogger(__name__)
 
@@ -392,9 +393,6 @@ class Job(object):
     def set_acquisition_conf(self, conf):
         self.acquisition_conf = conf
 
-    def get_variable(self, name, default=None):
-        return self.schedule_params.get(name, default)
-
     def release(self):
         if self.released:
             logger.warning(f'job {self.seq_id}-{self.index} already released')
@@ -678,9 +676,7 @@ class UploadAggregator:
         t_offset = PulsarConfig.align(self.max_pre_start_ns + delays[0])
 
         lo_freq = qubit_channel.iq_channel.LO
-        if qubit_channel.reference_frequency is None:
-            raise Exception(f'Qubit idle frequency not set for {channel_name}')
-        nco_freq = qubit_channel.reference_frequency-lo_freq
+        nco_freq = get_iq_nco_idle_frequency(job, qubit_channel, job.index)
 
         seq = IQSequenceBuilder(channel_name, self.program[channel_name],
                                 nco_freq,
