@@ -56,5 +56,9 @@ def qc_run(name, *args, quiet=False):
     else:
         m = Measure(*actions)
 
-    ds = m.run(loc_record={'name':name}, quiet=quiet)
+    if seq is not None:
+        data = m.get_data_set(loc_record={'name':name})
+        data.add_metadata(seq.metadata)
+
+    ds = m.run(quiet=quiet)
     return ds
