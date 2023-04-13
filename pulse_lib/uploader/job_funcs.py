@@ -13,7 +13,7 @@ def get_iq_nco_idle_frequency(job, qubit_channel, index):
     The NCO frequency will be set to 0.0 if the qubit frequency is set to FrequencyUndefined.
     '''
     try:
-        frequency = job.qubit_resonance_frequency[qubit_channel.channel_name]
+        frequency = job.qubit_resonance_frequencies[qubit_channel.channel_name]
         if isinstance(frequency, loop_obj):
             frequency = frequency.at(index)
     except:
