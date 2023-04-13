@@ -492,7 +492,10 @@ class RenderSection:
 
     def align(self, extend):
         if extend:
-            self.npt = int((self.npt + AwgConfig.ALIGNMENT - 1) // AwgConfig.ALIGNMENT) * AwgConfig.ALIGNMENT
+            if self.npt < 2000:
+                self.npt = 2000
+            else:
+                self.npt = int((self.npt + AwgConfig.ALIGNMENT - 1) // AwgConfig.ALIGNMENT) * AwgConfig.ALIGNMENT
         else:
             self.npt = int(self.npt // AwgConfig.ALIGNMENT) * AwgConfig.ALIGNMENT
 

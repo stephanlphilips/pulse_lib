@@ -318,7 +318,7 @@ class QsUploader:
                     if seq._frequency is None:
                         raise Exception('Qubit resonance frequency must be configured for QS')
                     if abs(seq._frequency) > 450e6:
-                        raise Exception(f'Sequencer IQ frequency {seq._frequency/1e6:5.1f} MHz is out of range')
+                        raise Exception(f'{channel_name} IQ frequency {seq._frequency/1e6:5.1f} MHz is out of range')
 
                 # @@@ IQSequence.upload() OR Sequence.upload()
                 for number,wvf in enumerate(sequence.waveforms):
@@ -575,7 +575,10 @@ class RenderSection:
 
     def align(self, extend):
         if extend:
-            self.npt = int((self.npt + AwgConfig.ALIGNMENT - 1) // AwgConfig.ALIGNMENT) * AwgConfig.ALIGNMENT
+            if self.npt < 2000:
+                self.npt = 2000
+            else:
+                self.npt = int((self.npt + AwgConfig.ALIGNMENT - 1) // AwgConfig.ALIGNMENT) * AwgConfig.ALIGNMENT
         else:
             self.npt = int(self.npt // AwgConfig.ALIGNMENT) * AwgConfig.ALIGNMENT
 
