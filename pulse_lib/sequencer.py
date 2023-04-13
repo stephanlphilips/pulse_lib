@@ -99,7 +99,7 @@ class sequencer():
 
     @property
     def setpoint_data(self):
-        return self._setpoint_data
+        return self._setpoints
 
     @property
     def units(self):
@@ -208,7 +208,7 @@ class sequencer():
         logger.info(f'waveform cache: {cache_size} waveforms of max {n_samples} samples')
         parent_data.set_waveform_cache_size(cache_size)
 
-        self._setpoint_data = setpoint_data
+        self._setpoints = setpoint_data
         self._shape = tuple(self._shape)
         self._sweep_index = [0]*self.ndim
         self._HVI_variables = data_container(marker_HVI_variable())
