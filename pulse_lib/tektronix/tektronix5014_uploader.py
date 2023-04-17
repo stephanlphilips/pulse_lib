@@ -7,6 +7,7 @@ from typing import List, Dict, Optional
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from pulse_lib.segments.data_classes.data_markers import marker_pulse
+from pulse_lib.uploader.uploader_funcs import merge_markers
 
 logger = logging.getLogger(__name__)
 
@@ -685,42 +686,30 @@ class UploadAggregator:
                 start_stop.append((offset - marker_channel.setup_ns, +1))
                 start_stop.append((offset + marker_channel.hold_ns, -1))
 
-            if len(start_stop) > 0:
-                m = np.array(start_stop)
-                ind = np.argsort(m[:,0])
-                m = m[ind]
-            else:
-                m = []
-
+            m = merge_markers(channel_name, start_stop)
             self._upload_awg_markers(job, marker_channel, m)
 
     def _upload_awg_markers(self, job, marker_channel, m):
         sections = job.upload_info.sections
         section = sections[0]
         buffer = np.zeros(section.npt, dtype=np.uint16)
-        s = 0
-        t_on = 0
-        for on_off in m:
-            s += on_off[1]
-            if s < 0:
-                logger.error(f'Marker error {marker_channel.name} {on_off}')
-            if s == 1 and on_off[1] == 1:
-                t_on = on_off[0]
-            elif s == 0 and on_off[1] == -1:
-                t_off = on_off[0]
+        for i in range(0, len(m), 2):
+            t_on = m[i][0]
+            t_off = m[i+1][0]
+            if UploadAggregator.verbose:
                 logger.debug(f'Marker: {t_on} - {t_off} ({section.t_start:+}ns)')
-                # search start section
-                if t_on >= section.t_end:
-                    logger.error(f'Failed to render marker t_on > start')
-                pt_on = int((t_on - section.t_start) * section.sample_rate)
-                if pt_on < 0:
-                    logger.warning(f'Warning: Marker setup before waveform; aligned with start')
-                    pt_on = 0
-                if t_off > section.t_end:
-                    logger.warning(f'Truncated marker {marker_channel.name} at {section.t_end}')
-                    t_off = section.t_end
-                pt_off = int((t_off - section.t_start) * section.sample_rate)
-                buffer[pt_on:pt_off] = 1
+            # search start section
+            if t_on >= section.t_end:
+                logger.error(f'Failed to render marker t_on > start')
+            pt_on = int((t_on - section.t_start) * section.sample_rate)
+            if pt_on < 0:
+                logger.warning(f'Warning: Marker setup before waveform; aligned with start')
+                pt_on = 0
+            if t_off > section.t_end:
+                logger.warning(f'Truncated marker {marker_channel.name} at {section.t_end}')
+                t_off = section.t_end
+            pt_off = int((t_off - section.t_start) * section.sample_rate)
+            buffer[pt_on:pt_off] = 1
 
         buffer[-1] = 0
 #        self._upload_wvf(job, marker_channel.name, buffer, 1.0, 1.0)

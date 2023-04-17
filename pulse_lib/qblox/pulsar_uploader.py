@@ -21,7 +21,7 @@ from q1pulse import Q1Instrument
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single, Chirp
 from pulse_lib.segments.data_classes.data_pulse import (
         PhaseShift, custom_pulse_element, OffsetRamp)
-from pulse_lib.uploader.job_funcs import get_iq_nco_idle_frequency
+from pulse_lib.uploader.uploader_funcs import get_iq_nco_idle_frequency, merge_markers
 
 logger = logging.getLogger(__name__)
 
@@ -539,7 +539,6 @@ class UploadAggregator:
             for segment in segments:
                 logger.info(f'segment: {segment}')
 
-
     def get_markers(self, job, marker_channel):
         # Marker on periods can overlap, also across segments.
         # Get all start/stop times and merge them.
@@ -556,19 +555,7 @@ class UploadAggregator:
 
         # merge markers
         marker_value = 1 << marker_channel.channel_number
-        markers = []
-        s = 0
-        m = sorted(start_stop, key=lambda e:e[0])
-        for t,on_off in m:
-            s += on_off
-            if s < 0:
-                logger.error(f'Marker error {marker_channel.name} {on_off}')
-            if s == 1 and on_off == 1:
-                markers.append((t, s, marker_value))
-            if s == 0 and on_off == -1:
-                markers.append((t, s, marker_value))
-
-        return markers
+        return merge_markers(marker_channel.name, start_stop, marker_value)
 
     def get_markers_seq(self, job, seq_name):
         marker_names = self.seq_markers.get(seq_name, [])
@@ -578,22 +565,20 @@ class UploadAggregator:
         markers = []
         for marker_name in marker_names:
             marker_channel = self.marker_channels[marker_name]
-
             markers += self.get_markers(job, marker_channel)
 
         s = 0
-        last = -1
+        last = -1000_000
         m = sorted(markers, key=lambda e:e[0])
         seq_markers = []
-        for t,on_off,value in m:
-            if on_off:
-                s |= value
-            else:
-                s &= ~value
+        for t,value in m:
+            s += value
             if t == last:
+                # multiple markers on same time
                 seq_markers[-1] = (t,s)
             else:
                 seq_markers.append((t,s))
+                last = t
 
         return seq_markers
 

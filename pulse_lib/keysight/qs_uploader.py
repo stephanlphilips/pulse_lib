@@ -15,7 +15,7 @@ from pulse_lib.segments.conditional_segment import conditional_segment
 from pulse_lib.tests.mock_m3202a_qs import AwgInstruction, AwgConditionalInstruction
 from pulse_lib.tests.mock_m3102a_qs import DigitizerInstruction
 from pulse_lib.segments.utility.rounding import iround
-from pulse_lib.uploader.job_funcs import get_iq_nco_idle_frequency
+from pulse_lib.uploader.uploader_funcs import get_iq_nco_idle_frequency, merge_markers
 
 logger = logging.getLogger(__name__)
 
@@ -978,55 +978,42 @@ class UploadAggregator:
                     start_stop.append((offset + pulse.start - marker_channel.setup_ns, +1))
                     start_stop.append((offset + pulse.stop + marker_channel.hold_ns, -1))
 
-            if len(start_stop) > 0:
-                m = np.array(start_stop)
-                ind = np.argsort(m[:,0])
-                m = m[ind]
-            else:
-                m = []
-
+            m = merge_markers(channel_name, start_stop)
             if marker_channel.channel_number == 0:
                 self._upload_fpga_markers(job, marker_channel, m)
             else:
                 self._upload_awg_markers(job, marker_channel, m, awg_upload_func)
 
     def _upload_awg_markers(self, job, marker_channel, m, awg_upload_func):
-        # TODO: round section length to 100 ns and use max 1e8 Sa/s rendering?
         sections = job.upload_info.sections
         buffers = [np.zeros(section.npt) for section in sections]
         i_section = 0
-        s = 0
-        t_on = 0
-        for on_off in m:
-            s += on_off[1]
-            if s < 0:
-                logger.error(f'Marker error {marker_channel.name} {on_off}')
-            if s == 1 and on_off[1] == 1:
-                t_on = on_off[0]
-            if s == 0 and on_off[1] == -1:
-                t_off = on_off[0]
+        for i in range(0, len(m), 2):
+            t_on = m[i][0]
+            t_off = m[i+1][0]
+            if UploadAggregator.verbose:
                 logger.debug(f'Marker: {t_on} - {t_off}')
-                # search start section
-                while t_on >= sections[i_section].t_end:
+            # search start section
+            while t_on >= sections[i_section].t_end:
+                i_section += 1
+            section = sections[i_section]
+            pt_on = int((t_on - section.t_start) * section.sample_rate)
+            if pt_on < 0:
+                logger.info(f'Warning: Marker setup before waveform; aligning with start')
+                pt_on = 0
+            if t_off < section.t_end:
+                pt_off = int((t_off - section.t_start) * section.sample_rate)
+                buffers[i_section][pt_on:pt_off] = 1.0
+            else:
+                buffers[i_section][pt_on:] = 1.0
+                i_section += 1
+                # search end section
+                while t_off >= sections[i_section].t_end:
+                    buffers[i_section][:] = 1.0
                     i_section += 1
                 section = sections[i_section]
-                pt_on = int((t_on - section.t_start) * section.sample_rate)
-                if pt_on < 0:
-                    logger.info(f'Warning: Marker setup before waveform; aligning with start')
-                    pt_on = 0
-                if t_off < section.t_end:
-                    pt_off = int((t_off - section.t_start) * section.sample_rate)
-                    buffers[i_section][pt_on:pt_off] = 1.0
-                else:
-                    buffers[i_section][pt_on:] = 1.0
-                    i_section += 1
-                    # search end section
-                    while t_off >= sections[i_section].t_end:
-                        buffers[i_section][:] = 1.0
-                        i_section += 1
-                    section = sections[i_section]
-                    pt_off = int((t_off - section.t_start) * section.sample_rate)
-                    buffers[i_section][:pt_off] = 1.0
+                pt_off = int((t_off - section.t_start) * section.sample_rate)
+                buffers[i_section][:pt_off] = 1.0
 
         for buffer, section in zip(buffers, sections):
             self._upload_wvf(job, marker_channel.name, buffer, 1.0, 1.0, section.sample_rate, awg_upload_func)
@@ -1035,19 +1022,12 @@ class UploadAggregator:
         table = []
         job.marker_tables[marker_channel.name] = table
         offset = int(self.max_pre_start_ns)
-        s = 0
-        t_on = 0
-        for on_off in m:
-            s += on_off[1]
-            if s < 0:
-                logger.error(f'Marker error {marker_channel.name} {on_off}')
-            if s == 1 and on_off[1] == 1:
-                t_on = int(on_off[0])
-            if s == 0 and on_off[1] == -1:
-                t_off = int(on_off[0])
-                if UploadAggregator.verbose:
-                    logger.debug(f'Marker: {t_on} - {t_off}')
-                table.append((t_on + offset, t_off + offset))
+        for i in range(0, len(m), 2):
+            t_on = m[i][0]
+            t_off = m[i+1][0]
+            if UploadAggregator.verbose:
+                logger.debug(f'Marker: {t_on} - {t_off}')
+            table.append((t_on + offset, t_off + offset))
 
     def _upload_wvf(self, job, channel_name, waveform, amplitude, attenuation, sample_rate, awg_upload_func):
         # note: numpy inplace multiplication is much faster than standard multiplication
