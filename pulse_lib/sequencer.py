@@ -231,6 +231,10 @@ class sequencer():
             t_tot += seg_container.total_time
         self._measurements_description.add_HVI_variables(self._HVI_variables)
 
+        self._generate_sweep_params()
+        self._create_metadata()
+
+    def _generate_sweep_params(self):
         self.params =[]
 
         for i in range(len(self.labels)):
@@ -239,8 +243,6 @@ class sequencer():
                                     self, dim = i)
             self.params.append(set_param)
             setattr(self, par_name, set_param)
-
-        self._create_metadata()
 
     def _create_metadata(self):
         self.metadata = {}
@@ -331,6 +333,7 @@ class sequencer():
                     unit=(frequency.units[0],),
                     setpoint=(frequency.setvals[0],))
             self._HVI_variables = update_dimension(self._HVI_variables, self.shape)
+            self._generate_sweep_params()
         self._qubit_resonance_frequencies[qubit_channel_name] = frequency
 
     @property
