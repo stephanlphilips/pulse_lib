@@ -21,7 +21,7 @@ from pulse_lib.schedule.tektronix_schedule import TektronixSchedule
 
 try:
     import core_tools as ct
-    from core_tools.sweeps.sweeps import do0D
+    from core_tools.sweeps.scans import sweep, Scan
     _ct_imported = True
     _ct_configured = False
 except:
@@ -270,13 +270,13 @@ class Context:
             _ct_configured = True
         ct.launch_databrowser()
 
-    def run(self, name, sequence, *params, silent=False):
+    def run(self, name, sequence, *params, silent=False, sweeps=[]):
         global _ct_configured
         runner = self._configuration['runner']
         if runner == 'qcodes':
             path = 'C:/measurements/test_pulselib'
             DataSet.default_io = DiskIO(path)
-            return qc_run(name, sequence, *params, quiet=silent)
+            return qc_run(name, *sweeps, sequence, *params, quiet=silent)
 
         elif runner == 'core_tools':
             if not _ct_imported:
@@ -285,7 +285,10 @@ class Context:
                 ct.configure(os.path.join(self._dir, 'ct_config.yaml'))
                 _ct_configured = True
             ct.set_sample_info(sample=self.configuration_name)
-            return do0D(sequence, *params, name=name, silent=silent).run()
+            scan_sweeps = []
+            for sw in sweeps:
+                scan_sweeps.append(sweep(*sw))
+            return Scan(*scan_sweeps, sequence, *params, name=name, silent=silent).run()
 
         else:
             print(f'no implementation for {runner}')
