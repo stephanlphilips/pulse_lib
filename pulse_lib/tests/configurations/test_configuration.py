@@ -100,7 +100,8 @@ class Context:
 
     def init_pulselib(self, n_gates=0, n_qubits=0, n_markers=0,
                       n_sensors=0, rf_sources=False,
-                      virtual_gates=False, finish=True):
+                      virtual_gates=False, finish=True,
+                      no_IQ=False):
         self.n_plots = 0
         cfg = self._configuration
         station = self.station
@@ -152,32 +153,50 @@ class Context:
             if awg not in pulse.awg_devices:
                 pulse.add_awg(station.components[awg])
             pulse.define_channel(I, awg, channel_I)
-            pulse.define_channel(Q, awg, channel_Q)
-            pulse.add_channel_delay(I, -40)
-            pulse.add_channel_delay(Q, -40)
+            pulse.add_channel_delay(I, -20)
+            if not no_IQ:
+                pulse.define_channel(Q, awg, channel_Q)
+                pulse.add_channel_delay(Q, -20)
             sig_gen = station.components[f'sig_gen{i+1}']
 
             iq_channel_name = f'IQ{i+1}'
             if i == 0:
-                iq_marker = 'M_IQ'
-                self._add_marker(iq_marker, setup_ns=20, hold_ns=20)
-                pulse.add_channel_delay(iq_marker, -40)
+                iq_marker = 'M_IQ1'
+                self._add_marker(iq_marker, setup_ns=100, hold_ns=20)
+                pulse.add_channel_delay(iq_marker, -20)
+            elif i == 1:
+                iq_marker = 'M_IQ2'
+                self._add_marker(iq_marker, setup_ns=100, hold_ns=20)
+                pulse.add_channel_delay(iq_marker, -20)
             else:
                 iq_marker = ''
-            pulse.define_iq_channel(iq_channel_name, i_name=I, q_name=Q,
-                                    marker_name=iq_marker)
-            pulse.set_iq_lo(iq_channel_name, sig_gen.frequency)
 
-            sig_gen.frequency(2.400e9 + i*0.400e9)
-            # LO freqs: 2.400, 2.800
-            # qubit freqs: 2.450, 2.550, 2.650, 2.750
-            for j in range(2):
-                qubit = 2*i+j+1
-                if qubit < n_qubits+1:
-                    resonance_frequency = 2.350e9 + qubit*0.100e9
-                    pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
+            if not no_IQ:
+                pulse.define_iq_channel(iq_channel_name, i_name=I, q_name=Q,
+                                        marker_name=iq_marker)
+                pulse.set_iq_lo(iq_channel_name, sig_gen.frequency)
 
-        if n_sensors > 0 and backend in ['Keysight']:
+                # LO freqs: 2.400, 2.800
+                sig_gen.frequency(2.400e9 + i*0.400e9)
+                # qubit freqs: 2.450, 2.550, 2.650, 2.750
+                for j in range(2):
+                    qubit = 2*i+j+1
+                    if qubit < n_qubits+1:
+                        resonance_frequency = 2.350e9 + qubit*0.100e9
+                        pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
+            else:
+                pulse.define_iq_channel(iq_channel_name, i_name=I,
+                                        marker_name=iq_marker)
+                pulse.set_iq_lo(iq_channel_name, 0.0)
+                # qubit freqs: 150, 200, 250, 300 MHz
+                for j in range(2):
+                    qubit = 2*i+j+1
+                    if qubit < n_qubits+1:
+                        resonance_frequency = 0.100e9 + qubit*0.50e9
+                        pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
+
+
+        if n_sensors > 0 and backend in ['Keysight', 'Keysight_QS']:
             pulse.configure_digitizer = True
         for i in range(n_sensors):
             sensor = f'SD{i+1}'
@@ -242,6 +261,15 @@ class Context:
         elif schedule == 'TektronixM4i':
             sequence.set_hw_schedule(TektronixSchedule(self.pulse))
 
+    def launch_databrowser(self):
+        global _ct_configured
+        if not _ct_imported:
+            raise Exception('core_tools import failed')
+        if not _ct_configured:
+            ct.configure(os.path.join(self._dir, 'ct_config.yaml'))
+            _ct_configured = True
+        ct.launch_databrowser()
+
     def run(self, name, sequence, *params, silent=False):
         global _ct_configured
         runner = self._configuration['runner']
@@ -263,12 +291,13 @@ class Context:
             print(f'no implementation for {runner}')
 
     def plot_awgs(self, sequence, index=None, print_acquisitions=False,
-                  analogue_out=False,
+                  analogue_out=False, savefig=False,
                   **kwargs):
         job = sequence.upload(index)
         sequence.play(index)
         pulse = self.pulse
-        pt.ioff()
+        if savefig:
+            ion_ctx = pt.ioff()
         for awg in list(pulse.awg_devices.values()) + list(pulse.digitizers.values()):
             if hasattr(awg, 'plot'):
                 pt.figure()
@@ -284,7 +313,10 @@ class Context:
                 pt.title(f'output {awg.name}')
                 for (method, arguments) in kwargs.items():
                     getattr(pt, method)(*arguments)
-                self._savefig()
+                if savefig:
+                    self._savefig()
+        if savefig and ion_ctx.wasinteractive:
+            pt.ion()
 
         if print_acquisitions:
             backend = self._configuration['backend']
@@ -319,14 +351,19 @@ class Context:
 #                pt.title(f'name')
 #                self._savefig()
 
-    def plot_segments(self, segments, index=(0,), channels=None, awg_output=True):
+    def plot_segments(self, segments, index=(0,), channels=None, awg_output=True,
+                      savefig=False):
         # TODO: fix index if ndim > 1
-        pt.ioff()
+        if savefig:
+            ion_ctx = pt.ioff()
         for s in segments:
             pt.figure()
             pt.title(f'Segment index:{index}')
             s.plot(index, channels=channels, render_full=awg_output)
-            self._savefig()
+            if savefig:
+                self._savefig()
+        if savefig and ion_ctx.wasinteractive:
+            pt.ion()
 
 #    def plot_ds(self, ds):
 #        runner = self._configuration['runner']
