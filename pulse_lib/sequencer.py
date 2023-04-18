@@ -330,6 +330,7 @@ class sequencer():
                     label=(frequency.labels[0],),
                     unit=(frequency.units[0],),
                     setpoint=(frequency.setvals[0],))
+            self._HVI_variables = update_dimension(self._HVI_variables, self.shape)
         self._qubit_resonance_frequencies[qubit_channel_name] = frequency
 
     @property
