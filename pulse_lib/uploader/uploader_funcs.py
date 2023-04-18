@@ -44,14 +44,14 @@ def merge_markers(marker_name, marker_deltas, marker_value=1, min_off_ns=10) -> 
     '''
     res = []
     s = 0
-    t_off = -(2^31)
+    t_off = None
     for t,step in sorted(marker_deltas):
         s += step
         if s < 0:
             logger.error(f'Marker error {marker_name} at {t} ns')
         if s == 1 and step == +1:
             t_on = int(t)
-            if t_on - t_off < min_off_ns:
+            if t_off is not None and t_on - t_off < min_off_ns:
                 # remove last t_off.
                 res.pop()
             else:

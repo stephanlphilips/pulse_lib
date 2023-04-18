@@ -568,12 +568,12 @@ class UploadAggregator:
             markers += self.get_markers(job, marker_channel)
 
         s = 0
-        last = -1000_000
+        last = None
         m = sorted(markers, key=lambda e:e[0])
         seq_markers = []
         for t,value in m:
             s += value
-            if t == last:
+            if last is not None and t == last:
                 # multiple markers on same time
                 seq_markers[-1] = (t,s)
             else:
