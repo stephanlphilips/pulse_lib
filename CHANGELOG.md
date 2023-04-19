@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.16] - 2023-04-19
+- Renamed idle frequency and reference frequency to qubit resonance frequency.
+- Allow overrule of qubit resonance frequency in sequence.
+- Added FrequencyUndefined for not-coherent pulsing with NCO frequency 0.0 between pulses.
+- Deprecate segment_pulse.add_ramp in favour of add_ramp_ss
+- Added configuration of digitizer to Keysight_QS uploader
+- Added at(index) to loop_obj to get value at sequence index.
+- Corrected phase for MW pulses on Qblox.
+- Added py.typed for mypy
+- Merge marker pulses if < 10 ns between pulses.
+
 ## \[1.6.15] - 2023-03-06
 
 - Fixed rounding errors on segment boundaries in Qblox uploader.
