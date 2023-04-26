@@ -483,15 +483,24 @@ class segment_container():
             channel.render_mode =  False
             channel._pulse_data_all = None
 
-    def plot(self, index=(0,), channels=None, sample_rate=1e9, render_full=True):
+    def plot(self, index=(0,), channels=None, sample_rate = None, render_full=True):
         '''
         Plots selected channels.
         Args:
             index (tuple): loop index
             channels (list[str]): channels to plot, if None plot all channels.
-            sample_rate (float): sample rate to use in rendering.
+            sample_rate (Optional[float]): sample rate to use in rendering. If None, then automatically determine
+                                           a sample rate
             render full (bool) : do full render (e.g. also add data form virtual channels).
         '''
+
+        if sample_rate is None:
+            # aim for a decent number of points
+            max_number_of_points = 100_000
+            duration = self.get_total_time(index)
+            sample_rate = 1e9 * max_number_of_points/duration
+            sample_rate = min(sample_rate, 1e9)
+
         if render_full:
             if channels is None:
                 channels = [name for name in self.channels if self[name].type == 'render']
