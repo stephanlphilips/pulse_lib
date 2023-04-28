@@ -41,14 +41,14 @@ class IQ_channel:
     qubit_channels: List[QubitChannel] = field(default_factory=list)
     IQ_out_channels: List[IQ_out_channel_info] = field(default_factory=list)
     marker_channels: List[str] = field(default_factory=list)
-    LO_parameter: Union[None, float, Parameter] = None
+    LO_parameter: Union[None, float, int, Parameter] = None
 
     @property
     def LO(self):
         """
         get LO frequency of the MW source
         """
-        if isinstance(self.LO_parameter, float):
+        if isinstance(self.LO_parameter, (float, int)):
             return self.LO_parameter
         elif isinstance(self.LO_parameter, Parameter):
             return self.LO_parameter.cache.get()
