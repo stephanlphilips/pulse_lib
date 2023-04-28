@@ -6,6 +6,7 @@ from typing import List, Tuple
 import numpy as np
 import xarray as xr
 import scipy.signal as signal
+from scipy.interpolate import interp1d
 import matplotlib.pyplot as pt
 
 from qcodes.instrument.base import Instrument
@@ -160,7 +161,8 @@ class MockM3202A(Instrument):
         return t, d[n_before: -n_after]
 
 
-    def plot(self, bias_T_rc_time=0, discrete=False, analogue=False):
+    def plot(self, bias_T_rc_time=0, discrete=False, analogue=False, IQ=False, LO_f=None):
+        iq_data = {}
         for channel in range(1,5):
             data, prescaler = self.get_data_prescaler(channel)
             #print(f'{self.name}.{channel} data: {[(len(s),p) for s,p in zip(data,prescaler)]}')
@@ -188,7 +190,7 @@ class MockM3202A(Instrument):
                     t0 = ts[-1] + 1/sr
                     wd = d
                 else:
-                    ts = np.arange(len(d)+1)/sr + t0
+                    ts = np.arange(len(d)+1)/sr + t0 -0.5e-9
                     ts = np.repeat(ts,2)[1:-1]
                     t0 = ts[-1]
                     wd = np.repeat(d,2)
@@ -207,13 +209,34 @@ class MockM3202A(Instrument):
             wave = np.concatenate(wave_data)
 
             t = np.concatenate(t)*1e9
-            pt.plot(t, wave, label=f'{self.name}-{channel}')
+            if not analogue:
+                pt.plot(t, wave, label=f'{self.name}-{channel}')
+            else:
+                t2 = np.concatenate([t-1.0, [t[-1]] ])
+                t2 = np.repeat(t2,2)[1:-1]
+                pt.plot(t2, np.repeat(wave,2), label=f'{self.name}-{channel} digital')
             if analogue:
                 ta,da = self._upconvert_filtered(t, wave)
-                pt.plot(ta, da, label=f'{self.name}-{channel} Out')
+                if IQ:
+                    iq_data[channel] = da
+                pt.plot(ta, da, label=f'{self.name}-{channel} analogue')
             if bias_T_rc_time:
                 biased = np.concatenate(biased_data)
                 pt.plot(t, biased, ':', label=f'{self.name}-{channel} bias-T')
+        if IQ:
+            pt.legend()
+            pt.figure()
+            for chI,chQ in [(1,2),(3,4)]:
+                if chI not in iq_data or chQ not in iq_data:
+                    continue
+                IQ = iq_data[chI] + 1j*iq_data[chQ]
+                LO = np.exp(1j*2*np.pi*LO_f*1e-9*ta)
+                rf_out = LO*IQ
+                rf = interp1d(ta, rf_out.real, 'quadratic')
+                ta2 = np.concatenate([(ta[1:]+ta[:-1])/2, ta])
+                ta2.sort()
+                pt.plot(ta2, rf(ta2), label=f'{self.name}-{chI},{chQ} RF')
+#            pt.legend()
 
 
 class MockM3202A_fpga(MockM3202A):
@@ -249,6 +272,7 @@ class MockM3202A_fpga(MockM3202A):
 
             pt.plot(t, values, ':', label=f'{self.name}-T')
 
-    def plot(self, bias_T_rc_time=0, discrete=False, analogue=False):
-        super().plot(bias_T_rc_time=bias_T_rc_time, discrete=discrete, analogue=analogue)
+    def plot(self, bias_T_rc_time=0, discrete=False, analogue=False, IQ=False, LO_f=None):
+        super().plot(bias_T_rc_time=bias_T_rc_time, discrete=discrete, analogue=analogue,
+                     IQ=IQ, LO_f=LO_f)
         self.plot_marker()
