@@ -54,8 +54,8 @@ class segment_pulse(segment_base):
             amplitude : total hight of the ramp, starting from the base point
             keep_amplitude : when pulse is done, keep reached amplitude for time infinity
         '''
-        print('Warning: add_ramp is deprecated. Use add_ramp_ss')
-        return self._add_ramp(start, stop, 0, amplitude, keep_amplitude)
+        raise Exception('add_ramp is deprecated because it caused serious mistakes in pulse sequences !!! '
+                        'Use add_ramp_ss.')
 
     @loop_controller
     def add_ramp_ss(self, start, stop, start_amplitude, stop_amplitude, keep_amplitude=False):
