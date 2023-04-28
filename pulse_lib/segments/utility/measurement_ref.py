@@ -9,6 +9,13 @@ oper2str = {
         operator.__invert__: '~',
         }
 
+# @@@ Check need for and usefulness of keys. 
+# Original idea was to get all used acquisitions and determine truth table.
+# However, this does not work efficiently for Majority vote.
+# It may also depend on the hardware capabilities whether a truth table is useful.
+# For Quantum Sequencer this works for up to 2 measurements.
+# For Qblox fast feedback it has to be expressed in AND/OR/XOR/NOT and trigger counts.
+# For Qblox the acquisition sequencer(s) are relevant for the condition on the AWG.
 
 class MeasurementExpressionBase(ABC):
 
@@ -101,12 +108,13 @@ class MeasurementBinaryExpression(MeasurementExpressionBase):
 
 class MeasurementMajority(MeasurementExpressionBase):
     def __init__(self, measurements, threshold=0.5):
-        keys = []
+        keys = set() # TODO @@@ check implementation
         for m in measurements:
             if hasattr(m, 'keys'):
-                keys += m.keys
+                keys |= m.keys
             else:
-                keys.append(m.name)
+                # @@@ Check why name occurs. measurement_acquisition?
+                keys.add(m.name) 
         super().__init__(keys)
         self._measurements = measurements
         self._threshold = threshold
