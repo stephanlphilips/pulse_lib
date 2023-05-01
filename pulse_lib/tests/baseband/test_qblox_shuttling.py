@@ -3,7 +3,7 @@ from pulse_lib.tests.configurations.test_configuration import context
 
 #%%
 def test1(t):
-    pulse = context.init_pulselib(n_gates=1)
+    pulse = context.init_pulselib(n_gates=1, n_markers=1, n_sensors=1)
 
     segments = []
 
@@ -13,6 +13,7 @@ def test1(t):
     n = 20
 
     s.P1.add_block(0, 20, -100)
+    s.M1.add_marker(0, 20)
     s.reset_time()
 
     for i in range(n):
@@ -26,6 +27,7 @@ def test1(t):
         s.reset_time()
 
     s.reset_time()
+    s.SD1.acquire(0, 20)
     s.wait(20)
 
     sequence = pulse.mk_sequence(segments)
@@ -33,7 +35,10 @@ def test1(t):
 
     context.plot_awgs(sequence, ylim=(-0.2, 0.2))
 
-#    return context.run('1ns', sequence, m_param)
+    m_param = sequence.get_measurement_param()
+    context.add_hw_schedule(sequence)
+
+    return context.run('shuttle', sequence, m_param)
 
 
 #%%
@@ -47,6 +52,7 @@ if __name__ == '__main__':
     ds1 = test1(8)
     ds1 = test1(7)
     ds1 = test1(4)
+    ds1 = test1(3)
     ds1 = test1(2)
     ds1 = test1(1)
 

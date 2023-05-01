@@ -1,6 +1,5 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
-import pulse_lib.segments.utility.looping as lp
 
 #%%
 from scipy import signal
@@ -25,13 +24,14 @@ def tukey_pulse(duration, sample_rate, amplitude, alpha):
 #%%
 
 def test1():
-    pulse = context.init_pulselib(n_gates=1)
+    pulse = context.init_pulselib(n_gates=1, n_markers=1)
 
     segments = []
 
     s = pulse.mk_segment()
     segments.append(s)
 
+    s.M1.add_marker(0, 8)
     s.wait(10, reset_time=True)
 
     s.P1.add_custom_pulse(15, 75, 100.0, tukey_pulse, alpha=0.5)
@@ -44,13 +44,14 @@ def test1():
     context.plot_awgs(sequence, ylim=(-0.2, 0.2))
 
 def test2():
-    pulse = context.init_pulselib(n_gates=1)
+    pulse = context.init_pulselib(n_gates=1, n_markers=1)
 
     segments = []
 
     s = pulse.mk_segment()
     segments.append(s)
 
+    s.M1.add_marker(0, 8)
     s.wait(10, reset_time=True)
 
     s.P1.add_block(0, 200, 20)
@@ -65,13 +66,14 @@ def test2():
 
 
 def test3():
-    pulse = context.init_pulselib(n_gates=1)
+    pulse = context.init_pulselib(n_gates=1, n_markers=1)
 
     segments = []
 
     s = pulse.mk_segment()
     segments.append(s)
 
+    s.M1.add_marker(0, 8)
     s.wait(10, reset_time=True)
 
     s.P1.add_ramp_ss(0, 200, -50, 50)
@@ -86,13 +88,14 @@ def test3():
 
 
 def test4():
-    pulse = context.init_pulselib(n_gates=1)
+    pulse = context.init_pulselib(n_gates=1, n_markers=1)
 
     segments = []
 
     s = pulse.mk_segment()
     segments.append(s)
 
+    s.M1.add_marker(0, 8)
     s.wait(10, reset_time=True)
 
     s.P1.add_ramp_ss(0, 50, -50, 50)
@@ -107,13 +110,14 @@ def test4():
     context.plot_awgs(sequence, ylim=(-0.2, 0.2))
 
 def test5():
-    pulse = context.init_pulselib(n_gates=1)
+    pulse = context.init_pulselib(n_gates=1, n_markers=1)
 
     segments = []
 
     s = pulse.mk_segment()
     segments.append(s)
 
+    s.M1.add_marker(0, 8)
     s.wait(10, reset_time=True)
 
     s.P1.add_ramp_ss(0, 150, -50, 50)
