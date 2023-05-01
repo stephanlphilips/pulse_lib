@@ -10,6 +10,7 @@ from numbers import Number
 
 from .rendering import SineWaveform, get_modulation
 from .pulsar_sequencers import (
+        Voltage1nsSequenceBuilder,
         VoltageSequenceBuilder,
         IQSequenceBuilder,
         AcquisitionSequenceBuilder,
@@ -32,6 +33,7 @@ def iround(value):
 class PulsarUploader:
     verbose = False
     output_dir = None
+    resolution_1ns = True
 
     def __init__(self, awg_devices, awg_channels, marker_channels,
                  IQ_channels, qubit_channels, digitizers, digitizer_channels):
@@ -588,8 +590,12 @@ class UploadAggregator:
 
         t_offset = PulsarConfig.align(self.max_pre_start_ns + channel_info.delay_ns)
 
-        seq = VoltageSequenceBuilder(channel_name, self.program[channel_name],
-                                     rc_time=channel_info.bias_T_RC_time)
+        if PulsarUploader.resolution_1ns:
+            seq = Voltage1nsSequenceBuilder(channel_name, self.program[channel_name],
+                                            rc_time=channel_info.bias_T_RC_time)
+        else:
+            seq = VoltageSequenceBuilder(channel_name, self.program[channel_name],
+                                         rc_time=channel_info.bias_T_RC_time)
         seq.set_time_offset(t_offset)
         scaling = 1/(channel_info.attenuation * seq.max_output_voltage*1000)
 
@@ -600,40 +606,34 @@ class UploadAggregator:
             seg_start = seg_render.t_start
             seg_ch = seg[channel_name]
             data = seg_ch._get_data_all_at(job.index)
-            entries = data.get_data_elements()
+            entries = data.get_data_elements(break_ramps=True)
             for e in entries:
+                # NOTE: alignment is done in VoltageSequenceBuilder
                 if isinstance(e, OffsetRamp):
-                    t = PulsarConfig.align(e.start + seg_start)
-                    t_end = PulsarConfig.align(e.stop + seg_start)
+                    t = e.start + seg_start
+                    t_end = e.stop + seg_start
                     v_start = scaling * e.v_start
                     v_stop = scaling * e.v_stop
-                    duration = t_end - t
-                    if abs(v_start - v_stop) > 6e-5:
-                        # ramp only when > 2 bits on 16-bit signed resolution
-                        seq.ramp(t, duration, v_start, v_stop)
-                    else:
-                        seq.set_offset(t, duration, v_start)
+                    seq.ramp(t, t_end, v_start, v_stop)
                 elif isinstance(e, IQ_data_single):
-                    t = PulsarConfig.align(e.start + seg_start)
-                    t_end = PulsarConfig.align(e.stop + seg_start)
-                    duration = t_end - t
-                    wave_duration = iround(e.stop - e.start) # 1 ns resolution
+                    t = e.start + seg_start
+                    t_end = e.stop + seg_start
+                    wave_duration = iround(e.stop) - iround(e.start) # 1 ns resolution
                     amod, phmod = get_modulation(e.envelope, wave_duration)
                     sinewave = SineWaveform(wave_duration, e.frequency, e.start_phase, amod, phmod)
-                    seq.pulse(t, duration, e.amplitude*scaling, sinewave)
+                    seq.add_sin(t, t_end, e.amplitude*scaling, sinewave)
                 elif isinstance(e, PhaseShift):
                     raise Exception('Phase shift not supported for AWG channel')
                 elif isinstance(e, Chirp):
                     raise Exception('Chirp is not supported for AWG channel')
                 elif isinstance(e, custom_pulse_element):
-                    t = PulsarConfig.align(e.start + seg_start)
-                    t_end = PulsarConfig.align(e.stop + seg_start)
-                    duration = t_end - t
-                    seq.custom_pulse(t, duration, scaling, e)
+                    t = e.start + seg_start
+                    t_end = e.stop + seg_start
+                    seq.custom_pulse(t, t_end, scaling, e)
                 else:
                     raise Exception(f'Unknown pulse element {type(e)}')
 
-        t_end = PulsarConfig.align(seg_render.t_end)
+        t_end = PulsarConfig.ceil(seg_render.t_end)
         seq.wait_till(t_end)
 
         compensation_ns = job.upload_info.dc_compensation_duration_ns
@@ -685,31 +685,29 @@ class UploadAggregator:
                 if isinstance(e, OffsetRamp):
                     raise Exception('Voltage steps and ramps are not supported for IQ channel')
                 elif isinstance(e, IQ_data_single):
-                    t = PulsarConfig.align(e.start + seg_start)
-                    t_end = PulsarConfig.align(e.stop + seg_start)
-                    duration = t_end - t
+                    t_start = e.start + seg_start
+                    t_end = e.stop + seg_start
                     wave_duration = iround(e.stop - e.start) # 1 ns resolution for waveform
                     amod, phmod = get_modulation(e.envelope, wave_duration)
                     sinewave = SineWaveform(wave_duration, e.frequency-lo_freq,
                                             e.start_phase, amod, phmod)
-                    seq.pulse(t, duration, e.amplitude*scaling, sinewave)
+                    seq.pulse(t_start, t_end, e.amplitude*scaling, sinewave)
                 elif isinstance(e, PhaseShift):
-                    t = PulsarConfig.align(e.start + seg_start)
-                    seq.shift_phase(t, e.phase_shift)
+                    t_start = e.start + seg_start
+                    seq.shift_phase(t_start, e.phase_shift)
                 elif isinstance(e, Chirp):
-                    t = PulsarConfig.align(e.start + seg_start)
-                    t_end = PulsarConfig.align(e.stop + seg_start)
-                    duration = t_end - t
+                    t_start = e.start + seg_start
+                    t_end = e.stop + seg_start
                     chirp = e
                     start_frequency = chirp.start_frequency-lo_freq
                     stop_frequency = chirp.stop_frequency-lo_freq
-                    seq.chirp(t, duration, chirp.amplitude*scaling, start_frequency, stop_frequency)
+                    seq.chirp(t_start, t_end, chirp.amplitude*scaling, start_frequency, stop_frequency)
                 elif isinstance(e, custom_pulse_element):
                     raise Exception('Custom pulses are not supported for IQ channel')
                 else:
                     raise Exception('Unknown pulse element {type(e)}')
 
-        t_end = PulsarConfig.align(seg_render.t_end)
+        t_end = PulsarConfig.ceil(seg_render.t_end)
         seq.wait_till(t_end)
         # add final markers
         seq.finalize()
@@ -768,7 +766,7 @@ class UploadAggregator:
                 else:
                     seq.acquire(t, t_measure)
 
-        t_end = PulsarConfig.align(seg_render.t_end)
+        t_end = PulsarConfig.ceil(seg_render.t_end)
         try:
             seq.wait_till(t_end)
         except:

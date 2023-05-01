@@ -19,6 +19,7 @@ class SineWaveform:
     phase: float = 0
     amod: Union[None, float, np.ndarray] = None
     phmod: Union[None, float, np.ndarray] = None
+    offset: int = 0
 
     def __eq__(self, other):
         res = (self.duration == other.duration
@@ -31,13 +32,29 @@ class SineWaveform:
 
     def render(self, sample_rate=1e9):
         total_phase = self.phase + self.phmod
-        t = np.arange(int(self.duration))
-        return self.amod * np.sin(2*np.pi*self.frequency/sample_rate*t + total_phase)
+        n = int(self.duration)
+        t = np.arange(n)
+        data = self.amod * np.sin(2*np.pi*self.frequency/sample_rate*t + total_phase)
+        if self.offset:
+            result = np.zeros(n + self.offset)
+            result[self.offset:] = data
+        else:
+            result = data
+        return result
 
     def render_iq(self, sample_rate=1e9):
         total_phase = self.phase + self.phmod
-        t = np.arange(int(self.duration))
+        n = int(self.duration)
+        t = np.arange(n)
         cycles = 2*np.pi*self.frequency/sample_rate*t + total_phase
-        return (self.amod * np.cos(cycles),
-                self.amod * np.sin(cycles))
+        I,Q = (self.amod * np.cos(cycles), self.amod * np.sin(cycles))
+        if not self.offset:
+            return I, Q
+        else:
+            resultI = np.zeros(n + self.offset)
+            resultI[self.offset:] = I
+            resultQ = np.zeros(n + self.offset)
+            resultQ[self.offset:] = Q
+            return resultI, resultQ
+
 

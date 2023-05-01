@@ -31,11 +31,7 @@ class pulse_delta:
         total_pulse_deltas += 1
 
     def __add__(self, other):
-        if isinstance(other, Number):
-            return pulse_delta(self.time,
-                               self.step + other,
-                               self.ramp)
-        elif isinstance(other, pulse_delta):
+        if isinstance(other, pulse_delta):
             return pulse_delta(self.time,
                                self.step + other.step,
                                self.ramp + other.ramp)
@@ -43,9 +39,7 @@ class pulse_delta:
             raise Exception(f'Cannot add pulse_data to {type(other)}')
 
     def __iadd__(self, other):
-        if isinstance(other, Number):
-           self.step += other
-        elif isinstance(other, pulse_delta):
+        if isinstance(other, pulse_delta):
            self.step += other.step
            self.ramp += other.ramp
         else:
@@ -507,61 +501,88 @@ class pulse_data(parent_data):
             self.pulse_deltas = new_deltas
 
         self._consolidated = True
+        self._breaks_processed = False
         self._preprocessed = False
 
     def _pre_process(self, sample_rate=None):
         self._consolidate()
-        if not self._preprocessed or self._preprocessed_sample_rate != sample_rate:
-            n = len(self.pulse_deltas)
-            if n == 0:
-                times = np.zeros(0)
-                intervals = np.zeros(0)
-                amplitudes = np.zeros(0)
-                amplitudes_end = np.zeros(0)
-                ramps = np.zeros(0)
-                samples = np.zeros(0)
+        if (self._preprocessed
+            and (not self._hres or self._preprocessed_sample_rate == sample_rate)):
+            return
+        n = len(self.pulse_deltas)
+        if n == 0:
+            times = np.zeros(0)
+            intervals = np.zeros(0)
+            amplitudes = np.zeros(0)
+            amplitudes_end = np.zeros(0)
+            ramps = np.zeros(0)
+            samples = np.zeros(0)
+        else:
+            times = np.zeros(n)
+            intervals = np.zeros(n)
+            steps = np.zeros(n)
+            ramps = np.zeros(n)
+            amplitudes = np.zeros(n)
+            amplitudes_end = np.zeros(n)
+            samples = np.zeros(n)
+            if self._hres and sample_rate is not None:
+                t_sample = 1e9/sample_rate
+                for i,delta in enumerate(self.pulse_deltas):
+                    if delta.time != np.inf:
+                        t = int(delta.time/t_sample)*t_sample
+                        dt = (delta.time - t)
+                    else:
+                        t = np.inf
+                        dt = 0.0
+                    times[i] = t
+                    ramps[i] = delta.ramp
+                    steps[i] = delta.step - dt*delta.ramp
+                    samples[i] = -dt*delta.step + dt*delta.ramp - dt*(t_sample-dt)*delta.ramp/2
             else:
-                times = np.zeros(n)
-                intervals = np.zeros(n)
-                steps = np.zeros(n)
-                ramps = np.zeros(n)
-                amplitudes = np.zeros(n)
-                amplitudes_end = np.zeros(n)
-                samples = np.zeros(n)
-                if self._hres and sample_rate is not None:
-                    t_sample = 1e9/sample_rate
-                    for i,delta in enumerate(self.pulse_deltas):
-                        if delta.time != np.inf:
-                            t = int(delta.time/t_sample)*t_sample
-                            dt = (delta.time - t)
-                        else:
-                            t = np.inf
-                            dt = 0.0
-                        times[i] = t
-                        ramps[i] = delta.ramp
-                        steps[i] = delta.step - dt*delta.ramp
-                        samples[i] = -dt*delta.step + dt*delta.ramp - dt*(t_sample-dt)*delta.ramp/2
-                else:
-                    for i,delta in enumerate(self.pulse_deltas):
-                        times[i] = delta.time
-                        steps[i] = delta.step
-                        ramps[i] = delta.ramp
-                if times[-1] == np.inf:
-                    times[-1] = self._end_time
-                intervals[:-1] = times[1:] - times[:-1]
-                ramps = np.cumsum(ramps)
-                amplitudes[1:] = ramps[:-1] * intervals[:-1]
-                amplitudes = np.cumsum(amplitudes) + np.cumsum(steps)
-                amplitudes_end[:-1] = amplitudes[1:] - steps[1:]
-    #            logger.debug(f'points: {list(zip(times, amplitudes))}')
-            self._times = times
-            self._intervals = intervals
-            self._amplitudes = amplitudes
-            self._amplitudes_end = amplitudes_end
-            self._samples = samples
-            self._ramps = ramps
+                for i,delta in enumerate(self.pulse_deltas):
+                    times[i] = delta.time
+                    steps[i] = delta.step
+                    ramps[i] = delta.ramp
+            if times[-1] == np.inf:
+                times[-1] = self._end_time
+            intervals[:-1] = times[1:] - times[:-1]
+            ramps = np.cumsum(ramps)
+            amplitudes[1:] = ramps[:-1] * intervals[:-1]
+            amplitudes = np.cumsum(amplitudes) + np.cumsum(steps)
+            amplitudes_end[:-1] = amplitudes[1:] - steps[1:]
+#            logger.debug(f'points: {list(zip(times, amplitudes))}')
+        self._times = times
+        self._intervals = intervals
+        self._amplitudes = amplitudes
+        self._amplitudes_end = amplitudes_end
+        self._samples = samples
+        self._ramps = ramps
         self._preprocessed = True
         self._preprocessed_sample_rate = sample_rate
+
+    def _break_ramps(self, elements):
+        if self._breaks_processed:
+            return
+
+        # collect start and stop times of elements.
+        breaks = set()
+        breaks |= {e.start for e in elements}
+        breaks |= {e.stop for e in elements}
+
+        # remove times already on ramp start.
+        breaks -= set(self._times)
+        if len(breaks) == 0:
+            self._breaks_processed = True
+            return
+
+        if len(self.pulse_deltas) > 1:
+            # add breaks as 0.0 delta
+            for time in breaks:
+                self.pulse_deltas.append(pulse_delta(time))
+            self.pulse_deltas.sort(key=lambda p:p.time)
+            self._preprocessed = False
+
+        self._breaks_processed = True
 
     def integrate_waveform(self, sample_rate):
         '''
@@ -609,17 +630,30 @@ class pulse_data(parent_data):
 
         self._phase_shifts_consolidated = True
 
-    def get_data_elements(self):
+    def get_data_elements(self, break_ramps=False):
+        '''
+        Args:
+            break_ramps (bool):
+                if True breaks pulse_deltas on custom pulses and MW pulses to
+                allow proper rendering by Qblox uploader.
+        '''
         elements = []
-        self._pre_process()
         self._consolidate_phase_shifts()
+
+        # Add elements in best order for rendering
+        elements += self.phase_shifts
+        elements += self.MW_pulse_data
+        elements += self.chirp_data
+        elements += self.custom_pulse_data
+
+        # slice ramps at start and stop times of custom, MW pulse, phase_shift chirp
+        if break_ramps:
+            self._break_ramps(elements)
+        self._pre_process()
+
         for time, duration, v_start, v_stop in zip(self._times, self._intervals,
                                                    self._amplitudes, self._amplitudes_end):
             elements.append(OffsetRamp(time, time+duration, v_start, v_stop))
-        elements += self.custom_pulse_data
-        elements += self.MW_pulse_data
-        elements += self.phase_shifts
-        elements += self.chirp_data
         elements.sort(key=lambda p:(p.start,p.stop))
         return elements
 
