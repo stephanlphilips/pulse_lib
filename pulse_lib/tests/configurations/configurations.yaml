@@ -1,4 +1,4 @@
-default: KeysightMocked
+default: QbloxMocked
 
 KeysightMocked:
     station: keysight_mocked.yaml
@@ -60,7 +60,7 @@ QbloxMocked:
         SD2: [Qblox_module4,1]
     rf:
         SD2:
-            output: [QRM1,1]
+            output: [Qblox_module4,1]
             frequency: 2e6
             amplitude: 400
             startup_time: 200

@@ -1,6 +1,7 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
 
+#%%
 from numpy import pi
 
 def test():

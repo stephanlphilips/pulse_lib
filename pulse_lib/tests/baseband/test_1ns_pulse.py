@@ -10,7 +10,7 @@ def test1():
 
     s = pulse.mk_segment()
 
-    s.P1.add_block(110, 114, 1000)
+    s.P1.add_block(110, 111, 1000)
     s.P2.add_block(110, 200, 1000)
     s.q1.add_MW_pulse(110,120,500,2.3e9)#,pi/2)
     s.SD1.acquire(10, 100)

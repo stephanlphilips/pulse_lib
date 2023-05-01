@@ -1,11 +1,13 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
 
+#%%
 def test():
     pulse = context.init_pulselib(n_gates=2, n_qubits=3, n_sensors=2, n_markers=1)
 
     s = pulse.mk_segment()
 
+    s.P1.wait(100)
     s.P1.add_block(0, 20, 100)
     s.P2.add_block(0, 20, -100)
     s.M1.add_marker(0, 20)

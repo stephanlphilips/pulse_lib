@@ -2,7 +2,7 @@
 from pulse_lib.tests.configurations.test_configuration import context
 from pulse_lib.fast_scan.qblox_fast_scans import fast_scan1D_param, fast_scan2D_param
 
-
+#%%
 def test():
     pulse = context.init_pulselib(n_gates=2, n_sensors=2, rf_sources=True)
 
