@@ -172,6 +172,7 @@ class pulse_data(parent_data):
         self._preprocessed = False
         self._preprocessed_sample_rate = None
         self._phase_shifts_consolidated = False
+        self._breaks_processed = False
 
     def add_delta(self, delta):
         if not delta.is_near_zero:
@@ -378,6 +379,9 @@ class pulse_data(parent_data):
         my_copy._hres = self._hres
         my_copy._consolidated = self._consolidated
         my_copy._phase_shifts_consolidated = self._phase_shifts_consolidated
+        my_copy._preprocessed = self._preprocessed
+        my_copy._preprocessed_sample_rate = self._preprocessed_sample_rate
+        my_copy._breaks_processed = self._breaks_processed
 
         return my_copy
 
@@ -647,6 +651,7 @@ class pulse_data(parent_data):
         elements += self.custom_pulse_data
 
         # slice ramps at start and stop times of custom, MW pulse, phase_shift chirp
+        self._consolidate()
         if break_ramps:
             self._break_ramps(elements)
         self._pre_process()
