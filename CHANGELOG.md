@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.17] - 2023-05-02
+
+- Render pulses and ramps on Qblox with 1 ns resolution.
+- Removed segment_pulse.add_ramp(), because it gave too many errors.
+
 ## \[1.6.16] - 2023-04-19
 - Renamed idle frequency and reference frequency to qubit resonance frequency.
 - Allow overrule of qubit resonance frequency in sequence.
