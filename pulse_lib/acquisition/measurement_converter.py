@@ -170,6 +170,52 @@ class MeasurementParameter(MultiParameter):
         self.units += (unit,)
         self.labels += (label,)
 
+    def add_sensor_histogram(self, sensor, bins, range, accepted_only=False):
+        '''
+        Adds histograms for all measurements of sensor.
+
+        Args:
+            sensor (str): name of sensor in pulse-lib.
+            bins (int): number of bins in histogram.
+            range (Tuple[float,float]): upper and lower edge of histogram.
+            accepted_only (bool): if True only count accepted shots
+        '''
+        for m in self._mc._description.measurements:
+            if getattr(m, 'acquisition_channel', None) == sensor:
+                self.add_measurement_histogram(m.name, bins, range,
+                                               accepted_only=accepted_only)
+
+    def add_measurement_histogram(self, m_name, bins, range, accepted_only=False):
+        '''
+        Adds histogram for specified measurement.
+
+        Args:
+            m_name (str): name of measurement in sequence.
+            bins (int): number of bins in histogram.
+            range (Tuple[float,float]): upper and lower edge of histogram.
+            accepted_only (bool): if True only count accepted shots
+        '''
+        def _histogram(data):
+            if accepted_only:
+                if 'mask' not in data:
+                    raise Exception('Cannot filter on accepted. Accept mask is not in data.')
+                d = data[m_name][data['mask'].astype(bool)]
+            else:
+                d = data[m_name]
+            return np.histogram(d, bins=binedges)[0]/d.shape[0]
+
+        binedges  = np.linspace(range[0], range[1], bins+1)
+        bincenters = (binedges[1:] + binedges[:-1])/2
+        setpoints = (tuple(bincenters),)
+        setpoint_names = ('sensor_val',)
+        self.add_derived_param(
+                f'{m_name}_hist',
+                _histogram,
+                unit='',
+                setpoints=setpoints,
+                setpoint_units=('mV',),
+                setpoint_names=setpoint_names,
+                setpoint_labels=setpoint_names)
 
     def get_raw(self):
         data = self._source.get_channel_data()
