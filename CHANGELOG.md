@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.18] - 2023-05-03
+
+- Added histograms to measurement parameter
+
 ## \[1.6.17] - 2023-05-02
 
 - Render pulses and ramps on Qblox with 1 ns resolution.
