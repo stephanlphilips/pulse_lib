@@ -88,7 +88,9 @@ class M3202A_Uploader:
         dig_ch = self.digitizer_channels[acquisition_channel]
         digitizer = self.digitizers[dig_ch.module_name]
         if hasattr(digitizer, 'actual_acquisition_points'):
-            n_samples, interval = digitizer.actual_acquisition_points(dig_ch, t_measure, sample_rate)
+            # number of points should be equal for all channels. Request for 1 channel.
+            channel_number = dig_ch.channel_numbers[0]
+            n_samples, interval = digitizer.actual_acquisition_points(channel_number, t_measure, sample_rate)
         else:
             # use old function and assume the digitizer is NOT in MODES.NORMAL
             n_samples = digitizer.get_samples_per_measurement(t_measure, sample_rate)

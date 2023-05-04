@@ -4,6 +4,7 @@ All notable changes to Pulselib will be documented in this file.
 ## \[1.6.19] - 2023-05-04
 
 - Fixed Qblox uploader
+- Fixed digitizer configuration for time-traces with Keysight uploaders
 
 ## \[1.6.18] - 2023-05-03
 

@@ -80,7 +80,20 @@ class QsUploader:
         return awg.convert_prescaler_to_sample_rate(awg.convert_sample_rate_to_prescaler(sample_rate))
 
     def actual_acquisition_points(self, acquisition_channel, t_measure, sample_rate):
-        raise NotImplementedError()
+        '''
+        Returns the actual number of points and interval of an acquisition.
+        '''
+        dig_ch = self.digitizer_channels[acquisition_channel]
+        digitizer = self.digitizers[dig_ch.module_name]
+        if hasattr(digitizer, 'actual_acquisition_points'):
+            # number of points should be equal for all channels. Request for 1 channel.
+            channel_number = dig_ch.channel_numbers[0]
+            n_samples, interval = digitizer.actual_acquisition_points(channel_number, t_measure, sample_rate)
+        else:
+            # use old function and assume the digitizer is NOT in MODES.NORMAL
+            n_samples = digitizer.get_samples_per_measurement(t_measure, sample_rate)
+            interval = int(max(1, round(100e6 / sample_rate))) * 10
+        return n_samples, interval
 
     def get_roundtrip_latency(self):
         # TODO @@@ put in configuration file.
