@@ -574,7 +574,8 @@ class pulse_data(parent_data):
         breaks |= {e.stop for e in elements}
 
         # remove times already on ramp start.
-        breaks -= set(self._times)
+        pulse_times = set(delta.time for delta in self.pulse_deltas)
+        breaks -= pulse_times
         if len(breaks) == 0:
             self._breaks_processed = True
             return
@@ -871,7 +872,6 @@ class pulse_data(parent_data):
 
     def get_metadata(self, name):
         metadata = {}
-
         self._pre_process()
 
         # TODO: add custom pulses
