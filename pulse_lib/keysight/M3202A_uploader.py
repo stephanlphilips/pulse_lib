@@ -195,6 +195,7 @@ class M3202A_Uploader:
         for dig_name,channel_nums in enabled_channels.items():
             dig = self.digitizers[dig_name]
             dig.set_operating_mode(2) # HVI
+            dig.set_data_handling_mode(0) # Full mode, no averaging
             dig.set_active_channels(channel_nums)
             if hasattr(dig, 'set_timeout'):
                 dig.set_timeout(timeout)
