@@ -58,6 +58,13 @@ class MockM3102A(Instrument):
     def set_data(self, channel, data):
         self.measure._data[channel] = data
 
+    def actual_acquisition_points(self, ch, t_measure, sample_rate):
+        # resolution in nanoseconds
+        resolution = 10
+        interval = int(1e9/sample_rate/resolution+0.5)*resolution
+        n_samples = max(1, int(t_measure/interval))
+        return n_samples, interval
+
 @dataclass
 class ChannelProperties:
     n_cycles: int = 1
