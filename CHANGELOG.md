@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.19] - 2023-05-04
+
+- Fixed Qblox uploader
+
 ## \[1.6.18] - 2023-05-03
 
 - Added histograms to measurement parameter
