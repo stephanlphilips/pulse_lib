@@ -66,6 +66,7 @@ class sequencer():
         self._alignment = None
         self._acquisition_conf = AcquisitionConf()
         self._measurement_converter = None
+        self._total_time = None
         self._qubit_resonance_frequencies = {}
 
     @property
@@ -112,6 +113,10 @@ class sequencer():
     @property
     def setpoints(self):
         return self.setpoint_data.setpoints
+
+    @property
+    def total_time(self):
+        return self._total_time
 
     @property
     def HVI_variables(self):
@@ -230,7 +235,7 @@ class sequencer():
 
             t_tot += seg_container.total_time
         self._measurements_description.add_HVI_variables(self._HVI_variables)
-
+        self._total_time = t_tot
         self._generate_sweep_params()
         self._create_metadata()
 
