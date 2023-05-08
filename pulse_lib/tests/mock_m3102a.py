@@ -30,6 +30,10 @@ class MockM3102A(Instrument):
     def set_active_channels(self, channel_list):
         self.measure._active_channels = set(channel_list)
 
+    def set_data_handling_mode(self, mode):
+        for ch in self.measure._active_channels:
+            self.measure._ch_properties[ch].data_mode = mode
+
     @property
     def active_channels(self):
         return self.measure._active_channels
@@ -70,6 +74,7 @@ class ChannelProperties:
     n_cycles: int = 1
     t_measure: int = 10
     samples_per_cycle: int = 1
+    data_mode: int = 0
 
 class ChannelData:
     def __init__(self):
