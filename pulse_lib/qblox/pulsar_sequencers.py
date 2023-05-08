@@ -535,11 +535,16 @@ class IQSequenceBuilder(SequenceBuilderBase):
         Arguments:
             phase (float): phase in rad.
         '''
-        t = PulsarConfig.floor(t+self.offset_ns)
-        self._update_time_and_markers(t, 0.0)
+        # The phase shift can be before or after MW pulse.
+        # First try to align towards lower t
+        t_phase = PulsarConfig.floor(t + self.offset_ns)
+        if t_phase < self.t_end:
+            # Align towards higher t.
+            t_phase = PulsarConfig.ceil(t + self.offset_ns)
+        self._update_time_and_markers(t_phase, 0.0)
         # normalize phase to -1.0 .. + 1.0 for Q1Pulse sequencer
         norm_phase = (phase/np.pi + 1) % 2 - 1
-        self.seq.shift_phase(norm_phase, t_offset=t)
+        self.seq.shift_phase(norm_phase, t_offset=t_phase)
 
     def chirp(self, t_start, t_end, amplitude, start_frequency, stop_frequency):
         # set NCO frequency if valid. Otherwise set 0.0 to enable modulation
