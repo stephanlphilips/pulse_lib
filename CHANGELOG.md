@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.20] - 2023-05-08
+
+- Fixed Keysight digitizer configuration for time-traces
+- Added total_time to sequence and metadata
+
 ## \[1.6.19] - 2023-05-04
 
 - Fixed Qblox uploader
