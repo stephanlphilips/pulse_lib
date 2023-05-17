@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.21] - 2023-05-17
+
+- Fixed Qblox uploader for unaligned MW pulses > 200 ns
+
 ## \[1.6.20] - 2023-05-08
 
 - Fixed Keysight digitizer configuration for time-traces

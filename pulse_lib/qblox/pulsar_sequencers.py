@@ -506,8 +506,9 @@ class IQSequenceBuilder(SequenceBuilderBase):
                     if t_start_offset:
                         wave_id_start = self._register_squarewave(t_start_offset, 4-t_start_offset)
                         self.seq.shaped_pulse(wave_id_start, ampI, wave_id_start, ampQ, t_offset=t_pulse)
-                    self.seq.block_pulse(duration-t_start_offset-t_end_offset, ampI, ampQ,
-                                         t_offset=t_start+t_start_offset)
+                    block_duration = PulsarConfig.floor(t_end) - PulsarConfig.ceil(t_start)
+                    self.seq.block_pulse(block_duration, ampI, ampQ,
+                                         t_offset=PulsarConfig.ceil(t_start))
                     if t_end_offset:
                         wave_id_end = self._register_squarewave(0, t_end_offset)
                         self.seq.shaped_pulse(wave_id_end, ampI, wave_id_end, ampQ, t_offset=t_end-t_end_offset)
