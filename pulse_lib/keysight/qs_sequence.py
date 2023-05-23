@@ -40,9 +40,10 @@ class Waveform:
                 and self.frequency == other.frequency
                 and np.all(self.pm_envelope == other.pm_envelope)
                 and self.prephase == other.prephase
+                and self.postphase == other.postphase
                 and self.duration == other.duration
-                and self.restore_frequency == other.restore_frequency
                 and self.offset == other.offset
+                and self.restore_frequency == other.restore_frequency
                 )
 
 @dataclass
@@ -122,6 +123,7 @@ class IQSequenceBuilder:
             # align stop using duration. Make sure instruction offset is 0
             t_stop = iround(t_pulse) + duration
             duration_end = t_stop % 5
+            stop_wvf.duration = duration_end
             t_stop_instruction = t_stop - duration_end
             self._add_waveform(t_stop_instruction, stop_wvf)
         else:
