@@ -207,7 +207,7 @@ class SequencerChannel:
             wvf_nr = inst.wave_numbers[0] if isinstance(inst, AwgConditionalInstruction) else inst.wave_number
             if wvf_nr is not None:
                 waveform = self._waveforms[wvf_nr]
-                print(starttime, waveform)
+                # print(starttime, waveform)
 #                data = waveform.render(starttime, phase)
 #                if duration == 0:
 #                    duration = len(data)
@@ -220,12 +220,12 @@ class SequencerChannel:
                 data = np.cos(angle)*amplitude
                 if duration > len(data):
                     after = int(duration)-len(data)
-                    print(data, amplitude, frequency)
+                    # print(data, amplitude, frequency)
                     angle_after = np.arange(1, after+1) * frequency[-1]*np.pi + angle[-1]
                     data_after = np.cos(angle_after) * amplitude[-1]
                     wave = np.concatenate([wave, data, data_after])
                     phase = angle_after[-1]
-                    print(len(data), len(data_after))
+                    # print(len(data), len(data_after))
                 else:
                     if duration > 0:
                         data = data[:duration]
