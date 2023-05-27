@@ -870,7 +870,7 @@ class UploadAggregator:
                     start_stop.append((offset + pulse.start - marker_channel.setup_ns, +1))
                     start_stop.append((offset + pulse.stop + marker_channel.hold_ns, -1))
 
-            m = merge_markers(channel_name, start_stop)
+            m = merge_markers(channel_name, start_stop, min_off_ns=20)
             if marker_channel.channel_number == 0:
                 self._upload_fpga_markers(job, marker_channel, m)
             else:
@@ -914,11 +914,12 @@ class UploadAggregator:
         job.marker_tables[marker_channel.name] = table
         offset = int(self.max_pre_start_ns)
         for i in range(0, len(m), 2):
-            t_on = m[i][0]
-            t_off = m[i+1][0]
+            # align to marker resolution
+            t_on = math.floor((m[i][0] + offset)/10)*10
+            t_off = math.ceil((m[i+1][0] + offset)/10)*10
             if UploadAggregator.verbose:
                 logger.debug(f'Marker: {t_on} - {t_off}')
-            table.append((t_on + offset, t_off + offset))
+            table.append((t_on, t_off))
 
     def _upload_wvf(self, job, channel_name, waveform, amplitude, attenuation, sample_rate, awg_upload_func):
         # note: numpy inplace multiplication is much faster than standard multiplication

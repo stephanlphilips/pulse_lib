@@ -284,8 +284,19 @@ class MockM3202A_QS(MockM3202A):
             t = []
             values = []
             print(self.marker_table)
+            last = 0
+            ticks = 0
             for m in self.marker_table:
-                t += [m[0], m[0], m[1], m[1]]
+                # convert to on/off duration with truncation like in M3202A_fpga
+                delta_on = (m[0] - last) // 5
+                delta_off = (m[1] - m[0]) // 5
+                last = m[1]
+                on = (ticks + delta_on) * 5
+                ticks += delta_on
+                off = (ticks + delta_off) * 5
+                ticks += delta_off
+
+                t += [on, on, off, off]
                 values += [0, self._marker_amplitude/1000, self._marker_amplitude/1000, 0]
 
             pt.plot(t, values, ':', label=f'{self.name}-T')

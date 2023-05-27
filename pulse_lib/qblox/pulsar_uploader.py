@@ -557,7 +557,7 @@ class UploadAggregator:
 
         # merge markers
         marker_value = 1 << marker_channel.channel_number
-        return merge_markers(marker_channel.name, start_stop, marker_value)
+        return merge_markers(marker_channel.name, start_stop, marker_value, min_off_ns=20)
 
     def get_markers_seq(self, job, seq_name):
         marker_names = self.seq_markers.get(seq_name, [])

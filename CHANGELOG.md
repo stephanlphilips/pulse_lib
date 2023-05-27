@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.23] - 2023-05-27
+
+- Fixed Keysight FPGA marker upload time rounding (Keysight and Keysight_QS).
+
 ## \[1.6.22] - 2023-05-23
 
 - Fixed QuantumSequencer (Keysight_QS) long pulses with post-phase shift.
