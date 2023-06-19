@@ -304,7 +304,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             else:
                 emit = False
 
-            if emit:
+            if self._rendering and emit:
                 self._emit_waveform(t_start-t_start_offset)
             self._render(t_start, t_end, v_start, v_end)
 

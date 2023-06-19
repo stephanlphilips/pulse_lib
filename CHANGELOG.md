@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.24] - 2023-06-19
+
+- Fixed Qblox uploader with unaligned pulses.
+
 ## \[1.6.23] - 2023-05-27
 
 - Fixed Keysight FPGA marker upload time rounding (Keysight and Keysight_QS).
