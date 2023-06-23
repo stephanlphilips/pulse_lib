@@ -246,7 +246,7 @@ class QsConditionalMW():
                 # try to add phase shift to existing pulse
                 if not pulse:
                     instr.pulses[ibranch] = QsConditionalMW.BranchPulse(prephase=phase_shift.phase_shift)
-                elif not pulse.mw_pulse or pulse.mw_pulse.start > phase_shift.time:
+                elif not pulse.mw_pulse or pulse.mw_pulse.start >= phase_shift.time:
                     pulse.prephase += phase_shift.phase_shift
                 elif pulse.mw_pulse.stop <= phase_shift.time:
                     pulse.postphase += phase_shift.phase_shift
