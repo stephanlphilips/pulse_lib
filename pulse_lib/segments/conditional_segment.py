@@ -154,5 +154,8 @@ class conditional_segment:
         pass
 
     def get_metadata(self):
-        pass
+        metadata = {}
+        for i,branch in enumerate(self.branches):
+            metadata[f'branch_{i}'] = branch.get_metadata()
+        return metadata
 
