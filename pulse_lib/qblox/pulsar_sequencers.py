@@ -245,7 +245,6 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             # Used to reset voltage at end of segment.
             # This instruction will otherwise be turned into a new short waveform.
             # Also use it to flush waveform at end of segment
-#            print('Zero', t_start)
             if self._rendering and self._wave_length >= 20:
                 self._emit_waveform(PulsarConfig.ceil(self._t_wave_end))
             if not self._rendering:
@@ -257,7 +256,10 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
 
         dvdt = (v_end-v_start)/(t_end-t_start)
 
-#        print('ramp', t_start, t_end, v_start, v_end, self._rendering, is_ramp, is_long)
+        if self._rendering and t_start - self._t_wave_end >= 40:
+            # there is a gap
+            self._emit_waveform(PulsarConfig.ceil(self._t_wave_end))
+
         if self._rendering and t_start < self._t_wave_end:
             # Already rendered beyond start of this ramp.
             # Custom pulse or sine already rendered.
@@ -284,28 +286,25 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
                 v_end_ramp = v_end
                 self._ramp(t_start, t_end_ramp, v_start, v_end_ramp)
         else:
-            min_length = 100
-            medium_length = 200
-            max_length = 300
-            if self._wave_length > min_length and self._equal_voltage and (
-                    self._aligned or self._t_constant >= 4):
-                # equal voltages: could be repeatable waveform
-                emit = True
-            elif self._wave_length > medium_length and self._aligned:
-                # it's aligned: could be repeatable waveform
-                emit = True
-            elif self._rendering and (t_start - self._t_wave_end) >= 20:
-                # there is a gap
-                self._emit_waveform(PulsarConfig.ceil(self._t_wave_end))
-                emit = False # @@@ change emit in emit_size ?
-            elif self._wave_length > max_length:
-                # it's getting long...
-                emit = True
-            else:
-                emit = False
+            if self._rendering:
+                min_length = 150
+                medium_length = 250
+                max_length = 500
+                if self._wave_length > min_length and self._equal_voltage and (
+                        self._aligned or self._t_constant >= 4):
+                    # equal voltages: could be repeatable waveform
+                    emit = True
+                elif self._wave_length > medium_length and self._aligned:
+                    # it's aligned: could be repeatable waveform
+                    emit = True
+                elif self._wave_length > max_length:
+                    # it's getting long...
+                    emit = True
+                else:
+                    emit = False
 
-            if self._rendering and emit:
-                self._emit_waveform(t_start-t_start_offset)
+                if emit:
+                    self._emit_waveform(t_start-t_start_offset)
             self._render(t_start, t_end, v_start, v_end)
 
     def add_sin(self, t_start, t_end, amplitude, waveform):
@@ -322,6 +321,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             self._update_time_and_markers(t_start, t_end-t_pulse)
             waveform.offset = offset
             wave_id = self.register_sinewave(waveform)
+            # @@@ if end is not aligned the next ramp, sin, or custom_pulse could fail.
             self.seq.shaped_pulse(wave_id, amplitude, t_offset=t_start)
 
     def custom_pulse(self, t_start, t_end, amplitude, custom_pulse):
@@ -337,6 +337,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             offset = t_start - t_pulse
             self._update_time_and_markers(t_pulse, t_end-t_pulse)
             wave_id = self._register_custom_pulse(custom_pulse, amplitude, offset=offset)
+            # @@@ if end is not aligned the next ramp, sin, or custom_pulse could fail.
             self.seq.shaped_pulse(wave_id, 1.0, t_offset=t_pulse)
 
     def wait_till(self, t):
@@ -346,10 +347,11 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
 
     def _render(self, t_start, t_end, v_start, v_end):
         if not self._rendering:
-            self._t_wave_start = PulsarConfig.floor(t_start)
-            self._rendering = True
             self._waveform = np.zeros(1000)
+            self._t_wave_start = PulsarConfig.floor(t_start)
+            self._t_wave_end = t_end
             self._v_start = v_start
+            self._rendering = True
         waveform = self._waveform
         self._t_wave_end = max(self._t_wave_end, t_end)
         self._wave_length = self._t_wave_end - self._t_wave_start
@@ -392,7 +394,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         self._aligned = self._t_wave_end % 4 == 0
         iend = self._t_wave_end - self._t_wave_start
         self._equal_voltage = abs(self._v_start - waveform[iend]) < _lsb_step
-        self.t_constant = 0
+        self._t_constant = 0
 
     def _emit_waveform(self, t_end):
 #        print('emit', t_end)
@@ -423,7 +425,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
 
         t = PulsarConfig.floor(t_start + self.offset_ns)
         self._update_time_and_markers(t, 0)
-        self.seq.set_offset(self.v_compensation, t_offset=t)
+        self.seq.set_offset(self.v_compensation, t_offset=t) # @@@ only set when step > lsb. Check with _ramp/_set_offset.
         self.add_integral(np.sum(waveform))
 
         for index,data in enumerate(self._waveforms):
