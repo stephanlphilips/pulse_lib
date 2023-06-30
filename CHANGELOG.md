@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.25] - 2023-06-30
+
+- Fixed merging of phase shift and MW pulse in conditional segment (Keysight_QS)
+- Fixed Qblox uploader with unaligned long pulses and gap between pulses.
+- Fixed Keysight release_all_awg_memory
+- Added measure till end of sequence (time trace feature)
+
 ## \[1.6.24] - 2023-06-19
 
 - Fixed Qblox uploader with unaligned pulses.
