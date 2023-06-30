@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Tuple, List
+from numbers import Number
 import logging
 import numpy as np
 from pulse_lib.segments.segment_measurements import measurement_acquisition, measurement_expression
@@ -219,7 +220,8 @@ class MeasurementParameter(MultiParameter):
 
     def get_raw(self):
         data = self._source.get_channel_data()
-        self._mc.set_channel_data(data)
+        index = self._source.sweep_index[::-1]
+        self._mc.set_channel_data(data, index)
 
         data = self._mc.get_measurement_data(self._data_selection)
 
@@ -271,7 +273,10 @@ class MeasurementConverter:
             if n_rep:
                 sp_raw.append(np.arange(n_rep), 'repetition', 'repetition', '')
             if m.interval is not None:
-                time = tuple(np.arange(m.n_samples, dtype=float) * m.interval)
+                n_samples = m.n_samples
+                if not isinstance(n_samples, Number):
+                    n_samples = max(n_samples)
+                time = tuple(np.arange(n_samples, dtype=float) * m.interval)
                 sp_raw.append(time, 'time', 'time', 'ns')
 
             self.sp_raw.append(sp_raw)
@@ -315,16 +320,27 @@ class MeasurementConverter:
         setpoints = self.get_setpoints(selection)
         return setpoints.names
 
-    def _set_data_raw(self):
+    def _set_data_raw(self, index):
         self._raw = []
         self._raw_split = []
         for m in self._description.measurements:
             if isinstance(m, measurement_acquisition):
                 channel_name = m.acquisition_channel
+                channel_data = self._channel_raw[channel_name]
+                data_offset = m.data_offset
+                if not isinstance(data_offset, Number):
+                    data_offset = data_offset[tuple(index)]
                 if m.interval is None:
-                    channel_raw = self._channel_raw[channel_name][...,m.data_offset]
+                    channel_raw = channel_data[...,data_offset]
                 else:
-                    channel_raw = self._channel_raw[channel_name][...,m.data_offset:m.data_offset+m.n_samples]
+                    n_samples = m.n_samples
+                    if not isinstance(n_samples, Number):
+                        shape = channel_data.shape[:-1]+(max(n_samples),)
+                        channel_raw = np.full(shape, np.nan)
+                        n_samples = n_samples[tuple(index)]
+                        channel_raw[...,:n_samples] = channel_data[...,data_offset:data_offset+n_samples]
+                    else:
+                        channel_raw = channel_data[...,data_offset:data_offset+n_samples]
 
                 self._raw.append(channel_raw)
 
@@ -372,9 +388,9 @@ class MeasurementConverter:
             logger.warning('No shot is accepted')
             self._values = [np.full(len(values_unfiltered), np.nan)]
 
-    def set_channel_data(self, data):
+    def set_channel_data(self, data, index):
         self._channel_raw = data
-        self._set_data_raw()
+        self._set_data_raw(index)
         self._set_states()
 
     def get_setpoints(self, selection):

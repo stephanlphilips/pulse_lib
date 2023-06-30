@@ -395,12 +395,25 @@ class sequencer():
                     t_measure = default_t_measure
                 elif isinstance(m.t_measure, Number):
                     t_measure = m.t_measure
+                    # if t_measure = -1, then measure till end of sequence. (time trace feature)
+                    if t_measure < 0:
+                        print(self.total_time)
+                        print(self._measurements_description.start_times[m.name])
+                        t_measure = self.total_time - self._measurements_description.start_times[m.name]
                 else:
                     raise Exception(f't_measure must be number and not a {type(m.t_measure)} for time traces')
-                # @@@ implement QS, Tektronix
+                # @@@ implement Tektronix
                 if hasattr(self.uploader, 'actual_acquisition_points'):
-                    m.n_samples, m.interval = self.uploader.actual_acquisition_points(m.acquisition_channel,
-                                                                                      t_measure, sample_rate)
+                    if isinstance(t_measure, Number):
+                        m.n_samples, m.interval = self.uploader.actual_acquisition_points(m.acquisition_channel,
+                                                                                          t_measure, sample_rate)
+                    else:
+                        m.n_samples = np.zeros(t_measure.shape, dtype=int)
+                        for i,t in enumerate(t_measure.flat):
+                            m.n_samples[i], m.interval = \
+                                self.uploader.actual_acquisition_points(m.acquisition_channel,
+                                                                        t, sample_rate)
+                        print(m.n_samples, m.interval)
                 else:
                     print(f'WARNING {type(self.uploader)} is missing method actual_acquisition_points(); using old computation')
                     m.n_samples = self.uploader.get_num_samples(

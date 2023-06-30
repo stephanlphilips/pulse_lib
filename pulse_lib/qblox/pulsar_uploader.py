@@ -751,6 +751,9 @@ class UploadAggregator:
                 t_measure = acquisition.t_measure if acquisition.t_measure is not None else acq_conf.t_measure
                 if t_measure is None:
                     raise Exception('measurement time has not been configured')
+                # if t_measure = -1, then measure till end of sequence. (time trace feature)
+                if t_measure < 0:
+                    t_measure = self.segments[-1].t_end - t
                 t_measure = PulsarConfig.floor(t_measure)
 
                 if acquisition.n_repeat:

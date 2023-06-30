@@ -27,3 +27,6 @@ class SequencePlayer:
         seq.play()
         return seq.get_channel_data()
 
+    @property
+    def sweep_index(self):
+        return self._sequencer.sweep_index
