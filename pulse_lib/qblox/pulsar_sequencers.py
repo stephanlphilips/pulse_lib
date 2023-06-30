@@ -112,6 +112,8 @@ class SequenceBuilderBase:
             marker = self.markers[i]
             self._set_markers(marker[0], marker[1])
 
+
+# Range is -1.0 ... +1.0 with 16 bits => 2 / 2**16
 _lsb_step = 3e-5
 
 
@@ -130,6 +132,7 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
             self.compensation_factor = 1 / (1e9 * rc_time)
         else:
             self.compensation_factor = 0.0
+        self._offset = None
 
     def ramp(self, t_start, t_end, v_start, v_end):
         '''
@@ -152,10 +155,18 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
         if is_ramp:
             self._update_time_and_markers(t_start, duration)
             self.seq.ramp(duration, v_start_comp, v_end_comp, t_offset=t_start, v_after=None)
+            self._offset = None
         else:
             # sequencer only updates offset, no continuing action: duration=0
             self._update_time_and_markers(t_start, 0)
-            self.seq.set_offset(v_start_comp, t_offset=t_start)
+            self._set_offset(t_start, v_start_comp)
+
+    def _set_offset(self, t, v):
+        # Note: only add instruction when it is a significant step
+        # offset is changed by ramp and set_offset calls.
+        if self._offset is None or abs(self._offset - v) > _lsb_step:
+            self.seq.set_offset(v, t_offset=t)
+            self._offset = v
 
     def set_offset(self, t, duration, v):
         if duration == 0:
@@ -163,7 +174,7 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
             t = PulsarConfig.align(t + self.offset_ns)
             v += self.v_compensation
             self._update_time_and_markers(t, 0)
-            self.seq.set_offset(v, t_offset=t)
+            self._set_offset(t, v)
         else:
             # due to bias-T compensation the offset will not be constant, but a ramp.
             self._ramp(t, t+duration, v, v)
@@ -248,7 +259,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             if self._rendering and self._wave_length >= 20:
                 self._emit_waveform(PulsarConfig.ceil(self._t_wave_end))
             if not self._rendering:
-                self.set_offset(t_start, 0, v_end)
+                self._set_offset(t_start, v_end)
             return
 
         is_ramp = abs(v_end-v_start) > _lsb_step
@@ -387,8 +398,6 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             self._waveform = np.zeros(istart+n)
             self._waveform[:len(waveform)] = waveform
             waveform = self._waveform
-#        print('merging:', t_start, len(data))
-#        print('waveform',  self._t_wave_start, self._t_wave_end)
         waveform[istart:istart+n] += data
 
         self._aligned = self._t_wave_end % 4 == 0
@@ -397,7 +406,6 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         self._t_constant = 0
 
     def _emit_waveform(self, t_end):
-#        print('emit', t_end)
         # TODO optimize: Chop off constant part and use set_offset
         #      This reduces memory usage and could result in more reuse of waveforms in certain cases.
 
@@ -420,12 +428,11 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             self._rendering = False
 
     def _play_waveform(self, t_start, waveform):
-#        print('Waveform', t_start, len(waveform))
         # TODO Optimize: check if offset has changed due to ramp or set_offset
 
         t = PulsarConfig.floor(t_start + self.offset_ns)
         self._update_time_and_markers(t, 0)
-        self.seq.set_offset(self.v_compensation, t_offset=t) # @@@ only set when step > lsb. Check with _ramp/_set_offset.
+        self._set_offset(t, self.v_compensation)
         self.add_integral(np.sum(waveform))
 
         for index,data in enumerate(self._waveforms):
@@ -669,7 +676,6 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
 
         self._commands.sort(key=lambda cmd:cmd.time)
         for cmd in self._commands:
-            # print(cmd.func.__name__, cmd.args, cmd.kwargs)
             cmd.func(*cmd.args, **cmd.kwargs)
 
     def get_data_scaling(self):
