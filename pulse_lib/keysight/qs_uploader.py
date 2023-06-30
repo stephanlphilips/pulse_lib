@@ -451,6 +451,8 @@ class QsUploader:
 
     def release_all_awg_memory(self):
         for awg in self.AWGs.values():
+            for ch in [1,2,3,4]:
+                awg.awg_flush(ch)
             if hasattr(awg, 'release_waveform_memory'):
                 awg.release_waveform_memory()
             else:
@@ -1182,6 +1184,9 @@ class UploadAggregator:
                     # set empty list. Fill later after sorting all triggers
                     digitizer_trigger_channels[channel.module_name] = []
                     t_measure = acquisition.t_measure if acquisition.t_measure is not None else job.acquisition_conf.t_measure
+                    # if t_measure = -1, then measure till end of sequence. (time trace feature)
+                    if t_measure < 0:
+                        t_measure = self.segments[-1].t_end - t
                     if channel_name in job.t_measure:
                         if t_measure != job.t_measure[channel_name]:
                             raise Exception(
@@ -1263,6 +1268,9 @@ class UploadAggregator:
                         t_measure = acquisition.t_measure
                     else:
                         t_measure = job.acquisition_conf.t_measure
+                    # if t_measure = -1, then measure till end of sequence. (time trace feature)
+                    if t_measure < 0:
+                        t_measure = self.segments[-1].t_end - t
                     if job.acquisition_conf.sample_rate is not None:
                         period_ns = iround(1e8/job.acquisition_conf.sample_rate) * 10
                         n_cycles = int(t_measure / period_ns)

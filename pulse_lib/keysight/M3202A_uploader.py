@@ -47,14 +47,8 @@ class M3202A_Uploader:
         self.jobs = []
         self.acq_description = None
 
-        self._init_awgs()
-        self._config_marker_channels()
-
-    def _init_awgs(self):
-        for awg in self.AWGs.values():
-            for ch in [1,2,3,4]:
-                awg.awg_flush(ch)
         self.release_all_awg_memory()
+        self._config_marker_channels()
 
     def _config_marker_channels(self):
         for channel in self.marker_channels.values():
@@ -358,6 +352,8 @@ class M3202A_Uploader:
 
     def release_all_awg_memory(self):
         for awg in self.AWGs.values():
+            for ch in [1,2,3,4]:
+                awg.awg_flush(ch)
             if hasattr(awg, 'release_waveform_memory'):
                 awg.release_waveform_memory()
             else:
@@ -971,6 +967,9 @@ class UploadAggregator:
                     t = seg_render.t_start + acquisition.start
                     job.n_acq_samples[ch_name] += 1
                     t_measure = acquisition.t_measure if acquisition.t_measure is not None else job.acquisition_conf.t_measure
+                    # if t_measure = -1, then measure till end of sequence. (time trace feature)
+                    if t_measure < 0:
+                        t_measure = self.segments[-1].t_end - t
                     if ch_name in job.t_measure:
                         if t_measure != job.t_measure[ch_name]:
                             raise Exception(
