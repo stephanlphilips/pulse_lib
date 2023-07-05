@@ -301,8 +301,8 @@ class QsUploader:
                             channel_number, queue_item.wave_reference,
                             trigger_mode, start_delay, cycles, prescaler)
                     trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
-            except:
-                raise Exception(f'Play failed on channel {channel_name}')
+            except Exception as ex:
+                raise Exception(f'Play failed on channel {channel_name} ({ex})')
 
 
         # set offset for IQ channels

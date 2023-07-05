@@ -5,6 +5,10 @@ All notable changes to Pulselib will be documented in this file.
 
 - Fixed Qblox time offset bug in previous release.
 
+## \[1.6.27] - 2023-07-@@@
+
+- Fixed retries on Keysight exceptions
+
 ## \[1.6.25] - 2023-06-30
 
 - Fixed merging of phase shift and MW pulse in conditional segment (Keysight_QS)
