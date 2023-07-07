@@ -14,6 +14,9 @@ def iround(value):
 
 class PulsarConfig:
     ALIGNMENT = 4 # pulses must be aligned on 4 ns boundaries
+    EMIT_LENGTH1 = 150
+    EMIT_LENGTH2 = 250
+    EMIT_LENGTH3 = 500
 
     @staticmethod
     def align(value):
@@ -240,8 +243,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         # pulsar_uploader and data_pulse should make sure that custom_pulse and sin are added
         # before the ramp. No custom pulse or sin should start during a ramp.
 
-        # @@@ there can be multiple ramps during 1 custom pulse. data_pulse should sort this properly...
-        # Alternative: mark ramps have overlap with custom pulse.
+        # There can be multiple ramps during 1 custom pulse. data_pulse sorts ramps and pulses.
 
         # TODO sub-nanoseconds.
         t_start = iround(t_start)
@@ -250,7 +252,6 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         duration = t_end - t_start
 
         t_start_offset = t_start % 4 # @@@ PulsarConfig.offset()
-        t_end_offset = t_end % 4
 
         if duration == 0 and t_start_offset == 0:
             # Used to reset voltage at end of segment.
@@ -262,154 +263,141 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
                 self.set_offset(t_start, t_end, v_end)
             return
 
+        self._emit_if_gap(t_start)
+
         is_ramp = abs(v_end-v_start) > _lsb_step
         is_long = duration > (100 if is_ramp else 40)
-
         dvdt = (v_end-v_start)/(t_end-t_start)
-
-        if self._rendering and t_start - self._t_wave_end >= 40:
-            # there is a gap
-            self._emit_waveform(PulsarConfig.ceil(self._t_wave_end))
 
         if self._rendering and t_start < self._t_wave_end:
             # Already rendered beyond start of this ramp.
             # Custom pulse or sine already rendered.
             # Do not try to emit waveform.
-            self._render(t_start, t_end, v_start, v_end)
+            self._render_ramp(t_start, t_end, v_start, v_end)
         elif is_long:
             if t_start_offset:
                 t_end_wave = PulsarConfig.ceil(t_start)
                 v_end_wave = v_start + dvdt * (t_end_wave - t_start)
-                self._render(t_start, t_end_wave, v_start, v_end_wave)
+                self._render_ramp(t_start, t_end_wave, v_start, v_end_wave)
                 self._emit_waveform(t_end_wave)
                 t_start = t_end_wave
                 v_start = v_end_wave
             elif self._rendering:
                 self._emit_waveform(t_start)
 
-            if t_end_offset:
-                t_end_ramp = PulsarConfig.floor(t_end)
+            t_end_ramp = PulsarConfig.floor(t_end)
+            if t_end_ramp != t_end:
                 v_end_ramp = v_end + dvdt * (t_end_ramp - t_end)
                 self._ramp(t_start, t_end_ramp, v_start, v_end_ramp)
-                self._render(t_end_ramp, t_end, v_end_ramp, v_end)
+                self._render_ramp(t_end_ramp, t_end, v_end_ramp, v_end)
             else:
-                t_end_ramp = t_end
                 v_end_ramp = v_end
                 self._ramp(t_start, t_end_ramp, v_start, v_end_ramp)
         else:
-            if self._rendering:
-                min_length = 150
-                medium_length = 250
-                max_length = 500
-                if self._wave_length > min_length and self._equal_voltage and (
-                        self._aligned or self._t_constant >= 4):
-                    # equal voltages: could be repeatable waveform
-                    emit = True
-                elif self._wave_length > medium_length and self._aligned:
-                    # it's aligned: could be repeatable waveform
-                    emit = True
-                elif self._wave_length > max_length:
-                    # it's getting long...
-                    emit = True
-                else:
-                    emit = False
-
-                if emit:
-                    self._emit_waveform(t_start-t_start_offset)
-            self._render(t_start, t_end, v_start, v_end)
+            self._emit_waveform_part(t_start)
+            self._render_ramp(t_start, t_end, v_start, v_end)
 
     def add_sin(self, t_start, t_end, amplitude, waveform):
         t_start = iround(t_start)
-        t_end = iround(t_end)
-        if self._rendering:
-            data = waveform.render() * amplitude
-            self._merge_waveform(t_start, data)
-        else:
-            t_start += self.offset_ns
-            t_end += self.offset_ns
-            t_pulse = PulsarConfig.floor(t_start)
-            offset = t_start - t_pulse
-            self._update_time_and_markers(t_start, t_end-t_pulse)
-            waveform.offset = offset
-            wave_id = self.register_sinewave(waveform)
-            # @@@ if end is not aligned the next ramp, sin, or custom_pulse could fail.
-            self.seq.shaped_pulse(wave_id, amplitude, t_offset=t_start)
+        data = waveform.render() * amplitude
+        self._emit_if_gap(t_start)
+        self._emit_waveform_part(t_start)
+        self._add_waveform_data(t_start, data)
 
     def custom_pulse(self, t_start, t_end, amplitude, custom_pulse):
         t_start = iround(t_start)
-        t_end = iround(t_end)
-        if self._rendering:
-            data = custom_pulse.render(sample_rate=1e9) * amplitude
-            self._merge_waveform(t_start, data)
-        else:
-            t_start += self.offset_ns
-            t_end += self.offset_ns
-            t_pulse = PulsarConfig.floor(t_start)
-            offset = t_start - t_pulse
-            self._update_time_and_markers(t_pulse, t_end-t_pulse)
-            wave_id = self._register_custom_pulse(custom_pulse, amplitude, offset=offset)
-            # @@@ if end is not aligned the next ramp, sin, or custom_pulse could fail.
-            self.seq.shaped_pulse(wave_id, 1.0, t_offset=t_pulse)
+        data = custom_pulse.render(sample_rate=1e9) * amplitude
+        self._emit_if_gap(t_start)
+        self._emit_waveform_part(t_start)
+        self._add_waveform_data(t_start, data)
 
     def wait_till(self, t):
         if self._rendering:
             self._emit_waveform(self._t_wave_end)
         super().wait_till(t)
 
-    def _render(self, t_start, t_end, v_start, v_end):
+    def _render_ramp(self, t_start, t_end, v_start, v_end):
+        n = t_end - t_start
+        data  = np.linspace(v_start, v_end, n, endpoint=False)
+        self._add_waveform_data(t_start, data, v_start)
+
+        if self._v_start is not None:
+            self._equal_voltage = abs(self._v_start - v_end) < _lsb_step
+            if abs(v_end - v_start) > 2*_lsb_step:
+                # ramp
+                dv_dt = (v_end-v_start)/(t_end-t_start)
+                t_constant = _lsb_step / abs(dv_dt)
+            else:
+                t_constant = t_end - t_start
+            self._t_constant = t_constant
+
+    def _add_waveform_data(self, t_start, data, v_start=None):
+        n = len(data)
+        t_end = t_start + n
         if not self._rendering:
-            self._waveform = np.zeros(1000)
             self._t_wave_start = PulsarConfig.floor(t_start)
             self._t_wave_end = t_end
             self._v_start = v_start
             self._rendering = True
-        waveform = self._waveform
-        self._t_wave_end = max(self._t_wave_end, t_end)
-        self._wave_length = self._t_wave_end - self._t_wave_start
-
-        istart = t_start - self._t_wave_start
-        n = t_end - t_start
-        waveform[istart:istart+n] += np.linspace(v_start, v_end, n, endpoint=False)
-
-        self._aligned = self._t_wave_end % 4 == 0
-        self._equal_voltage = abs(self._v_start - v_end) < _lsb_step
-
-        # determine constant end.
-        if abs(v_end - v_start) > 2*_lsb_step:
-            # ramp
-            dv_dt = (v_end-v_start)/(t_end-t_start)
-            t_constant = _lsb_step / abs(dv_dt)
-        else:
-            t_constant = t_end - t_start
-        self._t_constant = t_constant
-
-    def _merge_waveform(self, t_start, data):
-        n = len(data)
-        t_end = t_start + n
-        self._t_wave_end = max(self._t_wave_end, t_end)
-        self._wave_length = self._t_wave_end - self._t_wave_start
-
-        istart = t_start - self._t_wave_start
-        waveform = self._waveform
-        if istart+n > len(waveform):
-            if istart+n > 8000:
-                raise Exception(f'Rendered waveform too big for Qblox module')
-            logger.info(f'Extending waveform to {istart+n}')
-            self._waveform = np.zeros(istart+n)
-            self._waveform[:len(waveform)] = waveform
+            istart = t_start - self._t_wave_start
+            min_length = math.ceil((istart+n)/100)*100
+            min_length = max(1000, min_length)
+            self._waveform = np.zeros(min_length)
             waveform = self._waveform
+        else:
+            istart = t_start - self._t_wave_start
+            min_length = istart+n
+            waveform = self._waveform
+            if min_length > len(waveform):
+                if min_length > 8000:
+                    raise Exception(f'Rendered waveform too big for Qblox module')
+                min_length = math.ceil(min_length/100)*100
+                logger.info(f'Extending waveform to {min_length}')
+                self._waveform = np.zeros(min_length)
+                self._waveform[:len(waveform)] = waveform
+                waveform = self._waveform
+
         waveform[istart:istart+n] += data
 
+        self._t_wave_end = max(self._t_wave_end, t_end)
+        self._wave_length = self._t_wave_end - self._t_wave_start
         self._aligned = self._t_wave_end % 4 == 0
+
+        # Note: this will be overwritten in _render_ramp.
         iend = self._t_wave_end - self._t_wave_start
-        self._equal_voltage = abs(self._v_start - waveform[iend]) < _lsb_step
+        self._equal_voltage = abs(waveform[istart] - waveform[iend]) < _lsb_step
         self._t_constant = 0
+
+    def _emit_if_gap(self, t_start):
+        if self._rendering and t_start - self._t_wave_end >= 40:
+            # there is a gap
+            self._emit_waveform(PulsarConfig.ceil(self._t_wave_end))
+
+    def _emit_waveform_part(self, t_start):
+        if not self._rendering:
+            return
+        # do not emit if there is already data after t_start
+        if t_start < self._t_wave_end:
+            # TODO check if significant part before t_start can be emitted.
+            return
+        t_start = PulsarConfig.floor(t_start)
+        if self._wave_length > PulsarConfig.EMIT_LENGTH1 and self._equal_voltage and (
+                self._aligned or self._t_constant >= 4):
+            # equal voltages: could be repeatable waveform
+            self._emit_waveform(t_start)
+        elif self._wave_length > PulsarConfig.EMIT_LENGTH2 and self._aligned:
+            # it's aligned: could be repeatable waveform
+            self._emit_waveform(t_start)
+        elif self._wave_length > PulsarConfig.EMIT_LENGTH3:
+            # it's getting long...
+            self._emit_waveform(t_start)
+
 
     def _emit_waveform(self, t_end):
         # TODO optimize: Chop off constant part and use set_offset
         #      This reduces memory usage and could result in more reuse of waveforms in certain cases.
 
-        # TODO Chop off constant part with v = 0.0 @@@
+        # TODO Chop off constant part with v = 0.0
         #      This reduces memory usage.
         waveform = self._waveform
         n = t_end - self._t_wave_start

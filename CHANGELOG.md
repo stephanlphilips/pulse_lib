@@ -1,13 +1,15 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.27] - 2023-07-10
+
+- Fixed retries on Keysight exceptions
+- Fixed rendering stacked and/or unaligned sine and custom pulses for Qblox
+
 ## \[1.6.26] - 2023-06-30
 
 - Fixed Qblox time offset bug in previous release.
 
-## \[1.6.27] - 2023-07-@@@
-
-- Fixed retries on Keysight exceptions
 
 ## \[1.6.25] - 2023-06-30
 
