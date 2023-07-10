@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class MemoryManager:
     def __init__(self):
-        self._free_slots = [i for i in range(50)]
+        self._free_slots = [i for i in range(10_000)]
         self._used_slots = {}
 
     def allocate(self, size):
