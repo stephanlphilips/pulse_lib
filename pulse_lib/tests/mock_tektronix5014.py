@@ -103,7 +103,8 @@ class MockTektronix5014(Instrument):
 
             if settings['state'] == 0:
                 continue
-            amp = settings.get('amp', 0.0)
+            # amplitude setting on Tektronix is Vpp
+            amp = settings.get('amp', 0.0) / 2
             offset = settings.get('offset', 0.0)
             wave_raw = self.waveforms[self.sequence[0].wave_names[ch]]
             wave_data = (wave_raw & 0x3FFF) # ((wave_raw & 0x3FFF) << 2).astype(np.int16)
