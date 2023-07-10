@@ -356,7 +356,7 @@ class pulse_data(parent_data):
             return
 
         for mw_pulse in self.MW_pulse_data:
-            mw_pulse.start_phase += phase_shift
+            mw_pulse.phase_offset += phase_shift
 
         for chirp in self.chirp_data:
             chirp.phase += phase_shift
@@ -715,7 +715,7 @@ class pulse_data(parent_data):
             if abs(freq) > sample_rate*1e9/2:
                 raise Exception(f'Frequency {freq*1e-6:5.1f} MHz is above Nyquist frequency ({sample_rate*1e3/2} MHz)')
             # TODO add check on configurable bandwidth.
-            phase = mw_pulse.start_phase
+            phase = mw_pulse.phase_offset
             if ref_channel_states and mw_pulse.ref_channel in ref_channel_states.start_phase:
                 ref_start_time = ref_channel_states.start_time
                 ref_start_phase = ref_channel_states.start_phase[mw_pulse.ref_channel]
@@ -745,10 +745,16 @@ class pulse_data(parent_data):
             start_pt = iround(start_pulse * sample_rate)
             stop_pt = start_pt + n_pt
 
-            # add the sin pulse
-            total_phase = phase_shift + phase + phase_envelope + ref_start_phase
-            t = start_pt+ref_start_time/sample_rate + np.arange(n_pt)
-            wvf[start_pt:stop_pt] += amp*amp_envelope*np.sin(2*np.pi*freq/sample_rate*1e-9*t + total_phase)
+            # add the sine wave
+            if mw_pulse.coherent_pulsing:
+                total_phase = phase_shift + phase + phase_envelope + ref_start_phase
+                t = start_pt+ref_start_time/sample_rate + np.arange(n_pt)
+                wvf[start_pt:stop_pt] += amp*amp_envelope*np.sin(2*np.pi*freq/sample_rate*1e-9*t + total_phase)
+            else:
+                # it's not an IQ pulse, but a sine wave on voltage channel.
+                total_phase = phase + phase_envelope
+                t = np.arange(n_pt)
+                wvf[start_pt:stop_pt] += amp*amp_envelope*np.sin(2*np.pi*freq/sample_rate*1e-9*t + total_phase)
 
         for custom_pulse in self.custom_pulse_data:
             data = custom_pulse.render(sample_rate*1e9)
@@ -830,7 +836,7 @@ class pulse_data(parent_data):
             # max amp, freq and phase.
             amp  =  mw_pulse.amplitude
             freq =  mw_pulse.frequency
-            phase = mw_pulse.start_phase
+            phase = mw_pulse.phase_offset
             if ref_channel_states and mw_pulse.ref_channel in ref_channel_states.start_phase:
                 ref_start_time = ref_channel_states.start_time
                 ref_start_phase = ref_channel_states.start_phase[mw_pulse.ref_channel]
@@ -910,7 +916,7 @@ class pulse_data(parent_data):
             pd['stop'] = pulse.stop
             pd['amplitude'] = pulse.amplitude
             pd['frequency'] = pulse.frequency
-            pd['start_phase'] = pulse.start_phase + phase_shift
+            pd['start_phase'] = pulse.phase_offset + phase_shift
             envelope = pulse.envelope
             if envelope is None:
                 envelope = envelope_generator()

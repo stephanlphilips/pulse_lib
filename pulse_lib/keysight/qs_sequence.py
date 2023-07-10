@@ -205,8 +205,8 @@ class IQSequenceBuilder:
         if abs(frequency) > 450e6:
             raise Exception(f'Waveform NCO frequency {frequency/1e6:5.1f} MHz is out of range')
 
-        prephase += mw_pulse_data.start_phase
-        postphase -= mw_pulse_data.start_phase
+        prephase += mw_pulse_data.phase_offset
+        postphase -= mw_pulse_data.phase_offset
         return Waveform(mw_pulse_data.amplitude, amp_envelope,
                         frequency, pm_envelope,
                         prephase, postphase, duration)
@@ -216,8 +216,8 @@ class IQSequenceBuilder:
         if abs(frequency) > 450e6:
             raise Exception(f'Waveform NCO frequency {frequency/1e6:5.1f} MHz is out of range')
 
-        prephase = mw_pulse_data.start_phase
-        postphase = -mw_pulse_data.start_phase
+        prephase = mw_pulse_data.phase_offset
+        postphase = -mw_pulse_data.phase_offset
         start_wvf = Waveform(mw_pulse_data.amplitude, 1.0,
                              frequency, 0.0,
                              prephase=prephase,

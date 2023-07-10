@@ -64,5 +64,5 @@ class LastUpload:
             elif isinstance(e, PhaseShift):
                 print(f'shift phase {e.phase_shift:+6.3f} rad ({e.channel_name})')
             elif isinstance(e, IQ_data_single):
-                print(f'MW pulse {e.amplitude:6.2f} {e.frequency/1e6:6.1f} MHz {e.start_phase:+6.3f} rad ({e.ref_channel})')
+                print(f'MW pulse {e.amplitude:6.2f} {e.frequency/1e6:6.1f} MHz {e.phase_offset:+6.3f} rad ({e.ref_channel})')
 

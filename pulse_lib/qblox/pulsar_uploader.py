@@ -620,7 +620,11 @@ class UploadAggregator:
                     t_end = e.stop + seg_start
                     wave_duration = iround(e.stop) - iround(e.start) # 1 ns resolution
                     amod, phmod = get_modulation(e.envelope, wave_duration)
-                    sinewave = SineWaveform(wave_duration, e.frequency, e.start_phase, amod, phmod)
+                    if e.coherent_pulsing:
+                        phase = e.phase_offset + 2*np.pi*e.frequency*t*1e-9
+                    else:
+                        phase = e.phase_offset
+                    sinewave = SineWaveform(wave_duration, e.frequency, phase, amod, phmod)
                     seq.add_sin(t, t_end, e.amplitude*scaling, sinewave)
                 elif isinstance(e, PhaseShift):
                     raise Exception('Phase shift not supported for AWG channel')
@@ -690,7 +694,7 @@ class UploadAggregator:
                     wave_duration = iround(e.stop - e.start) # 1 ns resolution for waveform
                     amod, phmod = get_modulation(e.envelope, wave_duration)
                     sinewave = SineWaveform(wave_duration, e.frequency-lo_freq,
-                                            e.start_phase, amod, phmod)
+                                            e.phase_offset, amod, phmod)
                     seq.pulse(t_start, t_end, e.amplitude*scaling, sinewave)
                 elif isinstance(e, PhaseShift):
                     t_start = e.start + seg_start

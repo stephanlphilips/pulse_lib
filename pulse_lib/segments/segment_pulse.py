@@ -113,8 +113,9 @@ class segment_pulse(segment_base):
     @loop_controller
     def add_sin(self, start, stop, amp, freq, phase_offset=0):
         '''
-        add a sinus to the current segment, parameters should be self exlenatory.
-        The pulse will have a not have a relative phase phase.
+        Adds a sine wave to the current segment.
+        The pulse does not have a coherent phase with other pulses,
+        unlike add_MW_pulse on IQ channels.
         Args:
             start (double) : start time in ns of the pulse
             stop (double) : stop time in ns of the pulse
@@ -127,7 +128,8 @@ class segment_pulse(segment_base):
                                                  amp, freq,
                                                  phase_offset,
                                                  None, # no envelope
-                                                 self.name))
+                                                 self.name,
+                                                 coherent_pulsing=False))
         return self.data_tmp
 
     @loop_controller

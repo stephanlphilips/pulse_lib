@@ -111,9 +111,16 @@ class IQ_data_single:
     stop : float = 0
     amplitude : float = 1
     frequency : float = 0
-    start_phase : float = 0
+    phase_offset : float = 0
+    ''' offset from coherent pulse  '''
     envelope : envelope_generator = None
     ref_channel : str = None
+    coherent_pulsing : bool = True
+
+    @property
+    def start_phase(self):
+        ''' Old name for phase_offset '''
+        return self.phase_offset
 
 @dataclass
 class Chirp:
