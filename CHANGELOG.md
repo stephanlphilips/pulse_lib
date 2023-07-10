@@ -5,11 +5,11 @@ All notable changes to Pulselib will be documented in this file.
 
 - Fixed retries on Keysight exceptions
 - Fixed rendering stacked and/or unaligned sine and custom pulses for Qblox
+- Render wave of add_sin() with phase starting at start of wave, i.e. independent of start time of pulse.
 
 ## \[1.6.26] - 2023-06-30
 
 - Fixed Qblox time offset bug in previous release.
-
 
 ## \[1.6.25] - 2023-06-30
 
