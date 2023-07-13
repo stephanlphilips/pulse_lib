@@ -260,7 +260,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             if self._rendering and self._wave_length >= 20:
                 self._emit_waveform(PulsarConfig.ceil(self._t_wave_end))
             if not self._rendering:
-                self.set_offset(t_start, t_end, v_end)
+                self.set_offset(t_start, 0, v_end)
             return
 
         self._emit_if_gap(t_start)

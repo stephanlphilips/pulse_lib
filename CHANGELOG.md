@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.28] - 2023-07-13
+
+- Fixed Qblox uploader
+
 ## \[1.6.27] - 2023-07-10
 
 - Fixed retries on Keysight exceptions
