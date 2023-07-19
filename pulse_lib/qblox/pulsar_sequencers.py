@@ -593,8 +593,6 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         if rf_source is not None:
             if isinstance(rf_source.output,str):
                 raise Exception(f'Qblox RF source must be configured using module name and channel numbers')
-            scaling = 1/(rf_source.attenuation * self.max_output_voltage*1000)
-            self._rf_amplitude = rf_source.amplitude * scaling
             self._n_out_ch = 1 if isinstance(rf_source.output[1], int) else 2
 
     @property
@@ -703,7 +701,8 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         t_start = PulsarConfig.align(t_start)
         if t_start > self._pulse_end:
             self._add_pulse_end()
-            amp0 = self._rf_amplitude
+            # amplitude is scaled with gain_awg_path parameter
+            amp0 = 1.0
             # amplitude 1 should be 0.0. It's the Q-component used in IQ modulation.
             # only the I-component is used to set the amplitude.
             amp1 = 0.0 if self._n_out_ch == 2 else None

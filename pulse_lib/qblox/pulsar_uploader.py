@@ -7,6 +7,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Dict, Optional, List, Union
 from numbers import Number
+from packaging.version import Version
 
 from .rendering import SineWaveform, get_modulation
 from .pulsar_sequencers import (
@@ -17,7 +18,10 @@ from .pulsar_sequencers import (
         SequenceBuilderBase,
         PulsarConfig)
 
-from q1pulse import Q1Instrument
+from q1pulse import (
+        Q1Instrument,
+        __version__ as q1pulse_version,
+        )
 
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single, Chirp
 from pulse_lib.segments.data_classes.data_pulse import (
@@ -239,12 +243,30 @@ class PulsarUploader:
                                               job.n_rep,
                                               job.acquisition_conf.average_repetitions)
 
-
         logger.info(f'Play {index}')
 
         n_rep = job.n_rep if job.n_rep else 1
         total_seconds = job.playback_time * n_rep * 1e-9
         timeout_minutes = int(total_seconds*1.1 / 60) + 1
+
+        # update resonator frequency and amplitude
+        for ch_name, dig_channel in self.digitizer_channels.items():
+            nco_freq = dig_channel.frequency
+            if nco_freq is None:
+                continue
+            job.program[ch_name].nco_frequency = nco_freq
+            rf_source = dig_channel.rf_source
+            if rf_source is None:
+                continue
+            amplitude = rf_source.amplitude / (rf_source.attenuation * 500.0)
+            # FIXME: this is a hack to set the gain of the amplitude.
+            # @@@ Should get better support in q1pulse 0.9.0
+            # if Version(q1pulse_version) < Version('0.9.0'): Should
+            q1seq_info = self.q1instrument.readouts[ch_name]
+            logger.info(f'Set RF rel. amplitude: {amplitude:5.3f} ({q1seq_info.module_name}.{q1seq_info.seq_nr})')
+            qrm = self.q1instrument.modules[q1seq_info.module_name].pulsar
+            seq = qrm.sequencers[q1seq_info.seq_nr]
+            seq.gain_awg_path0(amplitude)
 
         self.q1instrument.start_program(job.program)
         self.q1instrument.wait_stopped(timeout_minutes=timeout_minutes)
@@ -261,8 +283,6 @@ class PulsarUploader:
         result = {}
         for channel_name in acq_desc.channels:
             scaling = acq_desc.acq_data_scaling[channel_name]
-
-
             dig_ch = self.digitizer_channels[channel_name]
             in_ch = dig_ch.channel_numbers
             in_ranges = self.q1instrument.get_input_ranges(channel_name)
