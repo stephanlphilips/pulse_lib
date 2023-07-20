@@ -7,7 +7,6 @@ import math
 from dataclasses import dataclass, field
 from typing import Dict, Optional, List, Union
 from numbers import Number
-from packaging.version import Version
 
 from .rendering import SineWaveform, get_modulation
 from .pulsar_sequencers import (
@@ -18,10 +17,7 @@ from .pulsar_sequencers import (
         SequenceBuilderBase,
         PulsarConfig)
 
-from q1pulse import (
-        Q1Instrument,
-        __version__ as q1pulse_version,
-        )
+from q1pulse import Q1Instrument
 
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single, Chirp
 from pulse_lib.segments.data_classes.data_pulse import (
@@ -255,18 +251,6 @@ class PulsarUploader:
             if nco_freq is None:
                 continue
             job.program[ch_name].nco_frequency = nco_freq
-            rf_source = dig_channel.rf_source
-            if rf_source is None:
-                continue
-            amplitude = rf_source.amplitude / (rf_source.attenuation * 500.0)
-            # FIXME: this is a hack to set the gain of the amplitude.
-            # @@@ Should get better support in q1pulse 0.9.0
-            # if Version(q1pulse_version) < Version('0.9.0'): Should
-            q1seq_info = self.q1instrument.readouts[ch_name]
-            logger.info(f'Set RF rel. amplitude: {amplitude:5.3f} ({q1seq_info.module_name}.{q1seq_info.seq_nr})')
-            qrm = self.q1instrument.modules[q1seq_info.module_name].pulsar
-            seq = qrm.sequencers[q1seq_info.seq_nr]
-            seq.gain_awg_path0(amplitude)
 
         self.q1instrument.start_program(job.program)
         self.q1instrument.wait_stopped(timeout_minutes=timeout_minutes)

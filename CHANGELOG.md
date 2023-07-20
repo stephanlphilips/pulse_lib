@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.30] - 2023-07-20
+
+- Removed digitizer resonator drive amplitude sweep feature for Qblox. It broke functionality.
+
 ## \[1.6.29] - 2023-07-19
 
 - Fixed setting of digitizer demodulation frequency and resonator drive amplitude for Qblox.
