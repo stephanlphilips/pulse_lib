@@ -382,11 +382,11 @@ class MeasurementConverter:
             self._total_selected = [total_selected]
         self._selectors = selectors
         if total_selected > 0:
-            # @@@ this is not correct for time traces.
+            # Note: for time traces the threshold should not be set.
             self._values = [np.sum(result*accepted_mask)/total_selected for result in values_unfiltered]
         else:
             logger.warning('No shot is accepted')
-            self._values = [np.full(len(values_unfiltered), np.nan)]
+            self._values = [np.nan for result in values_unfiltered]
 
     def set_channel_data(self, data, index):
         self._channel_raw = data
