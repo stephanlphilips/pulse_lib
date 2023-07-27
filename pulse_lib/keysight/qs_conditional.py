@@ -144,50 +144,6 @@ class QsConditionalSegment:
         return order
 
 
-class QsConditionalChannel:
-    def __init__(self, seg_channels:List[segment_base], conditional:conditional_segment):
-        self.seg_channels = seg_channels
-        self.conditional = conditional
-        self.n_branches = len(seg_channels)
-        condition = conditional.condition
-        start = time.perf_counter()
-        refs = condition if isinstance(condition, Iterable) else [condition]
-
-        # Lookup acquistions for condition
-        self.acquisition_names = self.get_acquisition_names(refs)
-
-        self.order = self.get_branch_order(refs)
-        duration = time.perf_counter() - start
-        logger.debug(f'duration {duration*1000:6.3f} ms')
-
-    def get_acquisition_names(self, refs:List[MeasurementRef]):
-        acquisition_names = set()
-        for ref in refs:
-            acquisition_names.update(ref.keys)
-
-        acquisition_names = list(acquisition_names)
-        logger.info(f'acquisitions: {acquisition_names}')
-        return acquisition_names
-
-    def get_branch_order(self, refs):
-        # Assumes max 4 branches
-
-        # special case: 1 measurement, 2 acquisitions (and 2 options) => expand to 4 options
-        # this is handled gracefully by this code:
-        # 1 measurement: result contains only 0 and 1
-        # 2 measurements: result contains 0,1,2,3
-
-        # 0, 1, 2, 3 in binary representation on 2 acquisitions
-        all_values = np.array([[0,1,0,1],[0,0,1,1]])
-        values = {key:all_values[i] for i,key in enumerate(self.acquisition_names)}
-
-        order = np.zeros(4, dtype=int)
-        for ref in refs:
-            order = 2 * order + ref.evaluate(values)
-        logger.info(f'reordered branches: {order}')
-        return order
-
-
 class QsConditionalMW():
     # sequencer: find common offset per sequencer, generate waveforms
     # when uploading, generate extra entries in index table for conditional waveforms
