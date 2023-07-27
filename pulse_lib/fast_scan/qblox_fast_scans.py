@@ -18,7 +18,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
                       n_avg=1,
                       iq_mode='Complex',
                       iq_complex=None,
-                      ):
+                      reload_seq=False):
     """
     Creates a parameter to do a 1D fast scan.
 
@@ -54,6 +54,9 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
                 'amplitude+phase'. return amplitude and phase using channel name postfixes '_amp', '_phase'.
         iq_complex (bool):
             If False this is equivalent to `iq_mode='I+Q'`
+        reload_seq (bool):
+            If True the sequence is uploaded for every 1D scan.
+            This gives makes the scan a bit slower, but allows to sweep all pulse-lib settings.
 
     Returns:
         Parameter (QCODES multiparameter) : parameter that can be used as input in a conversional scan function.
@@ -120,12 +123,14 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
     # Note: uses hardware averaging with Qblox modules
     my_seq.set_acquisition(t_measure=t_step, channels=acq_channels, average_repetitions=True)
 
-    logger.info(f'Upload')
-    my_seq.upload()
+    if not reload_seq:
+        logger.info(f'Upload')
+        my_seq.upload()
 
     return _scan_parameter(pulse_lib, my_seq, t_step,
                            (n_pt, ), (gate, ), (tuple(voltages_sp), ),
-                           biasT_corr, channel_map=channel_map)
+                           biasT_corr, channel_map=channel_map,
+                           reload_seq=reload_seq)
 
 
 def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_step,
@@ -139,6 +144,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
                       n_avg=1,
                       iq_mode='Complex',
                       iq_complex=None,
+                      reload_seq=False,
                       ):
     """
     Creates a parameter to do a 2D fast scan.
@@ -179,6 +185,9 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
                 'amplitude+phase'. return amplitude and phase using channel name postfixes '_amp', '_phase'.
         iq_complex (bool):
             If False this is equivalent to `iq_mode='I+Q'`
+        reload_seq (bool):
+            If True the sequence is uploaded for every 2D scan.
+            This gives makes the scan a bit slower, but allows to sweep all pulse-lib settings.
 
     Returns:
         Parameter (QCODES multiparameter) : parameter that can be used as input in a conversional scan function.
@@ -276,13 +285,14 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
     # Note: uses hardware averaging with Qblox modules
     my_seq.set_acquisition(t_measure=t_step, channels=acq_channels, average_repetitions=True)
 
-    logger.info(f'Seq upload')
-    my_seq.upload()
+    if not reload_seq:
+        logger.info(f'Seq upload')
+        my_seq.upload()
 
     return _scan_parameter(pulse_lib, my_seq, t_step,
                            (n_pt2, n_pt1), (gate2, gate1),
                            (tuple(voltages2_sp), (tuple(voltages1_sp),)*n_pt2),
-                           biasT_corr, channel_map)
+                           biasT_corr, channel_map, reload_seq=reload_seq)
 
 
 def _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex):
@@ -318,7 +328,7 @@ class _scan_parameter(MultiParameter):
     generator for the parameter f
     """
     def __init__(self, pulse_lib, my_seq, t_measure, shape, names, setpoint,
-                 biasT_corr, channel_map):
+                 biasT_corr, channel_map, reload_seq):
         """
         args:
             pulse_lib (pulselib): pulse library object
@@ -331,6 +341,9 @@ class _scan_parameter(MultiParameter):
             channel_map (Dict[str, Tuple(str, Callable[[np.ndarray], np.ndarray])]):
                 defines new list of derived channels to display. Dictionary entries name: (channel_name, func).
                 E.g. {(ch1-I':(1, np.real), 'ch1-Q':('ch1', np.imag), 'ch3-Amp':('ch3', np.abs), 'ch3-Phase':('ch3', np.angle)}
+            reload_seq (bool):
+                If True the sequence is uploaded for every scan.
+                This gives makes the scan a bit slower, but allows to sweep all pulse-lib settings.
         """
         self.my_seq = my_seq
         self.pulse_lib = pulse_lib
@@ -340,6 +353,7 @@ class _scan_parameter(MultiParameter):
         self.channel_names = tuple(self.channel_map.keys())
         self.biasT_corr = biasT_corr
         self.shape = shape
+        self.reload_seq = reload_seq
 
         n_out_ch = len(self.channel_names)
         super().__init__(name='fastScan', names = self.channel_names,
@@ -351,8 +365,13 @@ class _scan_parameter(MultiParameter):
 
     def get_raw(self):
 
-        # play sequence
-        self.my_seq.play(release = False)
+        if self.reload_seq:
+            logger.info(f'Seq upload')
+            self.my_seq.upload()
+            self.my_seq.play()
+        else:
+            # play sequence
+            self.my_seq.play(release = False)
         raw_dict = self.my_seq.get_channel_data()
 
         # get the data
