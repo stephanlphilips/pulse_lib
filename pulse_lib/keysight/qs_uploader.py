@@ -535,6 +535,10 @@ class Job(object):
     def set_acquisition_conf(self, conf):
         self.acquisition_conf = conf
 
+    def set_feedback(self, condition_measurements):
+        # TODO @@@ use preprocessed information for more powerful feedback.
+        pass
+
     def add_waveform(self, channel_name, wave_ref, sample_rate):
         if channel_name not in self.channel_queues:
             self.channel_queues[channel_name] = []
@@ -1231,6 +1235,9 @@ class UploadAggregator:
 
         pxi_triggers = {}
         for seg in job.sequence:
+            # assign pxi triggers per conditional segment.
+            # WARNING: This gives wrong results with
+            #          acquire(ref='m1'); acquire(ref='m2'); Condtional('m1'); Conditional('m2')
             if isinstance(seg, conditional_segment):
                 acq_names = get_acquisition_names(seg)
                 pxi = 6
