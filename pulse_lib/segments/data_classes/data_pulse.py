@@ -174,6 +174,15 @@ class pulse_data(parent_data):
         self._phase_shifts_consolidated = False
         self._breaks_processed = False
 
+    def __eq__(self, rhs):
+        return (
+            self.pulse_deltas == rhs.pulse_deltas
+            and self.MW_pulse_data == rhs.MW_pulse_data
+            and self.custom_pulse_data == rhs.custom_pulse_data
+            and self.phase_shifts == rhs.phase_shifts
+            and self.chirp_data == rhs.chirp_data
+            )
+
     def add_delta(self, delta):
         if not delta.is_near_zero:
             self.pulse_deltas.append(delta)
