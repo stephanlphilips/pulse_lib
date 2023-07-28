@@ -88,7 +88,6 @@ class PulsarUploader:
             if marker_ch.invert:
                 raise Exception(f'Marker channel inversion not (yet) supported')
 
-
     @staticmethod
     def set_output_dir(path):
         PulsarUploader.output_dir = path
@@ -98,16 +97,16 @@ class PulsarUploader:
 
         for IQ_channel in self.IQ_channels.values():
             iq_pair = IQ_channel.IQ_out_channels
-            if len(iq_pair) != 2:
-                raise Exception(f'IQ-channel should have 2 awg channels '
+            if len(iq_pair) not in [1,2]:
+                raise Exception(f'IQ-channel should have 1 or 2 awg channels '
                                 f'({iq_pair})')
+
             out_names = [self.awg_channels[ch_info.awg_channel_name] for ch_info in iq_pair]
             awg_names = [awg_channel.awg_name for awg_channel in out_names]
-
-            if awg_names[0] != awg_names[1]:
-                raise Exception(f'IQ channels should be on 1 awg: {iq_pair}')
-
             iq_out_channels += [ch_info.awg_channel_name for ch_info in iq_pair]
+
+            if len(iq_pair) == 2 and awg_names[0] != awg_names[1]:
+                raise Exception(f'IQ channels should be on 1 awg: {iq_pair}')
 
         self.awg_voltage_channels = {}
         for name, awg_channel in self.awg_channels.items():
@@ -660,25 +659,35 @@ class UploadAggregator:
 
         channel_name = qubit_channel.channel_name
 
-        delays = []
-        for i in range(2):
-            awg_channel_name = qubit_channel.iq_channel.IQ_out_channels[i].awg_channel_name
-            delays.append(self.channels[awg_channel_name].delay_ns)
-        if delays[0] != delays[1]:
-            raise Exception(f'I/Q Channel delays must be equal ({channel_name})')
-        t_offset = PulsarConfig.align(self.max_pre_start_ns + delays[0])
+        iq_channel = qubit_channel.iq_channel
+        iq_out_channels = iq_channel.IQ_out_channels
 
-        lo_freq = qubit_channel.iq_channel.LO
+        # lookup and check delays
+        delays = [self.channels[output.awg_channel_name].delay_ns for output in iq_out_channels]
+        if min(delays) != max(delays):
+            raise Exception(f'I/Q Channel delays must be equal ({channel_name})')
+        delay = delays[0]
+
+        # lookup attenuation of AWG channels
+        att = [self.channels[output.awg_channel_name].attenuation for output in iq_out_channels]
+        if min(att) != max(att):
+            raise Exception('Attenuation for IQ output is not equal for channels '
+                            f'{[[output.awg_channel_name] for output in iq_out_channels]}')
+        attenuation = att[0]
+
+        t_offset = PulsarConfig.align(self.max_pre_start_ns + delay)
+
+        lo_freq = iq_channel.LO
         nco_freq = get_iq_nco_idle_frequency(job, qubit_channel, job.index)
 
         seq = IQSequenceBuilder(channel_name, self.program[channel_name],
                                 nco_freq,
                                 mixer_gain=qubit_channel.correction_gain,
                                 mixer_phase_offset=qubit_channel.correction_phase)
-        seq.set_time_offset(t_offset)
-        attenuation = 1.0 # TODO @@@ check if this is always true..
+
         scaling = 1/(attenuation * seq.max_output_voltage*1000)
 
+        seq.set_time_offset(t_offset)
         markers = self.get_markers_seq(job, channel_name)
         seq.add_markers(markers)
 
