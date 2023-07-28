@@ -246,6 +246,8 @@ class sequencer():
         '''
         Returns the maximum configured delay from AWG channel to digitizer channel.
         '''
+        if not self._digitizer_channels:
+            return 0
         awg_delays = []
         for channel in self._awg_channels.values():
             awg_delays.append(channel.delay)
@@ -254,7 +256,7 @@ class sequencer():
         for channel in self._digitizer_channels.values():
             dig_delays.append(channel.delay)
 
-        return max(0, *dig_delays) - min(0, *awg_delays)
+        return max(dig_delays) - min(awg_delays)
 
 
     def _generate_sweep_params(self):
