@@ -1,9 +1,15 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.@@@@@] - 2023-07-@@@
+
+- Added conditional segments for Qblox (requires qblox-instruments v0.9+)
+- Removed add_HVI_marker and add_HVI_variable from segment channels. Big performance improvement.
+
 ## \[1.6.31] - 2023-07-28
 
-- Added argument reload_seq=True to use 1D and 2D fast scan with external sweep modifying pulse-lib settings
+- Added reload_seq=True to Qblox fast scan 1D and 2D for external sweeps modifying pulse-lib settings
+- Fixed data returned by acquisition parameter when no shot is accepted.
 - Fixed attenuation qubit channel for Qblox
 - Fixed baseband qubit channel for Qblox
 

@@ -11,7 +11,6 @@ from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.data_classes.data_generic import map_index
-from pulse_lib.segments.utility.data_handling_functions import update_dimension
 
 
 class segment_base():
@@ -21,12 +20,11 @@ class segment_base():
 
     For an example, look in the data classes files.
     '''
-    def __init__(self, name, data_object, HVI_variable_data = None, segment_type = 'render'):
+    def __init__(self, name, data_object, segment_type = 'render'):
         '''
         Args:
             name (str): name of the segment usually the channel name
             data_object (object) : class that is used for saving the data type.
-            HVI_variable_data (segment_HVI_variables) : segment used to keep variables that can be used in HVI.
             segment_type (str) : type of the segment (e.g. 'render' --> to be rendered, 'virtual'--> no not render.)
         '''
         self.type = segment_type
@@ -36,7 +34,6 @@ class segment_base():
 
         # store data in numpy looking object for easy operator access.
         self.data = data_container(data_object)
-        self._data_hvi_variable = HVI_variable_data
 
         # references to other channels (for virtual gates).
         self.reference_channels = []
@@ -56,8 +53,6 @@ class segment_base():
     def _copy(self, cpy):
         cpy.type = copy.copy(self.type)
         cpy.data = copy.copy(self.data)
-        # not full sure if this should be copied. Depends a bit on the usage scenario.
-        cpy._data_hvi_variable = copy.copy(self._data_hvi_variable)
 
         # note that the container objecet needs to take care of these. By default it will refer to the old references.
         cpy.reference_channels = copy.copy(self.reference_channels)
@@ -168,13 +163,6 @@ class segment_base():
         self.data = data_org
 
         item.data = data_item
-        if self._data_hvi_variable is not None:
-            if self._data_hvi_variable is not self.data:
-                # assert segment HVI variables has right shape.
-                item._data_hvi_variable.data = update_dimension(self._data_hvi_variable.data, self.shape)
-                item._data_hvi_variable = item._data_hvi_variable[key[0]]
-            else:
-                item._data_hvi_variable = item.data
         item.is_slice = True
         return item
 
@@ -231,45 +219,6 @@ class segment_base():
         if not isinstance(loop_obj, float):
             raise Exception(f'update_dim failed. Reload pulselib!')
         return self.data_tmp
-
-    def add_HVI_marker(self, marker_name, t_off = 0):
-        '''
-        Add a HVI marker that corresponds to the current time of the segment (defined by reset_time).
-
-        Args:
-            marker_name (str) : name of the marker to add
-            t_off (str) : offset to be given from the marker
-        '''
-        start_time = self.start_time
-        if start_time.shape != (1,):
-            setpoint_data = self.setpoints
-            time_shape = []
-            for i in range(start_time.ndim):
-                s = start_time.shape[i]
-                if s > 1:
-                    time_shape.append(s)
-            start_time = start_time.reshape(time_shape)
-            times = loop_obj()
-            times.add_data(start_time, labels=setpoint_data.labels, units=setpoint_data.units,
-                           axis=setpoint_data.axis, setvals=setpoint_data.setpoints)
-            time = t_off + times
-        else:
-            time = t_off + start_time[0]
-
-        self.add_HVI_variable(marker_name, time, True)
-
-    def add_HVI_variable(self, marker_name, value, time=False):
-        """
-        Add time for the marker.
-
-        Args:
-            name (str) : name of the variable
-
-            value (double) : value to assign to the variable
-
-            time (bool) : if the value is a timestamp (determines behaviour when the variable is used in a sequence) (coresponding to a master clock)
-        """
-        self._data_hvi_variable._add_HVI_variable(marker_name, value, time)
 
     @loop_controller
     def __add_segment(self, other, time):
