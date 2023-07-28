@@ -1,4 +1,5 @@
 import time
+from collections import Iterable
 from uuid import UUID
 from datetime import datetime
 import numpy as np
@@ -8,6 +9,8 @@ from dataclasses import dataclass, field
 from typing import Dict, Optional, List, Union
 from numbers import Number
 
+from pulse_lib.segments.conditional_segment import conditional_segment
+
 from .rendering import SineWaveform, get_modulation
 from .pulsar_sequencers import (
         Voltage1nsSequenceBuilder,
@@ -15,7 +18,10 @@ from .pulsar_sequencers import (
         IQSequenceBuilder,
         AcquisitionSequenceBuilder,
         SequenceBuilderBase,
-        PulsarConfig)
+        PulsarConfig,
+        MarkerEvent,
+        LatchEvent)
+from .qblox_conditional import get_conditional_channel
 
 from q1pulse import Q1Instrument
 
@@ -66,7 +72,6 @@ class PulsarUploader:
             out_channels = [self.awg_channels[iq_out_ch.awg_channel_name]
                             for iq_out_ch in iq_out_channels]
             module_name = out_channels[0].awg_name
-            # TODO @@@ check I and Q phase.
             q1.add_control(name, module_name, [out_ch.channel_number for out_ch in out_channels])
 
         for name, dig_ch in self.digitizer_channels.items():
@@ -88,10 +93,17 @@ class PulsarUploader:
             if marker_ch.invert:
                 raise Exception(f'Marker channel inversion not (yet) supported')
 
-
     @staticmethod
     def set_output_dir(path):
         PulsarUploader.output_dir = path
+
+    @property
+    def supports_conditionals(self):
+        return True
+
+    def get_roundtrip_latency(self):
+        # TODO @@@ put in configuration file.
+        return 260
 
     def _get_voltage_channels(self):
         iq_out_channels = []
@@ -144,11 +156,6 @@ class PulsarUploader:
 
         self.seq_markers = seq_markers
         self.marker_sequencers = marker_sequencers
-
-
-    @property
-    def supports_conditionals(self):
-        return False
 
     def get_effective_sample_rate(self, sample_rate):
         """
@@ -245,12 +252,12 @@ class PulsarUploader:
         total_seconds = job.playback_time * n_rep * 1e-9
         timeout_minutes = int(total_seconds*1.1 / 60) + 1
 
-        # update resonator frequency and amplitude
+        # update resonator frequency and phase
         for ch_name, dig_channel in self.digitizer_channels.items():
             nco_freq = dig_channel.frequency
-            if nco_freq is None:
-                continue
-            job.program[ch_name].nco_frequency = nco_freq
+            if nco_freq is not None:
+                job.program[ch_name].nco_frequency = nco_freq
+            job.program[ch_name].thresholded_acq_rotation = dig_channel.phase
 
         self.q1instrument.start_program(job.program)
         self.q1instrument.wait_stopped(timeout_minutes=timeout_minutes)
@@ -291,7 +298,6 @@ class PulsarUploader:
             if dig_ch.frequency or len(in_ch) == 2:
 
                 if dig_ch.frequency or dig_ch.iq_input:
-                    # @@@ if frequency, set phase in QRM.sequencer phase_rotation_acq
                     raw_ch = (raw[0] + 1j * raw[1]) * np.exp(1j*dig_ch.phase)
                     if not dig_ch.iq_out:
                         raw_ch = raw_ch.real
@@ -380,6 +386,7 @@ class Job(object):
         self.playback_time = 0 #total playtime of the waveform
         self.acquisition_conf = None
         self.acq_data_scaling = {}
+        self.feedback_channels = set()
 
         self.released = False
 
@@ -398,6 +405,59 @@ class Job(object):
 
     def set_acquisition_conf(self, conf):
         self.acquisition_conf = conf
+
+    def set_feedback(self, condition_measurements):
+        self.condition_measurements = condition_measurements
+        # process feedback events
+        events = []
+        for channel_name, measurements in condition_measurements.measurement_acquisitions.items():
+            for m in measurements:
+                try:
+                    fb = condition_measurements.feedback_events[id(m)]
+                    events.append((self._at_index(fb.set_times), channel_name, 'latch-enable'))
+                    events.append((self._at_index(fb.reset_times), channel_name, 'reset'))
+                except KeyError:
+                    t = condition_measurements.get_end_time(m, self.index)
+                    events.append((t, channel_name, 'latch-disable'))
+
+        latch_events = []
+        feedback_channels = set()
+        active_counters = set()
+        latching_counters = set()
+        pending_resets = set()
+        enabled_latches = set()
+        last_t = 0
+        for t, channel_name, action in sorted(events):
+            if t != last_t and latching_counters != enabled_latches:
+                enabled_latches = latching_counters.copy()
+                latch_events.append(LatchEvent(last_t, counters=list(enabled_latches)))
+                feedback_channels.add(channel_name)
+                last_t = t
+            if action == 'latch-enable':
+                if channel_name in pending_resets:
+                    raise Exception(f'Qblox feedback error: counter not reset before measurement '
+                                    f'{channel_name}, t={t}')
+                active_counters.add(channel_name)
+                latching_counters.add(channel_name)
+            elif action == 'latch-disable':
+                latching_counters.discard(channel_name)
+            elif action == 'reset':
+                active_counters.remove(channel_name)
+                pending_resets.add(channel_name)
+                if not active_counters:
+                    latch_events.append(LatchEvent(t, reset=True))
+                    pending_resets.clear()
+        if pending_resets:
+            latch_events.append(LatchEvent(np.inf, reset=True))
+        self.latch_events = latch_events
+        self.feedback_channels = feedback_channels
+        logger.info(f'Feedback events {latch_events}')
+
+    def _at_index(self, data):
+        try:
+            return data[tuple(self.index[-len(data.shape):])]
+        except AttributeError:
+            return data
 
     def release(self):
         if self.released:
@@ -515,7 +575,10 @@ class UploadAggregator:
                     channel_info.integral = 0
 
                 if channel_info.dc_compensation:
-                    seg_ch = seg[channel_name]
+                    if isinstance(seg, conditional_segment):
+                        seg_ch = get_conditional_channel(seg, channel_name)
+                    else:
+                        seg_ch = seg[channel_name]
                     channel_info.integral += seg_ch.integrate(job.index, sample_rate)
                     logger.debug(f'Integral seg:{iseg} {channel_name} integral:{channel_info.integral}')
 
@@ -548,11 +611,16 @@ class UploadAggregator:
     def get_markers(self, job, marker_channel):
         # Marker on periods can overlap, also across segments.
         # Get all start/stop times and merge them.
+        channel_name = marker_channel.name
         start_stop = []
         segments = self.segments
         for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
             offset = seg_render.t_start + marker_channel.delay + self.max_pre_start_ns
-            seg_ch = seg[marker_channel.name]
+            if isinstance(seg, conditional_segment):
+                logger.debug(f'conditional for {channel_name}')
+                seg_ch = get_conditional_channel(seg, channel_name)
+            else:
+                seg_ch = seg[channel_name]
             ch_data = seg_ch._get_data_all_at(job.index)
 
             for pulse in ch_data.my_marker_data:
@@ -561,7 +629,7 @@ class UploadAggregator:
 
         # merge markers
         marker_value = 1 << marker_channel.channel_number
-        return merge_markers(marker_channel.name, start_stop, marker_value, min_off_ns=20)
+        return merge_markers(channel_name, start_stop, marker_value, min_off_ns=20)
 
     def get_markers_seq(self, job, seq_name):
         marker_names = self.seq_markers.get(seq_name, [])
@@ -581,9 +649,9 @@ class UploadAggregator:
             s += value
             if last is not None and t == last:
                 # multiple markers on same time
-                seq_markers[-1] = (t,s)
+                seq_markers[-1] = MarkerEvent(t,s)
             else:
-                seq_markers.append((t,s))
+                seq_markers.append(MarkerEvent(t,s))
                 last = t
 
         return seq_markers
@@ -608,7 +676,11 @@ class UploadAggregator:
 
         for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
             seg_start = seg_render.t_start
-            seg_ch = seg[channel_name]
+            if isinstance(seg, conditional_segment):
+                logger.debug(f'conditional for {channel_name}')
+                seg_ch = get_conditional_channel(seg, channel_name)
+            else:
+                seg_ch = seg[channel_name]
             data = seg_ch._get_data_all_at(job.index)
             entries = data.get_data_elements(break_ramps=True)
             for e in entries:
@@ -675,17 +747,56 @@ class UploadAggregator:
                                 nco_freq,
                                 mixer_gain=qubit_channel.correction_gain,
                                 mixer_phase_offset=qubit_channel.correction_phase)
-        seq.set_time_offset(t_offset)
-        attenuation = 1.0 # TODO @@@ check if this is always true..
+
+        # lookup attenuation of AWG channels
+        iq_out_channels = qubit_channel.iq_channel.IQ_out_channels
+        att = [self.channels[output.awg_channel_name].attenuation for output in iq_out_channels]
+        if min(att) != max(att):
+            raise Exception('Attenuation for IQ output is not equal for channels '
+                            f'{[[output.awg_channel_name] for output in iq_out_channels]}')
+        attenuation = min(att)
         scaling = 1/(attenuation * seq.max_output_voltage*1000)
+
+        seq.set_time_offset(t_offset)
+        if self.feedback_triggers:
+            for trigger in self.feedback_triggers.values():
+                seq.add_trigger_counter(trigger)
+            seq.add_latch_events(job.latch_events)
 
         markers = self.get_markers_seq(job, channel_name)
         seq.add_markers(markers)
 
         for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
             seg_start = seg_render.t_start
+            if not isinstance(seg, conditional_segment):
+                seg_ch = seg[channel_name]
+                self._add_iq_data(job, seg_ch, seg_start, scaling, seq, lo_freq)
+            else:
+                measurements = job.condition_measurements.get_measurements(seg)
+                logger.info(f'conditional segment {iseg}, cond:{[m.name for m in measurements]}')
+                if len(measurements) != 1:
+                    raise Exception('Only 1 condition based on 1 measurement is supported.')
+                # TODO @@@ allow inversion of measurement!
+                m = measurements[0]
+                dig_channel = m.acquisition_channel
+                m_time = job.condition_measurements.get_end_time(m, job.index)
+                t_min = m_time+job.condition_measurements.min_feedback_time
+                with seq.conditional([dig_channel], t_min=t_min, t_max=seg_start) as cond:
+                    branches = seg.branches
+                    with cond.all_set():
+                        seg_ch = branches[1][channel_name]
+                        self._add_iq_data(job, seg_ch, seg_start, scaling, seq, lo_freq)
+                    with cond.none_set():
+                        seg_ch = branches[0][channel_name]
+                        self._add_iq_data(job, seg_ch, seg_start, scaling, seq, lo_freq)
 
-            seg_ch = seg[channel_name]
+
+        t_end = PulsarConfig.ceil(seg_render.t_end)
+        seq.wait_till(t_end)
+        # add final markers
+        seq.finalize()
+
+    def _add_iq_data(self, job, seg_ch, seg_start, scaling, seq, lo_freq):
             data = seg_ch._get_data_all_at(job.index)
 
             entries = data.get_data_elements()
@@ -715,12 +826,6 @@ class UploadAggregator:
                 else:
                     raise Exception('Unknown pulse element {type(e)}')
 
-        t_end = PulsarConfig.ceil(seg_render.t_end)
-        seq.wait_till(t_end)
-        # add final markers
-        seq.finalize()
-
-
     def add_acquisition_channel(self, job, digitizer_channel):
         for name in job.schedule_params:
             if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
@@ -741,6 +846,8 @@ class UploadAggregator:
                                          nco_frequency=nco_freq,
                                          rf_source=digitizer_channel.rf_source)
         seq.set_time_offset(t_offset)
+        seq.thresholded_acq_rotation = digitizer_channel.phase
+
         if digitizer_channel.rf_source is not None:
             seq.offset_rf_ns = PulsarConfig.align(self.max_pre_start_ns + digitizer_channel.rf_source.delay)
 
@@ -749,9 +856,16 @@ class UploadAggregator:
         if acq_conf.average_repetitions:
             seq.reset_bin_counter(t=0)
 
+        acq_threshold = None
+        acq_threshold_trigger_invert = False
+        use_feedback = channel_name in self.feedback_triggers
         for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
             seg_start = seg_render.t_start
-            seg_ch = seg[channel_name]
+            if isinstance(seg, conditional_segment):
+                logger.debug(f'conditional for {channel_name}')
+                seg_ch = get_conditional_channel(seg, channel_name)
+            else:
+                seg_ch = seg[channel_name]
             acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
 
             for acquisition in acquisition_data:
@@ -776,6 +890,14 @@ class UploadAggregator:
                     seq.repeated_acquire(t, trigger_period, n_cycles, trigger_period)
                 else:
                     seq.acquire(t, t_measure)
+                if acquisition.threshold is not None and use_feedback:
+                    if acq_threshold is None:
+                        acq_threshold = acquisition.threshold
+                        acq_threshold_trigger_invert = acquisition.zero_on_high
+                    else:
+                        if (acq_threshold != acquisition.threshold
+                            or acq_threshold_trigger_invert != acquisition.zero_on_high):
+                            raise Exception(f'With feedback all thresholds on a channel must be equal')
 
         t_end = PulsarConfig.ceil(seg_render.t_end)
         try:
@@ -783,6 +905,9 @@ class UploadAggregator:
         except:
             raise Exception(f"Acquisition doesn't fit in sequence. Add a wait to extend the sequence.")
         seq.finalize()
+        if acq_threshold is not None:
+            seq.thresholded_acq_threshold = acq_threshold
+            self.feedback_triggers[channel_name].invert = acq_threshold_trigger_invert
         job.acq_data_scaling[channel_name] = seq.get_data_scaling()
 
     def add_marker_seq(self, job, channel_name):
@@ -798,11 +923,17 @@ class UploadAggregator:
         times.append(['start', time.perf_counter()])
 
         name = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-        self.program = self.q1instrument.new_program(name)
-        job.program = self.program
-        self.program.repetitions = job.n_rep if job.n_rep else 1
+        program = self.q1instrument.new_program(name)
+        self.program = program
+        job.program = program
+        program.repetitions = job.n_rep if job.n_rep else 1
 
-        self.program._timeline.disable_update() # @@@ Yuk
+        self.feedback_triggers = {}
+        for channel in job.feedback_channels:
+            trigger = program.configure_trigger(channel)
+            self.feedback_triggers[channel] = trigger
+
+        program._timeline.disable_update() # @@@ Yuk
 
         times.append(['init', time.perf_counter()])
 
@@ -834,23 +965,23 @@ class UploadAggregator:
 
         times.append(['marker', time.perf_counter()])
 
-        self.program._timeline.enable_update() # @@@ Yuk
+        program._timeline.enable_update() # @@@ Yuk
 
         times.append(['done', time.perf_counter()])
 
         # NOTE: compilation is 20...30% faster with listing=False, add_comments=False
         if UploadAggregator.verbose:
-            self.program.compile(listing=True, json=True)
+            program.compile(listing=True, json=True)
         else:
             retry = False
             try:
-                self.program.compile(add_comments=False, listing=False, json=False)
+                program.compile(add_comments=False, listing=False, json=False)
             except Exception as ex:
                 retry = True
                 print(f'Exception {ex} was raised during compilation. Compiling again with comments.')
             if retry:
                 # retry with listing and comments.
-                self.program.compile(add_comments=True, listing=True, json=True)
+                program.compile(add_comments=True, listing=True, json=True)
 
         times.append(['compile', time.perf_counter()])
 
@@ -890,5 +1021,4 @@ class UploadAggregator:
         else:
             result = -channel_info.integral / channel_info.dc_compensation_min
         return result
-
 

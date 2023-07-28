@@ -534,12 +534,12 @@ class pulselib:
                                  self.digitizer_channels.values(),
                                  name=name, sample_rate=sample_rate, hres=hres)
 
-    def mk_sequence(self,seq):
+    def mk_sequence(self, segments):
         '''
-        seq: list of segment_container.
+        segments: list of segment_container.
         '''
-        seq_obj = sequencer(self.uploader, self.digitizer_channels)
-        seq_obj.add_sequence(seq)
+        seq_obj = sequencer(self.uploader, self.digitizer_channels, self.awg_channels)
+        seq_obj.add_sequence(segments)
         seq_obj.configure_digitizer = self.configure_digitizer
         return seq_obj
 

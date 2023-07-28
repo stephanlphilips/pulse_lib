@@ -10,16 +10,14 @@ from .segments.segment_measurements import measurement_acquisition
 from .segments.utility.data_handling_functions import find_common_dimension, update_dimension
 from .segments.utility.setpoint_mgr import setpoint_mgr, setpoint
 from .segments.utility.looping import loop_obj
-from .segments.utility.measurement_ref import MeasurementRef
 from .measurements_description import measurements_description
 from .acquisition.acquisition_conf import AcquisitionConf
 from .acquisition.player import SequencePlayer
 from .acquisition.measurement_converter import MeasurementConverter, DataSelection, MeasurementParameter
+from .compiler.condition_measurements import ConditionMeasurements
 
 from si_prefix import si_format
 
-from typing import List
-from collections.abc import Iterable
 from numbers import Number
 import numpy as np
 import uuid
@@ -31,7 +29,7 @@ class sequencer():
     """
     Class to make sequences for segments.
     """
-    def __init__(self, upload_module, digitizer_channels):
+    def __init__(self, upload_module, digitizer_channels, awg_channels):
         '''
         make a new sequence object.
         Args:
@@ -51,6 +49,7 @@ class sequencer():
         self.sequence = list()
         self.uploader = upload_module
         self._digitizer_channels = digitizer_channels
+        self._awg_channels = awg_channels
 
         self._measurements_description = measurements_description(digitizer_channels)
 
@@ -219,6 +218,11 @@ class sequencer():
         self._HVI_variables = data_container(marker_HVI_variable())
         self._HVI_variables = update_dimension(self._HVI_variables, self.shape)
 
+        dig_awg_delay = self._calculate_max_dig_delay()
+        self._condition_measurements = ConditionMeasurements(self._measurements_description,
+                                                             self.uploader,
+                                                             dig_awg_delay)
+
         # enforce master clock for the current segments (affects the IQ channels (translated into a phase shift) and and the marker channels (time shifts))
         t_tot = np.zeros(self.shape)
 
@@ -229,15 +233,29 @@ class sequencer():
             lp_time.add_data(t_tot, axis=list(range(self.ndim -1,-1,-1)))
             seg_container.add_master_clock(lp_time)
             self._HVI_variables += seg_container.software_markers.pulse_data_all
-            if isinstance(seg_container, conditional_segment):
-                self._check_conditional(seg_container, t_tot)
+            self._condition_measurements.add_segment(seg_container, t_tot)
             self._measurements_description.add_segment(seg_container, t_tot)
-
             t_tot += seg_container.total_time
         self._measurements_description.add_HVI_variables(self._HVI_variables)
         self._total_time = t_tot
+        self._condition_measurements.check_feedback_timing()
         self._generate_sweep_params()
         self._create_metadata()
+
+    def _calculate_max_dig_delay(self):
+        '''
+        Returns the maximum configured delay from AWG channel to digitizer channel.
+        '''
+        awg_delays = []
+        for channel in self._awg_channels.values():
+            awg_delays.append(channel.delay)
+
+        dig_delays = []
+        for channel in self._digitizer_channels.values():
+            dig_delays.append(channel.delay)
+
+        return max(0, *dig_delays) - min(0, *awg_delays)
+
 
     def _generate_sweep_params(self):
         self.params =[]
@@ -260,45 +278,6 @@ class sequencer():
                 name = vm.channel_name
                 LOdict[name] = iq.LO
         self.metadata['LOs'] = LOdict
-
-
-    def _check_conditional(self, conditional:conditional_segment, total_time):
-
-        if not getattr(self.uploader, 'supports_conditionals', False):
-            raise Exception(f'Backend does not support conditional segments')
-
-        condition = conditional.condition
-        refs = condition if isinstance(condition, Iterable) else [condition]
-
-        # Lookup acquistions for condition
-        acquisition_names = self._get_acquisition_names(refs)
-        logger.info(f'acquisitions: {acquisition_names}')
-
-        # check start of conditional pulse
-        min_slack = self._get_min_slack(acquisition_names, total_time)
-        logger.info(f'min slack for conditional {min_slack} ns. (Must be < 0)')
-        if min_slack < 0:
-            raise Exception(f'condition triggered {-min_slack} ns too early')
-
-        pass
-
-    def _get_acquisition_names(self, refs:List[MeasurementRef]):
-        acquisition_names = set()
-        for ref in refs:
-            acquisition_names.update(ref.keys)
-
-        return list(acquisition_names)
-
-    def _get_min_slack(self, acquisition_names, seg_start_times):
-        # calculate slack for all sequence indices
-        slack = np.empty((len(acquisition_names), ) + seg_start_times.shape)
-
-        for i, name in enumerate(acquisition_names):
-            slack[i] = seg_start_times - self._measurements_description.end_times[name]
-
-        slack -= self.uploader.get_roundtrip_latency()
-
-        return np.min(slack)
 
     def voltage_compensation(self, compensate):
         '''
@@ -564,6 +543,8 @@ class sequencer():
                 if self.hw_schedule is not None:
                     hvi_markers = self._HVI_variables.item(tuple(index)).HVI_markers
                     upload_job.add_hw_schedule(self.hw_schedule, hvi_markers)
+                if self._condition_measurements.feedback_events:
+                    upload_job.set_feedback(self._condition_measurements)
 
                 self.uploader.add_upload_job(upload_job)
                 return upload_job

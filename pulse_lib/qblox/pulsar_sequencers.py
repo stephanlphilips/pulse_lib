@@ -2,10 +2,19 @@ import logging
 import math
 from numbers import Number
 from copy import copy
-from typing import Any, List, Dict, Callable
+from typing import Any, List, Dict, Callable, Optional
 from dataclasses import dataclass
+from contextlib import contextmanager
 
 import numpy as np
+
+from packaging.version import Version
+from q1pulse import __version__ as q1pulse_version
+
+if Version(q1pulse_version) < Version('0.9.0'):
+    raise Exception('Upgrade q1pulse to version 0.9+')
+
+from q1pulse.lang.conditions import CounterFlags
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +39,20 @@ class PulsarConfig:
     def floor(value):
         return math.floor(value / PulsarConfig.ALIGNMENT + 1e-8) * PulsarConfig.ALIGNMENT
 
+
+@dataclass
+class LatchEvent:
+    time: int
+    reset: bool = False
+    counters: Optional[List[str]] = None
+
+@dataclass
+class MarkerEvent:
+    time: int
+    enabled_markers: int
+    '''
+    every bit represents a physical marker output.
+    '''
 
 class SequenceBuilderBase:
     def __init__(self, name, sequencer):
@@ -73,20 +96,24 @@ class SequenceBuilderBase:
     def add_markers(self, markers):
         self.markers = markers
         self.imarker = -1
-        self.set_next_marker()
+        self._set_next_marker()
 
-    def set_next_marker(self):
+    def _set_next_marker(self):
         self.imarker += 1
         if len(self.markers) > self.imarker:
-            self.t_next_marker = self.markers[self.imarker][0]
+            self.t_next_marker = self.markers[self.imarker].time
         else:
             self.t_next_marker = None
 
-    def insert_markers(self, t):
+    def _insert_markers(self, t):
         while self.t_next_marker is not None and t >= self.t_next_marker:
-            marker = self.markers[self.imarker]
-            self._set_markers(marker[0], marker[1])
-            self.set_next_marker()
+            self._add_next_marker()
+
+    def _add_next_marker(self):
+        self.t_end = self.t_next_marker
+        marker = self.markers[self.imarker]
+        self._set_markers(marker.time, marker.enabled_markers)
+        self._set_next_marker()
 
     def _set_markers(self, t, value):
         self.seq.set_markers(value, t_offset=t)
@@ -99,7 +126,7 @@ class SequenceBuilderBase:
     def _update_time_and_markers(self, t, duration):
         if t < self.t_end:
             raise Exception(f'Overlapping pulses {t} < {self.t_end} ({self.name})')
-        self.insert_markers(t)
+        self._insert_markers(t)
         self.t_end = t + duration
 
     def add_comment(self, comment):
@@ -108,12 +135,13 @@ class SequenceBuilderBase:
     def wait_till(self, t):
         t += self.offset_ns
         self._update_time(t, 0)
+        self.seq.add_comment(f'wait {t}')
         self.seq.wait(t)
 
     def finalize(self):
         for i in range(self.imarker, len(self.markers)):
             marker = self.markers[i]
-            self._set_markers(marker[0], marker[1])
+            self._set_markers(marker.time, marker.enabled_markers)
 
 
 # Range is -1.0 ... +1.0 with 16 bits => 2 / 2**16
@@ -440,8 +468,14 @@ class IQSequenceBuilder(SequenceBuilderBase):
                  mixer_gain=None, mixer_phase_offset=None):
         super().__init__(name, sequencer)
         self.nco_frequency = nco_frequency
-        self._square_waves = []
         self.add_comment(f'IQ: NCO={nco_frequency/1e6:7.2f} MHz')
+        self._square_waves = []
+        self._trigger_counters = {}
+        self._uses_feedback = False
+        self._in_conditional = False
+        self._t_next_latch_event = None
+        self._ilatch_event = 0
+        self._latch_events = []
 
         if mixer_gain is not None:
             self.seq.mixer_gain_ratio = mixer_gain[1]/mixer_gain[0]
@@ -491,13 +525,13 @@ class IQSequenceBuilder(SequenceBuilderBase):
                 t_start_offset = t_start % 4
                 t_end_offset = t_end % 4
                 duration = t_end-t_start
-                if t_start_offset == 0 and t_end_offset == 0:
-                    # Create aligned block pulse with offset
-                    self.seq.block_pulse(duration, ampI, ampQ, t_offset=t_start)
-                elif duration < 200:
+                if duration < 200:
                     # Create square waveform with offset
                     wave_id = self._register_squarewave(t_start_offset, duration)
                     self.seq.shaped_pulse(wave_id, ampI, wave_id, ampQ, t_offset=t_pulse)
+                elif t_start_offset == 0 and t_end_offset == 0:
+                    # Create aligned block pulse with offset
+                    self.seq.block_pulse(duration, ampI, ampQ, t_offset=t_start)
                 else:
                     # Create square waveform for start and end, and use offset in between.
                     if t_start_offset:
@@ -570,6 +604,116 @@ class IQSequenceBuilder(SequenceBuilderBase):
             raise Exception(f'{self.name}: NCO frequency {self.nco_frequency/1e6:5.1f} MHz out of range')
         self.seq.nco_frequency = self.nco_frequency
 
+    def add_trigger_counter(self, trigger):
+        self._uses_feedback = True
+        self._trigger_counters[trigger.sequencer_name] = self.seq.add_trigger_counter(trigger)
+
+    @contextmanager
+    def conditional(self, channels, t_min, t_max):
+        t_min += self.offset_ns
+        t_max += self.offset_ns
+        t = max(self.t_end+4, t_min, t_max-40)
+        t = PulsarConfig.ceil(t)
+        if t > t_max-8:
+            raise Exception(f'Failed to schedule conditional pulse on {self.name}. '
+                            f' t:{t} > {t_max-8}')
+        # add markers before conditional
+        self._update_time_and_markers(t, 0)
+        self._in_conditional = True
+        counters = [self._trigger_counters[ch] for ch in channels]
+        flags = CounterFlags(self)
+        with self.seq.conditional(counters, t_offset=t):
+            yield flags
+        self._in_conditional = False
+
+    @contextmanager
+    def condition(self, operator):
+        t_condition_start = self.t_end
+        self.seq.enter_condition(operator)
+        yield
+        self.seq.exit_condition(PulsarConfig.ceil(self.t_end))
+        # reset end time
+        self.t_end = t_condition_start
+
+    def _insert_markers(self, t):
+        '''
+        Override of insert_marker taking care of conditional blocks and
+        counter latching.
+        '''
+        if self._uses_feedback:
+            if self._in_conditional:
+                if self.t_next_marker is not None and t >= self.t_next_marker:
+                    raise Exception(f'Cannot set marker in conditional segment {self.name}, t:{t}')
+                if self._t_next_latch_event is not None and t >= self._t_next_latch_event:
+                    raise Exception(f'Cannot enable latches in conditional segment {self.name}, t:{t}')
+                return
+            else:
+                # add latch events, but not on same time as marker
+                loop = True
+                while loop:
+                    loop = False
+                    if (self._t_next_latch_event is not None
+                        and self._t_next_latch_event < t
+                        and (self.t_next_marker is None
+                             or self._t_next_latch_event < self.t_next_marker)):
+                        self._add_next_latch_event()
+                        loop = True
+                    elif self.t_next_marker is not None and t >= self.t_next_marker:
+                        self._add_next_marker()
+                        loop = True
+        else:
+            super()._insert_markers(t)
+
+    def add_latch_events(self, latch_events):
+        self._latch_events = []
+        for event in latch_events:
+            event = copy(event)
+            event.time = PulsarConfig.floor(event.time + self.offset_ns)
+            self._latch_events.append(event)
+        self._ilatch_event = -1
+        self._set_next_latch_event()
+
+    def _set_next_latch_event(self):
+        self._ilatch_event += 1
+        if len(self._latch_events) > self._ilatch_event:
+            self._t_next_latch_event = self._latch_events[self._ilatch_event].time
+        else:
+            self._t_next_latch_event = None
+
+    def _add_next_latch_event(self):
+        latch_event = self._latch_events[self._ilatch_event]
+        if latch_event.time + 20 < self.t_end:
+            raise Exception(f'Latch event {latch_event} on {self.name} scheduled too late t:{self.t_end}')
+        # Increment time. There could already be a phase shift, awg offset or marker on t_end
+        self.t_end += 4
+        t = PulsarConfig.ceil(max(self.t_end, latch_event.time))
+        logger.info(f'{latch_event} at t={self.t_end}')
+        if latch_event.reset:
+            self.seq.latch_reset(t_offset=t)
+        else:
+            counters = [self._trigger_counters[name] for name in latch_event.counters]
+            self.seq.latch_enable(counters, t_offset=t)
+        # Increment time with time used for latch instruction
+        self.t_end = t+4
+        self._set_next_latch_event()
+
+    def finalize(self):
+        if self._t_next_latch_event is not None:
+            for latch_event in self._latch_events[self._ilatch_event:]:
+                if latch_event.reset:
+                    logger.info(f'latch reset at end {latch_event} ({self.t_end})')
+                    if latch_event.time == np.inf:
+                        t = PulsarConfig.ceil(self.t_end+4)
+                    else:
+                        t = latch_event.time
+                    self.seq.latch_reset(t_offset=t)
+                    self.t_end = max(self.t_end, t+4)
+                else:
+                    logger.info(f'Skipping latch event at end: {latch_event}')
+
+        super().finalize()
+
+
 @dataclass
 class _SeqCommand:
     time: int
@@ -596,6 +740,30 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
             scaling = 1/(rf_source.attenuation * self.max_output_voltage*1000)
             self._rf_amplitude = rf_source.amplitude * scaling
             self._n_out_ch = 1 if isinstance(rf_source.output[1], int) else 2
+
+    @property
+    def thresholded_acq_rotation(self):
+        return self.seq.thresholded_acq_rotation
+
+    @thresholded_acq_rotation.setter
+    def thresholded_acq_rotation(self, rotation):
+        self.seq.thresholded_acq_rotation = rotation
+
+    @property
+    def thresholded_acq_threshold(self):
+        return self.seq.thresholded_acq_threshold
+
+    @thresholded_acq_threshold.setter
+    def thresholded_acq_threshold(self, threshold):
+        self.seq.thresholded_acq_threshold = threshold
+
+    @property
+    def thresholded_acq_trigger_invert(self):
+        return self.seq.thresholded_acq_trigger_invert
+
+    @thresholded_acq_trigger_invert.setter
+    def thresholded_acq_trigger_invert(self, invert):
+        self.seq.thresholded_acq_trigger_invert = invert
 
     @property
     def integration_time(self):
