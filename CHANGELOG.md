@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.31] - 2023-07-28
+
+- Added argument reload_seq=True to use 1D and 2D fast scan with external sweep modifying pulse-lib settings
+- Fixed attenuation qubit channel for Qblox
+- Fixed baseband qubit channel for Qblox
+
 ## \[1.6.30] - 2023-07-20
 
 - Removed digitizer resonator drive amplitude sweep feature for Qblox. It broke functionality.

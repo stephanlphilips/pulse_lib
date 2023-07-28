@@ -188,11 +188,11 @@ class Context:
                 pulse.define_iq_channel(iq_channel_name, i_name=I,
                                         marker_name=iq_marker)
                 pulse.set_iq_lo(iq_channel_name, 0.0)
-                # qubit freqs: 150, 200, 250, 300 MHz
+                # qubit freqs: 50, 100, 150, 200 MHz
                 for j in range(2):
                     qubit = 2*i+j+1
                     if qubit < n_qubits+1:
-                        resonance_frequency = 0.100e9 + qubit*0.50e9
+                        resonance_frequency = qubit*0.050e9
                         pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
 
 
