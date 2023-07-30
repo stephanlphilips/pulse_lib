@@ -74,6 +74,10 @@ class Context:
                     rf = 'RF' if module.is_rf_type else ''
                     print(f'  Add {module.name}: {module.module_type}{rf}')
                     station.add_component(module, module.name)
+#                    try:
+#                        module.config('render_repetitions', False)
+#                    except:
+#                        pass
                     if module.is_qcm_type:
                         awgs.append(module)
                     else:
@@ -270,8 +274,15 @@ class Context:
             _ct_configured = True
         ct.launch_databrowser()
 
-    def run(self, name, sequence, *params, silent=False, sweeps=[]):
+    def init_coretools(self):
         global _ct_configured
+        if not _ct_imported:
+            raise Exception('core_tools import failed')
+        if not _ct_configured:
+            ct.configure(os.path.join(self._dir, 'ct_config.yaml'))
+            _ct_configured = True
+
+    def run(self, name, sequence, *params, silent=False, sweeps=[]):
         runner = self._configuration['runner']
         if runner == 'qcodes':
             path = 'C:/measurements/test_pulselib'
@@ -279,16 +290,16 @@ class Context:
             return qc_run(name, *sweeps, sequence, *params, quiet=silent)
 
         elif runner == 'core_tools':
-            if not _ct_imported:
-                raise Exception('core_tools import failed')
-            if not _ct_configured:
-                ct.configure(os.path.join(self._dir, 'ct_config.yaml'))
-                _ct_configured = True
+            self.init_coretools()
             ct.set_sample_info(sample=self.configuration_name)
             scan_sweeps = []
             for sw in sweeps:
                 scan_sweeps.append(sweep(*sw))
-            return Scan(*scan_sweeps, sequence, *params, name=name, silent=silent).run()
+            ds = Scan(*scan_sweeps, sequence, *params, name=name, silent=silent).run()
+            try:
+                sequence.close()
+            except: pass
+            return ds
 
         else:
             print(f'no implementation for {runner}')
