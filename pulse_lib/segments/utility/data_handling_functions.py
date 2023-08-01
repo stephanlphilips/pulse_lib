@@ -181,9 +181,9 @@ def _update_segment_dims(segment, lp, arg_index, rendering=False):
                 # TODO: Fix this with refactored indexing.
                 raise Exception(f'Cannot resize data in slice (Indexing). '
                                 'All loop axes must be added before indexing segment.')
-
+            data = update_dimension(data, new_shape)
+            segment._end_times = np.zeros(new_shape) + segment._end_times
         axes[i] = axis
-        data = update_dimension(data, new_shape)
 
         if not lp.no_setpoints and lp.setvals is not None:
             sp = setpoint(axis, label=(lp.labels[i],), unit=(lp.units[i],), setpoint=(lp.setvals[i],))
@@ -213,6 +213,10 @@ def loop_controller(func):
         global _in_loop
         if _in_loop:
             raise Exception('NESTED LOOPS')
+
+        # Lazy reset_time
+        obj._lazy_reset_time()
+
         try:
             _in_loop = True
 
@@ -233,12 +237,14 @@ def loop_controller(func):
 
             if len(loop_info_args) == 0 and len(loop_info_kwargs) == 0:
                 if data.shape != (1,):
-                    loop_over_data(func, obj, data, args, kwargs)
+                    loop_over_data(func, obj, data, obj._end_times, args, kwargs)
                 else:
                     obj.data_tmp = data[0]
                     data[0] = func(obj, *args, **kwargs)
+                    obj._end_times[0] = data[0].end_time
             else:
-                loop_over_data_lp(func, obj, data, args, loop_info_args, kwargs, loop_info_kwargs)
+                loop_over_data_lp(func, obj, data, obj._end_times,
+                                  args, loop_info_args, kwargs, loop_info_kwargs)
         finally:
             _in_loop = False
 
@@ -273,14 +279,15 @@ def loop_controller_post_processing(func):
                 loop_info_kwargs.append(loop_info)
 
         data = obj.pulse_data_all
+        end_times = obj._end_times
         if len(loop_info_args) > 0 or len(loop_info_kwargs) > 0:
-            loop_over_data_lp(func, obj, data, args, loop_info_args, kwargs, loop_info_kwargs)
+            loop_over_data_lp(func, obj, data, end_times, args, loop_info_args, kwargs, loop_info_kwargs)
         else:
-            loop_over_data(func, obj, data, args, kwargs)
+            loop_over_data(func, obj, data, end_times, args, kwargs)
 
     return wrapper
 
-def loop_over_data_lp(func, obj, data, args, args_info, kwargs, kwargs_info):
+def loop_over_data_lp(func, obj, data, end_times, args, args_info, kwargs, kwargs_info):
     '''
     Recursive function to apply the func to data with looping args
 
@@ -322,12 +329,13 @@ def loop_over_data_lp(func, obj, data, args, args_info, kwargs, kwargs_info):
             # we are at the lowest level of the loop.
             obj.data_tmp = data[i]
             data[i] = func(obj, *args_cpy, **kwargs_cpy)
+            end_times[i] = data[i].end_time
         else:
             # clean up args, kwargs
-            loop_over_data_lp(func, obj, data[i], args_cpy, args_info, kwargs_cpy, kwargs_info)
+            loop_over_data_lp(func, obj, data[i], end_times[i], args_cpy, args_info, kwargs_cpy, kwargs_info)
 
 
-def loop_over_data(func, obj, data, args, kwargs):
+def loop_over_data(func, obj, data, end_times, args, kwargs):
     '''
     Recursive function to apply func to data
 
@@ -347,8 +355,9 @@ def loop_over_data(func, obj, data, args, kwargs):
             # we are at the lowest level of the loop.
             obj.data_tmp = data[i]
             data[i] = func(obj, *args, **kwargs)
+            end_times[i] = data[i].end_time
         else:
-            loop_over_data(func, obj, data[i], args, kwargs)
+            loop_over_data(func, obj, data[i], end_times[i], args, kwargs)
 
 
 def reduce_arr(arr):

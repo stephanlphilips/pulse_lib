@@ -166,7 +166,7 @@ class pulse_data(parent_data):
         self.chirp_data = list()
 
         self.start_time = 0
-        self._end_time = 0
+        self.end_time = 0
         self._hres = hres
         self._consolidated = False
         self._preprocessed = False
@@ -191,8 +191,9 @@ class pulse_data(parent_data):
         self._update_end_time(delta.time)
 
     def _update_end_time(self, t):
-        if t != np.inf and t > self._end_time:
-            self._end_time = t
+        if t != np.inf and t > self.end_time:
+            self.end_time = t
+
 
     def add_MW_data(self, MW_data_object):
         """
@@ -226,7 +227,7 @@ class pulse_data(parent_data):
         Returns:
             total_time (float) : total time of the segment.
         '''
-        return self._end_time
+        return self.end_time
 
     def reset_time(self, time):
         '''
@@ -249,7 +250,7 @@ class pulse_data(parent_data):
         Args:
             time (double) : time in ns to wait
         """
-        self._end_time += time
+        self.end_time += time
 
     def append(self, other):
         '''
@@ -271,7 +272,7 @@ class pulse_data(parent_data):
         if time is None:
             time = self.start_time
         elif time == -1:
-            time = self._end_time
+            time = self.end_time
 
         other_MW_pulse_data = copy.deepcopy(other.MW_pulse_data)
         shift_start_stop(other_MW_pulse_data, time)
@@ -295,50 +296,51 @@ class pulse_data(parent_data):
         self._phase_shifts_consolidated = False
         self._update_end_time(time + other.total_time)
 
-    def repeat(self, n):
-        """
-        repeat n times
-        Args
-            n (int) : number of times to repeat
-        """
-        time = self.total_time
-
-        new_pulse_deltas = copy.copy(self.pulse_deltas)
-        new_MW_pulse_data =  copy.copy(self.MW_pulse_data)
-        new_custom_pulse_data =  copy.copy(self.custom_pulse_data)
-        new_phase_shifts =  copy.copy(self.phase_shifts)
-        new_chirp_data = copy.copy(self.chirp_data)
-
-        for i in range(n):
-            shifted_pulse_deltas = copy.deepcopy(self.pulse_deltas)
-            shift_time(shifted_pulse_deltas, (i+1)*time)
-            new_pulse_deltas += shifted_pulse_deltas
-
-            shifted_MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
-            shift_start_stop(shifted_MW_pulse_data, (i+1)*time)
-            new_MW_pulse_data +=  shifted_MW_pulse_data
-
-            shifted_custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
-            shift_start_stop(shifted_custom_pulse_data, (i+1)*time)
-            new_custom_pulse_data +=  shifted_custom_pulse_data
-
-            shifted_phase_shifts = copy.deepcopy(self.phase_shifts)
-            shift_time(shifted_phase_shifts, (i+1)*time)
-            new_phase_shifts += shifted_phase_shifts
-
-            shifted_chirp_data = copy.deepcopy(self.chirp_data)
-            shift_start_stop(shifted_chirp_data, (i+1)*time)
-            new_chirp_data += shifted_chirp_data
-
-        self.pulse_deltas = new_pulse_deltas
-        self.MW_pulse_data = new_MW_pulse_data
-        self.custom_pulse_data = new_custom_pulse_data
-        self.phase_shifts = new_phase_shifts
-        self.chirp_data = new_chirp_data
-
-        self._consolidated = False
-        self._phase_shifts_consolidated = False
-        self._end_time = (n+1) * time
+# @@@@ remove?
+#    def repeat(self, n):
+#        """
+#        repeat n times
+#        Args
+#            n (int) : number of times to repeat
+#        """
+#        time = self.total_time
+#
+#        new_pulse_deltas = copy.copy(self.pulse_deltas)
+#        new_MW_pulse_data =  copy.copy(self.MW_pulse_data)
+#        new_custom_pulse_data =  copy.copy(self.custom_pulse_data)
+#        new_phase_shifts =  copy.copy(self.phase_shifts)
+#        new_chirp_data = copy.copy(self.chirp_data)
+#
+#        for i in range(n):
+#            shifted_pulse_deltas = copy.deepcopy(self.pulse_deltas)
+#            shift_time(shifted_pulse_deltas, (i+1)*time)
+#            new_pulse_deltas += shifted_pulse_deltas
+#
+#            shifted_MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
+#            shift_start_stop(shifted_MW_pulse_data, (i+1)*time)
+#            new_MW_pulse_data +=  shifted_MW_pulse_data
+#
+#            shifted_custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
+#            shift_start_stop(shifted_custom_pulse_data, (i+1)*time)
+#            new_custom_pulse_data +=  shifted_custom_pulse_data
+#
+#            shifted_phase_shifts = copy.deepcopy(self.phase_shifts)
+#            shift_time(shifted_phase_shifts, (i+1)*time)
+#            new_phase_shifts += shifted_phase_shifts
+#
+#            shifted_chirp_data = copy.deepcopy(self.chirp_data)
+#            shift_start_stop(shifted_chirp_data, (i+1)*time)
+#            new_chirp_data += shifted_chirp_data
+#
+#        self.pulse_deltas = new_pulse_deltas
+#        self.MW_pulse_data = new_MW_pulse_data
+#        self.custom_pulse_data = new_custom_pulse_data
+#        self.phase_shifts = new_phase_shifts
+#        self.chirp_data = new_chirp_data
+#
+#        self._consolidated = False
+#        self._phase_shifts_consolidated = False
+#        self.end_time = (n+1) * time
 
     def shift_MW_frequency(self, frequency):
         '''
@@ -384,7 +386,7 @@ class pulse_data(parent_data):
         my_copy.custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
         my_copy.chirp_data = copy.deepcopy(self.chirp_data)
         my_copy.start_time = copy.copy(self.start_time)
-        my_copy._end_time = self._end_time
+        my_copy.end_time = self.end_time
         my_copy._hres = self._hres
         my_copy._consolidated = self._consolidated
         my_copy._phase_shifts_consolidated = self._phase_shifts_consolidated
@@ -408,7 +410,7 @@ class pulse_data(parent_data):
             new_data.phase_shifts = self.phase_shifts + other.phase_shifts
             new_data.custom_pulse_data = self.custom_pulse_data + other.custom_pulse_data
             new_data.chirp_data = self.chirp_data + other.chirp_data
-            new_data._end_time = max(self._end_time, other._end_time)
+            new_data.end_time = max(self.end_time, other.end_time)
 
         elif isinstance(other, Number):
             # copy, because only new elements added to list
@@ -421,7 +423,7 @@ class pulse_data(parent_data):
             new_data.phase_shifts = copy.copy(self.phase_shifts)
             new_data.custom_pulse_data = copy.copy(self.custom_pulse_data)
             new_data.chirp_data = copy.copy(self.chirp_data)
-            new_data._end_time = self._end_time
+            new_data.end_time = self.end_time
 
         else:
             raise TypeError(f'Cannot add pulse_data to {type(other)}')
@@ -438,7 +440,7 @@ class pulse_data(parent_data):
             self.phase_shifts += other.phase_shifts
             self.custom_pulse_data += other.custom_pulse_data
             self.chirp_data += other.chirp_data
-            self._end_time = max(self._end_time, other._end_time)
+            self.end_time = max(self.end_time, other.end_time)
             self._phase_shifts_consolidated = False
 
         elif isinstance(other, Number):
@@ -479,7 +481,7 @@ class pulse_data(parent_data):
                 chirp.amplitude *=other
 
             new_data.phase_shifts = copy.copy(self.phase_shifts)
-            new_data._end_time = self._end_time
+            new_data.end_time = self.end_time
             new_data.start_time = self.start_time
             new_data._hres = self._hres
             new_data._consolidated = self._consolidated
@@ -557,7 +559,7 @@ class pulse_data(parent_data):
                     steps[i] = delta.step
                     ramps[i] = delta.ramp
             if times[-1] == np.inf:
-                times[-1] = self._end_time
+                times[-1] = self.end_time
             intervals[:-1] = times[1:] - times[:-1]
             ramps = np.cumsum(ramps)
             amplitudes[1:] = ramps[:-1] * intervals[:-1]
@@ -899,7 +901,7 @@ class pulse_data(parent_data):
             v_start = self._amplitudes[i]
             v_stop = self._amplitudes_end[i]
             if stop == np.inf:
-                stop = self._end_time
+                stop = self.end_time
             if stop - start < 1 or (v_start == 0 and v_stop == 0):
                 continue
             bb_d[f'p{j}'] = {

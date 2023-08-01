@@ -161,8 +161,7 @@ class data_container(np.ndarray):
         shape = self.shape
         if shape == (1,):
             # fast short cut
-            times = np.empty(shape)
-            times[0] = self[0].total_time
+            times = np.full(shape, self[0].total_time)
             return times
 
         flat = self.flatten()

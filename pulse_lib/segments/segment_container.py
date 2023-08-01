@@ -55,6 +55,7 @@ class segment_container():
         self._digitizer_channels = digitizer_channels
         self.name = name
         self.sample_rate = sample_rate
+        self.is_slice = False
 
         # define real channels (+ markers)
         for name in channel_names:
@@ -83,7 +84,6 @@ class segment_container():
                 self.channels[channel_name] = segment
 
         # add the reference between channels for baseband pulses (->virtual gates) and IQ channels.
-        add_reference_channels(self, self._virtual_gate_matrices, self._IQ_channel_objs)
 
         for digitizer_channel in self._digitizer_channels:
             name = digitizer_channel.name
@@ -102,8 +102,6 @@ class segment_container():
             return self.channels[name]
         elif isinstance(index, int):
 
-            self._extend_dim(self.shape)
-
             new = segment_container([])
 
             new._virtual_gate_matrices = self._virtual_gate_matrices
@@ -116,69 +114,71 @@ class segment_container():
                 setattr(new, name,new_chan)
                 new.channels[name] = new_chan
 
-            new._software_markers =self._software_markers[index]
+            new._software_markers = self._software_markers[index]
             new._setpoints = self._setpoints # @@@ -1 setpoint...
             new._shape = self._shape[1:]
             if new._shape == ():
                 new._shape = (1,)
 
+            new.is_slice = True
             # update the references in of all the channels
-            add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
 
             return new
         raise KeyError(index)
 
-
+# @@@ Remove?
     def __copy__(self):
-        new = segment_container([])
-
-        new._virtual_gate_matrices = self._virtual_gate_matrices
-        new._IQ_channel_objs = self._IQ_channel_objs
-
-        new.channels = {}
-
-        for chan_name, chan in self.channels.items():
-            new_chan = copy.copy(chan)
-            setattr(new, chan_name,new_chan)
-            new.channels[chan_name] = new_chan
-
-        new.render_mode = copy.copy(self.render_mode)
-        new._software_markers = copy.copy(self._software_markers)
-        new._segment_measurements = copy.copy(self._segment_measurements)
-        new._setpoints = copy.copy(self._setpoints)
-
-        # update the references in of all the channels
-        add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
-
-        return new
-
-    def __add__(self, other):
-        new = self.__copy__()
-        for name in self.channels.keys():
-            new_chan = new[name] + other[name]
-            setattr(new, name, new_chan)
-            new.channels[name] = new_chan
-        new._software_markers += other._software_markers
-        new._segment_measurements += other._segment_measurements
-        new._setpoints = copy.copy(self._setpoints)
-        new._setpoints += other._setpoints
-
-        # update the references in of all the channels
-        add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
-        return new
+        raise Exception('copy')
+#        new = segment_container([])
+#
+#        new._virtual_gate_matrices = self._virtual_gate_matrices
+#        new._IQ_channel_objs = self._IQ_channel_objs
+#
+#        new.channels = {}
+#
+#        for chan_name, chan in self.channels.items():
+#            new_chan = copy.copy(chan)
+#            setattr(new, chan_name,new_chan)
+#            new.channels[chan_name] = new_chan
+#
+#        new.render_mode = copy.copy(self.render_mode)
+#        new._software_markers = copy.copy(self._software_markers)
+#        new._segment_measurements = copy.copy(self._segment_measurements)
+#        new._setpoints = copy.copy(self._setpoints)
+#
+#        # update the references in of all the channels
+##        add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
+#
+#        return new
+#
+#    def __add__(self, other):
+#        new = self.__copy__()
+#        for name in self.channels.keys():
+#            new_chan = new[name] + other[name]
+#            setattr(new, name, new_chan)
+#            new.channels[name] = new_chan
+#        new._software_markers += other._software_markers
+#        new._segment_measurements += other._segment_measurements
+#        new._setpoints = copy.copy(self._setpoints)
+#        new._setpoints += other._setpoints
+#
+#        # update the references in of all the channels
+##        add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
+#        return new
 
     def add(self, other, time=None):
+        '''
+        Add the other segment to this segment at specified time.
+        Args:
+            other (segment) : the segment to be appended
+            time (double/loop_obj) : add at the given time. if None, append at t_start of the segment)
+        '''
         for name in self.channels.keys():
             self[name].add(other[name], time)
 
     @property
     def software_markers(self):
         return self._software_markers
-
-    @software_markers.setter
-    def software_markers(self, new_marker):
-        self._software_markers = new_marker
-        add_reference_channels(self, self._virtual_gate_matrices, self._IQ_channel_objs)
 
     @property
     def measurements(self):
@@ -216,6 +216,8 @@ class segment_container():
         return len(self.shape)
 
     def update_dim(self, loop_obj):
+        if self.is_slice:
+            raise Exception('Cannot add dimensions on slice')
         if len(loop_obj.axis) != 1:
             raise Exception('Only 1D loops can be added')
         axis = loop_obj.axis[0]
@@ -227,6 +229,7 @@ class segment_container():
                 label=(loop_obj.labels[0],),
                 unit=(loop_obj.units[0],),
                 setpoint=(loop_obj.setvals[0],))
+        self._extend_dim(self.shape)
 
     @property
     def total_time(self):
@@ -340,10 +343,13 @@ class segment_container():
             shape (tuple) : shape of the new waveform
         '''
         if self.render_mode:
-            raise Exception('extend_dim is not expected to be called in render mode')
+            raise Exception('extend_dim may not be called in render mode')
         for channel in self.channels.values():
             channel.data = update_dimension(channel.data, shape)
+            channel._end_times = np.zeros(shape) + channel._end_times
+
         self._software_markers.data = update_dimension(self._software_markers.data, shape)
+        self._software_markers._end_times = np.zeros(shape) + self._software_markers._end_times
 
     def wait(self, time, channels=None, reset_time=False):
         '''
@@ -453,12 +459,10 @@ class segment_container():
         '''
         self.reset_time()
         self.render_mode = True
+        add_reference_channels(self, self._virtual_gate_matrices, self._IQ_channel_objs)
 
         for channel in self.channels.values():
-            channel.render_mode =  True
-            # make a pre-render of all the pulse data (e.g. compose channels, do not render in full).
-            if channel.type == 'render':
-                channel.pulse_data_all
+            channel.enter_rendering_mode()
 
     def add_master_clock(self, time):
         '''
@@ -480,8 +484,7 @@ class segment_container():
         self._total_times = None
         self._render_shape = None
         for channel in self.channels.values():
-            channel.render_mode =  False
-            channel._pulse_data_all = None
+            channel.exit_rendering_mode()
 
     def plot(self, index=(0,), channels=None, sample_rate=1e9, render_full=True):
         '''

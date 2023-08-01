@@ -1,8 +1,11 @@
 """
 File containing the parent class where all segment objects are derived from.
 """
+import copy
+import logging
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from pulse_lib.segments.utility.data_handling_functions import loop_controller
 from pulse_lib.segments.data_classes.data_generic import data_container
@@ -13,9 +16,7 @@ from pulse_lib.segments.utility.measurement_ref import MeasurementRef
 from pulse_lib.segments.segment_measurements import segment_measurements
 from pulse_lib.segments.data_classes.data_generic import map_index
 
-import copy
-
-import matplotlib.pyplot as plt
+logger = logging.getLogger(__name__)
 
 
 class segment_acquisition():
@@ -38,11 +39,13 @@ class segment_acquisition():
 
         # store data in numpy looking object for easy operator access.
         self.data = data_container(acquisition_data())
+        self._end_times = np.zeros(1)
 
         # local copy of self that will be used to count up the virtual gates.
         self._pulse_data_all = None
         # data caching variable. Used for looping and so on (with a decorator approach)
         self.data_tmp = None
+        self._pending_reset_time = None
 
         # setpoints of the loops (with labels and units)
         self._setpoints = setpoint_mgr()
@@ -97,12 +100,12 @@ class segment_acquisition():
         self.data_tmp.add_acquisition(acq, wait=wait)
         return self.data_tmp
 
-
-    def __add__(self, other):
-        if (len(self._measurement_segment._measurements) > 0
-            or len(other._measurement_segment._measurements) > 0):
-            raise Exception(f'Measurements cannot (yet) be combined')
-        return segment_acquisition(self.name, self._measurement_segment)
+# @@@@ remove?
+#    def __add__(self, other):
+#        if (len(self._measurement_segment._measurements) > 0
+#            or len(other._measurement_segment._measurements) > 0):
+#            raise Exception(f'Measurements cannot (yet) be combined')
+#        return segment_acquisition(self.name, self._measurement_segment)
 
     def append(self, other):
         '''
@@ -112,14 +115,12 @@ class segment_acquisition():
 
     def add(self, other, time=None):
         '''
-        Add the other segment behind this segment.
+        Add the other segment to this segment at specified time.
         Args:
             other (segment) : the segment to be appended
-            time (double/loop_obj) : add at the given time. f None, append at total_time of the segment)
-
-        A time reset will be done after the other segment is added.
-        TODO: transfer of units
+            time (double/loop_obj) : add at the given time. if None, append at t_start of the segment)
         '''
+        other._lazy_reset_time()
         if other.shape != (1,):
             other_loopobj = loop_obj()
             other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)),
@@ -131,13 +132,29 @@ class segment_acquisition():
 
         return self
 
-    @loop_controller
     def reset_time(self, time=None):
         '''
         resets the time back to zero after a certain point
         Args:
             time (double) : (optional), after time to reset back to 0. Note that this is absolute time and not rescaled time.
         '''
+        if self.is_slice or time is None:
+            self._reset_time(time)
+        else:
+            self._pending_reset_time = time
+
+    def _lazy_reset_time(self):
+        if self._pending_reset_time is not None:
+            if self.is_slice:
+                msg = 'Pulse-lib error. Mixed use of slicing and reset_time()'
+                logger.error(msg)
+                raise Exception(msg)
+            time = self._pending_reset_time
+            self._pending_reset_time = None
+            self._reset_time(time)
+
+    @loop_controller
+    def _reset_time(self, time=None):
         self.data_tmp.reset_time(time)
         return self.data_tmp
 
@@ -165,6 +182,7 @@ class segment_acquisition():
         Args:
             *key (int/slice object) : key of the element -- just use numpy style accessing (slicing supported)
         '''
+        self._lazy_reset_time()
         data_item = self.data[key[0]]
         if not isinstance(data_item, data_container):
             # If the slice contains only 1 element, then it's not a data_container anymore.
@@ -180,6 +198,11 @@ class segment_acquisition():
         self.data = data_org
 
         item.data = data_item
+        i = key[0]
+        if len(self.shape) == 1:
+            item._end_times = self._end_times[i:i+1]
+        else:
+            item._end_times = self._end_times[i]
         item.is_slice = True
         return item
 
@@ -235,34 +258,44 @@ class segment_acquisition():
 
     @property
     def shape(self):
-        if self.render_mode == False:
+        if not self.render_mode:
             return self.data.shape
         else:
             return self.pulse_data_all.shape
 
     @property
     def ndim(self):
-        if self.render_mode == False:
+        if not self.render_mode:
             return self.data.ndim
         else:
             return self.pulse_data_all.shape
 
     @property
     def total_time(self):
-        if self.render_mode == False:
-            return self.data.total_time
+        if not self.render_mode:
+            # use end time from numpy array instead of individual lookup of data elements.
+            return self._end_times
+#            return self.data.total_time
         else:
             return self.pulse_data_all.total_time
 
-    def get_total_time(self, index):
-        return self.total_time[map_index(index, self.shape)]
-
     @property
     def start_time(self):
-        if self.render_mode == False:
+        if not self.render_mode:
             return self.data.start_time
         else:
             return self.pulse_data_all.start_time
+
+    def enter_rendering_mode(self):
+        self._lazy_reset_time()
+        self.render_mode = True
+        # make a pre-render of all the pulse data (e.g. compose channels, do not render in full).
+        if self.type == 'render':
+            self.pulse_data_all
+
+    def exit_rendering_mode(self):
+        self.render_mode = False
+        self._pulse_data_all = None
 
     # ==== operations working on an index
 
@@ -276,7 +309,7 @@ class segment_acquisition():
             render full (bool) : do full render (e.g. also get data form virtual channels). Put True if you want to see the waveshape send to the AWG.
             sample_rate (float): standard 1 Gs/s
         '''
-
+        self._lazy_reset_time()
         if render_full == True:
             pulse_data_curr_seg = self._get_data_all_at(index)
         else:

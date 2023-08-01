@@ -29,11 +29,7 @@ class setpoint_mgr():
         output._setpoints = copy.copy(self._setpoints)
 
         if isinstance(other, setpoint):
-            if other.axis in self._setpoints.keys():
-                output._setpoints[other.axis] = other
-            else:
-                output._setpoints.update({other.axis : other})
-
+            output._setpoints[other.axis] = other
         elif isinstance(other, self.__class__):
             for setpnt in other:
                 output += setpnt

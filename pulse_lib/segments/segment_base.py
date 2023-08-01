@@ -2,6 +2,7 @@
 File containing the parent class where all segment objects are derived from.
 """
 import copy
+import logging
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,6 +12,8 @@ from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
 from pulse_lib.segments.data_classes.data_generic import map_index
+
+logger = logging.getLogger(__name__)
 
 
 class segment_base():
@@ -34,6 +37,8 @@ class segment_base():
 
         # store data in numpy looking object for easy operator access.
         self.data = data_container(data_object)
+        # end time for every index. Effectively this is a cache of data[index].end_time
+        self._end_times = np.zeros(1)
 
         # references to other channels (for virtual gates).
         self.reference_channels = []
@@ -44,15 +49,17 @@ class segment_base():
         self._pulse_data_all = None
         # data caching variable. Used for looping and so on (with a decorator approach)
         self.data_tmp = None
-        # variable specifing the lastest time the pulse_data_all is updated
+        self._pending_reset_time = None
 
         # setpoints of the loops (with labels and units)
         self._setpoints = setpoint_mgr()
         self.is_slice = False
 
     def _copy(self, cpy):
+        self._lazy_reset_time()
         cpy.type = copy.copy(self.type)
         cpy.data = copy.copy(self.data)
+        cpy._end_times = self._end_times.copy()
 
         # note that the container objecet needs to take care of these. By default it will refer to the old references.
         cpy.reference_channels = copy.copy(self.reference_channels)
@@ -64,13 +71,29 @@ class segment_base():
 
         return cpy
 
-    @loop_controller
     def reset_time(self, time=None):
         '''
         resets the time back to zero after a certain point
         Args:
             time (double) : (optional), after time to reset back to 0. Note that this is absolute time and not rescaled time.
         '''
+        if self.is_slice or time is None:
+            self._reset_time(time)
+        else:
+            self._pending_reset_time = time
+
+    def _lazy_reset_time(self):
+        if self._pending_reset_time is not None:
+            if self.is_slice:
+                msg = 'Pulse-lib error. Mixed use of slicing and reset_time()'
+                logger.error(msg)
+                raise Exception(msg)
+            time = self._pending_reset_time
+            self._pending_reset_time = None
+            self._reset_time(time)
+
+    @loop_controller
+    def _reset_time(self, time=None):
         self.data_tmp.reset_time(time)
         return self.data_tmp
 
@@ -93,55 +116,59 @@ class segment_base():
     def setpoints(self):
         return self._setpoints
 
-    def __add__(self, other):
-        '''
-        define addition operator for segment_single
-        '''
-        new_segment = copy.copy(self)
-        if isinstance(other, segment_base):
-            new_segment.data = new_segment.data + other.data
-
-        elif type(other) == int or type(other) == float:
-            new_segment.data += other
-        else:
-            raise TypeError("Please add up segment_single type or a number ")
-
-        return new_segment
-
-    def __iadd__(self, other):
-        '''
-        define addition operator for segment_single
-        '''
-        if isinstance(other, segment_base):
-            self.data = self.data + other.data
-
-        elif type(other) == int or type(other) == float:
-            self.data += other
-        else:
-            raise TypeError("Please add up segment_single type or a number ")
-
-        return self
-
-    def __sub__(self, other):
-        return self.__add__(other*-1)
-
-    def __isub__(self, other):
-        return self.__iadd__(other*-1)
-
-    def __mul__(self, other):
-        '''
-        muliplication operator for segment_single
-        '''
-        new_segment = copy.copy(self)
-
-        if isinstance(other, segment_base):
-            raise TypeError("muliplication of two segments not supported. Please multiply by a number.")
-        elif type(other) == int or type(other) == float or type(other) == np.double:
-            new_segment.data *= other
-        else:
-            raise TypeError("Please add up segment_single type or a number ")
-
-        return new_segment
+# @@@@ remove?
+#    def __add__(self, other):
+#        '''
+#        define addition operator for segment_single
+#        '''
+#        new_segment = copy.copy(self)
+#        if isinstance(other, segment_base):
+#            new_segment.data = new_segment.data + other.data
+#            print('add', self._end_times.shape)
+#            new_segment._end_times = np.fmax(self._end_times, other._end_times)
+#
+#        elif type(other) == int or type(other) == float:
+#            new_segment.data += other
+#        else:
+#            raise TypeError("Please add up segment_single type or a number ")
+#        return new_segment
+#
+#    def __iadd__(self, other):
+#        '''
+#        define addition operator for segment_single
+#        '''
+#        if isinstance(other, segment_base):
+#            self.data = self.data + other.data
+#            self._end_times = np.fmax(self._end_times, other._end_times)
+#            print('iadd', self._end_times.shape)
+#
+#        elif type(other) == int or type(other) == float:
+#            self.data += other
+#        else:
+#            raise TypeError("Please add up segment_single type or a number ")
+#
+#        return self
+#
+#    def __sub__(self, other):
+#        return self.__add__(other*-1)
+#
+#    def __isub__(self, other):
+#        return self.__iadd__(other*-1)
+#
+#    def __mul__(self, other):
+#        '''
+#        muliplication operator for segment_single
+#        '''
+#        new_segment = copy.copy(self)
+#
+#        if isinstance(other, segment_base):
+#            raise TypeError("muliplication of two segments not supported. Please multiply by a number.")
+#        elif type(other) == int or type(other) == float or type(other) == np.double:
+#            new_segment.data *= other
+#        else:
+#            raise TypeError("Please add up segment_single type or a number ")
+#
+#        return new_segment
 
     def __getitem__(self, *key):
         '''
@@ -149,6 +176,7 @@ class segment_base():
         Args:
             *key (int/slice object) : key of the element -- just use numpy style accessing (slicing supported)
         '''
+        self._lazy_reset_time()
         data_item = self.data[key[0]]
         if not isinstance(data_item, data_container):
             # If the slice contains only 1 element, then it's not a data_container anymore.
@@ -164,6 +192,11 @@ class segment_base():
 
         item.data = data_item
         item.is_slice = True
+        i = key[0]
+        if len(self.shape) == 1:
+            item._end_times = self._end_times[i:i+1]
+        else:
+            item._end_times = self._end_times[i]
         return item
 
     def append(self, other):
@@ -174,14 +207,12 @@ class segment_base():
 
     def add(self, other, time=None):
         '''
-        Add the other segment behind this segment.
+        Add the other segment to this segment at specified time.
         Args:
             other (segment) : the segment to be appended
-            time (double/loop_obj) : add at the given time. f None, append at total_time of the segment)
-
-        A time reset will be done after the other segment is added.
-        TODO: transfer of units
+            time (double/loop_obj) : add at the given time. if None, append at t_start of the segment)
         '''
+        other._lazy_reset_time()
         if other.shape != (1,):
             other_loopobj = loop_obj()
             other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)),
@@ -193,21 +224,22 @@ class segment_base():
 
         return self
 
-    @loop_controller
-    def repeat(self, number):
-        '''
-        repeat a waveform n times.
-
-        Args:
-            number (int) : number of ties to repeat the waveform
-        '''
-
-        data_copy = copy.copy(self.data_tmp)
-        for i in range(number-1):
-            self.data_tmp.append(data_copy)
-
-        return self.data_tmp
-
+# @@@@ remove?
+#    @loop_controller
+#    def repeat(self, number):
+#        '''
+#        repeat a waveform n times.
+#
+#        Args:
+#            number (int) : number of ties to repeat the waveform
+#        '''
+#
+#        data_copy = copy.copy(self.data_tmp)
+#        for i in range(number-1):
+#            self.data_tmp.append(data_copy)
+#
+#        return self.data_tmp
+#
     @loop_controller
     def update_dim(self, loop_obj):
         '''
@@ -258,34 +290,44 @@ class segment_base():
 
     @property
     def shape(self):
-        if self.render_mode == False:
+        if not self.render_mode:
             return self.data.shape
         else:
             return self.pulse_data_all.shape
 
     @property
     def ndim(self):
-        if self.render_mode == False:
+        if not self.render_mode:
             return self.data.ndim
         else:
             return self.pulse_data_all.shape
 
     @property
     def total_time(self):
-        if self.render_mode == False:
-            return self.data.total_time
+        if not self.render_mode:
+            # use end time from numpy array instead of individual lookup of data elements.
+            return self._end_times
+#            return self.data.total_time
         else:
             return self.pulse_data_all.total_time
 
-    def get_total_time(self, index):
-        return self.total_time[map_index(index, self.shape)]
-
     @property
     def start_time(self):
-        if self.render_mode == False:
+        if not self.render_mode:
             return self.data.start_time
         else:
             return self.pulse_data_all.start_time
+
+    def enter_rendering_mode(self):
+        self._lazy_reset_time()
+        self.render_mode = True
+        # make a pre-render of all the pulse data (e.g. compose channels, do not render in full).
+        if self.type == 'render':
+            self.pulse_data_all
+
+    def exit_rendering_mode(self):
+        self.render_mode = False
+        self._pulse_data_all = None
 
     # ==== operations working on an index
 
