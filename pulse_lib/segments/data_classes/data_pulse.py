@@ -15,20 +15,12 @@ from pulse_lib.segments.data_classes.data_IQ import envelope_generator
 
 logger = logging.getLogger(__name__)
 
-total_pulse_deltas = 0
-
-def get_total_deltas():
-    return total_pulse_deltas
 
 @dataclass
 class pulse_delta:
     time: float
     step: float = 0.0
     ramp: float = 0.0
-
-    def __post_init__(self):
-        global total_pulse_deltas
-        total_pulse_deltas += 1
 
     def __add__(self, other):
         if isinstance(other, pulse_delta):
@@ -463,10 +455,7 @@ class pulse_data(parent_data):
         new_data = pulse_data()
 
         if isinstance(other, Number):
-            # deepcopy, because elements are modified
-            new_data.pulse_deltas = copy.deepcopy(self.pulse_deltas)
-            for delta in new_data.pulse_deltas:
-                delta *= other
+            new_data.pulse_deltas = [item*other for item in self.pulse_deltas]
 
             new_data.MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
             for mw_pulse in new_data.MW_pulse_data:
