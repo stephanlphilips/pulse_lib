@@ -51,6 +51,9 @@ class setpoint_mgr():
     def __repr__(self):
         return self.__str__()
 
+    def __contains__(self, axis):
+        return axis in self._setpoints
+
     def __getitem__(self, axis):
         """
         get setpoint data for a certain axis
