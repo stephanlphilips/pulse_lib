@@ -142,6 +142,8 @@ class ConditionMeasurements:
         return self._conditional_measurements[id(conditional_segment)]
 
     def check_feedback_timing(self):
+        if not self._supports_conditionals:
+            return
 
         required_time = self.min_feedback_time
 
