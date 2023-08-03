@@ -177,11 +177,11 @@ class sequencer():
                 raise ValueError('The provided element in the sequence seems to be of the wrong data type.'
                                  f'{type(entry)} provided, segment_container expected')
 
-        for seg_container in self.sequence:
-            if seg_container.sample_rate is not None:
-                effective_rate = self.uploader.get_effective_sample_rate(seg_container.sample_rate)
-                msg = f"effective sampling rate for {seg_container.name} is set to {si_format(effective_rate, precision=1)}Sa/s"
-                logger.info(msg)
+#        for seg_container in self.sequence:
+#            if seg_container.sample_rate is not None:
+#                effective_rate = self.uploader.get_effective_sample_rate(seg_container.sample_rate)
+#                msg = f"effective sampling rate for {seg_container.name} is set to {si_format(effective_rate, precision=1)}Sa/s"
+#                logger.info(msg)
 
         # update dimensionality of all sequence objects
         start = time.perf_counter()
@@ -197,7 +197,7 @@ class sequencer():
         n_samples = 0
         for seg_container in self.sequence:
             sr = seg_container.sample_rate if seg_container.sample_rate else 1e9
-            n_samples = max(n_samples, np.max(seg_container.total_time) * 1e9 / sr)
+            n_samples = max(n_samples, np.max(seg_container.total_time) * 1e9 / np.max(sr))
             if not isinstance(seg_container, conditional_segment):
                 for channel_name in seg_container.channels:
                     shape = seg_container[channel_name].data.shape

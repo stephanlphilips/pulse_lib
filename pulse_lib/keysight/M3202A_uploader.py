@@ -6,7 +6,7 @@ import math
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
-from pulse_lib.uploader.uploader_funcs import merge_markers
+from pulse_lib.uploader.uploader_funcs import merge_markers, get_sample_rate
 
 logger = logging.getLogger(__name__)
 
@@ -587,7 +587,7 @@ class UploadAggregator:
             return
 
         for iseg,seg in enumerate(job.sequence):
-            sample_rate = seg.sample_rate if seg.sample_rate is not None else job.default_sample_rate
+            sample_rate = get_sample_rate(job, seg)
 
             for channel_name, channel_info in self.channels.items():
                 if iseg == 0:
@@ -608,7 +608,7 @@ class UploadAggregator:
         t_start = 0
         for seg in job.sequence:
             # work with sample rate in GSa/s
-            sample_rate = (seg.sample_rate if seg.sample_rate is not None else job.default_sample_rate) * 1e-9
+            sample_rate = get_sample_rate(job, seg) * 1e-9
             duration = seg.get_total_time(job.index)
             logger.debug(f'Seg duration:{duration:9.3f}')
             npt =  iround(duration * sample_rate)

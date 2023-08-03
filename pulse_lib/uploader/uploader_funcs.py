@@ -1,10 +1,12 @@
 from typing import List, Tuple
+from numbers import Number
 import logging
 import numpy as np
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.configuration.iq_channels import FrequencyUndefined
 
 logger = logging.getLogger(__name__)
+
 
 def get_iq_nco_idle_frequency(job, qubit_channel, index):
     '''
@@ -28,6 +30,7 @@ def get_iq_nco_idle_frequency(job, qubit_channel, index):
     if frequency is None:
         return None
     return frequency - qubit_channel.iq_channel.LO
+
 
 def merge_markers(marker_name, marker_deltas, marker_value=1, min_off_ns=10) -> List[Tuple[int,int]]:
     '''
@@ -62,3 +65,15 @@ def merge_markers(marker_name, marker_deltas, marker_value=1, min_off_ns=10) -> 
 
     return res
 
+
+def get_sample_rate(job, segment):
+    sample_rate = (segment.sample_rate
+                   if segment.sample_rate is not None
+                   else job.default_sample_rate)
+
+    if not isinstance(sample_rate, Number):
+        # assume looping object.
+        lp_sample_rate = sample_rate
+        index = tuple(job.index[axis] for axis in lp_sample_rate.axis)
+        sample_rate = sample_rate[index]
+    return sample_rate

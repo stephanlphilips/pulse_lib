@@ -16,7 +16,8 @@ from pulse_lib.segments.conditional_segment import conditional_segment
 from pulse_lib.tests.mock_m3202a_qs import AwgInstruction, AwgConditionalInstruction
 from pulse_lib.tests.mock_m3102a_qs import DigitizerInstruction
 from pulse_lib.segments.utility.rounding import iround
-from pulse_lib.uploader.uploader_funcs import get_iq_nco_idle_frequency, merge_markers
+from pulse_lib.uploader.uploader_funcs import (
+        get_iq_nco_idle_frequency, merge_markers, get_sample_rate)
 
 logger = logging.getLogger(__name__)
 
@@ -696,7 +697,7 @@ class UploadAggregator:
             return
 
         for iseg,seg in enumerate(job.sequence):
-            sample_rate = seg.sample_rate if seg.sample_rate is not None else job.default_sample_rate
+            sample_rate = get_sample_rate(job, seg)
 
             for channel_name, channel_info in self.channels.items():
                 if iseg == 0:
@@ -720,7 +721,7 @@ class UploadAggregator:
         t_start = 0
         for seg in job.sequence:
             # work with sample rate in GSa/s
-            sample_rate = (seg.sample_rate if seg.sample_rate is not None else job.default_sample_rate) * 1e-9
+            sample_rate = get_sample_rate(job, seg) * 1e-9
             duration = seg.get_total_time(job.index)
             npt =  iround(duration * sample_rate)
             info = SegmentRenderInfo(sample_rate, t_start, npt)
