@@ -184,14 +184,13 @@ class sequencer():
                 logger.info(msg)
 
         # update dimensionality of all sequence objects
-        logger.debug('Enter pre-rendering')
         start = time.perf_counter()
         setpoint_data = setpoint_mgr()
         for seg_container in self.sequence:
             seg_container.enter_rendering_mode()
             self._shape = find_common_dimension(self._shape, seg_container.shape)
             setpoint_data += seg_container.setpoint_data
-        logger.debug(f'Done pre-render {(time.perf_counter()-start)*1000:.0f} ms')
+        logger.debug(f'Pre-render {(time.perf_counter()-start)*1000:.0f} ms')
         # Set the waveform cache equal to the sum over all channels and segments of the max axis length.
         # The cache will than be big enough for 1D iterations along every axis. This gives best performance
         total_axis_length = 0
@@ -211,7 +210,7 @@ class sequencer():
         # limit cache to 8 GB
         max_cache = int(1e9 / n_samples)
         cache_size = min(total_axis_length, max_cache)
-        logger.info(f'waveform cache: {cache_size} waveforms of max {n_samples} samples')
+        logger.debug(f'waveform cache: {cache_size} waveforms of max {n_samples} samples')
         parent_data.set_waveform_cache_size(cache_size)
 
         self._setpoints = setpoint_data
@@ -714,7 +713,7 @@ class sequencer():
         if index is None:
             index = self.sweep_index[::-1]
         mc = self._get_measurement_converter()
-        mc.set_channel_data(self.get_channel_data(index))
+        mc.set_channel_data(self.get_channel_data(index), index)
         if iq_complex == False:
             iq_mode = 'I+Q'
         selection = DataSelection(raw=raw, states=states, values=values,
