@@ -1,5 +1,4 @@
 import time
-from collections import Iterable
 from uuid import UUID
 from datetime import datetime
 import numpy as np
