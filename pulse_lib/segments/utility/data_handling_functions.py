@@ -253,13 +253,12 @@ def loop_controller(func):
 
             data = obj.data
 
-            if len(loop_info_args) == 0 and len(loop_info_kwargs) == 0:
-                if data.shape != (1,):
-                    loop_over_data(func, obj, data, obj._end_times, args, kwargs)
-                else:
-                    obj.data_tmp = data[0]
-                    data[0] = func(obj, *args, **kwargs)
-                    obj._end_times[0] = data[0].end_time
+            if data.shape == (1,):
+                obj.data_tmp = data[0]
+                data[0] = func(obj, *args, **kwargs)
+                obj._end_times[0] = data[0].end_time
+            elif len(loop_info_args) == 0 and len(loop_info_kwargs) == 0:
+                loop_over_data(func, obj, data, obj._end_times, args, kwargs)
             else:
                 loop_over_data_lp(func, obj, data, obj._end_times,
                                   args, loop_info_args, kwargs, loop_info_kwargs)
@@ -342,7 +341,6 @@ def loop_over_data_lp(func, obj, data, end_times, args, args_info, kwargs, kwarg
             if n_dim-1 in kwarg.axes:
                 index = kwarg.key
                 kwargs_cpy[index] = kwargs[index][i]
-
         if n_dim == 1:
             # we are at the lowest level of the loop.
             obj.data_tmp = data[i]
