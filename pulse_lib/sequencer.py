@@ -337,6 +337,7 @@ class sequencer():
                         sample_rate=None,
                         channels=[],
                         average_repetitions=None,
+                        aggregate_func=None
                         ):
         '''
         Args:
@@ -347,6 +348,8 @@ class sequencer():
                 but sampled with specified rate. Useful for time traces and Elzerman readout.
                 Does not change digitizer DAC rate. Data is down-sampled using block averages.
             average_repetitions (bool): Average data over the sequence repetitions.
+            aggregate_func:
+                Function aggregating data on time axis to new value. Must be used with sample_rate.
         '''
         if self._measurement_converter is not None:
             raise Exception('Acquisition parameters cannot be changed after calling  '
@@ -359,7 +362,9 @@ class sequencer():
         if channels != []:
             conf.channels = channels
         if average_repetitions is not None:
-            conf.average_repetitions = average_repetitions # @@@ implement Keysight
+            conf.average_repetitions = average_repetitions
+        if aggregate_func is not None:
+            conf.aggregate_func = aggregate_func
 
     def _set_num_samples(self):
         default_t_measure = self._acquisition_conf.t_measure
@@ -399,6 +404,7 @@ class sequencer():
                     m.n_samples = self.uploader.get_num_samples(
                             m.acquisition_channel, t_measure, sample_rate)
                     m.interval = round(1e9/sample_rate)
+                m.aggregate_func = self._acquisition_conf.aggregate_func
             else:
                 m.n_samples = 1
 

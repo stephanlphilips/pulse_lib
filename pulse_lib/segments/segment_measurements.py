@@ -2,7 +2,9 @@
 Measurement channel implementation.
 """
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Callable
+
+import numpy as np
 
 from .utility.measurement_ref import MeasurementExpressionBase, MeasurementRef
 
@@ -25,6 +27,10 @@ class measurement_acquisition(measurement_base):
     '''  Number of samples when using time traces. Value set by sequencer when downsampling. '''
     data_offset: int = 0
     ''' Offset of data in acquired channel data. '''
+    aggregate_func: Callable[[np.ndarray], np.ndarray] = None
+    '''
+    Function aggregating data on time axis to new value.
+    '''
 
     @property
     def has_threshold(self):

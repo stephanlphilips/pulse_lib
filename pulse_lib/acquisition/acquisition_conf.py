@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Callable
+
+import numpy as np
 
 from pulse_lib.segments.utility.looping import loop_obj
 
@@ -15,20 +17,28 @@ class AcquisitionConf:
     measurement time in ns.
     If None it must be set in acquire()
     '''
+
     channels: Optional[List[str]] = None
     '''
     Channels to retrieve data from specified by name.
     If None it is defined by acquire()
     '''
+
     sample_rate: Optional[float] = None
     '''
     Sample rate of data in Hz. When not None, the data should not be averaged,
     but downsampled with specified rate. Useful for time traces and Elzerman readout.
     Downsampling uses block average.
     '''
+
     average_repetitions: bool = False
     '''
     Average acquisition data over the sequence repetitions.
+    '''
+
+    aggregate_func: Callable[[np.ndarray], np.ndarray] = None
+    '''
+    Function aggregating data on time axis to new value.
     '''
 
     # TODO are the options needed?
