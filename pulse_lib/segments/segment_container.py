@@ -58,11 +58,11 @@ class segment_container():
 
         # define real channels (+ markers)
         for name in channel_names:
-            segment = segment_pulse(name, self._software_markers, hres=hres)
+            segment = segment_pulse(name, hres=hres)
             setattr(self, name, segment)
             self.channels[name] = segment
         for name in markers:
-            segment = segment_marker(name, self._software_markers)
+            segment = segment_marker(name)
             setattr(self, name, segment)
             self.channels[name] = segment
 
@@ -70,7 +70,7 @@ class segment_container():
         if self._virtual_gate_matrices:
             # make segments for virtual gates.
             for virtual_gate_name in self._virtual_gate_matrices.virtual_gate_names:
-                segment = segment_pulse(virtual_gate_name, self._software_markers, 'virtual_baseband')
+                segment = segment_pulse(virtual_gate_name, 'virtual_baseband')
                 setattr(self, virtual_gate_name, segment)
                 self.channels[virtual_gate_name] = segment
 
@@ -78,7 +78,7 @@ class segment_container():
         for IQ_channels_obj in IQ_channels_objs:
             for qubit_channel in IQ_channels_obj.qubit_channels:
                 channel_name = qubit_channel.channel_name
-                segment = segment_IQ(channel_name, qubit_channel, self._software_markers)
+                segment = segment_IQ(channel_name, qubit_channel)
                 setattr(self, channel_name, segment)
                 self.channels[channel_name] = segment
 
@@ -101,8 +101,6 @@ class segment_container():
                 raise ValueError(f'Unknown channel {name}')
             return self.channels[name]
         elif isinstance(index, int):
-
-            self._extend_dim(self.shape)
 
             new = segment_container([])
 
@@ -227,6 +225,8 @@ class segment_container():
                 label=(loop_obj.labels[0],),
                 unit=(loop_obj.units[0],),
                 setpoint=(loop_obj.setvals[0],))
+
+        self._extend_dim(self.shape)
 
     @property
     def total_time(self):
@@ -546,7 +546,6 @@ def add_reference_channels(segment_container_obj, virtual_gate_matrices, IQ_chan
         seg_ch.reference_channels = list()
         seg_ch.IQ_ref_channels = list()
         seg_ch.add_reference_markers = list()
-        seg_ch._data_hvi_variable = segment_container_obj._software_markers
 
     if virtual_gate_matrices:
         for virtual_gate_name,virt2real in virtual_gate_matrices.virtual_gate_projection.items():

@@ -16,7 +16,7 @@ class reference_marker_4_IQ:
 
 class segment_marker(segment_base):
     """docstring for segment_marker"""
-    def __init__(self, name, HVI_variable_data = None):
+    def __init__(self, name):
         """s
         init marker object
         Args:
@@ -24,7 +24,7 @@ class segment_marker(segment_base):
             HVI_variable_data (segment_HVI_variables) : segment used to keep variables that can be used in HVI.
             marker_voltage (double) : voltage in mV to output when the marker is on (default is 1V),
         """
-        super(segment_marker, self).__init__(name, marker_data(), HVI_variable_data, segment_type = 'render')
+        super(segment_marker, self).__init__(name, marker_data(), segment_type = 'render')
 
     @loop_controller
     def add_marker(self, start, stop):

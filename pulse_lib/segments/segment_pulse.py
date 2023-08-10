@@ -23,15 +23,14 @@ class segment_pulse(segment_base):
     '''
     Class defining single segments for one sequence.
     '''
-    def __init__(self, name, HVI_variable_data=None,
-                 segment_type='render', hres=False):
+    def __init__(self, name, segment_type='render', hres=False):
         '''
         Args:
             name (str): name of the segment usually the channel name
             HVI_variable_data (segment_HVI_variables) : segment used to keep variables that can be used in HVI.
             segment_type (str) : type of the segment (e.g. 'render' --> to be rendered, 'virtual'--> no not render.)
         '''
-        super().__init__(name, pulse_data(hres=hres), HVI_variable_data, segment_type)
+        super().__init__(name, pulse_data(hres=hres), segment_type)
 
     @loop_controller
     def add_block(self,start,stop, amplitude):

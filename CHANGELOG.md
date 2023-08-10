@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.32] - 2023-08-10
+
+- Removed add_HVI_marker and add_HVI_variable from segment channels.
+  Huge performance improvement for GST and RB. O(N^2) -> O(N)
+
 ## \[1.6.31] - 2023-07-28
 
 - Added argument reload_seq=True to use 1D and 2D fast scan with external sweep modifying pulse-lib settings

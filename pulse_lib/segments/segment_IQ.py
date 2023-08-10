@@ -33,7 +33,7 @@ class segment_IQ(segment_base):
     Standard single segment for IQ purposes
     todo --> add global phase and time shift in the data class instead of this one (cleaner and more generic).
     """
-    def __init__(self, name, qubit_channel, HVI_variable_data = None):
+    def __init__(self, name, qubit_channel):
         '''
         Args:
             name : name of the IQ segment
@@ -42,11 +42,11 @@ class segment_IQ(segment_base):
         Tip, make on of these segments for each qubit. Then you get a very clean implementation of reference frame changes!
         '''
         # @@@ Fix segment_type with rendering refactoring
-        super().__init__(name, pulse_data(), HVI_variable_data) #, segment_type = 'IQ_virtual')
+        super().__init__(name, pulse_data()) #, segment_type = 'IQ_virtual')
         self._qubit_channel = qubit_channel
 
     def __copy__(self):
-        cpy = segment_IQ(self.name, self._qubit_channel, self._data_hvi_variable)
+        cpy = segment_IQ(self.name, self._qubit_channel)
         return self._copy(cpy)
 
     @loop_controller

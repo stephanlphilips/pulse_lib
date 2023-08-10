@@ -18,7 +18,6 @@ class segment_HVI_variables(segment_base):
             marker_voltage (double) : voltage in mV to output when the marker is on (default is 1V),
         """
         super(segment_HVI_variables, self).__init__(name, marker_HVI_variable(), segment_type = 'render')
-        self._data_hvi_variable = None
 
     @loop_controller
     def _add_HVI_variable(self, name, value, time):

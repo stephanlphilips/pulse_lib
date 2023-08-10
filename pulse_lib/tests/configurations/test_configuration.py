@@ -270,8 +270,16 @@ class Context:
             _ct_configured = True
         ct.launch_databrowser()
 
-    def run(self, name, sequence, *params, silent=False, sweeps=[]):
+    def init_coretools(self):
         global _ct_configured
+        if not _ct_imported:
+            raise Exception('core_tools import failed')
+        if not _ct_configured:
+            ct.configure(os.path.join(self._dir, 'ct_config.yaml'))
+            _ct_configured = True
+        ct.set_sample_info(sample=self.configuration_name)
+
+    def run(self, name, sequence, *params, silent=False, sweeps=[]):
         runner = self._configuration['runner']
         if runner == 'qcodes':
             path = 'C:/measurements/test_pulselib'
@@ -279,12 +287,7 @@ class Context:
             return qc_run(name, *sweeps, sequence, *params, quiet=silent)
 
         elif runner == 'core_tools':
-            if not _ct_imported:
-                raise Exception('core_tools import failed')
-            if not _ct_configured:
-                ct.configure(os.path.join(self._dir, 'ct_config.yaml'))
-                _ct_configured = True
-            ct.set_sample_info(sample=self.configuration_name)
+            self.init_coretools()
             scan_sweeps = []
             for sw in sweeps:
                 scan_sweeps.append(sweep(*sw))
