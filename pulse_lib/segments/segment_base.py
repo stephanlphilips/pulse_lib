@@ -116,60 +116,6 @@ class segment_base():
     def setpoints(self):
         return self._setpoints
 
-# @@@@ remove?
-#    def __add__(self, other):
-#        '''
-#        define addition operator for segment_single
-#        '''
-#        new_segment = copy.copy(self)
-#        if isinstance(other, segment_base):
-#            new_segment.data = new_segment.data + other.data
-#            print('add', self._end_times.shape)
-#            new_segment._end_times = np.fmax(self._end_times, other._end_times)
-#
-#        elif type(other) == int or type(other) == float:
-#            new_segment.data += other
-#        else:
-#            raise TypeError("Please add up segment_single type or a number ")
-#        return new_segment
-#
-#    def __iadd__(self, other):
-#        '''
-#        define addition operator for segment_single
-#        '''
-#        if isinstance(other, segment_base):
-#            self.data = self.data + other.data
-#            self._end_times = np.fmax(self._end_times, other._end_times)
-#            print('iadd', self._end_times.shape)
-#
-#        elif type(other) == int or type(other) == float:
-#            self.data += other
-#        else:
-#            raise TypeError("Please add up segment_single type or a number ")
-#
-#        return self
-#
-#    def __sub__(self, other):
-#        return self.__add__(other*-1)
-#
-#    def __isub__(self, other):
-#        return self.__iadd__(other*-1)
-#
-#    def __mul__(self, other):
-#        '''
-#        muliplication operator for segment_single
-#        '''
-#        new_segment = copy.copy(self)
-#
-#        if isinstance(other, segment_base):
-#            raise TypeError("muliplication of two segments not supported. Please multiply by a number.")
-#        elif type(other) == int or type(other) == float or type(other) == np.double:
-#            new_segment.data *= other
-#        else:
-#            raise TypeError("Please add up segment_single type or a number ")
-#
-#        return new_segment
-
     def __getitem__(self, *key):
         '''
         get slice or single item of this segment (note no copying, just referencing)
@@ -224,22 +170,6 @@ class segment_base():
 
         return self
 
-# @@@@ remove?
-#    @loop_controller
-#    def repeat(self, number):
-#        '''
-#        repeat a waveform n times.
-#
-#        Args:
-#            number (int) : number of ties to repeat the waveform
-#        '''
-#
-#        data_copy = copy.copy(self.data_tmp)
-#        for i in range(number-1):
-#            self.data_tmp.append(data_copy)
-#
-#        return self.data_tmp
-#
     @loop_controller
     def update_dim(self, loop_obj):
         '''
