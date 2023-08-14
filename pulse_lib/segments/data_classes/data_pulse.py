@@ -288,52 +288,6 @@ class pulse_data(parent_data):
         self._phase_shifts_consolidated = False
         self._update_end_time(time + other.total_time)
 
-# @@@@ remove?
-#    def repeat(self, n):
-#        """
-#        repeat n times
-#        Args
-#            n (int) : number of times to repeat
-#        """
-#        time = self.total_time
-#
-#        new_pulse_deltas = copy.copy(self.pulse_deltas)
-#        new_MW_pulse_data =  copy.copy(self.MW_pulse_data)
-#        new_custom_pulse_data =  copy.copy(self.custom_pulse_data)
-#        new_phase_shifts =  copy.copy(self.phase_shifts)
-#        new_chirp_data = copy.copy(self.chirp_data)
-#
-#        for i in range(n):
-#            shifted_pulse_deltas = copy.deepcopy(self.pulse_deltas)
-#            shift_time(shifted_pulse_deltas, (i+1)*time)
-#            new_pulse_deltas += shifted_pulse_deltas
-#
-#            shifted_MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
-#            shift_start_stop(shifted_MW_pulse_data, (i+1)*time)
-#            new_MW_pulse_data +=  shifted_MW_pulse_data
-#
-#            shifted_custom_pulse_data = copy.deepcopy(self.custom_pulse_data)
-#            shift_start_stop(shifted_custom_pulse_data, (i+1)*time)
-#            new_custom_pulse_data +=  shifted_custom_pulse_data
-#
-#            shifted_phase_shifts = copy.deepcopy(self.phase_shifts)
-#            shift_time(shifted_phase_shifts, (i+1)*time)
-#            new_phase_shifts += shifted_phase_shifts
-#
-#            shifted_chirp_data = copy.deepcopy(self.chirp_data)
-#            shift_start_stop(shifted_chirp_data, (i+1)*time)
-#            new_chirp_data += shifted_chirp_data
-#
-#        self.pulse_deltas = new_pulse_deltas
-#        self.MW_pulse_data = new_MW_pulse_data
-#        self.custom_pulse_data = new_custom_pulse_data
-#        self.phase_shifts = new_phase_shifts
-#        self.chirp_data = new_chirp_data
-#
-#        self._consolidated = False
-#        self._phase_shifts_consolidated = False
-#        self.end_time = (n+1) * time
-
     def shift_MW_frequency(self, frequency):
         '''
         shift the frequency of a MW signal that is defined. This is needed for dealing with the upconverion of a IQ signal.
@@ -521,6 +475,7 @@ class pulse_data(parent_data):
             amplitudes_end = np.zeros(0)
             ramps = np.zeros(0)
             samples = np.zeros(0)
+            samples2 = np.zeros(0)
         else:
             times = np.zeros(n)
             intervals = np.zeros(n)
@@ -529,6 +484,7 @@ class pulse_data(parent_data):
             amplitudes = np.zeros(n)
             amplitudes_end = np.zeros(n)
             samples = np.zeros(n)
+            samples2 = np.zeros(n)
             if self._hres and sample_rate is not None:
                 t_sample = 1e9/sample_rate
                 for i,delta in enumerate(self.pulse_deltas):
@@ -541,7 +497,12 @@ class pulse_data(parent_data):
                     times[i] = t
                     ramps[i] = delta.ramp
                     steps[i] = delta.step - dt*delta.ramp
-                    samples[i] = -dt*delta.step + dt*delta.ramp - dt*(t_sample-dt)*delta.ramp/2
+                    samples[i] = -dt*delta.step + dt*delta.ramp
+                    # asymmetric 2nd order correction used in v1.6
+                    # samples[i] += - dt*(t_sample-dt)*delta.ramp/2
+                    # symmetric 2nd order correction used in v1.7+
+                    samples[i] += - dt*(t_sample-dt)*delta.ramp/2/2
+                    samples2[i] = - dt*(t_sample-dt)*delta.ramp/2/2
             else:
                 for i,delta in enumerate(self.pulse_deltas):
                     times[i] = delta.time
@@ -560,6 +521,7 @@ class pulse_data(parent_data):
         self._amplitudes = amplitudes
         self._amplitudes_end = amplitudes_end
         self._samples = samples
+        self._samples2 = samples2
         self._ramps = ramps
         self._preprocessed = True
         self._preprocessed_sample_rate = sample_rate
@@ -690,9 +652,11 @@ class pulse_data(parent_data):
                 else:
                     wvf[pt0:pt1] = self._amplitudes[i]
 
-        for i in range(len(t_pt)):
-            pt0 = t_pt[i]
-            wvf[pt0] += self._samples[i]
+        if self._hres:
+            for i in range(len(t_pt)):
+                pt0 = t_pt[i]
+                wvf[pt0] += self._samples[i]
+                wvf[pt0+1] += self._samples2[i]
 
         # render MW pulses.
         # create list with phase shifts per ref_channel
