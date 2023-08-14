@@ -1,10 +1,21 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.@@@@@] - 2023-07-@@@
+## \[1.7.@@@@@] - 2023-08-@@@
 
 - Added conditional segments for Qblox (requires qblox-instruments v0.9+)
-- Removed add_HVI_marker and add_HVI_variable from segment channels. Big performance improvement.
+- Performance improvement of 20% up to 10 times in compilation, especially for randomized benchmarking and GST.
+- Added looping on segment.sample_rate
+- Added aggregate_func to aggregate n samples of 1 measurement to a single value with a user defined function.
+- Performance improvement of 20% up to 10 times in compilation, especially for randomized benchmarking and GST.
+- Added looping on segment.sample_rate
+- Added aggregate_func to aggregate n samples of 1 measurement to a single value with a user defined function.
+- Improved accuracy of hres ramps for Keysight (error is now ~10 ps).
+
+## \[1.6.32] - 2023-08-10
+
+- Removed add_HVI_marker and add_HVI_variable from segment channels.
+  Huge performance improvement for GST and RB. O(N^2) -> O(N)
 
 ## \[1.6.31] - 2023-07-28
 

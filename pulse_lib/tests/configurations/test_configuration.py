@@ -75,6 +75,7 @@ class Context:
                     print(f'  Add {module.name}: {module.module_type}{rf}')
                     station.add_component(module, module.name)
 #                    try:
+#                        module.config('trace', True)
 #                        module.config('render_repetitions', False)
 #                    except:
 #                        pass
@@ -281,6 +282,7 @@ class Context:
         if not _ct_configured:
             ct.configure(os.path.join(self._dir, 'ct_config.yaml'))
             _ct_configured = True
+        ct.set_sample_info(sample=self.configuration_name)
 
     def run(self, name, sequence, *params, silent=False, sweeps=[]):
         runner = self._configuration['runner']
@@ -291,7 +293,6 @@ class Context:
 
         elif runner == 'core_tools':
             self.init_coretools()
-            ct.set_sample_info(sample=self.configuration_name)
             scan_sweeps = []
             for sw in sweeps:
                 scan_sweeps.append(sweep(*sw))
