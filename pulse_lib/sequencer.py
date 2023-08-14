@@ -525,7 +525,11 @@ class sequencer():
         # 'RT EXEC COMMAND UNDERFLOW' is a Qblox specific that requires a new play
         if 'RT EXEC COMMAND UNDERFLOW' in repr(exception):
             logger.info('Play failure', exc_info=True)
-            logger.warning(f'Sequence play failed at index {index}; retrying...')
+            logger.warning(f'Sequence play failed (Qblox: RT EXEC COMMAND UNDERFLOW) at index {index}; retrying...')
+            return True
+        if 'FORCED STOP' in repr(exception):
+            logger.info('Play failure', exc_info=True)
+            logger.warning(f'Sequence play failed (Qblox: spurious FORCED STOP) at index {index}; retrying...')
             return True
         return False
 
