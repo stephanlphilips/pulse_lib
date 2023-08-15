@@ -143,7 +143,7 @@ class QsUploader:
         aggregator.upload_job(job, self.__upload_to_awg) # @@@ TODO split generation and upload
 
         duration = time.perf_counter() - start
-        logger.debug(f'generated upload data ({duration*1000:6.3f} ms)')
+        logger.info(f'generated upload data ({duration*1000:6.3f} ms)')
 
     def __upload_to_awg(self, channel_name, waveform):
 #        vmin = waveform.min()
@@ -168,7 +168,8 @@ class QsUploader:
         awg_name = marker_channel.module_name
         awg = self.AWGs[awg_name]
         awg.load_marker_table(table)
-        logger.debug(f'marker for {channel_name} loaded in {(time.perf_counter()-start)*1000:4.2f} ms')
+        if QsUploader.verbose:
+            logger.debug(f'marker for {channel_name} loaded in {(time.perf_counter()-start)*1000:4.2f} ms')
 
     def __get_job(self, seq_id, index):
         """
@@ -353,9 +354,10 @@ class QsUploader:
                     else:
                         schedule.append(AwgInstruction(i, entry.time_after, wave_number=entry.waveform_index))
                 t3 = time.perf_counter()
-                logger.debug(f'{awg_sequencer.channel_name} create waves:{(t2-t1)*1000:6.3f}, seq:{(t3-t2)*1000:6.3f} ms')
+                if QsUploader.verbose:
+                    logger.debug(f'{awg_sequencer.channel_name} create waves:{(t2-t1)*1000:6.3f}, seq:{(t3-t2)*1000:6.3f} ms')
             seq.load_schedule(schedule)
-        logger.debug(f'loaded awg sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
+        logger.info(f'loaded awg sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
 
         start = time.perf_counter()
         for dig_channel in self.digitizer_channels.values():
@@ -377,7 +379,7 @@ class QsUploader:
                                                              threshold=entry.threshold))
                     seq.load_schedule(schedule)
 
-        logger.debug(f'loaded dig sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
+        logger.info(f'loaded dig sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
 
         self._configure_digitizers(job)
 
@@ -709,7 +711,8 @@ class UploadAggregator:
                     else:
                         seg_ch = seg[channel_name]
                     channel_info.integral += seg_ch.integrate(job.index, sample_rate)
-                    logger.debug(f'Integral seg:{iseg} {channel_name} integral:{channel_info.integral}')
+                    if UploadAggregator.verbose:
+                        logger.debug(f'Integral seg:{iseg} {channel_name} integral:{channel_info.integral}')
 
 
     def _generate_sections(self, job):
@@ -795,7 +798,7 @@ class UploadAggregator:
 
         # add DC compensation
         compensation_time = self.get_max_compensation_time()
-        logger.debug(f'DC compensation time: {compensation_time*1e9} ns')
+        logger.info(f'DC compensation time: {compensation_time*1e9} ns')
         compensation_npt = int(np.ceil(compensation_time * section.sample_rate * 1e9))
         if compensation_npt > 50_000:
             # more than 50_000 samples? Use new segment with lower sample rate for compensation
@@ -824,7 +827,7 @@ class UploadAggregator:
         section.align(extend=True)
         job.playback_time = section.t_end - sections[0].t_start
         job.n_waveforms = len(sections)
-        logger.debug(f'Playback time: {job.playback_time} ns')
+        logger.info(f'Playback time: {job.playback_time} ns')
 
         if UploadAggregator.verbose:
             for segment in segments:
@@ -872,7 +875,7 @@ class UploadAggregator:
                 n_delay = iround(channel_info.delay_ns * sample_rate)
 
                 if isinstance(seg, conditional_segment):
-                    logger.debug(f'conditional for {channel_name}')
+                    # logger.debug(f'conditional for {channel_name}')
                     seg_ch = get_conditional_channel(seg, channel_name)
                 else:
                     seg_ch = seg[channel_name]
@@ -882,7 +885,8 @@ class UploadAggregator:
                 #print(f'start: {channel_name}.{iseg}: {ref_channel_states.start_time}')
                 wvf = seg_ch.get_segment(job.index, sample_rate*1e9, ref_channel_states)
                 duration = time.perf_counter() - start
-                logger.debug(f'generated [{job.index}]{iseg}:{channel_name} {len(wvf)} Sa, in {duration*1000:6.3f} ms')
+                if UploadAggregator.verbose:
+                    logger.debug(f'generated [{job.index}]{iseg}:{channel_name} {len(wvf)} Sa, in {duration*1000:6.3f} ms')
 
                 if len(wvf) != seg_render.npt:
                     logger.warning(f'waveform {iseg}:{channel_name} {len(wvf)} Sa <> sequence length {seg_render.npt}')
@@ -965,7 +969,7 @@ class UploadAggregator:
                     compensation_voltage = -channel_info.integral * section.sample_rate / compensation_npt * 1e9
                     job.upload_info.dc_compensation_voltages[channel_name] = compensation_voltage
                     buffer[-(compensation_npt+1):-1] = compensation_voltage
-                    logger.debug(f'DC compensation {channel_name}: {compensation_voltage:6.1f} mV {compensation_npt} Sa')
+                    logger.info(f'DC compensation {channel_name}: {compensation_voltage:6.1f} mV {compensation_npt} Sa')
                 else:
                     job.upload_info.dc_compensation_voltages[channel_name] = 0
 
@@ -976,7 +980,8 @@ class UploadAggregator:
 
     def _render_markers(self, job, awg_upload_func):
         for channel_name, marker_channel in self.marker_channels.items():
-            logger.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV, {marker_channel.delay:+2.0f} ns)')
+            if UploadAggregator.verbose:
+                logger.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV, {marker_channel.delay:+2.0f} ns)')
             start_stop = []
             if channel_name in self.rf_marker_pulses:
                 offset = marker_channel.delay
@@ -988,7 +993,7 @@ class UploadAggregator:
                 offset = seg_render.t_start + marker_channel.delay
 
                 if isinstance(seg, conditional_segment):
-                    logger.debug(f'conditional for {channel_name}')
+                    # logger.debug(f'conditional for {channel_name}')
                     seg_ch = get_conditional_channel(seg, channel_name)
                 else:
                     seg_ch = seg[channel_name]
@@ -1101,7 +1106,7 @@ class UploadAggregator:
                         else:
                             sequence.shift_phase(t_pulse, e.phase_shift)
                 else:
-                    logger.debug(f'conditional for {channel_name}:{iseg} start:{seg_render.t_start}')
+                    # logger.debug(f'conditional for {channel_name}:{iseg} start:{seg_render.t_start}')
                     cond_ch = get_conditional_channel(seg, channel_name, sequenced=True, index=job.index)
                     qs_cond = self.conditional_segments[iseg]
 
@@ -1172,7 +1177,7 @@ class UploadAggregator:
             t_end = None
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
                 if isinstance(seg, conditional_segment):
-                    logger.debug(f'conditional for {channel_name}')
+                    # logger.debug(f'conditional for {channel_name}')
                     seg_ch = get_conditional_channel(seg, channel_name)
                 else:
                     seg_ch = seg[channel_name]
@@ -1223,7 +1228,8 @@ class UploadAggregator:
                 triggers.append([nr for module_name, nr in all_channels if module_name == name])
 
         job.digitizer_trigger_channels = digitizer_trigger_channels
-        logger.info(f'digitizer triggers: {job.digitizer_triggers}')
+        if UploadAggregator.verbose:
+            logger.info(f'digitizer triggers: {job.digitizer_triggers}')
 
     def _generate_digitizer_sequences(self, job):
 
@@ -1264,7 +1270,7 @@ class UploadAggregator:
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, segments)):
                 offset = channel.delay + int(self.max_pre_start_ns)
                 if isinstance(seg, conditional_segment):
-                    logger.debug(f'conditional for {channel_name}')
+                    # logger.debug(f'conditional for {channel_name}')
                     # TODO @@@ lookup acquisitions and set pxi trigger.
                     seg_ch = get_conditional_channel(seg, channel_name)
                 else:
@@ -1293,7 +1299,8 @@ class UploadAggregator:
                                      pxi_trigger=pxi_trigger)
 
                     job.t_measure[channel_name] = t_measure
-                    logger.debug(f'Acq: {acquisition.ref}: {pxi_trigger}')
+                    if UploadAggregator.verbose:
+                        logger.debug(f'Acq: {acquisition.ref}: {pxi_trigger}')
                     t_end = t+t_measure
                     if rf_source is not None and rf_source.mode != 'continuous':
                         rf_marker_pulses.append(RfMarkerPulse(t, t_end))

@@ -579,7 +579,8 @@ class UploadAggregator:
                     else:
                         seg_ch = seg[channel_name]
                     channel_info.integral += seg_ch.integrate(job.index, sample_rate)
-                    logger.debug(f'Integral seg:{iseg} {channel_name} integral:{channel_info.integral}')
+                    if UploadAggregator.verbose:
+                        logger.debug(f'Integral seg:{iseg} {channel_name} integral:{channel_info.integral}')
 
 
     def _process_segments(self, job):
@@ -601,7 +602,7 @@ class UploadAggregator:
         job.upload_info.dc_compensation_duration_ns = compensation_time_ns
 
         job.playback_time = segments[-1].t_end + compensation_time_ns
-        logger.debug(f'Playback time: {job.playback_time} ns')
+        logger.info(f'Playback time: {job.playback_time} ns')
 
         if UploadAggregator.verbose:
             for segment in segments:

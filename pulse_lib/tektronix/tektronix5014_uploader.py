@@ -158,7 +158,7 @@ class Tektronix5014_Uploader:
         self.jobs.append(job)
 
         duration = time.perf_counter() - start
-        logger.debug(f'generated upload data ({duration*1000:6.3f} ms)')
+        logger.info(f'generated upload data ({duration*1000:6.3f} ms)')
 
 
     def __get_job(self, seq_id, index):
@@ -549,7 +549,8 @@ class UploadAggregator:
                 if channel_info.dc_compensation:
                     seg_ch = getattr(seg, channel_name)
                     channel_info.integral += seg_ch.integrate(job.index, sample_rate)
-                    logger.debug(f'Integral seg:{iseg} {channel_name} integral:{channel_info.integral}')
+                    if UploadAggregator.verbose:
+                        logger.debug(f'Integral seg:{iseg} {channel_name} integral:{channel_info.integral}')
 
 
     def _generate_sections(self, job):
@@ -593,7 +594,7 @@ class UploadAggregator:
 
         # add DC compensation
         compensation_time = self.get_max_compensation_time()
-        logger.debug(f'DC compensation time: {compensation_time*1e9} ns')
+        logger.info(f'DC compensation time: {compensation_time*1e9} ns')
         compensation_npt = int(np.ceil(compensation_time * section.sample_rate * 1e9))
 
         job.upload_info.dc_compensation_duration = compensation_npt/section.sample_rate
@@ -607,7 +608,7 @@ class UploadAggregator:
 
         job.playback_time = section.t_end - sections[0].t_start
         job.n_waveforms = len(sections)
-        logger.debug(f'Playback time: {job.playback_time} ns')
+        logger.info(f'Playback time: {job.playback_time} ns')
 
         if UploadAggregator.verbose:
             for segment in segments:
@@ -734,7 +735,8 @@ class UploadAggregator:
         slave_markers = {slave.marker_name:slave for slave in self.awg_sync.values()}
 
         for channel_name, marker_channel in self.marker_channels.items():
-            logger.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV, {marker_channel.delay:+2.0f} ns)')
+            if UploadAggregator.verbose:
+                logger.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV, {marker_channel.delay:+2.0f} ns)')
             offset = marker_channel.delay
             start_stop = []
             if channel_name in self.rf_marker_pulses:
@@ -755,7 +757,8 @@ class UploadAggregator:
 
             if channel_name in self.digitizer_markers.values():
                 pulses = self._generate_digitizer_markers(job)
-                logger.info(f'dig trigger: {pulses}')
+                if UploadAggregator.verbose:
+                    logger.info(f'dig trigger: {pulses}')
                 for pulse in pulses:
                     # trigger time is relative to sequence start, not segment start
                     offset = marker_channel.delay
