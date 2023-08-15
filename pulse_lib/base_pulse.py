@@ -463,9 +463,10 @@ class pulselib:
             logger.error('Import of Tektronix uploader failed', exc_info=True)
             raise
 
-        self.uploader = Tektronix5014_Uploader(self.awg_devices, self.awg_channels,
-                                               self.marker_channels, self.digitizer_markers,
-                                               self.qubit_channels, self.digitizer_channels, self.awg_sync)
+        self.uploader = Tektronix5014_Uploader(self.awg_devices, self.digitizers,
+                                               self.awg_channels, self.marker_channels,
+                                               self.digitizer_markers, self.qubit_channels,
+                                               self.digitizer_channels, self.awg_sync)
     def _old_Tektronix5014_message(self):
         raise Exception('''
         Pulselib Tektronix driver has changed in pulselib version 1.3.6.

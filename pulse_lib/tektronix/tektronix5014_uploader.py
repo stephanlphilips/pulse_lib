@@ -1,18 +1,30 @@
 import time
-import numpy as np
 import logging
 import copy
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
+from uuid import UUID
 from concurrent.futures.thread import ThreadPoolExecutor
+
+import numpy as np
 
 from pulse_lib.segments.data_classes.data_markers import marker_pulse
 from pulse_lib.uploader.uploader_funcs import merge_markers
+from pulse_lib.uploader.digitizer_triggers import DigitizerTriggerBuilder, DigitizerTriggers
+
+try:
+    from .m4i_controller import M4iControl
+except:
+    def M4iControl(*args, **kwargs):
+        raise Exception('Import of M4iControl failed')
+
 
 logger = logging.getLogger(__name__)
 
+
 class AwgConfig:
     DEFAULT_AMPLITUDE = 1500 # mV
+
 
 def Tektronix_sync_latency(sample_rate:float):
     '''
@@ -30,7 +42,8 @@ class Tektronix5014_Uploader:
 
     verbose = False
 
-    def __init__(self, awgs, awg_channels, marker_channels, digitizer_markers,
+    def __init__(self, awgs, digitizers,
+                 awg_channels, marker_channels, digitizer_markers,
                  qubit_channels, digitizer_channels, awg_sync):
         '''
         Initialize the Tektronix uploader.
@@ -45,6 +58,7 @@ class Tektronix5014_Uploader:
             None
         '''
         self.awgs = awgs
+        self.digitizers = digitizers
 
         self.awg_channels = awg_channels
         self.marker_channels = marker_channels
@@ -71,7 +85,7 @@ class Tektronix5014_Uploader:
             awg.trigger_level(1.6)
             awg.trigger_slope('POS')
 
-    def set_cfg(self):
+    def set_cfg(self): # @@@ update also when changed.
         max_amplitude = 4500 / 2
         min_amplitude = 20 / 2
         for channel in self.awg_channels.values():
@@ -93,7 +107,7 @@ class Tektronix5014_Uploader:
                     raise ValueError(f'marker amplitude ({amplitude}) out of range [-900, 2700] mV')
                 channel_number = channel.channel_number[0]
                 marker_number = channel.channel_number[1]
-                if channel.invert:
+                if channel.invert: # @@@ doesn't work?
                     awg.set(f'ch{channel_number}_m{marker_number}_low', amplitude/1000)
                     awg.set(f'ch{channel_number}_m{marker_number}_high', 0.0)
                 else:
@@ -184,6 +198,7 @@ class Tektronix5014_Uploader:
 
         self._delete_released_waveforms()
 
+        self._configure_digitizers(job)
         job.hw_schedule.set_configuration(job.schedule_params, job.n_waveforms)
         n_rep = job.n_rep if job.n_rep else 1
         job.hw_schedule.start(job.playback_time, n_rep, job.schedule_params)
@@ -244,6 +259,62 @@ class Tektronix5014_Uploader:
             for channel in enable_channels:
                 awg.set(f'ch{channel}_state', 1)
 
+    def _configure_digitizers(self, job):
+        if not job.acquisition_conf.configure_digitizer:
+            return
+        '''
+        Configure per digitizer channel:
+            n_triggers: job.n_triggers per channel @@@ all equal
+            t_measure: job.t_measure per channel @@@ all equal
+            downsampled_rate:
+        '''
+        '''
+        Read:
+            * reshape for n_rep, n_trigger
+            * aggregate: average of t_measure / down-sample
+            * filter data after, remove unused values.
+            *
+        '''
+        acq_conf = job.acquisition_conf
+
+        # Currently support 1 digitizer
+        digitizer = list(self.digitizers.values())[0]
+        self.m4i_control = M4iControl(digitizer)
+        self.m4i_control.configure_acquisitions(
+                job.digitizer_triggers,
+                job.n_rep,
+                average_repetitions=acq_conf.average_repetitions)
+
+        self.acq_description = AcqDescription(job.seq_id, job.index,
+                                              job.digitizer_triggers)
+
+    def get_channel_data(self, seq_id, index):
+        acq_desc = self.acq_description
+        if (acq_desc.seq_id != seq_id
+            or (index is not None and acq_desc.index != index)):
+            raise Exception(f'Data for index {index} not available')
+
+        dig_data = self.m4i_control.get_data()
+        data = {i:np.zeros(0) for i in [1,2,3,4]}
+        for i,ch in enumerate(acq_desc.digitizer_triggers.active_channels):
+            data[ch] = dig_data[i]
+
+        result = {}
+        for channel_name,channel in self.digitizer_channels.items():
+            in_ch = channel.channel_numbers
+            if len(in_ch) == 2:
+                raw_I = data[in_ch[0]]
+                raw_Q = data[in_ch[1]]
+                raw_ch = (raw_I + 1j * raw_Q) * np.exp(1j*channel.phase)
+            else:
+                raw_ch = data[in_ch[0]]
+
+            if not channel.iq_out:
+                raw_ch = raw_ch.real
+
+            result[channel_name] = raw_ch
+
+        return result
 
 @dataclass
 class ChannelData:
@@ -287,7 +358,7 @@ class Job(object):
         self.job_id = self._get_job_id()
 
         self.hw_schedule = None
-        self.digitizer_triggers = []
+        self.digitizer_triggers = None
         # waveform data per awg and channel: Dict[str,Dict[int,ChannelData]]
         self.waveform_data = {}
         logger.debug(f'new job {self.job_id:04X} ({seq_id}-{index})')
@@ -398,6 +469,13 @@ class RefChannels:
 class RfMarkerPulse:
     start: float
     stop: float
+
+
+@dataclass
+class AcqDescription:
+    seq_id: UUID
+    index: List[int]
+    digitizer_triggers: DigitizerTriggers
 
 
 class UploadAggregator:
@@ -599,18 +677,23 @@ class UploadAggregator:
             self._upload_wvf(job, channel_name, buffer, channel_info.attenuation, channel_info.amplitude)
 
     def _generate_digitizer_triggers(self, job):
-        triggers = set()
+        acq_conf = job.acquisition_conf
+        digitizer_triggers = DigitizerTriggerBuilder(acq_conf.t_measure, acq_conf.sample_rate)
         self.rf_marker_pulses = {}
 
         for name, value in job.schedule_params.items():
             if name.startswith('dig_trigger_'):
-                triggers.add(value)
+                if acq_conf.configure_digitizer:
+                    raise Exception('{name} cannot be used when digitizer must be configured')
+                # channel number will not be used.
+                digitizer_triggers.add_acquisition(1, value)
 
         for channel_name, channel in self.digitizer_channels.items():
             rf_source = channel.rf_source
             if rf_source is not None:
                 rf_marker_pulses = []
-                self.rf_marker_pulses[rf_source.output] = rf_marker_pulses
+                self.rf_marker_pulses[rf_source.output] = rf_marker_pulses # @@@ FAILS with multiple channels.
+
 
             t_end = None
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
@@ -618,8 +701,9 @@ class UploadAggregator:
                 acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
                 for acquisition in acquisition_data:
                     t = seg_render.t_start + acquisition.start
-                    triggers.add(t + channel.delay)
-                    t_measure = acquisition.t_measure if acquisition.t_measure is not None else job.acquisition_conf.t_measure
+                    digitizer_triggers.add_acquisition(channel.channel_numbers,
+                                                       t+channel.delay, acquisition.t_measure)
+                    t_measure = acquisition.t_measure if acquisition.t_measure is not None else acq_conf.t_measure
                     t_end = t+t_measure
                     if rf_source is not None and rf_source.mode != 'continuous':
                         rf_marker_pulses.append(RfMarkerPulse(t, t_end))
@@ -635,14 +719,14 @@ class UploadAggregator:
                         rf_pulse.start -= rf_source.startup_time_ns
                         rf_pulse.stop += rf_source.prolongation_ns
 
-        job.digitizer_triggers = list(triggers)
-        job.digitizer_triggers.sort()
-        logger.info(f'digitizer triggers: {job.digitizer_triggers}')
+        job.digitizer_triggers = digitizer_triggers.get_result()
+        if UploadAggregator.verbose:
+            logger.debug(f'digitizer triggers: {job.digitizer_triggers.triggered_channels}')
 
     def _generate_digitizer_markers(self, job):
         pulse_duration = max(100, 1e9/job.default_sample_rate) # 1 Sample or 100 ns
         marker_data = []
-        for t in job.digitizer_triggers:
+        for t in job.digitizer_triggers.triggers:
             marker_data.append(marker_pulse(t, t + pulse_duration))
         return marker_data
 

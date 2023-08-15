@@ -201,14 +201,20 @@ class Context:
                         pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
 
 
-        if n_sensors > 0 and backend in ['Keysight', 'Keysight_QS']:
+        if n_sensors > 0:
             pulse.configure_digitizer = True
+
         for i in range(n_sensors):
             sensor = f'SD{i+1}'
             digitizer_name,channel = cfg['sensors'][sensor]
             if digitizer_name not in pulse.digitizers:
                 pulse.add_digitizer(getattr(station, digitizer_name))
-            pulse.define_digitizer_channel(sensor, digitizer_name, channel)
+            if isinstance(channel, int):
+                pulse.define_digitizer_channel(sensor, digitizer_name, channel)
+            else:
+                iq_out = rf_sources and sensor in cfg['rf']
+                pulse.define_digitizer_channel_iq(sensor, digitizer_name, channel,
+                                                  iq_out=iq_out)
 
         if n_sensors > 0 and backend == 'Tektronix_5014':
             self._add_marker('M_M4i')
