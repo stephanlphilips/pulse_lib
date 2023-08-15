@@ -3,11 +3,14 @@ import numpy as np
 from qcodes import Instrument
 # import M4i to add pyspcm to path. pyspcm is used by pulse-lib code.
 from qcodes_contrib_drivers.drivers.Spectrum.M4i import M4i
+import pyspcm
 
 
 class MockM4i(Instrument):
     def __init__(self, name):
         super().__init__(name)
+        self.add_parameter('clock_mode', set_cmd=None, initial_value=pyspcm.SPC_CM_INTPLL)
+        self.add_parameter('reference_clock', set_cmd=None, initial_value=10_000_000)
         self.add_parameter('timeout', set_cmd=None, initial_value=10000)
         self.add_parameter('sample_rate', set_cmd=None, initial_value=100e6)
         self.add_parameter('segment_size', set_cmd=None, initial_value=32)
@@ -25,6 +28,16 @@ class MockM4i(Instrument):
         pass
 
     def box_averages(self, value):
+        pass
+
+    def initialize_channels(self, channels=None, mV_range=1000, input_path=0,
+                            termination=0, coupling=0, compensation=None,
+                            memsize=2**12, pretrigger_memsize=16,
+                            lp_filter=None):
+        pass
+
+    def set_ext0_OR_trigger_settings(self, trig_mode=1, termination=0, coupling=0,
+                                     level0=1600, level1=None):
         pass
 
     def setup_multi_recording(self, seg_size, n_triggers, boxcar_average):

@@ -100,6 +100,18 @@ class Context:
                 # Set mode AVERAGE
                 dig.set_acquisition_mode(1)
 
+        if backend == 'Tektronix_5014':
+            import pyspcm
+            # assume M4i digitizer
+            for dig in digs:
+                dig.timeout(10_000)
+                dig.clock_mode(pyspcm.SPC_CM_INTPLL)
+                dig.reference_clock(int(1e7))
+                # 50 Ohm termination
+                dig.initialize_channels(mV_range=2000, termination=1, lp_filter=1)
+                dig.set_ext0_OR_trigger_settings(1, 0, 0, 1600) # POS, 1 MOhm, DC, 1.6V
+                dig.sample_rate(40e6)
+
         self.awgs = awgs
         self.digitizers = digs
 
