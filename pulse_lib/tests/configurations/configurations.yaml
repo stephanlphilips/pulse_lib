@@ -89,6 +89,24 @@ TektronixMocked:
             startup_time: 500
     runner: qcodes
 
+TektronixSdS:
+    station: tektronix_test_sds.yaml
+    backend: Tektronix_5014
+    schedule: TektronixM4i
+    awg_channels:
+        AWG1: [P1,P2,I1,Q1]
+    markers:
+        M1: [AWG1,[1,1]]
+        M_M4i: [AWG1,[1,2]]
+        M_IQ1: [AWG1,[2,1]]
+    sensors:
+        SD1: [Dig1,0]
+        SD2: [Dig1,1]
+    rf:
+        SD2:
+            output: M1
+            startup_time: 500
+    runner: qcodes
 
 QbloxV1:
     station: qblox_v1.yaml
@@ -113,8 +131,9 @@ QbloxGS1:
         Qblox_module2: [P1,P2,P3,]
         Qblox_module4: [P4,P5,P6,P7]
         Qblox_module6: [I1,Q1,I2,Q2]
+        Qblox_module8: [P9,P10,P11,P12]
     markers:
-        M1: [Qblox_module2,1]
+        M1: [Qblox_module2,0]
         M_IQ1: [Qblox_module6,0]
         M_IQ2: [Qblox_module6,2]
     sensors:
@@ -123,8 +142,9 @@ QbloxGS1:
     runner: core_tools
 
 KeysightSdS:
-    station: keysight_test_sds.yaml
-    backend: Keysight
+#    station: keysight_test_sds.yaml
+    station: keysight_test_sds_qs.yaml
+    backend: Keysight_QS
     schedule: HVI2
     # P1,P3,P6,P7 are connected to SD1-SD4
     awg_channels:
@@ -144,4 +164,4 @@ KeysightSdS:
         SD2:
             output: M1
             startup_time: 500
-    runner: qcodes
+    runner: core_tools

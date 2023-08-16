@@ -1,0 +1,30 @@
+instruments:
+
+  sig_gen1:
+    type: qcodes.tests.instrument_mocks.DummyInstrument
+    enable_forced_reconnect: true
+    init:
+      gates: ['frequency','power']
+    parameters:
+      frequency:
+        limits: [0,20e9]
+
+  sig_gen2:
+    type: qcodes.tests.instrument_mocks.DummyInstrument
+    enable_forced_reconnect: true
+    init:
+      gates: ['frequency','power']
+    parameters:
+      frequency:
+        limits: [0,20e9]
+
+  AWG1:
+    type: qcodes.instrument_drivers.tektronix.AWG5014.Tektronix_AWG5014
+    enable_forced_reconnect : True
+    init:
+      address: 'TCPIP0::192.168.0.204::inst0::INSTR'
+
+
+  Dig1:
+    type: qcodes_contrib_drivers.drivers.Spectrum.M4i.M4i
+    enable_forced_reconnect: true

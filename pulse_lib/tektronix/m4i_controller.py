@@ -127,13 +127,13 @@ class M4iControl:
         if self._data_sample_rate is None:
             data = np.mean(data, axis=-1)
         else:
-            step = self._sample_rate / self._data_sample_rate
-            boundaries = np.int(np.arange(0, self._samples_per_segment, step)+0.5)
+            step = self._eff_sample_rate / self._data_sample_rate
+            boundaries = np.floor(np.arange(0, self._samples_per_segment, step)+0.5).astype(int)
             if self._samples_per_segment - boundaries[-1] > 0.8*step:
                 boundaries = np.concatenate([boundaries, [-1]])
             res = np.empty(data.shape[:-1] + (len(boundaries)-1,))
             for i in range(len(boundaries)-1):
-                res[..., i] = data[..., boundaries[i]:boundaries[i+1]]
+                res[..., i] = np.mean(data[..., boundaries[i]:boundaries[i+1]], axis=-1)
             data = res
 
         # filter acquisitions: the number of acquisitions per channel can differ
@@ -143,13 +143,23 @@ class M4iControl:
                 sel = self._digitizer_triggers.get_channel_indices(ch)
                 if len(sel):
                     ch_data = data[i]
-                    ch_data = ch_data[..., sel]
-                    if self._average_repetitions:
-                        ch_data = np.mean(ch_data, axis=0)
-                    res.append(ch_data)
+                    if self._n_rep:
+                        ch_data = ch_data[:, sel]
+                        if self._average_repetitions:
+                            ch_data = np.mean(ch_data, axis=0)
+                    else:
+                        ch_data = ch_data[sel]
+                    res.append(ch_data.flatten())
         else:
-            res = list(data)
+            res = [d.flatten() for d in data]
 
         return res
 
-
+    def actual_acquisition_points(self, duration, sample_rate):
+        dig_sample_rate = self._cached_get('sample_rate')
+        divisor = self._box_averages if self._box_averages is not None else 1
+        eff_sample_rate = dig_sample_rate / divisor
+        n_dig_samples = round(eff_sample_rate * duration * 1e-9)
+        step = eff_sample_rate / sample_rate
+        n_samples = int(n_dig_samples / step + 0.2)
+        return n_samples, 1e9/eff_sample_rate

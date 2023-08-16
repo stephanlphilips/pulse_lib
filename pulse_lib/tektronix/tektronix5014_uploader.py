@@ -76,6 +76,10 @@ class Tektronix5014_Uploader:
         self.pending_deletes = dict()
         self.release_all_awg_memory()
 
+        # Currently support 1 digitizer
+        digitizer = list(self.digitizers.values())[0]
+        self.m4i_control = M4iControl(digitizer)
+
     def setup_slaves(self):
         logger.info(f'Configure slave AWGs: {self.awg_sync}')
         for slave in self.awg_sync.values():
@@ -277,9 +281,6 @@ class Tektronix5014_Uploader:
         '''
         acq_conf = job.acquisition_conf
 
-        # Currently support 1 digitizer
-        digitizer = list(self.digitizers.values())[0]
-        self.m4i_control = M4iControl(digitizer)
         self.m4i_control.configure_acquisitions(
                 job.digitizer_triggers,
                 job.n_rep,
@@ -288,6 +289,9 @@ class Tektronix5014_Uploader:
         self.acq_description = AcqDescription(job.seq_id, job.index,
                                               job.digitizer_triggers)
 
+    def actual_acquisition_points(self, channel_name, duration, sample_rate):
+        return self.m4i_control.actual_acquisition_points(duration, sample_rate)
+
     def get_channel_data(self, seq_id, index):
         acq_desc = self.acq_description
         if (acq_desc.seq_id != seq_id
@@ -295,7 +299,7 @@ class Tektronix5014_Uploader:
             raise Exception(f'Data for index {index} not available')
 
         dig_data = self.m4i_control.get_data()
-        data = {i:np.zeros(0) for i in [1,2,3,4]}
+        data = {i:np.zeros(0) for i in [0,1,2,3]}
         for i,ch in enumerate(acq_desc.digitizer_triggers.active_channels):
             data[ch] = dig_data[i]
 
