@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.33] - 2023-08-17
+
+- Fixed IQ output of qblox_fast_scan
+
 ## \[1.6.32] - 2023-08-10
 
 - Removed add_HVI_marker and add_HVI_variable from segment channels.

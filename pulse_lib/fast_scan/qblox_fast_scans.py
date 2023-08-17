@@ -310,7 +310,7 @@ def _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex):
         channel_map = {}
         for name in acq_channels:
             dig_ch = dig_channels[name]
-            if dig_ch.iq_out and not iq_mode != 'Complex':
+            if dig_ch.iq_out and iq_mode != 'Complex':
                 ch_funcs = iq_mode2func(iq_mode)
                 if isinstance(ch_funcs, list):
                     for postfix,func in ch_funcs:
