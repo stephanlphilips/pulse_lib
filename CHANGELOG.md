@@ -12,6 +12,10 @@ All notable changes to Pulselib will be documented in this file.
 - Added aggregate_func to aggregate n samples of 1 measurement to a single value with a user defined function.
 - Improved accuracy of hres ramps for Keysight (error is now ~10 ps).
 
+## \[1.6.33] - 2023-08-17
+
+- Fixed IQ output of qblox_fast_scan
+
 ## \[1.6.32] - 2023-08-10
 
 - Removed add_HVI_marker and add_HVI_variable from segment channels.
