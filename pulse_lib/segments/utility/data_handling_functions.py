@@ -172,9 +172,9 @@ def _get_new_dim_loop(current_dim, axis, shape):
 
 def _update_segment_dims(segment, lp, rendering=False):
     data = segment.data if not rendering else segment.pulse_data_all
-    data_shape = data.shape
     for i,a in enumerate(lp.axis):
-        if (data_shape[a] != lp.shape[i]
+        if (a >= len(data.shape)
+            or data.shape[a] != lp.shape[i]
             or (not lp.no_setpoints and a not in segment._setpoints)):
             # update dimes / setpoints
             break
@@ -187,8 +187,8 @@ def _update_segment_dims(segment, lp, rendering=False):
 
         lp_axis = lp.axis[i]
         lp_length = lp.shape[i]
-        new_shape, axis = _get_new_dim_loop(data_shape, lp_axis, lp_length)
-        if new_shape != data_shape:
+        new_shape, axis = _get_new_dim_loop(data.shape, lp_axis, lp_length)
+        if new_shape != data.shape:
             if segment.is_slice:
                 # TODO: Fix this with refactored indexing.
                 raise Exception(f'Cannot resize data in slice (Indexing). '
