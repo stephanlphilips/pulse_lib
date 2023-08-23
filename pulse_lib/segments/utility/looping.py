@@ -8,7 +8,6 @@ class loop_obj():
     """
     def __init__(self, no_setpoints=False):
         self.no_setpoints = no_setpoints
-        # little inspiration from qcodes parameter ...
         self.names = list()
         self.labels = list()
         self.units = list()
@@ -258,6 +257,34 @@ class loop_obj():
             cpy.data= copy.copy(self.data)
         return cpy
 
+#    def _JSONEncoder(self):
+#        klass = self.__class__
+#        module = klass.__module__
+#        if module and module != '__builtin__':
+#            full_name = module + '.' + klass.__name__ # avoid outputs like '__builtin__.str'
+#        else:
+#            full_name = klass.__name__
+#        d = dict(__dtype__=full_name)
+#        d.update(self.to_dict())
+#        return d
+
+    def to_dict(self):
+        return {
+            'names': self.names,
+            'labels': self.labels,
+            'setvals': self.setvals,
+            'units': self.units,
+            'axis': self.axis,
+            'dtype': self.dtype,
+            'data': self.data,
+            }
+
+    @classmethod
+    def from_dict(cls, data):
+        res = loop_obj()
+        res.add_data(**data)
+        return res
+
     @staticmethod
     def __combine_axis(this, other):
         if isinstance(other, loop_obj):
@@ -291,7 +318,10 @@ class loop_obj():
 
 
     def __repr__(self):
-        return f'loop(names: {self.names}, axis:{self.axis}, labels:{self.labels}, units: {self.units}, setvals: {self.setvals})'
+        return (
+            f'loop(names: {self.names}, axis:{self.axis}, labels:{self.labels}, units: {self.units}, '
+            f'setvals: {self.setvals}, data: {self.data})'
+            )
 
 
 class linspace(loop_obj):
