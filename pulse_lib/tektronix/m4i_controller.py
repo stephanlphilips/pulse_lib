@@ -59,7 +59,7 @@ class M4iControl:
 
         self._channels = channels
         if len(channels) == 3:
-            self._enabled_channels = [1,2,3,4]
+            self._enabled_channels = [0,1,2,3]
         else:
             self._enabled_channels = channels
         self._num_ch = len(self._enabled_channels)
@@ -120,7 +120,7 @@ class M4iControl:
 
         # filter channels
         if len(self._channels) == 3:
-            selection = [ch-1 for ch in self._channels]
+            selection = list(self._channels)
             data = data[selection]
 
         # aggregate samples (down-sampling / time average)
@@ -130,7 +130,7 @@ class M4iControl:
             step = self._eff_sample_rate / self._data_sample_rate
             boundaries = np.floor(np.arange(0, self._samples_per_segment, step)+0.5).astype(int)
             if self._samples_per_segment - boundaries[-1] > 0.8*step:
-                boundaries = np.concatenate([boundaries, [-1]])
+                boundaries = np.concatenate([boundaries, [self._samples_per_segment]])
             res = np.empty(data.shape[:-1] + (len(boundaries)-1,))
             for i in range(len(boundaries)-1):
                 res[..., i] = np.mean(data[..., boundaries[i]:boundaries[i+1]], axis=-1)
