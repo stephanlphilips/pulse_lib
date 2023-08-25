@@ -691,7 +691,9 @@ class UploadAggregator:
         logger.info(f'DC compensation time: {compensation_time*1e9} ns')
         compensation_npt = int(np.ceil(compensation_time * section.sample_rate * 1e9))
         if compensation_npt > 50_000:
-            # more than 50_000 samples? Use new segment with lower sample rate for compensation
+            # More than 50_000 samples? Use new segment with lower sample rate for compensation
+            # Upload of 50_000 samples takes ~ 1 ms. It saves upload time to
+            # create a new waveform with lower sample rate.
 
             sample_rate = 1e9 * section.sample_rate * 5_000 / compensation_npt
             # find an existing sample rate
