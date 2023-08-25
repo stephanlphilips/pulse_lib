@@ -2,11 +2,13 @@ import logging
 import os
 import math
 from collections.abc import Sequence
+from numbers import Number
+from typing import Dict, List, Union
 import matplotlib.pyplot as pt
 import numpy as np
 
 import qcodes as qc
-import qcodes.logger as logger
+import qcodes.logger as qc_logger
 from qcodes.logger import start_all_logging
 from qcodes.data.data_set import DataSet
 from qcodes.data.io import DiskIO
@@ -15,7 +17,6 @@ from ruamel.yaml import YAML
 
 from pulse_lib.tests.utils.qc_run import qc_run
 from pulse_lib.base_pulse import pulselib
-from pulse_lib.virtual_channel_constructors import IQ_channel_constructor
 from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
 from pulse_lib.schedule.tektronix_schedule import TektronixSchedule
 
@@ -28,10 +29,12 @@ except:
     _ct_imported = False
 
 
+logger = logging.getLogger(__name__)
+
 def init_logging():
     start_all_logging()
-    logger.get_console_handler().setLevel(logging.WARN)
-    logger.get_file_handler().setLevel(logging.DEBUG)
+    qc_logger.get_console_handler().setLevel(logging.WARN)
+    qc_logger.get_file_handler().setLevel(logging.DEBUG)
 
 
 class Context:
@@ -212,7 +215,6 @@ class Context:
                         resonance_frequency = qubit*0.050e9
                         pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
 
-
         if n_sensors > 0:
             pulse.configure_digitizer = True
 
@@ -322,6 +324,42 @@ class Context:
 
         else:
             print(f'no implementation for {runner}')
+
+    def set_mock_data(self,
+                      data:Dict[str,List[Union[float, np.ndarray]]],
+                      repeat=None):
+        if not repeat:
+            repeat=1
+        for ch_name,values in data.items():
+            l = []
+            for value in values:
+                if isinstance(value, Number):
+                    l.append([value])
+                else:
+                    l.append(value)
+            ch_data = np.tile(np.concatenate(l), repeat)
+            try:
+                self._set_mock_data(ch_name, ch_data)
+            except:
+                logger.error("Couldn't set mock data for {ch_name}", exc_info=True)
+
+    def _set_mock_data(self, ch_name, ch_data):
+        backend = self._configuration['backend']
+        if backend == 'Qblox':
+            seq_def = self.pulse.uploader.q1instrument.readouts[ch_name]
+            sequencer = self.station[seq_def.module_name].sequencers[seq_def.seq_nr]
+            sequencer.set_acquisition_mock_data(ch_data)
+        elif backend in ['Keysight', 'Keysight_QS', 'Tektronix_5014']:
+            dig_ch = self.pulse.digitizer_channels[ch_name]
+            dig = self.pulse.digitizers[dig_ch.module_name]
+            if dig_ch.iq_input:
+                ch_re, ch_im = dig_ch.channel_numbers
+                dig.set_data(ch_re, ch_data.real)
+                dig.set_data(ch_im, ch_data.imag)
+            else:
+                dig.set_data(dig_ch.channel_number, ch_data)
+        else:
+            raise Exception(f'unknown backend {backend}')
 
     def plot_awgs(self, sequence, index=None, print_acquisitions=False,
                   analogue_out=False, savefig=False,
