@@ -81,8 +81,8 @@ TektronixMocked:
         M_IQ1: [AWG3,[1,1]]
         M_IQ2: [AWG3,[3,1]]
     sensors:
-        SD1: [Dig1,1]
-        SD2: [Dig1,[3,4]]
+        SD1: [Dig1,0]
+        SD2: [Dig1,[2,3]]
     rf:
         SD2:
             output: M1
