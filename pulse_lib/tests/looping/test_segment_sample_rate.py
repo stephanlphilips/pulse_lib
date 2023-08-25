@@ -17,22 +17,25 @@ def get_min_sample_rate(duration):
 
 
 def test():
-    pulse = context.init_pulselib(n_gates=2)
+    pulse = context.init_pulselib(n_gates=1)
 
-    t_wait = lp.geomspace(1000, 100000, 5, 't_wait', unit='ns', axis=0)
-
-    s = pulse.mk_segment()
+    t_wait = lp.geomspace(1000, 100_000, 5, 't_wait', unit='ns', axis=0)
 
     calc_sr = np.frompyfunc(get_min_sample_rate, 1, 1)
-    sr = calc_sr(t_wait)
-    # print(sr)
-    s.sample_rate = sr
 
-    s.P1.add_block(0, 100, 80.0)
-    s.wait(t_wait, reset_time=True)
-    s.P1.add_block(0, 100, 80.0)
+    s1 = pulse.mk_segment()
+    s1.P1.add_block(0, 100, 80.0)
 
-    sequence = pulse.mk_sequence([s])
+    s2 = pulse.mk_segment(sample_rate=calc_sr(t_wait))
+
+    s2.P1.add_block(0, 100, 80.0)
+    s2.wait(t_wait, reset_time=True)
+    s2.P1.add_block(0, 100, 80.0)
+
+    s3 = pulse.mk_segment()
+    s3.P1.add_block(0, 100, 80.0)
+
+    sequence = pulse.mk_sequence([s1, s2, s3])
     context.add_hw_schedule(sequence)
     for t in sequence.t_wait.values:
         sequence.t_wait(t)
