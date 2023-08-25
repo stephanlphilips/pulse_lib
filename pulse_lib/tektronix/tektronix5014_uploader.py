@@ -264,22 +264,17 @@ class Tektronix5014_Uploader:
                 awg.set(f'ch{channel}_state', 1)
 
     def _configure_digitizers(self, job):
+        '''
+        Configures the acquisition on the digiters.
+        Sets total number of triggers and acquisition duration.
+        Since there is only 1 M4i trigger all channels will be
+        triggered simultaneously. Afterwards the unwanted data
+        is filtered in get_channel_data.
+        '''
         if not job.acquisition_conf.configure_digitizer:
             return
-        '''
-        Configure per digitizer channel:
-            n_triggers: job.n_triggers per channel @@@ all equal
-            t_measure: job.t_measure per channel @@@ all equal
-            downsampled_rate:
-        '''
-        '''
-        Read:
-            * reshape for n_rep, n_trigger
-            * aggregate: average of t_measure / down-sample
-            * filter data after, remove unused values.
-            *
-        '''
         acq_conf = job.acquisition_conf
+        # Use channels from acq_conf.
 
         self.m4i_control.configure_acquisitions(
                 job.digitizer_triggers,
@@ -293,6 +288,14 @@ class Tektronix5014_Uploader:
         return self.m4i_control.actual_acquisition_points(duration, sample_rate)
 
     def get_channel_data(self, seq_id, index):
+        '''
+        Reads channel data.
+        Returns a dict with channel name: data.
+        Data is shaped (n_rep, n_trigger, time)
+        If a digitizer channel uses 2 data streams I and Q, then
+        this is combined to a complex value.
+        If iq_out is false, then only the real component is returned.
+        '''
         acq_desc = self.acq_description
         if (acq_desc.seq_id != seq_id
             or (index is not None and acq_desc.index != index)):
