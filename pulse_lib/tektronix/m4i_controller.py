@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Optional, List
 
 import numpy as np
@@ -11,6 +12,13 @@ def notnone(*values):
         if value is not None:
             return value
     return None
+
+
+@dataclass
+class ChannelDemodulation:
+    channels: List[int]
+    frequency: float
+    phase: float
 
 
 class M4iControl:
@@ -34,8 +42,10 @@ class M4iControl:
     def configure_acquisitions(self,
                                digitizer_triggers: DigitizerTriggers,
                                n_rep: Optional[int],
-                               average_repetitions: bool = False):
+                               average_repetitions: bool = False,
+                               demodulate: List[ChannelDemodulation] = []):
         self._digitizer_triggers = digitizer_triggers
+        self._demodulate = demodulate
         n_triggers = len(digitizer_triggers.triggers)
         self._configure(sorted(digitizer_triggers.active_channels),
                         digitizer_triggers.t_measure,
@@ -122,6 +132,22 @@ class M4iControl:
         if len(self._channels) == 3:
             selection = list(self._channels)
             data = data[selection]
+
+        if self._demodulate:
+            data = data.astype(complex)
+            # time in [s]
+            start_times = np.array(list(self._digitizer_triggers.triggered_channels))*1e-9
+            t = start_times[:,None] + np.arange(self._samples_per_segment) / self._eff_sample_rate
+
+            for demodulation in self._demodulate:
+                channels = [self._channels.index(ch) for ch in demodulation.channels]
+                iq = np.exp(-1j*(2*np.pi*t*demodulation.frequency+demodulation.phase))
+                if len(channels) == 1:
+                    data[channels[0]] *= iq
+                else:
+                    demodulated = (data[channels[0]]+1j*data[channels[1]])*iq
+                    data[channels[0]] = demodulated.real
+                    data[channels[1]] = demodulated.imag
 
         # aggregate samples (down-sampling / time average)
         if self._data_sample_rate is None:

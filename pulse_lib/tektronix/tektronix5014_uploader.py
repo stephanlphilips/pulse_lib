@@ -13,7 +13,7 @@ from pulse_lib.uploader.uploader_funcs import merge_markers
 from pulse_lib.uploader.digitizer_triggers import DigitizerTriggerBuilder, DigitizerTriggers
 
 try:
-    from .m4i_controller import M4iControl
+    from .m4i_controller import M4iControl, ChannelDemodulation
 except:
     def M4iControl(*args, **kwargs):
         raise Exception('Import of M4iControl failed')
@@ -276,10 +276,20 @@ class Tektronix5014_Uploader:
         acq_conf = job.acquisition_conf
         # Use channels from acq_conf.
 
+        demodulate = []
+        for dig_ch in self.digitizer_channels.values():
+            if dig_ch.frequency is not None:
+                demodulate.append(
+                        ChannelDemodulation(
+                                dig_ch.channel_numbers,
+                                dig_ch.frequency,
+                                dig_ch.phase))
+
         self.m4i_control.configure_acquisitions(
                 job.digitizer_triggers,
                 job.n_rep,
-                average_repetitions=acq_conf.average_repetitions)
+                average_repetitions=acq_conf.average_repetitions,
+                demodulate=demodulate)
 
         self.acq_description = AcqDescription(job.seq_id, job.index,
                                               job.digitizer_triggers)
