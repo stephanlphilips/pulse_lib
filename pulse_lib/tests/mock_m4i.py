@@ -42,7 +42,7 @@ class MockM4i(Instrument):
                                      level0=1600, level1=None):
         pass
 
-    def setup_multi_recording(self, seg_size, n_triggers, boxcar_average):
+    def setup_multi_recording(self, seg_size, n_triggers, boxcar_average=False):
         pretrigger = self.pretrigger_memory_size()
         self.segment_size(math.ceil(seg_size/16)*16 + pretrigger)
         self.data_memory_size(self.segment_size()*n_triggers)
@@ -53,7 +53,7 @@ class MockM4i(Instrument):
 
     def get_data(self):
         pretrigger = self.pretrigger_memory_size()
-        channels = self.enable_channels()
+        channels = int(self.enable_channels())
         ch_nums = []
         for ch_num in range(4):
             if channels & (1 << ch_num):
