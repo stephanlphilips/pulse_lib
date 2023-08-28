@@ -656,7 +656,8 @@ class pulse_data(parent_data):
             for i in range(len(t_pt)):
                 pt0 = t_pt[i]
                 wvf[pt0] += self._samples[i]
-                wvf[pt0+1] += self._samples2[i]
+                if pt0+1 < t_tot_pt:
+                    wvf[pt0+1] += self._samples2[i]
 
         # render MW pulses.
         # create list with phase shifts per ref_channel
