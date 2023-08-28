@@ -342,8 +342,9 @@ class MeasurementConverter:
                     else:
                         channel_raw = channel_data[...,data_offset:data_offset+n_samples]
                     if m.aggregate_func:
+                        t_start = 0 # TODO @@@ get from measurement
                         # aggregate time series
-                        channel_raw = m.aggregate_func(channel_raw)
+                        channel_raw = m.aggregate_func(t_start, channel_raw)
                 self._raw.append(channel_raw)
 
     def _set_states(self):

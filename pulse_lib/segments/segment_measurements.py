@@ -23,11 +23,11 @@ class measurement_acquisition(measurement_base):
     t_measure: Optional[float] = None
     n_repeat: Optional[int] = None
     interval: Optional[float] = None # [ns]
-    n_samples: Optional[int] = None
+    n_samples: Optional[int] = None # @@@ can be np.ndarray
     '''  Number of samples when using time traces. Value set by sequencer when downsampling. '''
-    data_offset: int = 0
+    data_offset: int = 0 # @@@ can be np.ndarray
     ''' Offset of data in acquired channel data. '''
-    aggregate_func: Callable[[np.ndarray], np.ndarray] = None
+    aggregate_func: Callable[[float, np.ndarray], np.ndarray] = None # @@@ t_start can be np.ndarray
     '''
     Function aggregating data on time axis to new value.
     '''
