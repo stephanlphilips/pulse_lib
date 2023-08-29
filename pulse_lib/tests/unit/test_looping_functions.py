@@ -1,23 +1,15 @@
+import pulse_lib.segments.utility.looping as lp
 import numpy as np
 
-def test_rounding():
-#    max_shuttle_rounds = 6000
-#    n_steps = 20
-#
-#    # option 1: relying on rounding and padding at the end to get total time.
-#    shuttles = np.round(np.geomspace(1, max_shuttle_rounds, n_steps))
-#
-#    # optino 2: use nice series of values matching 1 ns wqit times
-#    shuttles = np.array([1, 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 3000, 3600, 4500, 6000])
-
-    max_shuttle_rounds = 20
+def test_looping():
+    max_shuttle_rounds = 4
     shuttle_step = 1
-    shuttles = np.arange(1, max_shuttle_rounds+1, shuttle_step)
+    shuttles = lp.arange(1, max_shuttle_rounds+1, shuttle_step, axis=0, name='shuttles', unit='#')
 
     ramp_time = 5 # ns
-    total_wait = 200
+    total_wait = lp.linspace(100, 300, 3, axis=1, name='wait', unit='ns')
 
-    wait_per_dot = ((total_wait-(2*ramp_time*shuttles))/2*shuttles)
+    wait_per_dot = ((total_wait-(2*ramp_time*shuttles))/(2*shuttles))
 #    wait_per_dot = total_wait/(2*shuttles)-ramp_time
 #    wait_per_dot = total_wait/shuttles
     wait_per_dot_int = np.floor(wait_per_dot)
@@ -26,13 +18,24 @@ def test_rounding():
     # NOTE: total time includes the ramp time. Total time is not constant!
     total_time = (2*ramp_time+2*wait_per_dot_int)*shuttles + padding
 
+    avg_wait = total_time / shuttles
+
+    offset = lp.linspace(1,6,5,axis=2, name='offset')
+    avg_wait2 = (total_time + offset) / shuttles
+
     with np.printoptions(formatter={'float':lambda x:f'{x:6.1f}'}):
         print(shuttles)
+        print(total_wait)
+        print(shuttles*total_wait)
         print(wait_per_dot)
         print(wait_per_dot_int)
         print(padding)
         print(total_time)
+        print(avg_wait)
+        print((shuttles*total_wait)*(shuttles*total_wait))
+        print('3-axis')
+        print(avg_wait2)
 
 
 if __name__ == '__main__':
-    test_rounding()
+    test_looping()

@@ -7,10 +7,11 @@ All notable changes to Pulselib will be documented in this file.
 - Performance improvement of 20% up to 10 times in compilation, especially for randomized benchmarking and GST.
 - Added looping on segment.sample_rate
 - Added aggregate_func to aggregate n samples of 1 measurement to a single value with a user defined function.
-- Performance improvement of 20% up to 10 times in compilation, especially for randomized benchmarking and GST.
-- Added looping on segment.sample_rate
-- Added aggregate_func to aggregate n samples of 1 measurement to a single value with a user defined function.
 - Improved accuracy of hres ramps for Keysight (error is now ~10 ps).
+
+## \[1.6.34] - 2023-08-29
+
+- Improved operations on multi-dimensional looping functions
 
 ## \[1.6.33] - 2023-08-17
 
@@ -19,7 +20,7 @@ All notable changes to Pulselib will be documented in this file.
 ## \[1.6.32] - 2023-08-10
 
 - Removed add_HVI_marker and add_HVI_variable from segment channels.
-  Huge performance improvement for GST and RB. O(N^2) -> O(N)
+  Huge performance improvement for GST and RB. Overhead O(N^2) -> O(N)
 
 ## \[1.6.31] - 2023-07-28
 
