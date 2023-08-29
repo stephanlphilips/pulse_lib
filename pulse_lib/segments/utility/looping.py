@@ -260,35 +260,53 @@ class loop_obj():
 
     @staticmethod
     def __combine_axis(this, other):
-        if isinstance(other, loop_obj):
-            if this.ndim != 1 and other.ndim != 1:
-                raise Exception(f'Cannot combine loops {this.names} and {other.names}'
-                                f' with shapes {this.shape} and {other.shape}')
+        new_axis = sorted(set(this.axis) | set(other.axis))
+        new_axis.reverse()
 
-            this_data = this.data
-            other_data = other.data
-            if this.axis[0] == other.axis[0]:
-                if this.shape != other.shape:
-                    raise Exception(f'Cannot combine loops {this.names} and {other.names}'
-                                    f' with shapes {this.shape} and {other.shape}')
-                # assume axis are the same
-                # TODO check equality of units, setpoins, ...
-            else:
-                if this.axis[0] < other.axis[0]:
-                    first, second = other, this
-                    other_data = other_data[:,np.newaxis]
-                else:
-                    first, second = this, other
-                    this_data = this_data[:,np.newaxis]
+        sel_this = []
+        sel_other = []
+        new_names = []
+        new_labels = []
+        new_units = []
+        new_setvals = []
+        for axis in new_axis:
+            try:
+                ithis = this.axis.index(axis)
+                sel_this.append(slice(None))
+                new_names.append(this.names[ithis])
+                new_labels.append(this.labels[ithis])
+                new_units.append(this.units[ithis])
+                new_setvals.append(this.setvals[ithis])
+                try:
+                    # check equality of shapes
+                    iother = other.axis.index(axis)
+                    if this.shape[ithis] != other.shape[iother]:
+                        raise Exception(f'Cannot combine loops {this} and {other}. '
+                                        'Shapes do not match')
+                except ValueError:
+                    pass
+            except ValueError:
+                # add new axis
+                sel_this.append(np.newaxis)
+                iother = other.axis.index(axis)
+                new_names.append(other.names[iother])
+                new_labels.append(other.labels[iother])
+                new_units.append(other.units[iother])
+                new_setvals.append(other.setvals[iother])
 
-                this.axis = [first.axis[0], second.axis[0]]
-                this.names = (first.names[0], second.names[0])
-                this.labels = (first.labels[0], second.labels[0])
-                this.units = (first.units[0], second.units[0])
-                this.setvals = (first.setvals[0], second.setvals[0])
+            try:
+                iother = other.axis.index(axis)
+                sel_other.append(slice(None))
+            except ValueError:
+                sel_other.append(np.newaxis)
 
-            return this_data, other_data
+        this.axis = new_axis
+        this.names = new_names
+        this.labels = new_labels
+        this.units = new_units
+        this.setvals = new_setvals
 
+        return this.data[tuple(sel_this)], other.data[tuple(sel_other)]
 
     def __repr__(self):
         return f'loop(names: {self.names}, axis:{self.axis}, labels:{self.labels}, units: {self.units}, setvals: {self.setvals})'

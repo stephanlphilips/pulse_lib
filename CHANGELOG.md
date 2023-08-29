@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.6.34] - 2023-08-29
+
+- Improved operations on multi-dimensional looping functions
+
 ## \[1.6.33] - 2023-08-17
 
 - Fixed IQ output of qblox_fast_scan
@@ -8,7 +12,7 @@ All notable changes to Pulselib will be documented in this file.
 ## \[1.6.32] - 2023-08-10
 
 - Removed add_HVI_marker and add_HVI_variable from segment channels.
-  Huge performance improvement for GST and RB. O(N^2) -> O(N)
+  Huge performance improvement for GST and RB. Overhead O(N^2) -> O(N)
 
 ## \[1.6.31] - 2023-07-28
 
