@@ -237,6 +237,8 @@ class segment_base():
     @property
     def total_time(self):
         if not self.render_mode:
+            if self._pending_reset_time is not None:
+                return np.fmax(self._pending_reset_time, self._end_times)
             # use end time from numpy array instead of individual lookup of data elements.
             return self._end_times
 #            return self.data.total_time

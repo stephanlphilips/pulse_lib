@@ -141,6 +141,8 @@ class segment_acquisition():
         if self.is_slice or time is None:
             self._reset_time(time)
         else:
+            if self._pending_reset_time is not None:
+                time = np.fmax(time, self._pending_reset_time)
             self._pending_reset_time = time
 
     def _lazy_reset_time(self):
@@ -274,6 +276,8 @@ class segment_acquisition():
     def total_time(self):
         if not self.render_mode:
             # use end time from numpy array instead of individual lookup of data elements.
+            if self._pending_reset_time is not None:
+                return np.fmax(self._pending_reset_time, self._end_times)
             return self._end_times
 #            return self.data.total_time
         else:
