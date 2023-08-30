@@ -1,13 +1,16 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
-## \[1.7.@@@@@] - 2023-08-@@@
+## \[1.7.0] - 2023-08-30
 
 - Added conditional segments for Qblox (requires qblox-instruments v0.9+)
-- Performance improvement of 20% up to 10 times in compilation, especially for randomized benchmarking and GST.
+- Added M4i digitizer control to pulse-lib
+- Added IQ demodulation to M4iControl
+- Performance improvement of 10% up to 5 times in compilation.
 - Added looping on segment.sample_rate
 - Added aggregate_func to aggregate n samples of 1 measurement to a single value with a user defined function.
 - Improved accuracy of hres ramps for Keysight (error is now ~10 ps).
+- Do not add DC compensation pulse for Qblox if it is too small. This avoids uploads of sequences that do nothing.
 
 ## \[1.6.34] - 2023-08-29
 
