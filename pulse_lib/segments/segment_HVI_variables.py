@@ -5,7 +5,6 @@ Marker implementation.
 from pulse_lib.segments.segment_base import segment_base
 from pulse_lib.segments.utility.data_handling_functions import loop_controller, loop_controller_post_processing
 from pulse_lib.segments.data_classes.data_HVI_variables import marker_HVI_variable
-import numpy as np
 
 class segment_HVI_variables(segment_base):
     """docstring for segment_HVI_variables"""
@@ -41,25 +40,6 @@ class segment_HVI_variables(segment_base):
         Time to shift teh current sequence compaered to the clock of the segment.
         '''
         return self.data_tmp._shift_all_time(time)
-
-    def __getitem__(self, item):
-        '''
-        Get item variable of the HVI varible sequence.
-
-        Args:
-            item (str) : string name of the HVI variable you want to fetch
-
-        Returns:
-            np.ndarray <double> : array with the same shape as the current object with all the variables.
-        '''
-        if isinstance(item, str):
-            out = np.empty(self.shape, np.double)
-
-            for i in range(out.size):
-                out.flat[i] = self.data.flat[i][item]
-            return out
-        else:
-            return super().__getitem__(item)
 
     def __copy__(self):
         cpy = segment_HVI_variables(self.name)
