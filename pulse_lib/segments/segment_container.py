@@ -11,7 +11,8 @@ from pulse_lib.segments.segment_acquisition import segment_acquisition
 from pulse_lib.segments.segment_measurements import segment_measurements
 
 import pulse_lib.segments.utility.looping as lp
-from pulse_lib.segments.utility.data_handling_functions import find_common_dimension, update_dimension, reduce_arr
+from pulse_lib.segments.utility.data_handling_functions import (
+        find_common_dimension, update_dimension, reduce_arr, use_end_time_cache)
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr, setpoint
 from pulse_lib.segments.data_classes.data_generic import map_index
 
@@ -114,7 +115,8 @@ class segment_container():
                 setattr(new, name,new_chan)
                 new.channels[name] = new_chan
 
-            new._software_markers = self._software_markers[index]
+            # No HVI variables on slices.
+            new._software_markers = None
             new._setpoints = self._setpoints # @@@ -1 setpoint...
             new._shape = self._shape[1:]
             if new._shape == ():
@@ -204,9 +206,6 @@ class segment_container():
             dim = channel.shape
             my_shape = find_common_dimension(my_shape, dim)
 
-        dim = self._software_markers.shape
-        my_shape = find_common_dimension(my_shape, dim)
-
         if self.render_mode:
             self._render_shape = my_shape
         return my_shape
@@ -286,8 +285,6 @@ class segment_container():
         for channel in self.channels.values():
             comb_setpoints += channel.setpoints
 
-        comb_setpoints += self._software_markers.setpoints
-
         return comb_setpoints
 
     def reset_time(self):
@@ -346,10 +343,12 @@ class segment_container():
             raise Exception('extend_dim may not be called in render mode')
         for channel in self.channels.values():
             channel.data = update_dimension(channel.data, shape)
-            channel._end_times = np.zeros(shape) + channel._end_times
+            if use_end_time_cache:
+                channel._end_times = np.zeros(shape) + channel._end_times
 
         self._software_markers.data = update_dimension(self._software_markers.data, shape)
-        self._software_markers._end_times = np.zeros(shape) + self._software_markers._end_times
+        if use_end_time_cache:
+            self._software_markers._end_times = np.zeros(shape) + self._software_markers._end_times
 
     def wait(self, time, channels=None, reset_time=False):
         '''

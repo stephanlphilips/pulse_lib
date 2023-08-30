@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pulse_lib.segments.utility.data_handling_functions import loop_controller
+from pulse_lib.segments.utility.data_handling_functions import loop_controller, use_end_time_cache
 from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.utility.setpoint_mgr import setpoint_mgr
@@ -37,8 +37,11 @@ class segment_base():
 
         # store data in numpy looking object for easy operator access.
         self.data = data_container(data_object)
-        # end time for every index. Effectively this is a cache of data[index].end_time
-        self._end_times = np.zeros(1)
+        if use_end_time_cache:
+            # end time for every index. Effectively this is a cache of data[index].end_time
+            self._end_times = np.zeros(1)
+        else:
+            self._end_times = None
 
         # references to other channels (for virtual gates).
         self.reference_channels = []
@@ -56,10 +59,10 @@ class segment_base():
         self.is_slice = False
 
     def _copy(self, cpy):
-        self._lazy_reset_time()
         cpy.type = copy.copy(self.type)
         cpy.data = copy.copy(self.data)
-        cpy._end_times = self._end_times.copy()
+        if use_end_time_cache:
+            cpy._end_times = self._end_times.copy()
 
         # note that the container objecet needs to take care of these. By default it will refer to the old references.
         cpy.reference_channels = copy.copy(self.reference_channels)
@@ -71,31 +74,13 @@ class segment_base():
 
         return cpy
 
+    @loop_controller
     def reset_time(self, time=None):
         '''
         resets the time back to zero after a certain point
         Args:
             time (double) : (optional), after time to reset back to 0. Note that this is absolute time and not rescaled time.
         '''
-        if self.is_slice or time is None:
-            self._reset_time(time)
-        else:
-            if self._pending_reset_time is not None:
-                time = np.fmax(time, self._pending_reset_time)
-            self._pending_reset_time = time
-
-    def _lazy_reset_time(self):
-        if self._pending_reset_time is not None:
-            if self.is_slice:
-                msg = 'Pulse-lib error. Mixed use of slicing and reset_time()'
-                logger.error(msg)
-                raise Exception(msg)
-            time = self._pending_reset_time
-            self._pending_reset_time = None
-            self._reset_time(time)
-
-    @loop_controller
-    def _reset_time(self, time=None):
         self.data_tmp.reset_time(time)
         return self.data_tmp
 
@@ -124,7 +109,6 @@ class segment_base():
         Args:
             *key (int/slice object) : key of the element -- just use numpy style accessing (slicing supported)
         '''
-        self._lazy_reset_time()
         data_item = self.data[key[0]]
         if not isinstance(data_item, data_container):
             # If the slice contains only 1 element, then it's not a data_container anymore.
@@ -140,11 +124,13 @@ class segment_base():
 
         item.data = data_item
         item.is_slice = True
-        i = key[0]
-        if len(self.shape) == 1:
-            item._end_times = self._end_times[i:i+1]
-        else:
-            item._end_times = self._end_times[i]
+        if use_end_time_cache:
+            i = key[0]
+            # Note: the numpy slice uses the same memory!
+            if len(self.shape) == 1:
+                item._end_times = self._end_times[i:i+1]
+            else:
+                item._end_times = self._end_times[i]
         return item
 
     def append(self, other):
@@ -160,7 +146,6 @@ class segment_base():
             other (segment) : the segment to be appended
             time (double/loop_obj) : add at the given time. if None, append at t_start of the segment)
         '''
-        other._lazy_reset_time()
         if other.shape != (1,):
             other_loopobj = loop_obj()
             other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)),
@@ -237,11 +222,13 @@ class segment_base():
     @property
     def total_time(self):
         if not self.render_mode:
-            if self._pending_reset_time is not None:
-                return np.fmax(self._pending_reset_time, self._end_times)
-            # use end time from numpy array instead of individual lookup of data elements.
-            return self._end_times
-#            return self.data.total_time
+            if use_end_time_cache:
+                if self._pending_reset_time is not None:
+                    return np.fmax(self._pending_reset_time, self._end_times)
+                # use end time from numpy array instead of individual lookup of data elements.
+                return self._end_times
+            else:
+                return self.data.total_time
         else:
             return self.pulse_data_all.total_time
 
@@ -253,7 +240,6 @@ class segment_base():
             return self.pulse_data_all.start_time
 
     def enter_rendering_mode(self):
-        self._lazy_reset_time()
         self.render_mode = True
         # make a pre-render of all the pulse data (e.g. compose channels, do not render in full).
         if self.type == 'render':

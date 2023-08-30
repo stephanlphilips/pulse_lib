@@ -8,6 +8,8 @@ from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.setpoint_mgr import setpoint
 
+use_end_time_cache = True
+
 def find_common_dimension(dim_1, dim_2):
     '''
     finds the union of two dimensions
@@ -194,7 +196,8 @@ def _update_segment_dims(segment, lp, rendering=False):
                 raise Exception(f'Cannot resize data in slice (Indexing). '
                                 'All loop axes must be added before indexing segment.')
             data = update_dimension(data, new_shape)
-            segment._end_times = np.zeros(new_shape) + segment._end_times
+            if use_end_time_cache:
+                segment._end_times = np.zeros(new_shape) + segment._end_times
         axes[i] = axis
 
         if not lp.no_setpoints and lp.setvals is not None:
@@ -232,9 +235,6 @@ def loop_controller(func):
         if _in_loop:
             raise Exception('NESTED LOOPS')
 
-        # Lazy reset_time
-        obj._lazy_reset_time()
-
         try:
             _in_loop = True
 
@@ -256,7 +256,8 @@ def loop_controller(func):
             if data.shape == (1,):
                 obj.data_tmp = data[0]
                 data[0] = func(obj, *args, **kwargs)
-                obj._end_times[0] = data[0].end_time
+                if use_end_time_cache:
+                    obj._end_times[0] = data[0].end_time
             elif len(loop_info_args) == 0 and len(loop_info_kwargs) == 0:
                 loop_over_data(func, obj, data, obj._end_times, args, kwargs)
             else:
@@ -345,10 +346,15 @@ def loop_over_data_lp(func, obj, data, end_times, args, args_info, kwargs, kwarg
             # we are at the lowest level of the loop.
             obj.data_tmp = data[i]
             data[i] = func(obj, *args_cpy, **kwargs_cpy)
-            end_times[i] = data[i].end_time
+            if use_end_time_cache:
+                end_times[i] = data[i].end_time
         else:
+            if use_end_time_cache:
+                et = end_times[i]
+            else:
+                et = None
             # clean up args, kwargs
-            loop_over_data_lp(func, obj, data[i], end_times[i], args_cpy, args_info, kwargs_cpy, kwargs_info)
+            loop_over_data_lp(func, obj, data[i], et, args_cpy, args_info, kwargs_cpy, kwargs_info)
 
 
 def loop_over_data(func, obj, data, end_times, args, kwargs):
@@ -371,9 +377,14 @@ def loop_over_data(func, obj, data, end_times, args, kwargs):
             # we are at the lowest level of the loop.
             obj.data_tmp = data[i]
             data[i] = func(obj, *args, **kwargs)
-            end_times[i] = data[i].end_time
+            if use_end_time_cache:
+                end_times[i] = data[i].end_time
         else:
-            loop_over_data(func, obj, data[i], end_times[i], args, kwargs)
+            if use_end_time_cache:
+                et = end_times[i]
+            else:
+                et = None
+            loop_over_data(func, obj, data[i], et, args, kwargs)
 
 
 def reduce_arr(arr):
@@ -389,6 +400,13 @@ def reduce_arr(arr):
     """
     shape = arr.shape
     ndim = len(shape)
+    if ndim == 1:
+        mn = np.min(arr)
+        mx = np.max(arr)
+        if mn == mx:
+            return mn, []
+        else:
+            return arr, [0]
     data_axis = []
     slice_array = ()
     for i in range(ndim):

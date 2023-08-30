@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pulse_lib.segments.utility.data_handling_functions import loop_controller
+from pulse_lib.segments.utility.data_handling_functions import loop_controller, use_end_time_cache
 from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.data_classes.data_acquisition import acquisition_data, acquisition
 from pulse_lib.segments.utility.looping import loop_obj
@@ -39,7 +39,10 @@ class segment_acquisition():
 
         # store data in numpy looking object for easy operator access.
         self.data = data_container(acquisition_data())
-        self._end_times = np.zeros(1)
+        if use_end_time_cache:
+            self._end_times = np.zeros(1)
+        else:
+            self._end_times = None
 
         # local copy of self that will be used to count up the virtual gates.
         self._pulse_data_all = None
@@ -120,7 +123,6 @@ class segment_acquisition():
             other (segment) : the segment to be appended
             time (double/loop_obj) : add at the given time. if None, append at t_start of the segment)
         '''
-        other._lazy_reset_time()
         if other.shape != (1,):
             other_loopobj = loop_obj()
             other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)),
@@ -132,31 +134,13 @@ class segment_acquisition():
 
         return self
 
+    @loop_controller
     def reset_time(self, time=None):
         '''
         resets the time back to zero after a certain point
         Args:
             time (double) : (optional), after time to reset back to 0. Note that this is absolute time and not rescaled time.
         '''
-        if self.is_slice or time is None:
-            self._reset_time(time)
-        else:
-            if self._pending_reset_time is not None:
-                time = np.fmax(time, self._pending_reset_time)
-            self._pending_reset_time = time
-
-    def _lazy_reset_time(self):
-        if self._pending_reset_time is not None:
-            if self.is_slice:
-                msg = 'Pulse-lib error. Mixed use of slicing and reset_time()'
-                logger.error(msg)
-                raise Exception(msg)
-            time = self._pending_reset_time
-            self._pending_reset_time = None
-            self._reset_time(time)
-
-    @loop_controller
-    def _reset_time(self, time=None):
         self.data_tmp.reset_time(time)
         return self.data_tmp
 
@@ -184,7 +168,6 @@ class segment_acquisition():
         Args:
             *key (int/slice object) : key of the element -- just use numpy style accessing (slicing supported)
         '''
-        self._lazy_reset_time()
         data_item = self.data[key[0]]
         if not isinstance(data_item, data_container):
             # If the slice contains only 1 element, then it's not a data_container anymore.
@@ -200,11 +183,13 @@ class segment_acquisition():
         self.data = data_org
 
         item.data = data_item
-        i = key[0]
-        if len(self.shape) == 1:
-            item._end_times = self._end_times[i:i+1]
-        else:
-            item._end_times = self._end_times[i]
+        if use_end_time_cache:
+            i = key[0]
+            # Note: the numpy slice uses the same memory!
+            if len(self.shape) == 1:
+                item._end_times = self._end_times[i:i+1]
+            else:
+                item._end_times = self._end_times[i]
         item.is_slice = True
         return item
 
@@ -275,11 +260,13 @@ class segment_acquisition():
     @property
     def total_time(self):
         if not self.render_mode:
-            # use end time from numpy array instead of individual lookup of data elements.
-            if self._pending_reset_time is not None:
-                return np.fmax(self._pending_reset_time, self._end_times)
-            return self._end_times
-#            return self.data.total_time
+            if use_end_time_cache:
+                # use end time from numpy array instead of individual lookup of data elements.
+                if self._pending_reset_time is not None:
+                    return np.fmax(self._pending_reset_time, self._end_times)
+                return self._end_times
+            else:
+                return self.data.total_time
         else:
             return self.pulse_data_all.total_time
 
@@ -291,7 +278,6 @@ class segment_acquisition():
             return self.pulse_data_all.start_time
 
     def enter_rendering_mode(self):
-        self._lazy_reset_time()
         self.render_mode = True
         # make a pre-render of all the pulse data (e.g. compose channels, do not render in full).
         if self.type == 'render':
@@ -313,7 +299,6 @@ class segment_acquisition():
             render full (bool) : do full render (e.g. also get data form virtual channels). Put True if you want to see the waveshape send to the AWG.
             sample_rate (float): standard 1 Gs/s
         '''
-        self._lazy_reset_time()
         if render_full == True:
             pulse_data_curr_seg = self._get_data_all_at(index)
         else:
