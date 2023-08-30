@@ -419,6 +419,7 @@ class Job(object):
                     t = condition_measurements.get_end_time(m, self.index)
                     events.append((t, channel_name, 'latch-disable'))
 
+        logger.debug(f'Latch events {events}')
         latch_events = []
         feedback_channels = set()
         active_counters = set()
@@ -429,9 +430,12 @@ class Job(object):
         for t, channel_name, action in sorted(events):
             if t != last_t and latching_counters != enabled_latches:
                 enabled_latches = latching_counters.copy()
+                if not latch_events:
+                    # disable all latches at start of sequence
+                    latch_events.append(LatchEvent(0, counters=[]))
                 latch_events.append(LatchEvent(last_t, counters=list(enabled_latches)))
                 feedback_channels.add(channel_name)
-                last_t = t
+            last_t = t
             if action == 'latch-enable':
                 if channel_name in pending_resets:
                     raise Exception(f'Qblox feedback error: counter not reset before measurement '
@@ -722,8 +726,12 @@ class UploadAggregator:
             job.upload_info.dc_compensation_voltages[channel_name] = compensation_voltage_mV
             seq.add_comment(f'DC compensation: {compensation_voltage_mV:6.2f} mV {compensation_ns} ns')
             logger.debug(f'DC compensation {channel_name}: {compensation_voltage_mV:6.1f} mV {compensation_ns} ns')
-            seq.set_offset(t_end, compensation_ns, compensation_voltage_mV/(1000*seq.max_output_voltage))
-            seq.set_offset(t_end + compensation_ns, 0, 0.0)
+            # only add if > 50 uV.
+            if np.abs(compensation_voltage_mV) > 0.05:
+                seq.set_offset(t_end, compensation_ns, compensation_voltage_mV/(1000*seq.max_output_voltage))
+                seq.set_offset(t_end + compensation_ns, 0, 0.0)
+            else:
+                seq.wait_till(t_end + compensation_ns)
 
         seq.finalize()
 
