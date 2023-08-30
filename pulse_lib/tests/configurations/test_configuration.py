@@ -306,6 +306,7 @@ class Context:
 
     def run(self, name, sequence, *params, silent=False, sweeps=[]):
         runner = self._configuration['runner']
+        self.last_sequence = sequence
         if runner == 'qcodes':
             path = 'C:/measurements/test_pulselib'
             DataSet.default_io = DiskIO(path)
@@ -364,6 +365,7 @@ class Context:
     def plot_awgs(self, sequence, index=None, print_acquisitions=False,
                   analogue_out=False, savefig=False,
                   **kwargs):
+        self.last_sequence = sequence
         job = sequence.upload(index)
         sequence.play(index)
         pulse = self.pulse
