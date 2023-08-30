@@ -248,7 +248,7 @@ class sequencer():
         '''
         Returns the maximum configured delay from AWG channel to digitizer channel.
         '''
-        if not self._digitizer_channels:
+        if not self._awg_channels or not self._digitizer_channels:
             return 0
         awg_delays = []
         for channel in self._awg_channels.values():
