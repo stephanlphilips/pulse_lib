@@ -80,6 +80,8 @@ class segment_base():
         if self.is_slice or time is None:
             self._reset_time(time)
         else:
+            if self._pending_reset_time is not None:
+                time = np.fmax(time, self._pending_reset_time)
             self._pending_reset_time = time
 
     def _lazy_reset_time(self):
