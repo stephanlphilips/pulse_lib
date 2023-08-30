@@ -261,8 +261,18 @@ def loop_controller(func):
             elif len(loop_info_args) == 0 and len(loop_info_kwargs) == 0:
                 loop_over_data(func, obj, data, obj._end_times, args, kwargs)
             else:
+                args_cpy = list(args)
+                kwargs_cpy = kwargs.copy()
+                for arg_loop in loop_info_args:
+                    index = arg_loop.key
+                    args_cpy[index] = args[index].data
+                for kwarg_loop in loop_info_kwargs:
+                    index = kwarg_loop.key
+                    kwargs_cpy[index] = kwargs[index].data
+
                 loop_over_data_lp(func, obj, data, obj._end_times,
-                                  args, loop_info_args, kwargs, loop_info_kwargs)
+                                  args_cpy, loop_info_args,
+                                  kwargs_cpy, loop_info_kwargs)
         finally:
             _in_loop = False
 
@@ -299,7 +309,16 @@ def loop_controller_post_processing(func):
         data = obj.pulse_data_all
         end_times = obj._end_times
         if len(loop_info_args) > 0 or len(loop_info_kwargs) > 0:
-            loop_over_data_lp(func, obj, data, end_times, args, loop_info_args, kwargs, loop_info_kwargs)
+            args_cpy = list(args)
+            kwargs_cpy = kwargs.copy()
+            for arg_loop in loop_info_args:
+                index = arg_loop.key
+                args_cpy[index] = args[index].data
+            for kwarg_loop in loop_info_kwargs:
+                index = kwarg_loop.key
+                kwargs_cpy[index] = kwargs[index].data
+            loop_over_data_lp(func, obj, data, end_times,
+                              args_cpy, loop_info_args, kwargs_cpy, loop_info_kwargs)
         else:
             loop_over_data(func, obj, data, end_times, args, kwargs)
 
@@ -323,25 +342,30 @@ def loop_over_data_lp(func, obj, data, end_times, args, args_info, kwargs, kwarg
 
     # copy the input --> we will fill in the arrays
     # only copy when there are loops
+    lp_arg_indices = []
+    lp_kwarg_indices = []
     if len(args_info) > 0:
         # copy to new list
         args_cpy = list(args)
+        for arg in args_info:
+            if n_dim-1 in arg.axes:
+                lp_arg_indices.append(arg.key)
     else:
         args_cpy = args
     if len(kwargs_info) > 0:
         kwargs_cpy = kwargs.copy()
     else:
         kwargs_cpy = kwargs
-
-    for i in range(shape[0]):
-        for arg in args_info:
-            if n_dim-1 in arg.axes:
-                index = arg.key
-                args_cpy[index] = args[index][i]
         for kwarg in kwargs_info:
             if n_dim-1 in kwarg.axes:
                 index = kwarg.key
-                kwargs_cpy[index] = kwargs[index][i]
+                lp_kwarg_indices.append(kwarg.key)
+
+    for i in range(shape[0]):
+        for index in lp_arg_indices:
+            args_cpy[index] = args[index][i]
+        for index in lp_kwarg_indices:
+            kwargs_cpy[index] = kwargs[index][i]
         if n_dim == 1:
             # we are at the lowest level of the loop.
             obj.data_tmp = data[i]
