@@ -292,7 +292,9 @@ class Tektronix5014_Uploader:
                 demodulate=demodulate)
 
         self.acq_description = AcqDescription(job.seq_id, job.index,
-                                              job.digitizer_triggers)
+                                              job.digitizer_triggers,
+                                              job.n_rep,
+                                              acq_conf.average_repetitions)
 
     def actual_acquisition_points(self, channel_name, duration, sample_rate):
         return self.m4i_control.actual_acquisition_points(duration, sample_rate)
@@ -330,6 +332,10 @@ class Tektronix5014_Uploader:
                 raw_ch = raw_ch.real
 
             result[channel_name] = raw_ch
+
+        if not acq_desc.average_repetitions and acq_desc.n_rep:
+            for key,value in result.items():
+                result[key] = value.reshape((acq_desc.n_rep, -1))
 
         return result
 
@@ -493,6 +499,8 @@ class AcqDescription:
     seq_id: UUID
     index: List[int]
     digitizer_triggers: DigitizerTriggers
+    n_rep: int
+    average_repetitions: bool = False
 
 
 class UploadAggregator:
