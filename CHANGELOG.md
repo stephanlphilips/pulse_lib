@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.1] - 2023-09-04
+
+- Fixed M4i acquisition data shape
+- Qblox feedback corrected for input gain
+- Qblox feedback rotation convert radians to degrees
+
 ## \[1.7.0] - 2023-08-30
 
 - Added conditional segments for Qblox (requires qblox-instruments v0.9+)
