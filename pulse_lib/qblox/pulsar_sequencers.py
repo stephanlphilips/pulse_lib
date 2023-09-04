@@ -742,30 +742,6 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
             self._n_out_ch = 1 if isinstance(rf_source.output[1], int) else 2
 
     @property
-    def thresholded_acq_rotation(self):
-        return self.seq.thresholded_acq_rotation
-
-    @thresholded_acq_rotation.setter
-    def thresholded_acq_rotation(self, rotation):
-        self.seq.thresholded_acq_rotation = rotation
-
-    @property
-    def thresholded_acq_threshold(self):
-        return self.seq.thresholded_acq_threshold
-
-    @thresholded_acq_threshold.setter
-    def thresholded_acq_threshold(self, threshold):
-        self.seq.thresholded_acq_threshold = threshold
-
-    @property
-    def thresholded_acq_trigger_invert(self):
-        return self.seq.thresholded_acq_trigger_invert
-
-    @thresholded_acq_trigger_invert.setter
-    def thresholded_acq_trigger_invert(self, invert):
-        self.seq.thresholded_acq_trigger_invert = invert
-
-    @property
     def integration_time(self):
         return self.seq.integration_length_acq
 

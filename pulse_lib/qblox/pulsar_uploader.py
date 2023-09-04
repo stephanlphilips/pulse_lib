@@ -251,12 +251,17 @@ class PulsarUploader:
         total_seconds = job.playback_time * n_rep * 1e-9
         timeout_minutes = int(total_seconds*1.1 / 60) + 1
 
-        # update resonator frequency and phase
+        # update resonator frequency, threshold and threshold phase
         for ch_name, dig_channel in self.digitizer_channels.items():
             nco_freq = dig_channel.frequency
             if nco_freq is not None:
                 job.program[ch_name].nco_frequency = nco_freq
-            job.program[ch_name].thresholded_acq_rotation = dig_channel.phase
+            if job.acq_data_scaling[ch_name]: # TODO @@@ refactor data structure acquisiton
+                in_ranges = self.q1instrument.get_input_ranges(ch_name)
+                ch_number = dig_channel.channel_numbers[0]
+                mv2threshold = 1/(in_ranges[ch_number]/2*job.acq_data_scaling[ch_name]*1000)
+                job.program[ch_name].thresholded_acq_threshold = job.acquisition_thresholds[ch_name] * mv2threshold
+                job.program[ch_name].thresholded_acq_rotation = np.degrees(dig_channel.phase) % 360
 
         self.q1instrument.start_program(job.program)
         self.q1instrument.wait_stopped(timeout_minutes=timeout_minutes)
@@ -284,6 +289,8 @@ class PulsarUploader:
                 try:
                     start = time.perf_counter()
                     bin_data = self.q1instrument.get_acquisition_bins(channel_name, 'default') # @@@ handle timeout
+                    if PulsarUploader.verbose:
+                        logger.debug(bin_data)
                     raw = []
                     for i in range(2):
                         path_data = np.require(bin_data['integration'][f'path{i}'], dtype=float)
@@ -386,6 +393,7 @@ class Job(object):
         self.acquisition_conf = None
         self.acq_data_scaling = {}
         self.feedback_channels = set()
+        self.acquisition_thresholds = {}
 
         self.released = False
 
@@ -857,7 +865,6 @@ class UploadAggregator:
                                          nco_frequency=nco_freq,
                                          rf_source=digitizer_channel.rf_source)
         seq.set_time_offset(t_offset)
-        seq.thresholded_acq_rotation = digitizer_channel.phase
 
         if digitizer_channel.rf_source is not None:
             seq.offset_rf_ns = PulsarConfig.align(self.max_pre_start_ns + digitizer_channel.rf_source.delay)
@@ -916,8 +923,9 @@ class UploadAggregator:
         except:
             raise Exception(f"Acquisition doesn't fit in sequence. Add a wait to extend the sequence.")
         seq.finalize()
-        if acq_threshold is not None:
-            seq.thresholded_acq_threshold = acq_threshold
+        job.acquisition_thresholds[channel_name] = acq_threshold
+        if use_feedback:
+            # invert set on Trigger object of channel.
             self.feedback_triggers[channel_name].invert = acq_threshold_trigger_invert
         job.acq_data_scaling[channel_name] = seq.get_data_scaling()
 
