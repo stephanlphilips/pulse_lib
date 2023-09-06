@@ -268,7 +268,7 @@ class PulsarUploader:
             nco_freq = dig_channel.frequency
             if nco_freq is not None:
                 job.program[ch_name].nco_frequency = nco_freq
-            if job.acq_data_scaling[ch_name]: # TODO @@@ refactor data structure acquisiton
+            if job.acq_data_scaling[ch_name] and job.acquisition_thresholds[ch_name] is not None: # TODO @@@ refactor data structure acquisiton
                 in_ranges = self.q1instrument.get_input_ranges(ch_name)
                 ch_number = dig_channel.channel_numbers[0]
                 mv2threshold = 1/(in_ranges[ch_number]/2*job.acq_data_scaling[ch_name]*1000)
