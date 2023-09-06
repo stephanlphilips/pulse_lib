@@ -364,6 +364,9 @@ class MeasurementConverter:
                 if m.zero_on_high:
                     result = result ^ 1
                 result = result.astype(int)
+                data = self._channel_raw.get(m.acquisition_channel+'.thresholded', None)
+                if data is not None and np.any(result != data):
+                    logger.warning(f'{np.sum(result != data)} differences between hardware and software threshold')
             elif isinstance(m, measurement_expression):
                 result = m.expression.evaluate(last_result)
             else:
