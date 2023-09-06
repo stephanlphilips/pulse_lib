@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.2] - 2023-09-06
+
+- Use Qblox input channel selection if qblox-instruments v0.11 installed
+- Compare results of hardware and software thresholding
+
 ## \[1.7.1] - 2023-09-04
 
 - Fixed M4i acquisition data shape

@@ -7,6 +7,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Dict, Optional, List, Union
 from numbers import Number
+from packaging.version import Version
 
 from pulse_lib.segments.conditional_segment import conditional_segment
 
@@ -22,7 +23,9 @@ from .pulsar_sequencers import (
         LatchEvent)
 from .qblox_conditional import get_conditional_channel
 
-from q1pulse import Q1Instrument
+from q1pulse import (
+        Q1Instrument,
+        __version__ as q1pulse_version)
 
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single, Chirp
 from pulse_lib.segments.data_classes.data_pulse import (
@@ -30,6 +33,7 @@ from pulse_lib.segments.data_classes.data_pulse import (
 from pulse_lib.uploader.uploader_funcs import get_iq_nco_idle_frequency, merge_markers
 
 logger = logging.getLogger(__name__)
+
 
 def iround(value):
     return math.floor(value+0.5)
@@ -85,12 +89,20 @@ class PulsarUploader:
                     raise Exception(f'Resonator must be on same module. '
                                     f'Format {out} is currently not supported for "{name}"')
                 out_ch = [out[1]] if isinstance(out[1], int) else out[1]
-            q1.add_readout(name, dig_ch.module_name, out_channels=out_ch)
+            if Version(q1pulse_version) >= Version('0.11'):
+                q1.add_readout(name, dig_ch.module_name, out_channels=out_ch,
+                               in_channels=dig_ch.channel_numbers)
+            else:
+                q1.add_readout(name, dig_ch.module_name, out_channels=out_ch)
+
 
         for name, marker_ch in self.marker_channels.items():
-            # TODO implement marker channel inversion
-            if marker_ch.invert:
-                raise Exception(f'Marker channel inversion not (yet) supported')
+            module = q1.modules[marker_ch.module_name]
+            if hasattr(module, 'set_marker_invert'):
+                module.set_marker_invert(marker_ch.channel_number, marker_ch.invert)
+            else:
+                if marker_ch.invert:
+                    raise Exception(f'Marker invert requires qblox_instrument 0.11+')
 
     @staticmethod
     def set_output_dir(path):
@@ -101,7 +113,7 @@ class PulsarUploader:
         return True
 
     def get_roundtrip_latency(self):
-        # TODO @@@ put in configuration file.
+        # Spec'd value with some margin.
         return 260
 
     def _get_voltage_channels(self):
@@ -262,6 +274,11 @@ class PulsarUploader:
                 mv2threshold = 1/(in_ranges[ch_number]/2*job.acq_data_scaling[ch_name]*1000)
                 job.program[ch_name].thresholded_acq_threshold = job.acquisition_thresholds[ch_name] * mv2threshold
                 job.program[ch_name].thresholded_acq_rotation = np.degrees(dig_channel.phase) % 360
+                if PulsarUploader.verbose:
+                    logger.debug(f'{ch_name} threshold {job.acquisition_thresholds[ch_name]:5.2f} mV '+
+                                 f'acq: {job.program[ch_name].thresholded_acq_threshold}')
+                    logger.debug(f'{ch_name} rotation {dig_channel.phase:6.3f} rad '+
+                                 f'acq: {job.program[ch_name].thresholded_acq_rotation:5.1f} degrees')
 
         self.q1instrument.start_program(job.program)
         self.q1instrument.wait_stopped(timeout_minutes=timeout_minutes)
@@ -298,6 +315,10 @@ class PulsarUploader:
                         raw.append(self._scale_acq_data(path_data, in_ranges[i]/2*scaling*1000))
                     duration_ms = (time.perf_counter()-start)*1000
                     logger.debug(f'Retrieved data {channel_name} in {duration_ms:5.1f} ms')
+                    seq_def = self.q1instrument.readouts[channel_name]
+                    sequencer = self.q1instrument.modules[seq_def.module_name].pulsar.sequencers[seq_def.seq_nr]
+                    if sequencer.thresholded_acq_trigger_en():
+                        result[channel_name+'.thresholded'] = np.array(bin_data['threshold'])
                 except KeyError:
                     raw = [np.zeros(0)]*2
 
