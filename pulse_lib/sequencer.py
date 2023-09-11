@@ -244,6 +244,14 @@ class sequencer():
         self._create_metadata()
         logger.debug('Done pre-compile')
 
+    def recompile(self):
+        ''' Recompiles the sequence applying new virtual matrix, attenuation, and delays.
+        Note: No changes should be made on the segments. Only pulse-lib settings may be changed.
+        '''
+        for seg_container in self.sequence:
+            seg_container.exit_rendering_mode()
+            seg_container.enter_rendering_mode()
+
     def _calculate_max_dig_delay(self):
         '''
         Returns the maximum configured delay from AWG channel to digitizer channel.

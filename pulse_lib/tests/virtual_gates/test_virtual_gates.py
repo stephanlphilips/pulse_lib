@@ -1,10 +1,10 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
-import pulse_lib.segments.utility.looping as lp
+import matplotlib.pyplot as pt
 
 #%%
 def test1():
-    pulse = context.init_pulselib(n_gates=2, virtual_gates=True)
+    pulse = context.init_pulselib(n_gates=2, n_sensors=1, virtual_gates=True)
 
     pulse.add_channel_attenuation('P1', 0.1)
     pulse.add_channel_attenuation('P2', 0.1)
@@ -24,16 +24,24 @@ def test1():
     s.vP1.add_ramp_ss(60, 90, 20, 40)
     s.vP1.add_ramp_ss(70, 80, 0, -40)
     s.reset_time()
+    s.SD1.acquire(0, 100, wait=True)
 #    s.wait(100000)
 
     sequence = pulse.mk_sequence([s])
 #    sequence.n_rep = 10000
     sequence.n_rep = None
     context.add_hw_schedule(sequence)
+    m_param = sequence.get_measurement_param()
 
     context.plot_awgs(sequence, ylim=(-0.2,1.100), xlim=(0, 100))
+    context.run('virtual_gates', sequence, m_param, close_sequence=False)
 
-#    return context.run('hres1', sequence)
+    context.virtual_matrix[1,0] = 0.2
+    sequence.recompile()
+
+    context.plot_awgs(sequence, ylim=(-0.2,1.100), xlim=(0, 100))
+    return context.run('virtual_gates2', sequence, m_param)
+
 
 
 #%%
