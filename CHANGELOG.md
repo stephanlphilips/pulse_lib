@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.3] - 2023-09-20
+
+- Added sequencer.recompile to quickly update an existing sequence when the virtual gate matrix has changed
+- Corrected qblox version check for marker inversion.
+
 ## \[1.7.2] - 2023-09-06
 
 - Use Qblox input channel selection if qblox-instruments v0.11 installed
