@@ -26,6 +26,7 @@ from .qblox_conditional import get_conditional_channel
 from q1pulse import (
         Q1Instrument,
         __version__ as q1pulse_version)
+from qblox_instruments import __version__ as qblox_version
 
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single, Chirp
 from pulse_lib.segments.data_classes.data_pulse import (
@@ -95,14 +96,13 @@ class PulsarUploader:
             else:
                 q1.add_readout(name, dig_ch.module_name, out_channels=out_ch)
 
-
         for name, marker_ch in self.marker_channels.items():
             module = q1.modules[marker_ch.module_name]
-            if hasattr(module, 'set_marker_invert'):
+            if Version(qblox_version) >= Version('0.11'):
                 module.set_marker_invert(marker_ch.channel_number, marker_ch.invert)
             else:
                 if marker_ch.invert:
-                    raise Exception(f'Marker invert requires qblox_instrument 0.11+')
+                    raise Exception(f'Marker inversion requires qblox_instrument 0.11+')
 
     @staticmethod
     def set_output_dir(path):
