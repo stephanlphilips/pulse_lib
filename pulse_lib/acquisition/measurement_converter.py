@@ -322,6 +322,7 @@ class MeasurementConverter:
 
     def _set_data_raw(self, index):
         self._raw = []
+        self._hw_thresholded = {}
         for m in self._description.measurements:
             if isinstance(m, measurement_acquisition):
                 channel_name = m.acquisition_channel
@@ -331,6 +332,9 @@ class MeasurementConverter:
                     data_offset = data_offset[tuple(index)]
                 if m.interval is None:
                     channel_raw = channel_data[...,data_offset]
+                    thresholded = self._channel_raw.get(m.acquisition_channel+'.thresholded', None)
+                    if thresholded is not None:
+                        self._hw_thresholded[len(self._raw)] = thresholded[..., data_offset]
                 else:
                     n_samples = m.n_samples
                     if not isinstance(n_samples, Number):
@@ -364,9 +368,10 @@ class MeasurementConverter:
                 if m.zero_on_high:
                     result = result ^ 1
                 result = result.astype(int)
-                data = self._channel_raw.get(m.acquisition_channel+'.thresholded', None)
-                if data is not None and np.any(result != data):
-                    logger.warning(f'{np.sum(result != data)} differences between hardware and software threshold')
+                hw_thresholded = self._hw_thresholded.get(i, None)
+                if hw_thresholded is not None and np.any(result != hw_thresholded):
+                    logger.warning(f'{np.sum(result != hw_thresholded)} differences between hardware and software threshold. '
+                                   f'({np.where(result != hw_thresholded)})')
             elif isinstance(m, measurement_expression):
                 result = m.expression.evaluate(last_result)
             else:

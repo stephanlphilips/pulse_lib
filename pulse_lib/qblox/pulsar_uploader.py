@@ -252,10 +252,12 @@ class PulsarUploader:
         channels = job.acquisition_conf.channels
         if channels is None:
             channels = self.digitizer_channels.keys()
+        triggers = {ch_name: getattr(job.program[ch_name], 'trigger', None) for ch_name in channels}
         self.acq_description = AcqDescription(seq_id, index, channels,
                                               job.acq_data_scaling,
                                               job.n_rep,
-                                              job.acquisition_conf.average_repetitions)
+                                              job.acquisition_conf.average_repetitions,
+                                              triggers)
 
         logger.info(f'Play {index}')
 
@@ -315,10 +317,13 @@ class PulsarUploader:
                         raw.append(self._scale_acq_data(path_data, in_ranges[i]/2*scaling*1000))
                     duration_ms = (time.perf_counter()-start)*1000
                     logger.debug(f'Retrieved data {channel_name} in {duration_ms:5.1f} ms')
-                    seq_def = self.q1instrument.readouts[channel_name]
-                    sequencer = self.q1instrument.modules[seq_def.module_name].pulsar.sequencers[seq_def.seq_nr]
-                    if sequencer.thresholded_acq_trigger_en():
-                        result[channel_name+'.thresholded'] = np.array(bin_data['threshold'])
+                    trigger = acq_desc.triggers[channel_name]
+                    if trigger is not None:
+                        result[channel_name+'.thresholded'] = np.array(bin_data['threshold'], dtype=int)
+                        if trigger.invert:
+                            # invert thresholded result as has been done on trigger.
+                            result[channel_name+'.thresholded'] ^= 1
+
                 except KeyError:
                     raw = [np.zeros(0)]*2
 
@@ -385,6 +390,7 @@ class AcqDescription:
     acq_data_scaling: Dict[str, Union[float, np.ndarray]]
     n_rep: int
     average_repetitions: bool = False
+    triggers: Optional[List[object]] = None
 
 
 class Job(object):
