@@ -460,8 +460,8 @@ class sequencer():
                 Only present when `values=True`, threshold is set,
                 and accept_if is None.
             "{name}_selected":
-                The qubit state of the measurements with an accept_if
-                condition returned in a 1D array.
+                The number of measurements matching the accept_if condition for
+                the named acquisition.
                 Only present when `selectors=True`, threshold is set,
                 and accept_if is set.
             "total_selected":
@@ -684,8 +684,8 @@ class sequencer():
                 Only present when `values=True`, threshold is set,
                 and accept_if is None.
             "{name}_selected":
-                The qubit state of the measurements with an accept_if
-                condition returned in a 1D array.
+                The number of measurements matching the accept_if condition for
+                the named acquisition.
                 Only present when `selectors=True`, threshold is set,
                 and accept_if is set.
             "total_selected":
