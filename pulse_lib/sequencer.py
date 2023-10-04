@@ -403,12 +403,13 @@ class sequencer():
                                                                                           t_measure, sample_rate)
                     else:
                         m.n_samples = np.zeros(t_measure.shape, dtype=int)
-                        for i,t in enumerate(t_measure.flat):
+                        for i, t in enumerate(t_measure.flat):
                             m.n_samples[i], m.interval = \
                                 self.uploader.actual_acquisition_points(m.acquisition_channel,
                                                                         t, sample_rate)
                 else:
-                    print(f'WARNING {type(self.uploader)} is missing method actual_acquisition_points(); using old computation')
+                    print(f'WARNING {type(self.uploader)} is missing method actual_acquisition_points();'
+                          ' using old computation')
                     m.n_samples = self.uploader.get_num_samples(
                             m.acquisition_channel, t_measure, sample_rate)
                     m.interval = round(1e9/sample_rate)
@@ -418,7 +419,7 @@ class sequencer():
 
     def get_measurement_param(self, name='seq_measurements', upload=None,
                               states=True, values=True,
-                              selectors=True, total_selected=True, accept_mask=True,
+                              selectors=False, total_selected=True, accept_mask=False,
                               iq_mode='Complex', iq_complex=None):
         '''
         Returns a qcodes MultiParameter with an entry per measurement, i.e. per acquire call.
@@ -626,7 +627,7 @@ class sequencer():
             seg = self.sequence[s]
             if isinstance(seg, conditional_segment):
                 n_conditions = int(np.log2(len(seg.branches))+1e-8)
-                for i,branch in enumerate(seg.branches):
+                for i, branch in enumerate(seg.branches):
                     pt.figure()
                     pt.title(f'Conditional segment {s}-{i:0{n_conditions}b} index:{index}')
                     branch.plot(index, channels=channels, render_full=awg_output)
@@ -637,8 +638,8 @@ class sequencer():
 
     def get_measurement_results(self, index=None,
                                 raw=True, states=True, values=True,
-                                selectors=True, total_selected=True,
-                                accept_mask=True, iq_mode='Complex',
+                                selectors=False, total_selected=True,
+                                accept_mask=False, iq_mode='Complex',
                                 iq_complex=None):
         '''
         Returns data per measurement, i.e. per acquire call.
