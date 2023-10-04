@@ -1,5 +1,7 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
+
+#%%
 import pulse_lib.segments.utility.looping as lp
 
 def test():
@@ -24,6 +26,7 @@ def test():
         context.plot_segments([s], index=[i])
 
     sequence = pulse.mk_sequence([s])
+    sequence.n_rep = 10
     context.add_hw_schedule(sequence)
     for n in sequence.n_pulses.values:
         sequence.n_pulses(n)

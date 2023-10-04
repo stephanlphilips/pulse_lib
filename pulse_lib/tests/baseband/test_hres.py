@@ -136,10 +136,9 @@ def test3():
 
 #    sequence.dt(0.2)
 #    context.plot_awgs(sequence, ylim=(-0.100,0.100), xlim=(0, 26))
-    for _ in range(20):
-        for t in sequence.dt.values:
-            sequence.dt(t)
-            context.plot_awgs(sequence, ylim=(-0.100,0.100))
+    for t in sequence.dt.values:
+        sequence.dt(t)
+        context.plot_awgs(sequence, ylim=(-0.100,0.100), xlim=(0, 40))
 
 #    return context.run('hres2', sequence)
 

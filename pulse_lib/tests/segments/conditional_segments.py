@@ -66,9 +66,9 @@ def test2():
 
     s.P1.add_block(10, 20, -10)
     s.wait(30, reset_time=True)
-    s.SD1.acquire(0, t_measure, 'm0', threshold=0.0024, zero_on_high=True, wait=True)
+    s.SD1.acquire(0, t_measure, 'm0', threshold=0.0024, zero_on_high=False, wait=True)
     s.wait(200, reset_time=True)
-    s.SD1.acquire(0, t_measure, 'm1', threshold=0.0024, zero_on_high=True, wait=True)
+    s.SD1.acquire(0, t_measure, 'm1', threshold=0.0024, zero_on_high=False, wait=True)
     s.wait(feedback_latency, reset_time=True)
 
     s_true = pulse.mk_segment()
@@ -77,7 +77,7 @@ def test2():
     s_false.q1.add_MW_pulse(10, 20, 80.0, 2.450e9)
     s_false.wait(10, reset_time=True)
 
-    cond_seg1 = conditional_segment(MeasurementRef('m1'), [s_false, s_true], name='cond')
+    cond_seg1 = conditional_segment(MeasurementRef('m0'), [s_false, s_true], name='cond')
 
     sequence = pulse.mk_sequence([s1, cond_seg1])
     sequence.n_rep = 3
@@ -92,6 +92,6 @@ def test2():
 #%%
 if __name__ == '__main__':
     context.init_coretools()
-#    ds1 = test1()
+    ds1 = test1()
     ds2 = test2()
-    ds2.m1_1(), ds2.m1_2(), ds2.m1_3(), ds2.m1_4()
+    print(ds2.m1_1(), ds2.m1_2(), ds2.m1_3(), ds2.m1_4())

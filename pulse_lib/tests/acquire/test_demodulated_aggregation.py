@@ -11,7 +11,7 @@ class IQDemodulator:
         self.frequency = frequency
 
     def demodulate(self, t_start, ch_data):
-#        sample_rate = self.digitizer.sample_rate.cache()
+        # sample_rate = self.digitizer.sample_rate.cache()
         n = ch_data.shape[-1]
         t = np.arange(0, n) * (1/self.sample_rate)
         demod_vector = np.exp(-2j*np.pi*self.frequency*t)
@@ -34,8 +34,8 @@ def test_iqdemod_func():
 def test1():
     pulse = context.init_pulselib(n_gates=2, n_sensors=2, rf_sources=True)
 
-    pulse.digitizer_channels['SD1'].iq_out=True
-    pulse.digitizer_channels['SD2'].iq_out=True
+    pulse.digitizer_channels['SD1'].iq_out = True
+    pulse.digitizer_channels['SD2'].iq_out = True
 
     backend = context.pulse._backend
     if backend == 'Tektronix_5014':
@@ -72,8 +72,8 @@ def test1():
     m_param = sequence.get_measurement_param(iq_mode='amplitude+phase')
     context.add_hw_schedule(sequence)
 
-    t = np.arange(0, t_measure, 1e9/sample_rate) # [ns]
-    t *= 1e-9 # [s]
+    t = np.arange(0, t_measure, 1e9/sample_rate)  # [ns]
+    t *= 1e-9  # [s]
 
     context.set_mock_data({
             'SD1': [np.cos(2*np.pi*f*t+np.pi/10)]*trigger_factor,
@@ -90,7 +90,7 @@ def demodulate(t_start, data):
     n = data.shape[-1]
     v = np.full(n, -1.0)
     v = v.cumprod()
-    if n%2 == 1:
+    if n % 2 == 1:
         print('Warning: odd number of points')
         # set last to 0, because average of vector must be 0.
         v[-1] = 0

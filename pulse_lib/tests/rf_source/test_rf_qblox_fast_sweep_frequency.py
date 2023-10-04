@@ -39,7 +39,7 @@ class PhaseParameter(Parameter):
     def __init__(self, pulselib, digitizer_channel_name):
         super().__init__(
                 name=f'{digitizer_channel_name} phase',
-                label=f'{digitizer_channel_name} phasey',
+                label=f'{digitizer_channel_name} phase',
                 unit='degrees')
         self.channel = pulselib.digitizer_channels[digitizer_channel_name]
 

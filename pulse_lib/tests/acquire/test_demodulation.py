@@ -46,8 +46,8 @@ def test1():
     m_param = sequence.get_measurement_param(iq_mode='amplitude+phase')
     context.add_hw_schedule(sequence)
 
-    t = np.arange(0, t_measure, 1e9/sample_rate) # [ns]
-    t *= 1e-9 # [s]
+    t = np.arange(0, t_measure, 1e9/sample_rate)  # [ns]
+    t *= 1e-9  # [s]
 
     context.set_mock_data({
             'SD1': [np.cos(2*np.pi*f1*t+np.pi/10)]*trigger_factor,
