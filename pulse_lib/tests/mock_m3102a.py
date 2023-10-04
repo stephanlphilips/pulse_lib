@@ -24,15 +24,19 @@ class MockM3102A(Instrument):
     def set_operating_mode(self, value):
         pass
 
-    def set_acquisition_mode(self, value):
-        pass
+    def set_acquisition_mode(self, mode):
+        for prop in self.measure._ch_properties.values():
+            prop.acquisition_mode = mode
+
+    def get_channel_acquisition_mode(self, ch_num):
+        return self.measure._ch_properties[ch_num].acquisition_mode
 
     def set_active_channels(self, channel_list):
         self.measure._active_channels = set(channel_list)
 
     def set_data_handling_mode(self, mode):
-        for ch in self.measure._active_channels:
-            self.measure._ch_properties[ch].data_mode = mode
+        for prop in self.measure._ch_properties.values():
+            prop.data_mode = mode
 
     @property
     def active_channels(self):
@@ -75,12 +79,14 @@ class ChannelProperties:
     t_measure: int = 10
     samples_per_cycle: int = 1
     data_mode: int = 0
+    acquisition_mode: int = 0
 
 class ChannelData:
     def __init__(self):
-        self._active_channels = set([1,2,3,4])
-        self._data = {i:None for i in self._active_channels}
-        self._ch_properties = {i:ChannelProperties() for i in self._active_channels}
+        all_channels = [1,2,3,4]
+        self._active_channels = set(all_channels)
+        self._data = {i:None for i in all_channels}
+        self._ch_properties = {i:ChannelProperties() for i in all_channels}
 
     def get_data(self):
         result = []
