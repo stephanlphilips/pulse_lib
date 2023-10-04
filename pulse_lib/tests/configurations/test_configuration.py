@@ -10,12 +10,9 @@ import numpy as np
 import qcodes as qc
 import qcodes.logger as qc_logger
 from qcodes.logger import start_all_logging
-from qcodes.data.data_set import DataSet
-from qcodes.data.io import DiskIO
 
 from ruamel.yaml import YAML
 
-from pulse_lib.tests.utils.qc_run import qc_run
 from pulse_lib.base_pulse import pulselib
 from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
 from pulse_lib.schedule.tektronix_schedule import TektronixSchedule
@@ -25,11 +22,13 @@ try:
     from core_tools.sweeps.scans import sweep, Scan
     _ct_imported = True
     _ct_configured = False
-except:
+except Exception:
     _ct_imported = False
 
+_qcodes_initialized = False
 
 logger = logging.getLogger(__name__)
+
 
 def init_logging():
     start_all_logging()
@@ -87,7 +86,7 @@ class Context:
                     else:
                         digs.append(module)
         else:
-            for name,component in station.components.items():
+            for name, component in station.components.items():
                 if name.startswith('AWG'):
                     awgs.append(component)
                 if name.startswith('Dig'):
@@ -96,9 +95,9 @@ class Context:
         cfg = self._configuration
         backend = cfg['backend']
         if backend in ['Keysight', 'Keysight_QS']:
-#            for awg in awgs:
-#                # anti-ringing filter
-#                awg.set_digital_filter_mode(3)
+            # for awg in awgs:
+            #     # anti-ringing filter
+            #     awg.set_digital_filter_mode(3)
             for dig in digs:
                 # Set mode AVERAGE
                 dig.set_acquisition_mode(1)
@@ -112,7 +111,7 @@ class Context:
                 dig.reference_clock(int(1e7))
                 # 50 Ohm termination
                 dig.initialize_channels(mV_range=2000, termination=1, lp_filter=1)
-                dig.set_ext0_OR_trigger_settings(1, 0, 0, 1600) # POS, 1 MOhm, DC, 1.6V
+                dig.set_ext0_OR_trigger_settings(1, 0, 0, 1600)  # POS, 1 MOhm, DC, 1.6V
                 dig.sample_rate(40e6)
 
         self.awgs = awgs
@@ -134,17 +133,17 @@ class Context:
         self.pulse = pulse
 
         gate_map = {}
-        for awg_name,gates in cfg['awg_channels'].items():
-            for i,gate in enumerate(gates):
+        for awg_name, gates in cfg['awg_channels'].items():
+            for i, gate in enumerate(gates):
                 if backend != 'Qblox':
                     i += 1
-                gate_map[gate] = (awg_name,i)
+                gate_map[gate] = (awg_name, i)
 
         gates = []
         for i in range(n_gates):
             gate = f'P{i+1}'
             gates.append(gate)
-            awg_name,channel = gate_map[gate]
+            awg_name, channel = gate_map[gate]
             if awg_name not in pulse.awg_devices:
                 pulse.add_awg(getattr(station, awg_name))
             pulse.define_channel(gate, awg_name, channel)
@@ -154,12 +153,12 @@ class Context:
 
         if virtual_gates:
             n_gates = len(gates)
-            matrix = np.diag([0.9]*n_gates) + 0.1
+            self.virtual_matrix = np.diag([0.9]*n_gates) + 0.1
             pulse.add_virtual_matrix(
                     name='virtual-gates',
                     real_gate_names=gates,
                     virtual_gate_names=['v'+gate for gate in gates],
-                    matrix=matrix
+                    matrix=self.virtual_matrix
                     )
 
         for i in range(n_markers):
@@ -167,9 +166,9 @@ class Context:
 
         n_iq = math.ceil(n_qubits/2)
         for i in range(n_iq):
-            I,Q = f'I{i+1}', f'Q{i+1}',
-            awg,channel_I = gate_map[I]
-            awg,channel_Q = gate_map[Q]
+            I, Q = f'I{i+1}', f'Q{i+1}',
+            awg, channel_I = gate_map[I]
+            awg, channel_Q = gate_map[Q]
             if awg not in pulse.awg_devices:
                 pulse.add_awg(station.components[awg])
             pulse.define_channel(I, awg, channel_I)
@@ -220,7 +219,7 @@ class Context:
 
         for i in range(n_sensors):
             sensor = f'SD{i+1}'
-            digitizer_name,channel = cfg['sensors'][sensor]
+            digitizer_name, channel = cfg['sensors'][sensor]
             if digitizer_name not in pulse.digitizers:
                 pulse.add_digitizer(getattr(station, digitizer_name))
             if isinstance(channel, int):
@@ -235,7 +234,7 @@ class Context:
             pulse.add_digitizer_marker('Dig1', 'M_M4i')
 
         if rf_sources:
-            for sensor,params in cfg['rf'].items():
+            for sensor, params in cfg['rf'].items():
                 if sensor not in pulse.digitizer_channels:
                     continue
                 if backend == 'Qblox':
@@ -247,8 +246,13 @@ class Context:
                                                   mode='pulsed',
                                                   startup_time_ns=params['startup_time'])
                 else:
+                    output = params['output']
+                    if not isinstance(output, str):
+                        output = tuple(output)
+                    pulse.set_digitizer_frequency(sensor, params.get('frequency', None))
                     pulse.set_digitizer_rf_source(sensor,
-                                                  output=params['output'],
+                                                  output=output,
+                                                  amplitude=params.get('amplitude', None),
                                                   mode='pulsed',
                                                   startup_time_ns=params['startup_time'])
 
@@ -265,7 +269,7 @@ class Context:
     def _add_marker(self, name, setup_ns=0, hold_ns=0):
         cfg = self._configuration
         pulse = self.pulse
-        awg,channel = cfg['markers'][name]
+        awg, channel = cfg['markers'][name]
         if isinstance(channel, Sequence):
             channel = tuple(channel)
         if awg not in pulse.awg_devices:
@@ -279,7 +283,7 @@ class Context:
             sequence.set_hw_schedule(HardwareScheduleMock())
         elif schedule == 'HVI2':
             hvi2_schedule = getattr(self, 'hvi2_schedule', None)
-            if hvi2_schedule == None:
+            if hvi2_schedule is None:
                 from core_tools.HVI2.hvi2_schedule_loader import Hvi2ScheduleLoader
                 self.hvi2_schedule = Hvi2ScheduleLoader(self.pulse, "SingleShot")
             sequence.set_hw_schedule(self.hvi2_schedule)
@@ -304,13 +308,27 @@ class Context:
             _ct_configured = True
         ct.set_sample_info(sample=self.configuration_name)
 
-    def run(self, name, sequence, *params, silent=False, sweeps=[]):
+    def _init_qcodes_data(self):
+        global _qcodes_initialized
+        if not _qcodes_initialized:
+            try:
+                from qcodes.data.data_set import DataSet
+                from qcodes.data.io import DiskIO
+            except ImportError:
+                from qcodes_loops.data.data_set import DataSet
+                from qcodes_loops.data.io import DiskIO
+
+            _qcodes_initialized = True
+            path = 'C:/measurements/test_pulselib'
+            DataSet.default_io = DiskIO(path)
+
+    def run(self, name, sequence, *params, silent=False, sweeps=[], close_sequence=True):
         runner = self._configuration['runner']
         self.last_sequence = sequence
         if runner == 'qcodes':
-            path = 'C:/measurements/test_pulselib'
-            DataSet.default_io = DiskIO(path)
-            return qc_run(name, *sweeps, sequence, *params, quiet=silent)
+            from pulse_lib.tests.utils.qc_run import qc_run
+            self._init_codes_data()
+            ds = qc_run(name, *sweeps, sequence, *params, quiet=silent)
 
         elif runner == 'core_tools':
             self.init_coretools()
@@ -318,20 +336,21 @@ class Context:
             for sw in sweeps:
                 scan_sweeps.append(sweep(*sw))
             ds = Scan(*scan_sweeps, sequence, *params, name=name, silent=silent).run()
-            try:
-                sequence.close()
-            except: pass
-            return ds
-
         else:
             print(f'no implementation for {runner}')
+        if close_sequence:
+            try:
+                sequence.close()
+            except Exception:
+                pass
+        return ds
 
     def set_mock_data(self,
-                      data:Dict[str,List[Union[float, np.ndarray]]],
+                      data: Dict[str, List[Union[float, np.ndarray]]],
                       repeat=None):
         if not repeat:
-            repeat=1
-        for ch_name,values in data.items():
+            repeat = 1
+        for ch_name, values in data.items():
             l = []
             for value in values:
                 if isinstance(value, Number):
@@ -341,14 +360,18 @@ class Context:
             ch_data = np.tile(np.concatenate(l), repeat)
             try:
                 self._set_mock_data(ch_name, ch_data)
-            except:
+            except Exception:
                 logger.error("Couldn't set mock data for {ch_name}", exc_info=True)
 
-    def _set_mock_data(self, ch_name, ch_data):
+    def _set_mock_data(self, ch_name, ch_data, scaling=1.0):
+        ch_data = np.require(ch_data, dtype=float)
+        ch_data *= scaling
         backend = self._configuration['backend']
         if backend == 'Qblox':
             seq_def = self.pulse.uploader.q1instrument.readouts[ch_name]
+            in_ranges = self.pulse.uploader.q1instrument.get_input_ranges(ch_name)
             sequencer = self.station[seq_def.module_name].sequencers[seq_def.seq_nr]
+            ch_data /= in_ranges[seq_def.channels]
             sequencer.set_acquisition_mock_data(ch_data)
         elif backend in ['Keysight', 'Keysight_QS', 'Tektronix_5014']:
             dig_ch = self.pulse.digitizer_channels[ch_name]
@@ -454,13 +477,3 @@ class Context:
 
 init_logging()
 context = Context()
-
-
-#from core_tools.HVI2.hvi2_schedule_loader import Hvi2ScheduleLoader
-#
-#def cleanup_instruments():
-#    try:
-#        oldLoader.close_all()
-#    except: pass
-#    oldLoader = Hvi2ScheduleLoader
-

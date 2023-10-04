@@ -1,8 +1,14 @@
 from collections.abc import Sequence
 import qcodes as qc
-from qcodes.measure import Measure
-from qcodes.loops import Loop
-from qcodes.actions import Task
+try:
+    from qcodes.measure import Measure
+    from qcodes.loops import Loop
+    from qcodes.actions import Task
+except ImportError:
+    from qcodes_loops.measure import Measure
+    from qcodes_loops.loops import Loop
+    from qcodes_loops.actions import Task
+
 
 from pulse_lib.sequencer import sequencer
 
