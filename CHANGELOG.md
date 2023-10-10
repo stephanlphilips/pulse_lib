@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.4] - 2023-10-10
+
+- Fixed Qblox hardware/software threshold data check.
+- Raise clearer exception when a state threshold is applied on time trace data.
+- Set defaults `selectors=False` and `accept_mask=False` for `get_measurement_results` and `get_measurement_param`
+
 ## \[1.7.3] - 2023-09-20
 
 - Added sequencer.recompile to quickly update an existing sequence when the virtual gate matrix has changed
