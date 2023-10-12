@@ -14,13 +14,15 @@ from pulse_lib.virtual_matrix.virtual_gate_matrices import VirtualGateMatrices
 
 logger = logging.getLogger(__name__)
 
+
 class pulselib:
     '''
     Global class that is an organisational element in making the pulses.
     The idea is that you first make individual segments,
     you can than later combine them into a sequence, this sequence will be uploaded
     '''
-    def __init__(self, backend = "Keysight"):
+
+    def __init__(self, backend="Keysight"):
         self.awg_devices = dict()
         self.digitizers = dict()
         self.awg_channels = dict()
@@ -117,14 +119,14 @@ class pulselib:
         '''
         define the channels and their location
         Args:
-            channel_name (str) : name of a given channel on the AWG. This would usually the name of the gate that it is connected to.
+            channel_name (str) : name of a given channel on the AWG.
             AWG_name (str) : name of the instrument (as given in add_awgs())
             channel_number (int) : channel number on the AWG
             amplitude (float): (maximum) amplitude in mV. Uses instrument default when not set.
 
         Notes:
-            For Keysight AWG the amplitude should only be set to enforce a maximum output level. The amplitude is applied
-            digitally and setting it does not improve resolution of noise level.
+            For Keysight AWG the amplitude should only be set to enforce a maximum output level.
+            The amplitude is applied digitally and setting it does not improve resolution of noise level.
             For Tektronix AWG the amplitude applies to the analogue output range.
             For Qblox setting the amplitude has no effect.
         '''
@@ -136,11 +138,12 @@ class pulselib:
         '''
         define the channels and their location
         Args:
-            marker_name (str) : name of a given channel on the AWG. This would usually the name of the gate that it is connected to.
+            marker_name (str) : name of a given channel on the AWG.
             AWG_name (str) : name of the instrument (as given in add_awgs())
             channel_number (int or Tuple(int, int)) : channel number on the AWG
             setup_ns (float): setup time for the device using the marker. marker raises `setup_ns` earlier.
-            hold_ns (float): hold time for the device using the marker to ensure proper output. marker falls `hold_ns` later.
+            hold_ns (float):
+                hold time for the device using the marker to ensure proper output. marker falls `hold_ns` later.
             amplitude (float): amplitude in mV (only applies when instrument allows control)
             invert (bool): invert the ouput, i.e. high voltage when marker not set and low when marker is active.
 
@@ -150,7 +153,6 @@ class pulselib:
         '''
         self.marker_channels[marker_name] = marker_channel(marker_name, AWG_name, channel_number,
                                                            setup_ns, hold_ns, amplitude, invert)
-
 
     def define_digitizer_channel(self, name, digitizer_name, channel_number, iq_out=False):
         ''' Defines a digitizer channel.
@@ -197,8 +199,6 @@ class pulselib:
         '''
         self.digitizer_channels[channel_name].frequency = frequency
 
-    # Changed [v1.6.0] amplitude optional
-    # Changed [v1.6.0] trigger_offset_ns -> delay + startup_time_ns
     def set_digitizer_rf_source(self, channel_name, output,
                                 mode='pulsed',
                                 amplitude=0,
@@ -241,7 +241,7 @@ class pulselib:
             Qblox driver only supports module name with channel number(s).
         '''
         if trigger_offset_ns is not None:
-            print(f'Warning: trigger_offset_ns is deprecated. Use startup_time_ns and/or source_delay_ns')
+            print('Warning: trigger_offset_ns is deprecated. Use startup_time_ns and/or source_delay_ns')
             if startup_time_ns == 0:
                 startup_time_ns = trigger_offset_ns
         rf_source = resonator_rf_source(output=output, mode=mode,
@@ -281,10 +281,9 @@ class pulselib:
         else:
             raise ValueError(f"Channel delay error: Channel '{channel}' is not defined")
 
-
     def add_channel_compensation_limit(self, channel_name, limit):
         '''
-        add voltage limitations per channnel that can be used to make sure that the intregral of the total voltages is 0.
+        Sets voltage limits per channnel. They are used to make sure that the intregral of the total voltages is 0.
         Args:
             channel (str) : channel name as defined in self.define_channel().
             limit (tuple<float,float>) : lower/upper limit for DC compensation, e.g. (-100,500)
@@ -379,8 +378,7 @@ class pulselib:
 
     def define_qubit_channel(self, qubit_channel_name, IQ_channel_name,
                              resonance_frequency=None,
-                             correction_phase=0.0, correction_gain=(1.0,1.0),
-                             reference_frequency=None, # TODO: remove in next release.
+                             correction_phase=0.0, correction_gain=(1.0, 1.0)
                              ):
         """
         Creates a qubit channel on an IQ channel. A qubit channel keeps track of the
@@ -393,11 +391,6 @@ class pulselib:
             correction_phase (float) : phase in rad added to Q component of IQ channel
             correction_gain (float,float) : correction of I and Q amplitude
         """
-        if reference_frequency is not None:
-            print('WARNING: argument reference_frequency of define_qubit_channel() is deprecated')
-            if resonance_frequency is None:
-                resonance_frequency = reference_frequency
-
         iq_channel = self.IQ_channels[IQ_channel_name]
         qubit = QubitChannel(qubit_channel_name, resonance_frequency, iq_channel,
                              correction_phase, correction_gain)
@@ -417,7 +410,7 @@ class pulselib:
     def set_qubit_correction_gain(self, qubit_channel_name, correction_gain_I, correction_gain_Q):
         self.qubit_channels[qubit_channel_name].correction_gain = (correction_gain_I, correction_gain_Q)
 
-    def set_channel_attenuations(self, attenuation_dict:Dict[str, float]):
+    def set_channel_attenuations(self, attenuation_dict: Dict[str, float]):
         for channel, attenuation in attenuation_dict.items():
             if channel not in self.awg_channels:
                 logger.info(f'Channel {channel} defined in hardware, but not in pulselib; skipping channel')
@@ -467,6 +460,7 @@ class pulselib:
                                                self.awg_channels, self.marker_channels,
                                                self.digitizer_markers, self.qubit_channels,
                                                self.digitizer_channels, self.awg_sync)
+
     def _old_Tektronix5014_message(self):
         raise Exception('''
         Pulselib Tektronix driver has changed in pulselib version 1.3.6.
@@ -518,9 +512,6 @@ class pulselib:
         elif self._backend == "Qblox":
             self._create_QbloxPulsar_uploader()
 
-        elif self._backend in ["Demo", "None", None]:
-            logger.info('No backend defined')
-            TODO('define demo backend')
         else:
             raise Exception(f'Unknown backend: {self._backend}')
 
@@ -577,13 +568,13 @@ class pulselib:
         '''
         try:
             from core_tools.drivers.hardware.hardware import hardware as hw_cls
-        except:
+        except Exception:
             logger.warning('old version of core_tools detected ..')
 
         try:
             new_hardware_class = isinstance(hardware, hw_cls)
-        except:
-           new_hardware_class = False
+        except Exception:
+            new_hardware_class = False
 
         if new_hardware_class:
             for virtual_gate_set in hardware.virtual_gates:
@@ -625,108 +616,7 @@ class pulselib:
 
     def _check_uniqueness_of_channel_name(self, channel_name):
         if (channel_name in self.awg_channels
-            or channel_name in self.marker_channels
-            or channel_name in self.digitizer_channels
-            or channel_name in self.qubit_channels):
+                or channel_name in self.marker_channels
+                or channel_name in self.digitizer_channels
+                or channel_name in self.qubit_channels):
             raise ValueError(f"double declaration of the a channel/marker name ({channel_name}).")
-
-
-if __name__ == '__main__':
-    from pulse_lib.virtual_channel_constructors import IQ_channel_constructor
-    from pulse_lib.virtual_channel_constructors import virtual_gates_constructor
-
-    p = pulselib()
-
-
-    class AWG(object):
-        """docstring for AWG"""
-        def __init__(self, name):
-            self.name = name
-            self.chassis = 0
-            self.slot = 0
-            self.type = "DEMO"
-
-    AWG1 = AWG("AWG1")
-    AWG2 = AWG("AWG2")
-    AWG3 = AWG("AWG3")
-    AWG4 = AWG("AWG4")
-
-    # add to pulse_lib
-    # p.add_awgs('AWG1',AWG1)
-    # p.add_awgs('AWG2',AWG2)
-    # p.add_awgs('AWG3',AWG3)
-    # p.add_awgs('AWG4',AWG4)
-
-    # define channels
-    p.define_channel('B0','AWG1', 1)
-    p.define_channel('P1','AWG1', 2)
-    p.define_channel('B1','AWG1', 3)
-    p.define_channel('P2','AWG1', 4)
-    p.define_channel('B2','AWG2', 1)
-    p.define_channel('P3','AWG2', 2)
-    p.define_channel('B3','AWG2', 3)
-    p.define_channel('P4','AWG2', 4)
-    p.define_channel('B4','AWG3', 1)
-    p.define_channel('P5','AWG3', 2)
-    p.define_channel('B5','AWG3', 3)
-    p.define_channel('G1','AWG3', 4)
-    p.define_channel('I_MW','AWG4',1)
-    p.define_channel('Q_MW','AWG4',2)
-    p.define_marker('M1','AWG4', 3, setup_ns=15, hold_ns=15)
-    p.define_marker('M2','AWG4', 4, setup_ns=15, hold_ns=15)
-
-
-    # format : channel name with delay in ns (can be posive/negative)
-    p.add_channel_delay('I_MW',50)
-    p.add_channel_delay('Q_MW',50)
-
-    # add limits on voltages for DC channel compenstation (if no limit is specified, no compensation is performed).
-    # p.add_channel_compensation_limit('B0', (-100, 500))
-
-    try:
-        from V2_software.drivers.virtual_gates.harware import hardware_example
-        hw =  hardware_example("hw")
-        p.load_hardware(hw)
-
-    except:
-        # set a virtual gate matrix (note that you are not limited to one matrix if you would which so)
-        virtual_gate_set_1 = virtual_gates_constructor(p)
-        virtual_gate_set_1.add_real_gates('P1','P2','P3','P4','P5','B0','B1','B2','B3','B4','B5')
-        virtual_gate_set_1.add_virtual_gates('vP1','vP2','vP3','vP4','vP5','vB0','vB1','vB2','vB3','vB4','vB5')
-        virtual_gate_set_1.add_virtual_gate_matrix(np.eye(11))
-
-    #make virtual channels for IQ usage (also here, make one one of these object per MW source)
-    IQ_chan_set_1 = IQ_channel_constructor(p)
-    # set right association of the real channels with I/Q output.
-    IQ_chan_set_1.add_IQ_chan("I_MW", "I")
-    IQ_chan_set_1.add_IQ_chan("Q_MW", "Q")
-    IQ_chan_set_1.add_marker("M1")
-    IQ_chan_set_1.add_marker("M2")
-    # set LO frequency of the MW source. This can be changed troughout the experiments, bit only newly created segments will hold the latest value.
-    IQ_chan_set_1.set_LO(1e9)
-    # name virtual channels to be used.
-    IQ_chan_set_1.add_virtual_IQ_channel("MW_qubit_1")
-    IQ_chan_set_1.add_virtual_IQ_channel("MW_qubit_2")
-
-    print(p.channels)
-    # p.finish_init()
-
-    seg  = p.mk_segment()
-    # seg2 = p.mk_segment()
-    # seg3 = p.mk_segment()
-
-    # seg.vP1.add_block(0,10,1)
-
-
-    # # B0 is the barrier 0 channel
-    # # adds a linear ramp from 10 to 20 ns with amplitude of 5 to 10.
-    # seg.B0.add_pulse([[10.,0.],[10.,5.],[20.,10.],[20.,0.]])
-    # # add a block pulse of 2V from 40 to 70 ns, to whaterver waveform is already there
-    # seg.B0.add_block(40,70,2)
-    # # just waits (e.g. you want to ake a segment 50 ns longer)
-    # seg.B0.wait(50)
-    # # resets time back to zero in segment. Al the commannds we run before will be put at a negative time.
-    # seg.B0.reset_time()
-    # # this pulse will be placed directly after the wait()
-    # seg.B0.add_block(0,10,2)
-

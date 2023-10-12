@@ -399,49 +399,14 @@ class segment_container():
         if reset_time:
             self.reset_time()
 
-    def add_HVI_marker(self, marker_name, t_off = 0):
-        '''
-        add a HVI marker that corresponds to the current time of the segment (defined by reset_time).
-
-        Args:
-            marker_name (str) : name of the marker to add
-            t_off (str) : offset to be given from the marker
-        '''
-        start_time = self._start_time
-        if start_time.shape != (1,):
-            setpoint_data = self.setpoint_data
-            axis = setpoint_data.axis
-            time_shape = []
-            for i in range(start_time.ndim):
-                s = start_time.shape[i]
-                if i in axis:
-                    time_shape.append(s)
-            start_time = start_time.reshape(time_shape)
-            times = lp.loop_obj()
-            times.add_data(start_time,
-                           labels=setpoint_data.labels[::-1],
-                           units=setpoint_data.units[::-1],
-                           axis=setpoint_data.axis[::-1],
-                           setvals=setpoint_data.setpoints[::-1])
-            time = t_off + times
-        else:
-            time = t_off + start_time[0]
-
-#        print('start', type(start_time), start_time)
-#        print('t_off', t_off)
-#        print('time', time)
-
-        self.add_HVI_variable(marker_name, time, True)
-
-    def add_HVI_variable(self, marker_name, value, time=False):
+    def add_HVI_variable(self, marker_name, value):
         """
         add time for the marker.
         Args:
             name (str) : name of the variable
             value (double) : value to assign to the variable
-            time (bool) : if the value is a timestamp (determines behaviour when the variable is used in a sequence) (coresponding to a master clock)
         """
-        self._software_markers._add_HVI_variable(marker_name, value, time)
+        self._software_markers._add_HVI_variable(marker_name, value, False)
 
     def add_measurement_expression(self, expression=None, name=None, accept_if=None):
         '''
