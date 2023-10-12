@@ -1,15 +1,16 @@
 """
 Generic data class where all others should be derived from.
 """
+import copy
 import uuid
 import logging
 from abc import ABC, abstractmethod
 import numpy as np
 from pulse_lib.segments.data_classes.lru_cache import LruCache
 
-import copy
 
 logger = logging.getLogger(__name__)
+
 
 class parent_data(ABC):
     """
@@ -49,7 +50,7 @@ class parent_data(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def reset_time(self, time = None):
+    def reset_time(self, time=None):
         raise NotImplementedError()
 
     @abstractmethod
@@ -82,7 +83,7 @@ class parent_data(ABC):
     @abstractmethod
     def _render(self, sample_rate, ref_channel_states, LO):
         '''
-        make a full rendering of the waveform at a predetermined sample rate. This should be defined in the child of this class.
+        make a full rendering of the waveform at a predetermined sample rate.
         '''
         raise NotImplementedError()
 
@@ -99,15 +100,15 @@ class parent_data(ABC):
 
         data = cache_entry.data
         if (data is None
-            or data['sample_rate'] != sample_rate
-            or data['ref_states'] != ref_channel_states
-            or data['LO'] != LO):
+                or data['sample_rate'] != sample_rate
+                or data['ref_states'] != ref_channel_states
+                or data['LO'] != LO):
             waveform = self._render(sample_rate, ref_channel_states, LO)
             cache_entry.data = {
-                'sample_rate' : sample_rate,
-                'waveform' : waveform,
-                'ref_states' : ref_channel_states,
-                'LO' : LO
+                'sample_rate': sample_rate,
+                'waveform': waveform,
+                'ref_states': ref_channel_states,
+                'LO': LO
             }
         else:
             waveform = data['waveform']
@@ -140,7 +141,7 @@ def map_index(index, shape):
     # TODO investigate numpy solution: np.broadcast_to using the broader shape.
     result = list(index)
     result = result[-len(shape):]
-    for i,n in enumerate(shape):
+    for i, n in enumerate(shape):
         if n == 1:
             result[i] = 0
     return tuple(result)
@@ -148,7 +149,7 @@ def map_index(index, shape):
 
 class data_container(np.ndarray):
 
-    def __new__(subtype, input_type=None, shape = (1,)):
+    def __new__(subtype, input_type=None, shape=(1,)):
         obj = super(data_container, subtype).__new__(subtype, shape, object)
 
         if input_type is not None:
@@ -186,7 +187,7 @@ class data_container(np.ndarray):
         return times
 
     def __copy__(self):
-        cpy = data_container(shape = self.shape)
+        cpy = data_container(shape=self.shape)
 
         for i in range(self.size):
             cpy.flat[i] = copy.copy(self.flat[i])
