@@ -279,51 +279,6 @@ def loop_controller(func):
     return wrapper
 
 
-def loop_controller_post_processing(func):
-    '''
-    Checks if there are there are parameters given that are loopable.
-
-    If loop:
-        * then check how many new loop parameters on which axis
-        * extend data format to the right shape (simple python list used).
-        * loop over the data and add called function
-
-    loop controller that works on the *pulse_data_all* object. This acts just before rendering. When rendering is done, all the actions of this looper are done.
-    '''
-    @wraps(func)
-    def wrapper(obj, *args, **kwargs):
-
-        loop_info_args = []
-        loop_info_kwargs = []
-
-        for i,arg in enumerate(args):
-            if isinstance(arg, loop_obj):
-                axes = _update_segment_dims(obj, arg, rendering=True)
-                loop_info_args.append(LoopInfo(i, axes))
-
-        for key,kwarg in kwargs.items():
-            if isinstance(kwarg, loop_obj):
-                axes = _update_segment_dims(obj, kwarg, rendering=True)
-                loop_info_kwargs.append(LoopInfo(key, axes))
-
-        data = obj.pulse_data_all
-        end_times = obj._end_times
-        if len(loop_info_args) > 0 or len(loop_info_kwargs) > 0:
-            args_cpy = list(args)
-            kwargs_cpy = kwargs.copy()
-            for arg_loop in loop_info_args:
-                index = arg_loop.key
-                args_cpy[index] = args[index].data
-            for kwarg_loop in loop_info_kwargs:
-                index = kwarg_loop.key
-                kwargs_cpy[index] = kwargs[index].data
-            loop_over_data_lp(func, obj, data, end_times,
-                              args_cpy, loop_info_args, kwargs_cpy, loop_info_kwargs)
-        else:
-            loop_over_data(func, obj, data, end_times, args, kwargs)
-
-    return wrapper
-
 def loop_over_data_lp(func, obj, data, end_times, args, args_info, kwargs, kwargs_info):
     '''
     Recursive function to apply the func to data with looping args
@@ -354,12 +309,12 @@ def loop_over_data_lp(func, obj, data, end_times, args, args_info, kwargs, kwarg
         args_cpy = args
     if len(kwargs_info) > 0:
         kwargs_cpy = kwargs.copy()
-    else:
-        kwargs_cpy = kwargs
         for kwarg in kwargs_info:
             if n_dim-1 in kwarg.axes:
                 index = kwarg.key
                 lp_kwarg_indices.append(kwarg.key)
+    else:
+        kwargs_cpy = kwargs
 
     for i in range(shape[0]):
         for index in lp_arg_indices:

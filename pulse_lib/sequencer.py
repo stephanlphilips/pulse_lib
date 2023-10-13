@@ -26,10 +26,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class sequencer():
     """
     Class to make sequences for segments.
     """
+
     def __init__(self, upload_module, digitizer_channels, awg_channels):
         '''
         make a new sequence object.
@@ -132,7 +134,7 @@ class sequencer():
     @sample_rate.setter
     def sample_rate(self, rate):
         """
-        Rate at which to set the AWG. Note that not all rates are supported and a rate as close to the one you enter will be put.
+        Rate at which to set the AWG.
 
         Args:
             rate (float) : target sample rate for the AWG (unit : Sa/s).
@@ -177,12 +179,6 @@ class sequencer():
                 raise ValueError('The provided element in the sequence seems to be of the wrong data type.'
                                  f'{type(entry)} provided, segment_container expected')
 
-#        for seg_container in self.sequence:
-#            if seg_container.sample_rate is not None:
-#                effective_rate = self.uploader.get_effective_sample_rate(seg_container.sample_rate)
-#                msg = f"effective sampling rate for {seg_container.name} is set to {si_format(effective_rate, precision=1)}Sa/s"
-#                logger.info(msg)
-
         # update dimensionality of all sequence objects
         start = time.perf_counter()
         setpoint_data = setpoint_mgr()
@@ -224,20 +220,13 @@ class sequencer():
                                                              self.uploader,
                                                              dig_awg_delay)
 
-        # enforce master clock for the current segments (affects the IQ channels (translated into a phase shift) and and the marker channels (time shifts))
         t_tot = np.zeros(self.shape)
 
         for seg_container in self.sequence:
-            # NOTE: the time shift applies only to HVI markers.
-            #       A segment with HVI markers can only be added once to the sequence.
-            lp_time = loop_obj(no_setpoints=True)
-            lp_time.add_data(t_tot, axis=list(range(self.ndim -1,-1,-1)))
-            seg_container.add_master_clock(lp_time)
             self._HVI_variables += seg_container.software_markers.pulse_data_all
             self._condition_measurements.add_segment(seg_container, t_tot)
             self._measurements_description.add_segment(seg_container, t_tot)
             t_tot += seg_container.total_time
-        self._measurements_description.add_HVI_variables(self._HVI_variables)
         self._total_time = t_tot
         self._condition_measurements.check_feedback_timing()
         self._generate_sweep_params()
@@ -268,22 +257,20 @@ class sequencer():
 
         return max(dig_delays) - min(awg_delays)
 
-
     def _generate_sweep_params(self):
-        self.params =[]
+        self.params = []
 
         for i in range(len(self.labels)):
-            par_name = self.labels[i].replace(' ','_')
-            set_param = index_param(par_name, self.labels[i], self.units[i],
-                                    self, dim = i)
+            par_name = self.labels[i].replace(' ', '_')
+            set_param = index_param(par_name, self.labels[i], self.units[i], self, dim=i)
             self.params.append(set_param)
             setattr(self, par_name, set_param)
 
     def _create_metadata(self):
         self.metadata = {}
-        for (i,pc) in enumerate(self.sequence):
+        for i, pc in enumerate(self.sequence):
             md = pc.get_metadata()
-            self.metadata[('pc%i'%i)] = md
+            self.metadata[('pc%i' % i)] = md
         LOdict = {}
         for iq in self.sequence[0]._IQ_channel_objs:
             for vm in iq.qubit_channels:
@@ -513,7 +500,7 @@ class sequencer():
         else:
             reader = self
         mc = self._get_measurement_converter()
-        if iq_complex == False:
+        if iq_complex is False:
             iq_mode = 'I+Q'
         selection = DataSelection(raw=True, states=states, values=values,
                                   selectors=selectors, total_selected=total_selected,
@@ -544,9 +531,9 @@ class sequencer():
 
     def upload(self, index=None):
         '''
-        Sends the sequence with the provided index to the uploader module. Once he is done, the play function can do its work.
+        Sends the sequence with the provided index to the uploader module.
         Args:
-            index (tuple) : index if wich you wannt to upload. This index should fit into the shape of the sequence being played.
+            index (tuple): index if wich you wannt to upload. If None the index set by sweep parameters is used.
 
         Remark that upload and play can run at the same time and it is best to
         start multiple uploads at once (during upload you can do playback, when the first one is finihsed)
@@ -579,11 +566,11 @@ class sequencer():
                 else:
                     raise
 
-    def play(self, index=None, release= True):
+    def play(self, index=None, release=True):
         '''
         Playback a certain index, assuming the index is provided.
         Args:
-            index (tuple) : index if wich you wannt to upload. This index should fit into the shape of the sequence being played.
+            index (tuple): index if wich you wannt to upload. If None the index set by sweep parameters is used.
             release (bool) : release memory on the AWG after the element has been played.
 
         '''
@@ -607,7 +594,6 @@ class sequencer():
                     self.upload(index)
                 else:
                     raise
-
 
     def plot(self, index=None, segments=None, awg_output=True, channels=None):
         '''
@@ -733,14 +719,13 @@ class sequencer():
             index = self.sweep_index[::-1]
         mc = self._get_measurement_converter()
         mc.set_channel_data(self.get_channel_data(index), index)
-        if iq_complex == False:
+        if iq_complex is False:
             iq_mode = 'I+Q'
         selection = DataSelection(raw=raw, states=states, values=values,
                                   selectors=selectors, total_selected=total_selected,
                                   accept_mask=accept_mask,
                                   iq_mode=iq_mode)
         return mc.get_measurements(selection)
-
 
     def get_channel_data(self, index=None):
         '''
@@ -767,7 +752,7 @@ class sequencer():
         '''
         if self.hw_schedule:
             self.hw_schedule.stop()
-            # NOTE: unloading the schedule is a BAD idea. If the next sequence uses the same schedule it costs ~ 1s to load it again.
+            # NOTE: unloading the schedule is a BAD idea. Uploading the Keysight schedule takes quite some time.
             # self.hw_schedule.unload()
             self.hw_schedule = None
         if not self.sequence:
@@ -779,7 +764,8 @@ class sequencer():
 
     def release_memory(self, index=None):
         '''
-        function to free up memory in the AWG manually. By default the sequencer class will do garbarge collection for you (e.g. delete waveforms after playback)
+        Releases waveform memory on AWG and PC.
+        The sequencer also automatically releases the memory, but this can be delayed.
         Args:
             index (tuple) : index if wich you want to release. If none release memory for all indexes.
         '''
@@ -787,8 +773,7 @@ class sequencer():
             self._validate_index(index)
         self.uploader.release_memory(self.id, index)
 
-
-    def set_sweep_index(self,dim,value):
+    def set_sweep_index(self, dim, value):
         self._sweep_index[dim] = value
 
     def __del__(self):
@@ -801,8 +786,9 @@ class sequencer():
         '''
         if len(index) != len(self._shape):
             raise Exception(f'Index {index} does not match sequence shape {self._shape}')
-        if any(i >= s for i,s in zip(index, self._shape)):
+        if any(i >= s for i, s in zip(index, self._shape)):
             raise IndexError(f'Index {index} out of range; sequence shape {self._shape}')
+
 
 class index_param(Parameter):
     def __init__(self, name, label, unit, my_seq, dim):
@@ -814,33 +800,8 @@ class index_param(Parameter):
                 name=name,
                 label=label,
                 unit=unit,
-                val_mapping = val_map,
-                initial_value = self.values[0])
+                val_mapping=val_map,
+                initial_value=self.values[0])
 
     def set_raw(self, value):
         self.my_seq.set_sweep_index(self.dim, value)
-
-
-if __name__ == '__main__':
-    import pulse_lib.segments.utility.looping as lp
-
-    a = segment_container(["a", "b"])
-    b = segment_container(["a", "b"])
-
-    b.a.add_block(0,lp.linspace(30,100,10),100)
-    b.a.reset_time()
-    a.add_HVI_marker("marker_name", 20)
-    b.add_HVI_marker("marker_name2", 50)
-
-    b.add_HVI_variable("my_vatr", 800)
-    a.a.add_block(20,lp.linspace(50,100,10, axis = 1, name = "time", unit = "ns"),100)
-
-    my_seq = [a,b]
-
-    seq = sequencer(None, dict())
-    seq.add_sequence(my_seq)
-    print(seq.HVI_variables.flat[0].HVI_markers)
-    # print(seq.labels)
-    # print(seq.units)
-    # print(seq.setpoints)
-    seq.upload([0])

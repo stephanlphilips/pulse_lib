@@ -404,9 +404,9 @@ class segment_container():
         add time for the marker.
         Args:
             name (str) : name of the variable
-            value (double) : value to assign to the variable
+            value (Any) : value to assign to the variable
         """
-        self._software_markers._add_HVI_variable(marker_name, value, False)
+        self._software_markers._add_HVI_variable(marker_name, value)
 
     def add_measurement_expression(self, expression=None, name=None, accept_if=None):
         '''
@@ -427,18 +427,6 @@ class segment_container():
 
         for channel in self.channels.values():
             channel.enter_rendering_mode()
-
-    def add_master_clock(self, time):
-        '''
-        add a master clock to the segment.
-
-        Args:
-            time (float) :  effective time that this segment start in the sequence.
-
-        At the moment only correction for the HVI marker, clock for the MW signal needs to be implemented here later.
-        '''
-
-        self._software_markers._add_global_time_shift(time)
 
     def exit_rendering_mode(self):
         '''

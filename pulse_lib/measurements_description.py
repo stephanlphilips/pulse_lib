@@ -3,6 +3,7 @@ import numpy as np
 from .segments.segment_measurements import measurement_acquisition
 from .segments.conditional_segment import conditional_segment
 
+
 class measurements_description:
     def __init__(self, digitizer_channels):
         self.measurement_names = []
@@ -58,7 +59,7 @@ class measurements_description:
                 self.acquisitions[channel_name] = self.acquisitions[channel_name] + data
 
     def calculate_measurement_offsets(self):
-        self.channel_data_offset  = {}
+        self.channel_data_offset = {}
         for m in self.measurements:
             if not isinstance(m, measurement_acquisition):
                 continue
@@ -68,29 +69,11 @@ class measurements_description:
             n_samples = m.n_samples if m.n_samples is not None else 1
             self.channel_data_offset[channel] = data_offset + n_samples
 
-    def add_HVI_variables(self, HVI_variables):
-        dig_triggers = []
-        for v in HVI_variables.flat[0].HVI_markers:
-            if v == 'dig_wait' or v.startswith('dig_trigger'):
-                dig_triggers.append(v)
-
-        if len(dig_triggers) and len(self.measurements):
-            raise Exception('Cannot combine `acquire()` with HVI var `dig_trigger` or `dig_wait`')
-
-        for index,trigger in enumerate(dig_triggers):
-            for channel_name in self.digitizer_channels:
-                name = f'{channel_name}_tr{index}'
-                m = measurement_acquisition(name, False, channel_name, index)
-                self.measurements.append(m)
-                self.measurement_names.append(name)
-                self.acquisition_count[channel_name] += 1
-
     def describe(self):
         print('Measurements:')
         for m in self.measurements:
             print(m)
         for channel_name, acq in self.acquisitions.items():
             print(f"Acquisitions '{channel_name}':")
-            d  = acq.flat[0]
+            d = acq.flat[0]
             print(d.data)
-

@@ -142,10 +142,6 @@ class conditional_segment:
         for branch in self.branches:
             branch.enter_rendering_mode()
 
-    def add_master_clock(self, time):
-        for branch in self.branches:
-            branch.add_master_clock(time)
-
     def exit_rendering_mode(self):
         for branch in self.branches:
             branch.exit_rendering_mode()
