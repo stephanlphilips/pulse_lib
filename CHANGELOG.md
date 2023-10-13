@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.5] - 2023-10-13
+
+- Fixed looping of keyword arguments. (It was broken by the performance update of v1.7)
+- Removed digitizer triggering using add_HVI_marker (Keysight)
+
 ## \[1.7.4] - 2023-10-10
 
 - Fixed Qblox hardware/software threshold data check.
