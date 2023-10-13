@@ -1,7 +1,7 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
 
-#%%
+# %%
 from scipy import signal
 
 
@@ -21,7 +21,8 @@ def tukey_pulse(duration, sample_rate, amplitude, alpha):
     n_points = int(round(duration / sample_rate * 1e9))
     return signal.windows.tukey(n_points, alpha) * amplitude
 
-#%%
+# %%
+
 
 def test1():
     pulse = context.init_pulselib(n_gates=1, n_markers=1)
@@ -40,8 +41,9 @@ def test1():
 
     sequence = pulse.mk_sequence(segments)
     sequence.n_rep = 2
-
+    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, ylim=(-0.2, 0.2))
+
 
 def test2():
     pulse = context.init_pulselib(n_gates=1, n_markers=1)
@@ -61,7 +63,7 @@ def test2():
 
     sequence = pulse.mk_sequence(segments)
     sequence.n_rep = 2
-
+    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, ylim=(-0.2, 0.2))
 
 
@@ -83,7 +85,7 @@ def test3():
 
     sequence = pulse.mk_sequence(segments)
     sequence.n_rep = 2
-
+    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, ylim=(-0.2, 0.2))
 
 
@@ -106,8 +108,9 @@ def test4():
 
     sequence = pulse.mk_sequence(segments)
     sequence.n_rep = 2
-
+    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, ylim=(-0.2, 0.2))
+
 
 def test5():
     pulse = context.init_pulselib(n_gates=1, n_markers=1)
@@ -129,10 +132,11 @@ def test5():
 
     sequence = pulse.mk_sequence(segments)
     sequence.n_rep = 2
-
+    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, ylim=(-0.2, 0.2))
 
-#%%
+
+# %%
 if __name__ == '__main__':
     ds1 = test1()
     ds2 = test2()
@@ -140,7 +144,7 @@ if __name__ == '__main__':
     ds4 = test4()
     ds5 = test5()
 
-#%%
+# %%
 if False:
     from pulse_lib.tests.utils.last_upload import get_last_upload
 
