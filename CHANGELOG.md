@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.7] - 2023-10-17
+
+- Corrected fix for mixed measurement assignments and raw measurements in measurement processing.
+
 ## \[1.7.6] - 2023-10-17
 
 - Fix mixed measurement assignments and raw measurements in measurement processing.
