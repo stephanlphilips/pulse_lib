@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.6] - 2023-10-17
+
+- Fix mixed measurement assignments and raw measurements in measurement processing.
+
 ## \[1.7.5] - 2023-10-13
 
 - Fixed looping of keyword arguments. (It was broken by the performance update of v1.7)

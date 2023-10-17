@@ -363,19 +363,21 @@ class MeasurementConverter:
         last_result = {}
         n_rep = self.n_rep if self.n_rep else 1
         accepted_mask = np.ones(n_rep, dtype=int)
-        for i, m in enumerate(self._description.measurements):
+        acquisition_cnt = 0
+        for m in self._description.measurements:
             if isinstance(m, measurement_acquisition):
                 if not m.has_threshold:
                     # do not add to result
                     continue
-                result = self._raw[i] > m.threshold
+                result = self._raw[acquisition_cnt] > m.threshold
                 if m.zero_on_high:
                     result = result ^ 1
                 result = result.astype(int)
-                hw_thresholded = self._hw_thresholded.get(i, None)
+                hw_thresholded = self._hw_thresholded.get(acquisition_cnt, None)
                 if hw_thresholded is not None and np.any(result != hw_thresholded):
                     logger.warning(f'{np.sum(result != hw_thresholded)} differences between hardware and software '
                                    f'threshold. (indices: {np.where(result != hw_thresholded)})')
+                acquisition_cnt += 1
             elif isinstance(m, measurement_expression):
                 result = m.expression.evaluate(last_result)
             else:
