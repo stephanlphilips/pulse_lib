@@ -367,6 +367,7 @@ class MeasurementConverter:
         for m in self._description.measurements:
             if isinstance(m, measurement_acquisition):
                 if not m.has_threshold:
+                    acquisition_cnt += 1
                     # do not add to result
                     continue
                 result = self._raw[acquisition_cnt] > m.threshold
