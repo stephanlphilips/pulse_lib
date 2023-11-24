@@ -279,7 +279,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
 
         duration = t_end - t_start
 
-        t_start_offset = t_start % 4 # @@@ PulsarConfig.offset()
+        t_start_offset = t_start % 4  # @@@ PulsarConfig.offset()
 
         if duration == 0 and t_start_offset == 0:
             # Used to reset voltage at end of segment.
@@ -293,18 +293,15 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
 
         self._emit_if_gap(t_start)
 
-        is_ramp = abs(v_end-v_start) > _lsb_step
-        is_long = duration > (100 if is_ramp else 40)
-        dvdt = (v_end-v_start)/(t_end-t_start)
+        dvdt = (v_end - v_start) / (t_end - t_start)
+        is_ramp = abs(v_end - v_start) > _lsb_step
+        line_start = PulsarConfig.ceil(max(t_start, self._t_wave_end))
+        line_end = PulsarConfig.floor(t_end)
+        is_long = (line_end - line_start) > (100 if is_ramp else 40)
 
-        if self._rendering and t_start < self._t_wave_end:
-            # Already rendered beyond start of this ramp.
-            # Custom pulse or sine already rendered.
-            # Do not try to emit waveform.
-            self._render_ramp(t_start, t_end, v_start, v_end)
-        elif is_long:
-            if t_start_offset:
-                t_end_wave = PulsarConfig.ceil(t_start)
+        if is_long:
+            if line_start - t_start > 0:
+                t_end_wave = line_start
                 v_end_wave = v_start + dvdt * (t_end_wave - t_start)
                 self._render_ramp(t_start, t_end_wave, v_start, v_end_wave)
                 self._emit_waveform(t_end_wave)
@@ -313,7 +310,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             elif self._rendering:
                 self._emit_waveform(t_start)
 
-            t_end_ramp = PulsarConfig.floor(t_end)
+            t_end_ramp = line_end
             if t_end_ramp != t_end:
                 v_end_ramp = v_end + dvdt * (t_end_ramp - t_end)
                 self._ramp(t_start, t_end_ramp, v_start, v_end_ramp)
