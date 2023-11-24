@@ -2,6 +2,7 @@
 data class to make pulses.
 """
 import logging
+import math
 import numpy as np
 import copy
 from dataclasses import dataclass
@@ -674,52 +675,81 @@ class pulse_data(parent_data):
             # max amp, freq and phase.
             amp = mw_pulse.amplitude
             freq = mw_pulse.frequency
-            if LO:
-                freq -= LO
-            if abs(freq) > sample_rate*1e9/2:
-                raise Exception(f'Frequency {freq*1e-6:5.1f} MHz is above Nyquist frequency ({sample_rate*1e3/2} MHz)')
-            # TODO add check on configurable bandwidth.
             phase = mw_pulse.phase_offset
-            if ref_channel_states and mw_pulse.ref_channel in ref_channel_states.start_phase:
-                ref_start_time = ref_channel_states.start_time
-                ref_start_phase = ref_channel_states.start_phase[mw_pulse.ref_channel]
+
+            if not mw_pulse.coherent_pulsing:
+                # it's not an IQ pulse, but a sine wave on voltage channel.
+                if not self._hres:
+                    if mw_pulse.envelope is None:
+                        amp_envelope = 1.0
+                        phase_envelope = 0.0
+                    else:
+                        amp_envelope = mw_pulse.envelope.get_AM_envelope((stop_pulse - start_pulse), sample_rate)
+                        phase_envelope = np.asarray(mw_pulse.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate))
+                    total_phase = phase + phase_envelope
+                    n_pt = int(
+                        (iround(stop_pulse) - iround(start_pulse)) * sample_rate
+                        if isinstance(amp_envelope, float)
+                        else len(amp_envelope))
+                    start_pt = math.floor(start_pulse * sample_rate + 0.5)
+                    stop_pt = start_pt + n_pt
+                    t_offset = start_pt - start_pulse * sample_rate
+                    t = t_offset + np.arange(n_pt)
+                    wvf[start_pt:stop_pt] += amp*amp_envelope*np.sin(2*np.pi*freq/sample_rate*1e-9*t + total_phase)
+                else:
+                    if mw_pulse.envelope is not None:
+                        # TODO envelope
+                        raise Exception('sine pulse on voltage channel with hres timing does not support shaping.')
+                    start_pt = math.floor(start_pulse * sample_rate + 1e-5)
+                    stop_pt = math.ceil(stop_pulse * sample_rate - 1e-5)
+                    n_pt = stop_pt - start_pt
+                    t_offset = start_pt - start_pulse * sample_rate
+                    t = t_offset + np.arange(n_pt)
+                    sine_data = amp*np.sin(2*np.pi*freq/sample_rate*1e-9*t + phase)
+                    sine_data[0] = (1 - start_pulse * sample_rate + start_pt) * amp * np.sin(phase)
+                    sine_data[-1] = (1 - stop_pt + stop_pulse * sample_rate) * \
+                        amp*np.sin(2*np.pi*freq/sample_rate*1e-9*(stop_pulse-start_pulse-1/sample_rate) + phase)
+                    wvf[start_pt:stop_pt] += sine_data
             else:
-                ref_start_time = 0
-                ref_start_phase = 0
+                if LO:
+                    freq -= LO
+                if abs(freq) > sample_rate*1e9/2:
+                    raise Exception(f'Frequency {freq*1e-6:5.1f} MHz is above Nyquist frequency ({sample_rate*1e3/2} MHz)')
+                # TODO add check on configurable bandwidth.
 
-            if mw_pulse.ref_channel in phase_shifts_channels:
-                phase_shifts = [
-                        ps.phase_shift
-                        for ps in phase_shifts_channels[mw_pulse.ref_channel]
-                        if ps.time <= start_pulse
-                        ]
-                phase_shift = sum(phase_shifts)
-            else:
-                phase_shift = 0
+                if ref_channel_states and mw_pulse.ref_channel in ref_channel_states.start_phase:
+                    ref_start_time = ref_channel_states.start_time
+                    ref_start_phase = ref_channel_states.start_phase[mw_pulse.ref_channel]
+                else:
+                    ref_start_time = 0
+                    ref_start_phase = 0
 
-            if mw_pulse.envelope is None:
-                amp_envelope = 1.0
-                phase_envelope = 0.0
-            else:
-                amp_envelope = mw_pulse.envelope.get_AM_envelope((stop_pulse - start_pulse), sample_rate)
-                phase_envelope = np.asarray(mw_pulse.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate))
+                if mw_pulse.ref_channel in phase_shifts_channels:
+                    phase_shifts = [
+                            ps.phase_shift
+                            for ps in phase_shifts_channels[mw_pulse.ref_channel]
+                            if ps.time <= start_pulse
+                            ]
+                    phase_shift = sum(phase_shifts)
+                else:
+                    phase_shift = 0
 
-            # self.baseband_pulse_data[-1,0] convert to point numbers
-            n_pt = (int((stop_pulse - start_pulse) * sample_rate)
-                    if isinstance(amp_envelope, float)
-                    else len(amp_envelope))
-            start_pt = iround(start_pulse * sample_rate)
-            stop_pt = start_pt + n_pt
+                if mw_pulse.envelope is None:
+                    amp_envelope = 1.0
+                    phase_envelope = 0.0
+                else:
+                    amp_envelope = mw_pulse.envelope.get_AM_envelope((stop_pulse - start_pulse), sample_rate)
+                    phase_envelope = np.asarray(mw_pulse.envelope.get_PM_envelope((stop_pulse - start_pulse), sample_rate))
 
-            # add the sine wave
-            if mw_pulse.coherent_pulsing:
+                # Note: an IQ pulse can be shifted in time without signifcant impact.
+                n_pt = (math.floor((stop_pulse - start_pulse) * sample_rate + 0.5)
+                        if isinstance(amp_envelope, float)
+                        else len(amp_envelope))
+                start_pt = iround(start_pulse * sample_rate)
+                stop_pt = start_pt + n_pt
+
                 total_phase = phase_shift + phase + phase_envelope + ref_start_phase
                 t = start_pt+ref_start_time/sample_rate + np.arange(n_pt)
-                wvf[start_pt:stop_pt] += amp*amp_envelope*np.sin(2*np.pi*freq/sample_rate*1e-9*t + total_phase)
-            else:
-                # it's not an IQ pulse, but a sine wave on voltage channel.
-                total_phase = phase + phase_envelope
-                t = np.arange(n_pt)
                 wvf[start_pt:stop_pt] += amp*amp_envelope*np.sin(2*np.pi*freq/sample_rate*1e-9*t + total_phase)
 
         for custom_pulse in self.custom_pulse_data:
