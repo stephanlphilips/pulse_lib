@@ -68,7 +68,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
     step_eff = t_step + acquisition_delay
 
     if t_step < 1000:
-        msg = f'Measurement time too short. Minimum is 1000'
+        msg = 'Measurement time too short. Minimum is 1000 ns'
         logger.error(msg)
         raise Exception(msg)
 
@@ -76,11 +76,14 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
 
     vp = swing/2
     line_margin = int(line_margin)
+    if biasT_corr and line_margin > 0:
+        print('Line margin is ignored with biasT_corr on')
+        line_margin = 0
 
     n_ptx = n_pt + 2*line_margin
     vpx = vp * (n_ptx-1)/(n_pt-1)
 
-    # set up sweep voltages (get the right order, to compenstate for the biasT).
+    # set up sweep voltages (get the right order, to compensate for the biasT).
     voltages_sp = np.linspace(-vp,vp,n_pt)
     voltages_x = np.linspace(-vpx,vpx,n_ptx)
     if biasT_corr:
@@ -92,11 +95,18 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
         voltages = voltages_x
 
     seg  = pulse_lib.mk_segment()
-
     g1 = seg[gate]
     pulse_channels = []
     for ch,v in pulse_gates.items():
         pulse_channels.append((seg[ch], v))
+
+    if not biasT_corr:
+        # pre-pulse to condition bias-T
+        t_prebias = n_ptx/2 * step_eff
+        g1.add_ramp_ss(0, t_prebias, 0, vpx)
+        for gp, v in pulse_channels:
+            gp.add_block(0, t_prebias, -v)
+        seg.reset_time()
 
     for i,voltage in enumerate(voltages):
         g1.add_block(0, step_eff, voltage)
@@ -109,6 +119,13 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
             # compensation for pulse gates
             if biasT_corr:
                 gp.add_block(step_eff, 2*step_eff, -v)
+        seg.reset_time()
+
+    if not biasT_corr:
+        # post-pulse to discharge bias-T
+        g1.add_ramp_ss(0, t_prebias, -vpx, 0)
+        for gp, v in pulse_channels:
+            gp.add_block(0, t_prebias, -v)
         seg.reset_time()
 
     end_time = seg.total_time[0]
@@ -199,7 +216,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
     step_eff = t_step + acquisition_delay
 
     if t_step < 1000:
-        msg = f'Measurement time too short. Minimum is 1000'
+        msg = 'Measurement time too short. Minimum is 1000 ns'
         logger.error(msg)
         raise Exception(msg)
 
@@ -226,17 +243,6 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
     else:
         voltages2 = voltages2_sp
 
-    start_delay = line_margin * step_eff
-    if biasT_corr:
-        # prebias: add half line with +vp2
-        prebias_pts = (n_ptx)//2
-        t_prebias = prebias_pts * step_eff
-        start_delay += t_prebias
-
-    line_delay = 2 * line_margin * step_eff
-    if add_pulse_gate_correction:
-        line_delay += n_ptx*step_eff
-
     seg  = pulse_lib.mk_segment()
 
     g1 = seg[gate1]
@@ -246,7 +252,13 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
         pulse_channels.append((seg[ch], v))
 
     if biasT_corr:
+        # prebias: add half line with +vp2
+        prebias_pts = (n_ptx)//2
+        t_prebias = prebias_pts * step_eff
+        # pulse on fast gate to pre-charge bias-T
+        g1.add_block(0, t_prebias, vpx*0.35)
         # correct voltage to ensure average == 0.0 (No DC correction pulse needed at end)
+        # Note that voltage on g2 ends center of sweep, i.e. (close to) 0.0 V
         total_duration = prebias_pts + n_ptx*n_pt2 * (2 if add_pulse_gate_correction else 1)
         g2.add_block(0, -1, -(prebias_pts * vp2)/total_duration)
         g2.add_block(0, t_prebias, vp2)
@@ -272,6 +284,14 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
             for g,v in pulse_channels:
                 g.add_block(0, step_eff*n_ptx, -v)
             seg.reset_time()
+
+    if biasT_corr:
+        # pulses to discharge bias-T
+        # Note: g2 is already 0.0 V
+        g1.add_block(0, t_prebias, -vpx*0.35)
+        for g, v in pulse_channels:
+            g.add_block(0, t_prebias, +v)
+        seg.reset_time()
 
     end_time = seg.total_time[0]
     for marker in enabled_markers:
