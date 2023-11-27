@@ -69,6 +69,10 @@ class IQ_channel:
         if image not in ["+", "-"]:
             raise ValueError(f"The image of the IQ signal must be '+' or '-', not '{image}'")
 
+        for iq_out_ch in self.IQ_out_channels:
+            if iq_out_ch.IQ_comp == IQ_comp and iq_out_ch.image == image:
+                raise ValueError(f"Component {IQ_comp}{image} already defined for {self.name}")
+
         self.IQ_out_channels.append(IQ_out_channel_info(awg_channel_name, IQ_comp, image))
 
     def add_marker(self, marker_channel_name):
