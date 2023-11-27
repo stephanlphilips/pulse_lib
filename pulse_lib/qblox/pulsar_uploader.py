@@ -73,9 +73,20 @@ class PulsarUploader:
 
         for name, qubit_ch in self.qubit_channels.items():
             iq_out_channels = qubit_ch.iq_channel.IQ_out_channels
-            out_channels = [self.awg_channels[iq_out_ch.awg_channel_name]
-                            for iq_out_ch in iq_out_channels]
+            i_ch = None
+            q_ch = None
+            for iq_out_ch in iq_out_channels:
+                if iq_out_ch.image == '-':
+                    raise ValueError("Negative IQ image not supported on Qblox")
+                awg_ch = self.awg_channels[iq_out_ch.awg_channel_name]
+                if iq_out_ch.IQ_comp == 'I':
+                    i_ch = awg_ch
+                elif iq_out_ch.IQ_comp == 'Q':
+                    q_ch = awg_ch
+            out_channels = [i_ch, q_ch]
             module_name = out_channels[0].awg_name
+            if out_channels[1].awg_name != module_name:
+                raise ValueError("I and Q channel must be on same Qblox module")
             q1.add_control(name, module_name, [out_ch.channel_number for out_ch in out_channels])
 
         for name, dig_ch in self.digitizer_channels.items():
