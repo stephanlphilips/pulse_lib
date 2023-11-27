@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+
+## \[1.7.8] - 2023-11-27
+
+- Added hres rendering of sine waves on voltage channels (Keysight and Tektronix)
+- Added checks on IQ channel configuration.
+- Fixed issue with bad aligned custom_pulse followed by ramp of > 1000 points.
+- Added pre-pulses to Qblox fast scan.
+
 ## \[1.7.7] - 2023-10-17
 
 - Corrected fix for mixed measurement assignments and raw measurements in measurement processing.
