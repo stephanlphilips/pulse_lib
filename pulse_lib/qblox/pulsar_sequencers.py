@@ -16,16 +16,21 @@ if Version(q1pulse_version) < Version('0.9.0'):
 
 from q1pulse.lang.conditions import CounterFlags
 
+
 logger = logging.getLogger(__name__)
+
 
 def iround(value):
     return math.floor(value + 0.5)
+
 
 class PulsarConfig:
     ALIGNMENT = 4 # pulses must be aligned on 4 ns boundaries
     EMIT_LENGTH1 = 150
     EMIT_LENGTH2 = 250
     EMIT_LENGTH3 = 500
+
+    NS_SUB_DIVISION = 5
 
     @staticmethod
     def align(value):
@@ -39,12 +44,21 @@ class PulsarConfig:
     def floor(value):
         return math.floor(value / PulsarConfig.ALIGNMENT + 1e-8) * PulsarConfig.ALIGNMENT
 
+    @staticmethod
+    def offset(value):
+        return value % PulsarConfig.ALIGNMENT
+
+    @staticmethod
+    def hres_round(value):
+        return math.floor(value * PulsarConfig.NS_SUB_DIVISION + 0.5) / PulsarConfig.NS_SUB_DIVISION
+
 
 @dataclass
 class LatchEvent:
     time: int
     reset: bool = False
     counters: Optional[List[str]] = None
+
 
 @dataclass
 class MarkerEvent:
@@ -254,6 +268,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
 
     def __init__(self, name, sequencer, rc_time=None):
         super().__init__(name, sequencer, rc_time)
+        self._hres = False
         self._waveforms = []
         self._waveform = np.zeros(1000)
 
@@ -266,6 +281,14 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         self._wave_length = 0
         self._constant_end = False
 
+    @property
+    def hres(self):
+        return self._hres
+
+    @hres.setter
+    def hres(self, value):
+        self._hres = value
+
     def ramp(self, t_start, t_end, v_start, v_end):
         # NOTE:
         # pulsar_uploader and data_pulse should make sure that custom_pulse and sin are added
@@ -273,13 +296,16 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
 
         # There can be multiple ramps during 1 custom pulse. data_pulse sorts ramps and pulses.
 
-        # TODO sub-nanoseconds.
-        t_start = iround(t_start)
-        t_end = iround(t_end)
+        if self._hres:
+            t_start = PulsarConfig.hres_round(t_start)
+            t_end = PulsarConfig.hres_round(t_end)
+        else:
+            t_start = iround(t_start)
+            t_end = iround(t_end)
 
         duration = t_end - t_start
 
-        t_start_offset = t_start % 4  # @@@ PulsarConfig.offset()
+        t_start_offset = PulsarConfig.offset(t_start)
 
         if duration == 0 and t_start_offset == 0:
             # Used to reset voltage at end of segment.
@@ -342,9 +368,23 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         super().wait_till(t)
 
     def _render_ramp(self, t_start, t_end, v_start, v_end):
-        n = t_end - t_start
-        data  = np.linspace(v_start, v_end, n, endpoint=False)
-        self._add_waveform_data(t_start, data, v_start)
+        if t_start == t_end:
+            return
+        if self._hres:
+            istart = math.floor(t_start + 1e-8)
+            iend = math.ceil(t_end - 1e-8)
+            dvdt = (v_end - v_start) / (t_end - t_start)
+            dt_start = t_start - istart
+            dt_end = iend - t_end
+            n = iend - istart
+            data = np.linspace(v_start-dt_start*dvdt, v_end+dt_end*dvdt, n, endpoint=False)
+            data[0] = (1-dt_start)*v_start
+            data[-1] -= dt_end*v_end
+            self._add_waveform_data(istart, data, v_start)
+        else:
+            n = t_end - t_start
+            data  = np.linspace(v_start, v_end, n, endpoint=False)
+            self._add_waveform_data(t_start, data, v_start)
 
         if self._v_start is not None:
             self._equal_voltage = abs(self._v_start - v_end) < _lsb_step

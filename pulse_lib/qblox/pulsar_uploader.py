@@ -714,6 +714,8 @@ class UploadAggregator:
             else:
                 seg_ch = seg[channel_name]
             data = seg_ch._get_data_all_at(job.index)
+            if PulsarUploader.resolution_1ns:
+                seq.hres = data._hres
             entries = data.get_data_elements(break_ramps=True)
             for e in entries:
                 # NOTE: alignment is done in VoltageSequenceBuilder
@@ -726,6 +728,7 @@ class UploadAggregator:
                 elif isinstance(e, IQ_data_single):
                     t = e.start + seg_start
                     t_end = e.stop + seg_start
+                    #  TODO FIX resolution!!
                     wave_duration = iround(e.stop) - iround(e.start)  # 1 ns resolution
                     amod, phmod = get_modulation(e.envelope, wave_duration)
                     if e.coherent_pulsing:

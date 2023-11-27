@@ -2,8 +2,9 @@
 All notable changes to Pulselib will be documented in this file.
 
 
-## \[1.7.8] - 2023-11-27
+## \[1.7.8] - 2023-11-28
 
+- Added high resolution rendering of ramps on voltage channels (Qblox)
 - Added hres rendering of sine waves on voltage channels (Keysight and Tektronix)
 - Added checks on IQ channel configuration.
 - Fixed issue with bad aligned custom_pulse followed by ramp of > 1000 points.

@@ -20,10 +20,10 @@ def test1():
         s.P2.add_block(8-t, 10+t, 80)
         s.P2.add_ramp_ss(10+t, 14+t, 80, 0)
         s.reset_time()
-    s.wait(100000)
+    # s.wait(100000)
 
     sequence = pulse.mk_sequence([s])
-    sequence.n_rep = 10000
+    sequence.n_rep = 1 # 10000
     context.add_hw_schedule(sequence)
 
     context.plot_awgs(sequence, ylim=(-0.0,0.100), xlim=(0, 50))
@@ -67,10 +67,10 @@ def test2():
         s.P3.add_ramp_ss(0, t_ramp, 80, 0)
 
         s.reset_time()
-    s.wait(100000)
+    # s.wait(100000)
 
     sequence = pulse.mk_sequence([s])
-    sequence.n_rep = 10000
+    sequence.n_rep = 1 # 10000
     context.add_hw_schedule(sequence)
 
     context.plot_awgs(sequence, ylim=(-0.0,0.100), xlim=(0, 70))
@@ -128,10 +128,10 @@ def test3():
 #    s.P3.add_ramp_ss(3, 7, 0, 80)
 #    s.P3.add_block(7, 11, 80)
 #    s.P3.add_ramp_ss(11, 15, 80, 0)
-    s.wait(100000)
+    # s.wait(100000)
 
     sequence = pulse.mk_sequence([s])
-    sequence.n_rep = 15000
+    sequence.n_rep = 1 # 15000
     context.add_hw_schedule(sequence)
 
 #    sequence.dt(0.2)
