@@ -199,6 +199,15 @@ class pulselib:
         '''
         self.digitizer_channels[channel_name].frequency = frequency
 
+    def set_digitizer_hw_input_channel(self, channel_name, hw_channel_number):
+        '''
+        Sets hardware input channel for Keysight digitizer using FPGA demodulation.
+        Args:
+            channel_name (str): name of the channel.
+            hw_channel_number (int): channel number of input on hardware.
+        '''
+        self.digitizer_channels[channel_name].hw_input_channel = hw_channel_number
+
     def set_digitizer_rf_source(self, channel_name, output,
                                 mode='pulsed',
                                 amplitude=0,
@@ -206,7 +215,6 @@ class pulselib:
                                 startup_time_ns=0,
                                 prolongation_ns=0,
                                 source_delay_ns=0,
-                                trigger_offset_ns=None,
                                 ):
         '''
         Adds a resonator RF source to the digitizer channel.
@@ -234,16 +242,10 @@ class pulselib:
                 prolongation time [ns] of the RF source after acquisition end in pulsed mode.
             source_delay_ns (float):
                 delay to be added to the source signal [ns].
-            trigger_offset_ns (float):
-                DEPRECATED. This argument has been replaced by startup_time_ns and source_delay_ns.
         Note:
             The output specification depends on the driver.
             Qblox driver only supports module name with channel number(s).
         '''
-        if trigger_offset_ns is not None:
-            print('Warning: trigger_offset_ns is deprecated. Use startup_time_ns and/or source_delay_ns')
-            if startup_time_ns == 0:
-                startup_time_ns = trigger_offset_ns
         rf_source = resonator_rf_source(output=output, mode=mode,
                                         amplitude=amplitude,
                                         attenuation=attenuation,

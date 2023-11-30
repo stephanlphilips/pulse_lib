@@ -1,23 +1,25 @@
 from typing import Tuple, Optional, Union, List
 from dataclasses import dataclass
 
+
 @dataclass
 class awg_channel:
     name: str
     awg_name: str
     channel_number: int
     amplitude: Optional[float] = None
-    delay: float = 0 # ns
+    delay: float = 0  # ns
     attenuation: float = 1.0
-    compensation_limits: Tuple[float, float] = (0,0)
+    compensation_limits: Tuple[float, float] = (0, 0)
     bias_T_RC_time: Optional[float] = None
-    offset: Optional[float] = None # mV
+    offset: Optional[float] = None  # mV
+
 
 @dataclass
 class marker_channel:
     name: str
-    module_name: str # could be AWG or digitizer
-    channel_number: Union[int,Tuple[int,int]]
+    module_name: str  # could be AWG or digitizer
+    channel_number: Union[int, Tuple[int, int]]
     '''
     Keysight: 0 = trigger out channel, 1...4 = analogue channel
     Tektronix: tuple = (channel,marker number), int = analogue channel
@@ -27,8 +29,8 @@ class marker_channel:
     hold_ns: float
     amplitude: float = 1000
     invert: bool = False
-    delay: float = 0 # ns
-    sequencer_name : Optional[str] = None
+    delay: float = 0  # ns
+    sequencer_name: Optional[str] = None
     '''
     Qblox only: name of qubit, awg or digitizer channel to use for sequencing
     '''
@@ -55,7 +57,6 @@ class marker_channel:
 #    measurement_converter generates 1 or 2 raw data outputs depending on iq_out
 
 
-# Changed [v1.6.0] trigger_offset_ns -> delay + startup_time_ns
 @dataclass
 class resonator_rf_source:
     '''
@@ -63,12 +64,20 @@ class resonator_rf_source:
     The resonator will be driven with the frequency specified for the digitizer
     channel and dependent on the mode can be enabled synchronous with acquisitions.
     '''
-    output: Union[str, Tuple[str,int], Tuple[str,List[int]]]
+    output: Union[str, Tuple[str, int], Tuple[str, List[int]]]
     '''
     output: one of the following:
-        (str) name of awg_channel
+        (str) name of marker channel.
         (Tuple[str, int]) name of module and channel number
         (Tuple[str, List[int]]) name of module and channel numbers
+    Configuration for Keysight:
+        * Marker channel name if digitizer demodulation frequency is None
+        * tuple(AWG module name, channel number) if digitizer demodulation frequeny is not None
+    Configuration for Tektronix:
+        * Marker channel name if digitizer demodulation frequency is None
+    Configuration for Qblox:
+        * Marker channel name if digitizer demodulation frequency is None (Not yet supported)
+        * tuple(QRM module name, list(channel numbers)) if digitizer demodulation frequeny is not None
     '''
     mode: str = 'pulsed'
     '''
@@ -78,7 +87,7 @@ class resonator_rf_source:
     '''
     amplitude of the RF source in mV.
     '''
-    attenuation : float = 1.0
+    attenuation: float = 1.0
     '''
     Attenuation of the source channel.
     '''
@@ -95,6 +104,7 @@ class resonator_rf_source:
     prolongation [ns] of the pulse after acquisition end in pulsed and continuous mode.
     '''
 
+
 @dataclass
 class digitizer_channel:
     '''
@@ -104,8 +114,9 @@ class digitizer_channel:
     channels is performed simultaneously.
 
     NOTE:
-        This channel does not specify the physical digitizer input channel.
-        The digitizer can combine two physical inputs in one output buffer.
+        On Keysight M3102A with FPGA demodulation this channel does not specify
+        the physical digitizer input channel, but the data channel number.
+        The digitizer can combine two physical inputs (I and Q) in one output buffer.
         It can also demodulate 1 physcial input to multipe output buffers.
     '''
     name: str
@@ -113,14 +124,14 @@ class digitizer_channel:
     channel_numbers: List[int]
     '''
     Channel number to *read* the data from.
-    This is the number of the output buffer of the digitizer.
+    For M3102A this is the number of the output buffer of the digitizer.
     '''
-    # @@@ TODO change to 'data_mode': 'Complex' or 'Real' or 'I+Q'  or 'Split'??
     iq_out: bool = False
     '''
     Return I/Q data in complex value. If False the imaginary component will be discarded.
+    Note: sequencer.get_measurement_param has the option to convert to I+Q, amplitude+phase,  etc.
     '''
-    phase : float = 0.0
+    phase: float = 0.0
     '''
     Phase shift after iq demodulation
     '''
@@ -139,6 +150,10 @@ class digitizer_channel:
     delay: float = 0.0
     '''
     Channel delay in ns.
+    '''
+    hw_input_channel: int = None
+    '''
+    For M3102A this is the physical input channel of the digitizer.
     '''
 
     def __post_init__(self):
