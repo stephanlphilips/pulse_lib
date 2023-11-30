@@ -572,6 +572,9 @@ class QsUploader:
                 result[key] = value.reshape((acq_desc.n_rep, -1))
                 if acq_desc.average_repetitions:
                     result[key] = np.mean(result[key], axis=0)
+        else:
+            for key, value in result.items():
+                result[key] = value.flatten()
 
         return result
 

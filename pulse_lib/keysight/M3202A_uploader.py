@@ -322,8 +322,6 @@ class M3202A_Uploader:
                 enabled_los = []
                 osc_start_offset = awg_osc.delay - awg_osc.startup_time
                 osc_end_offset = awg_osc.delay + awg_osc.prolongation_time + t_measure
-                # @@@ DEBUG CODE
-                print(f"acquisitions: {job.digitizer_triggers}")
                 i = 0
                 for t, ch_names in job.digitizer_triggers.items():
                     merge = i > 0 and t + osc_start_offset < hvi_params[f'awg_los_off_{i}'] + 50
@@ -333,7 +331,6 @@ class M3202A_Uploader:
                     else:
                         hvi_params[f'awg_los_on_{i+1}'] = t + osc_start_offset
                     hvi_params[f'awg_los_off_{i+1}'] = t + osc_end_offset
-                    print(f"AWG LO on {t + osc_start_offset}, off: {t + osc_end_offset}")
                     triggered_los = []
                     for ch_name in ch_names:
                         try:
@@ -350,7 +347,6 @@ class M3202A_Uploader:
                 hvi_params['switch_los'] = True
                 hvi_params['n_switch_los'] = i
                 hvi_params['enabled_los'] = enabled_los
-                print(f"acquisitions -> enabled_los: {enabled_los}")
             if 'video_mode_channels' in hvi_params:
                 video_mode_los = set()
                 for dig_name, channels in hvi_params['video_mode_channels'].items():
@@ -490,6 +486,9 @@ class M3202A_Uploader:
                 result[key] = value.reshape((acq_desc.n_rep, -1))
                 if acq_desc.average_repetitions:
                     result[key] = np.mean(result[key], axis=0)
+        else:
+            for key, value in result.items():
+                result[key] = value.flatten()
 
         return result
 
