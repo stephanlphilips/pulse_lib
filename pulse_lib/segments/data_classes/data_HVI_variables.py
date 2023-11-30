@@ -16,6 +16,7 @@ class marker_HVI_variable(parent_data):
         """
         super().__init__()
         self.data = dict()
+        self.end_time = 0
 
     @property
     def HVI_markers(self):
