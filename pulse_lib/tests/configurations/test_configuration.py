@@ -334,7 +334,7 @@ class Context:
         else:
             sequence.upload()
             sequence.play()
-            if wait:
+            if wait and self.pulse._backend in ['Keysight', 'Keysight_QS']:
                 sequence.uploader.wait_until_AWG_idle()
 
     def play(self, sequence, wait=False):
