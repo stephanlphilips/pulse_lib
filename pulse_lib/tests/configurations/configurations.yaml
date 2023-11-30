@@ -126,6 +126,29 @@ QbloxV1:
         SD2: [Qblox_module8,1]
     runner: core_tools
 
+QbloxTest4:
+    station: qblox_test4.yaml
+    backend: Qblox
+    awg_channels:
+        Qblox_module4: [P1,P2,P3,]
+        Qblox_module6: [P4,P5,P6,P7]
+        Qblox_module2: [I1,Q1,I2,Q2]
+    markers:
+        M1: [Qblox_module12,0]
+        M_IQ1: [Qblox_module2,0]
+        M_IQ2: [Qblox_module2,2]
+    sensors:
+        SD1: [Qblox_module16,0]
+        SD2: [Qblox_module16,1]
+    rf:
+        SD2:
+            output: [Qblox_module16,1]
+            frequency: 125e6
+            amplitude: 400
+            startup_time: 200
+            prolongation_time: 4
+    runner: core_tools
+
 QbloxGS1:
     station: qblox_gs1.yaml
     backend: Qblox
@@ -144,8 +167,8 @@ QbloxGS1:
     runner: core_tools
 
 KeysightSdS:
-#    station: keysight_test_sds.yaml
-    station: keysight_test_sds_qs.yaml
+    station: keysight_test_sds.yaml
+    # station: keysight_test_sds_qs.yaml
     backend: Keysight_QS
     schedule: HVI2
     # P1,P3,P6,P7 are connected to SD1-SD4

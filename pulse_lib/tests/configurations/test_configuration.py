@@ -148,8 +148,7 @@ class Context:
                 pulse.add_awg(getattr(station, awg_name))
             pulse.define_channel(gate, awg_name, channel)
             pulse.add_channel_compensation_limit(gate, (-100, 50))
-#        pulse.add_channel_attenuation(name, 0.2)
-#        pulse.add_channel_delay(name, value)
+            # pulse.add_channel_attenuation(gate, 0.1)
 
         if virtual_gates:
             n_gates = len(gates)
@@ -228,6 +227,8 @@ class Context:
                 iq_out = rf_sources and sensor in cfg['rf']
                 pulse.define_digitizer_channel_iq(sensor, digitizer_name, channel,
                                                   iq_out=iq_out)
+            if backend == 'Qblox':
+                pulse.add_channel_delay(sensor, 152)
 
         if n_sensors > 0 and backend == 'Tektronix_5014':
             self._add_marker('M_M4i')
@@ -244,7 +245,8 @@ class Context:
                                                   output=params['output'],
                                                   amplitude=params['amplitude'],
                                                   mode='pulsed',
-                                                  startup_time_ns=params['startup_time'])
+                                                  startup_time_ns=params['startup_time'],
+                                                  prolongation_ns=params.get('prolongation_time', 0))
                 else:
                     output = params['output']
                     if not isinstance(output, str):
@@ -254,7 +256,8 @@ class Context:
                                                   output=output,
                                                   amplitude=params.get('amplitude', None),
                                                   mode='pulsed',
-                                                  startup_time_ns=params['startup_time'])
+                                                  startup_time_ns=params['startup_time'],
+                                                  prolongation_ns=params.get('prolongation_time', 0))
 
         if backend == 'Tektronix_5014':
             # pulselib always wants a digitizer for Tektronix
@@ -321,6 +324,21 @@ class Context:
             _qcodes_initialized = True
             path = 'C:/measurements/test_pulselib'
             DataSet.default_io = DiskIO(path)
+
+    def _play_loop(self, sequence, i, wait):
+        if i < len(sequence.params):
+            param = sequence.params[i]
+            for v in param.values:
+                param(v)
+                self._play_loop(sequence, i+1, wait)
+        else:
+            sequence.upload()
+            sequence.play()
+            if wait:
+                sequence.uploader.wait_until_AWG_idle()
+
+    def play(self, sequence, wait=False):
+        self._play_loop(sequence, 0, wait=wait)
 
     def run(self, name, sequence, *params, silent=False, sweeps=[], close_sequence=True):
         runner = self._configuration['runner']
