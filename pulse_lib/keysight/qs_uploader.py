@@ -4,7 +4,7 @@ import numpy as np
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from uuid import UUID
 
 from .sequencer_device import add_sequencers
@@ -21,9 +21,10 @@ from pulse_lib.uploader.uploader_funcs import (
 
 logger = logging.getLogger(__name__)
 
+
 class AwgConfig:
-    MAX_AMPLITUDE = 1500 # mV
-    ALIGNMENT = 10 # waveform must be multiple 10 bytes
+    MAX_AMPLITUDE = 1500  # mV
+    ALIGNMENT = 10  # waveform must be multiple 10 bytes
 
 
 class QsUploader:
@@ -49,8 +50,8 @@ class QsUploader:
         add_sequencers(self, awg_devices, awg_channels, IQ_channels)
 
         self.release_all_awg_memory()
-
         self._config_marker_channels()
+        self._configure_rf_sources()
 
     @property
     def supports_conditionals(self):
@@ -72,6 +73,41 @@ class QsUploader:
                 awg.set_channel_amplitude(amplitude, channel.channel_number)
                 awg.set_channel_offset(offset, channel.channel_number)
 
+    def _configure_rf_sources(self):
+    # TODO @@@@ only if awg not QS.
+        awg_oscillators = None
+        for dig_ch in self.digitizer_channels.values():
+            if dig_ch.rf_source is not None and dig_ch.frequency is not None:
+                rf_source = dig_ch.rf_source
+                if awg_oscillators is None:
+                    awg_oscillators = AwgOscillators(delay=rf_source.delay,
+                                                     startup_time=rf_source.startup_time_ns,
+                                                     prolongation_time=rf_source.prolongation_ns,
+                                                     mode=rf_source.mode)
+                else:
+                    if (rf_source.delay != awg_oscillators.delay
+                            or rf_source.startup_time_ns != awg_oscillators.startup_time
+                            or rf_source.prolongation_ns != awg_oscillators.prolongation_time
+                            or rf_source.mode != awg_oscillators.mode):
+                        raise Exception('RF source delay, startup time, prolongation time and mode '
+                                        'must be equal for all oscillators')
+                awg_name, awg_ch = rf_source.output
+                osc_num = 0
+                for osc in awg_oscillators.oscillators:
+                    if osc[:2] == (awg_name, awg_ch):
+                        osc_num += 1
+                        if osc_num >= 4:
+                            raise Exception(f'Too many RF oscillators on {awg_name} channnel {awg_ch}')
+                osc = (awg_name, awg_ch, osc_num)
+                awg_oscillators.oscillators.append(osc)
+                awg_oscillators.dig2osc[dig_ch.name] = osc
+                awg = self.AWGs[awg_name]
+                awg.set_lo_mode(awg_ch, True)
+                # TODO @@@ allow sweep/change of frequency, amplitude.
+                amplitude = rf_source.amplitude / rf_source.attenuation
+                enable = rf_source.mode == 'continuous'
+                awg.config_lo(awg_ch, osc_num, enable, dig_ch.frequency, amplitude)
+        self._awg_oscillators = awg_oscillators
 
     def get_effective_sample_rate(self, sample_rate):
         """
@@ -115,12 +151,13 @@ class QsUploader:
         self.release_memory(seq_id, index)
         return Job(self.jobs, sequence, index, seq_id, n_rep, sample_rate, neutralize)
 
-
     def add_upload_job(self, job):
         '''
         add a job to the uploader.
         Args:
-            job (upload_job) : upload_job object that defines what needs to be uploaded and possible post processing of the waveforms (if needed)
+            job (upload_job):
+                upload_job object that defines what needs to be uploaded and possible post processing of
+                the waveforms (if needed)
         '''
         '''
         Class taking care of putting the waveform on the right AWG.
@@ -134,22 +171,22 @@ class QsUploader:
         '''
         start = time.perf_counter()
 
-        self.jobs.append(job) # @@@ add loaded=True to job.
+        self.jobs.append(job)  # @@@ add loaded=True to job.
 
         aggregator = UploadAggregator(self.AWGs, self.digitizers, self.awg_channels,
                                       self.marker_channels, self.digitizer_channels,
                                       self.qubit_channels, self.sequencer_channels, self.sequencer_out_channels)
 
-        aggregator.upload_job(job, self.__upload_to_awg) # @@@ TODO split generation and upload
+        aggregator.upload_job(job, self.__upload_to_awg)
 
         duration = time.perf_counter() - start
         logger.info(f'generated upload data ({duration*1000:6.3f} ms)')
 
     def __upload_to_awg(self, channel_name, waveform):
-#        vmin = waveform.min()
-#        vmax = waveform.max()
-#        length = len(waveform)
-#        logger.debug(f'{channel_name}: V({vmin*1000:6.3f}, {vmax*1000:6.3f}) {length}')
+        # vmin = waveform.min()
+        # vmax = waveform.max()
+        # length = len(waveform)
+        # logger.debug(f'{channel_name}: V({vmin*1000:6.3f}, {vmax*1000:6.3f}) {length}')
         if channel_name in self.awg_channels:
             awg_name = self.awg_channels[channel_name].awg_name
         elif channel_name in self.marker_channels:
@@ -162,7 +199,7 @@ class QsUploader:
 
     def __upload_markers(self, channel_name, table):
         start = time.perf_counter()
-        if not channel_name in self.marker_channels:
+        if channel_name not in self.marker_channels:
             raise Exception(f'Channel {channel_name} not found in configuration')
         marker_channel = self.marker_channels[channel_name]
         awg_name = marker_channel.module_name
@@ -185,8 +222,7 @@ class QsUploader:
                 return job
 
         logger.error(f'Job not found for index {index} of seq {seq_id}')
-        raise ValueError(f'Sequence with id {seq_id}, index {index} not placed for upload .. . Always make sure to first upload your segment and then do the playback.')
-
+        raise ValueError(f'Sequence with id {seq_id}, index {index} not found')
 
     def _configure_digitizers(self, job):
         if not job.acquisition_conf.configure_digitizer:
@@ -212,7 +248,7 @@ class QsUploader:
             sample_rate = None
         else:
             sample_rate = job.acquisition_conf.sample_rate
-        for channel_name,t_measure in job.t_measure.items():
+        for channel_name, t_measure in job.t_measure.items():
             if channel_name not in channels:
                 continue
             n_triggers = job.n_acq_samples[channel_name]
@@ -226,9 +262,10 @@ class QsUploader:
                 enabled_channels[dig_name].append(ch)
 
         # disable not used channels of digitizer
-        for dig_name,channel_nums in enabled_channels.items():
+        for dig_name, channel_nums in enabled_channels.items():
             dig = self.digitizers[dig_name]
-            dig.set_operating_mode(2) # HVI
+            dig.set_operating_mode(2)  # HVI
+            dig.set_data_handling_mode(0)  # Full mode, no averaging of time or repetitions.
             dig.set_active_channels(channel_nums)
             if hasattr(dig, 'set_timeout'):
                 dig.set_timeout(timeout)
@@ -238,7 +275,100 @@ class QsUploader:
                                               job.n_rep,
                                               job.acquisition_conf.average_repetitions)
 
-    def play(self, seq_id, index, release_job = True):
+    def _configure_rf_oscillators(self, job):
+        for ch_name, channel_conf in self.digitizer_channels.items():
+            dig_name = channel_conf.module_name
+            dig = self.digitizers[dig_name]
+            acq_mode = dig.get_channel_acquisition_mode(channel_conf.channel_numbers[0])
+            if acq_mode in [4, 5]:
+                # Set phase for IQ demodulated input
+                if channel_conf.phase is not None:
+                    for ch in channel_conf.channel_numbers:
+                        dig.set_lo(ch, 0, channel_conf.phase)
+            if acq_mode in [2, 3]:
+                # Set frequency, amplitude and phase for IQ demodulation in FPGA.
+                if channel_conf.frequency is not None:
+                    for ch in channel_conf.channel_numbers:
+                        dig.set_lo(ch,
+                                   channel_conf.frequency,
+                                   channel_conf.phase,
+                                   channel_conf.hw_input_channel,
+                                   )
+                    if channel_conf.rf_source is not None:
+                        rf_source = channel_conf.rf_source
+                        osc = self._awg_oscillators.dig2osc[ch_name]
+                        awg_name, awg_ch, osc_num = osc
+                        awg = self.AWGs[awg_name]
+                        amplitude = rf_source.amplitude / rf_source.attenuation
+                        enable = rf_source.mode == 'continuous'
+                        awg.config_lo(awg_ch, osc_num, enable, channel_conf.frequency, amplitude)
+
+    def _get_hvi_params(self, job):
+        hvi_params = job.schedule_params.copy()
+        hvi_params.update(
+                {f'dig_trigger_{i+1}': t
+                 for i, t in enumerate(job.digitizer_triggers.keys())
+                 })
+        dig_trigger_channels = {
+                dig_name: [[] for _ in job.digitizer_triggers]
+                for dig_name in self.digitizers.keys()}
+        for i, ch_names in enumerate(job.digitizer_triggers.values()):
+            for ch_name in ch_names:
+                dig_ch = self.digitizer_channels[ch_name]
+                dig_trigger_channels[dig_ch.module_name][i] += dig_ch.channel_numbers
+        hvi_params.update(
+                {f'dig_trigger_channels_{dig_name}': triggers
+                 for dig_name, triggers in dig_trigger_channels.items()
+                 })
+
+        for awg_name, awg in self.AWGs.items():
+            hvi_params[f'use_awg_sequencers_{awg_name}'] = (
+                (QsUploader.use_iq_sequencers or QsUploader.use_baseband_sequencers)
+                and hasattr(awg, 'get_sequencer'))
+
+        for dig_name, dig in self.digitizers.items():
+            hvi_params[f'use_digitizer_sequencers_{dig_name}'] = (
+                QsUploader.use_digitizer_sequencers and hasattr(dig, 'get_sequencer'))
+
+        if self._awg_oscillators is not None and self._awg_oscillators.mode == 'pulsed':
+            awg_osc = self._awg_oscillators
+            t_measure = None
+            for dig_ch_name, t_measure_ch in job.t_measure.items():
+                if dig_ch_name in awg_osc.dig2osc:
+                    if t_measure is None:
+                        t_measure = t_measure_ch
+                    elif t_measure != t_measure_ch:
+                        raise Exception('t_measure must be equal for all RF oscillators')
+            if t_measure is not None:
+                enabled_los = []
+                osc_start_offset = awg_osc.delay - awg_osc.startup_time
+                osc_end_offset = awg_osc.delay + awg_osc.prolongation_time + t_measure
+                for i, (t, ch_names) in enumerate(job.digitizer_triggers.items()):
+                    hvi_params[f'awg_los_on_{i+1}'] = t + osc_start_offset
+                    hvi_params[f'awg_los_off_{i+1}'] = t + osc_end_offset
+                    triggered_los = []
+                    for ch_name in ch_names:
+                        try:
+                            osc = awg_osc.dig2osc[ch_name]
+                            triggered_los.append(osc)
+                        except KeyError:
+                            pass
+                    enabled_los.append(triggered_los)
+                hvi_params['enabled_los'] = enabled_los
+                hvi_params['switch_los'] = True
+            if 'video_mode_channels' in hvi_params:
+                video_mode_los = set()
+                for dig_name, channels in hvi_params['video_mode_channels'].items():
+                    for dig_ch_name, osc in awg_osc.dig2osc.items():
+                        dig_channel = self.digitizer_channels[dig_ch_name]
+                        if (dig_channel.module_name == dig_name
+                                and not set(dig_channel.channel_numbers).isdisjoint(channels)):
+                            video_mode_los.add(osc)
+                hvi_params['video_mode_los'] = list(video_mode_los)
+
+        return hvi_params
+
+    def play(self, seq_id, index, release_job=True):
         """
         start playback of a sequence that has been uploaded.
         Args:
@@ -246,11 +376,11 @@ class QsUploader:
             index (tuple) : index that has to be played
             release_job (bool) : release memory on AWG after done.
         """
-
-        job =  self.__get_job(seq_id, index)
+        job = self.__get_job(seq_id, index)
         continuous_mode = getattr(job.hw_schedule, 'script_name', '') == 'Continuous'
         if continuous_mode:
-            raise Exception('Continuous mode not supported with KeysightQS.')
+            for awg in self.AWGs.values():
+                awg.awg_stop_multiple(0b1111)
         self.wait_until_AWG_idle()
 
         for channel_name, marker_table in job.marker_tables.items():
@@ -294,18 +424,18 @@ class QsUploader:
                 awg.set_channel_amplitude(amplitude/1000, channel_number)
                 awg.set_channel_offset(offset/1000, channel_number)
 
-                start_delay = 0 # no start delay
-                trigger_mode = 1 # software/HVI trigger
-                cycles = 1
+                start_delay = 0  # no start delay
+                trigger_mode = 1  # software/HVI trigger
+                # cycles = 0 means infinite number of cycles
+                cycles = 1 if not continuous_mode else 0
                 for queue_item in queue:
                     prescaler = awg.convert_sample_rate_to_prescaler(queue_item.sample_rate)
                     awg.awg_queue_waveform(
                             channel_number, queue_item.wave_reference,
                             trigger_mode, start_delay, cycles, prescaler)
-                    trigger_mode = 0 # Auto tigger -- next waveform will play automatically.
+                    trigger_mode = 0  # Auto tigger -- next waveform will play automatically.
             except Exception as ex:
                 raise Exception(f'Play failed on channel {channel_name} ({ex})')
-
 
         # set offset for IQ channels
         for channel_name, awg_channel in self.awg_channels.items():
@@ -318,6 +448,9 @@ class QsUploader:
 
         start = time.perf_counter()
         for awg_sequencer in self.sequencer_channels.values():
+            if continuous_mode:
+                raise Exception('QS sequencers cannot be used in continuous mode. '
+                                'Set QsUploader.use_iq_sequencers = False')
             awg = self.AWGs[awg_sequencer.module_name]
             channel_name = awg_sequencer.channel_name
             seq = awg.get_sequencer(awg_sequencer.sequencer_index)
@@ -337,7 +470,7 @@ class QsUploader:
                         raise Exception(f'{channel_name} IQ frequency {seq._frequency/1e6:5.1f} MHz is out of range')
 
                 # @@@ IQSequence.upload() OR Sequence.upload()
-                for number,wvf in enumerate(sequence.waveforms):
+                for number, wvf in enumerate(sequence.waveforms):
                     seq.upload_waveform(number, wvf.offset, wvf.duration,
                                         wvf.amplitude, wvf.am_envelope,
                                         wvf.frequency, wvf.pm_envelope,
@@ -346,7 +479,7 @@ class QsUploader:
                                         append_zero=wvf.restore_frequency)
 
                 t2 = time.perf_counter()
-                for i,entry in enumerate(sequence.sequence):
+                for i, entry in enumerate(sequence.sequence):
                     if isinstance(entry, SequenceConditionalEntry):
                         schedule.append(AwgConditionalInstruction(i, entry.time_after,
                                                                   wave_numbers=entry.waveform_indices,
@@ -355,9 +488,11 @@ class QsUploader:
                         schedule.append(AwgInstruction(i, entry.time_after, wave_number=entry.waveform_index))
                 t3 = time.perf_counter()
                 if QsUploader.verbose:
-                    logger.debug(f'{awg_sequencer.channel_name} create waves:{(t2-t1)*1000:6.3f}, seq:{(t3-t2)*1000:6.3f} ms')
+                    logger.debug(f'{awg_sequencer.channel_name} create waves:{(t2-t1)*1000:6.3f}, '
+                                 f'seq:{(t3-t2)*1000:6.3f} ms')
             seq.load_schedule(schedule)
-        logger.info(f'loaded awg sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
+        if QsUploader.verbose:
+            logger.debug(f'loaded awg sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
 
         start = time.perf_counter()
         for dig_channel in self.digitizer_channels.values():
@@ -368,9 +503,8 @@ class QsUploader:
                     seq = dig.get_sequencer(seq_nr)
                     sequence = job.digitizer_sequences[dig_channel.name]
                     # @@@ DigSequence.upload()
-
                     schedule = []
-                    for i,entry in enumerate(sequence.sequence):
+                    for i, entry in enumerate(sequence.sequence):
                         schedule.append(DigitizerInstruction(i, entry.time_after,
                                                              t_measure=entry.t_measure,
                                                              n_cycles=entry.n_cycles,
@@ -379,17 +513,14 @@ class QsUploader:
                                                              threshold=entry.threshold))
                     seq.load_schedule(schedule)
 
-        logger.info(f'loaded dig sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
+        if QsUploader.verbose:
+            logger.debug(f'loaded dig sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
 
         self._configure_digitizers(job)
+        self._configure_rf_oscillators(job)
 
         # start hvi (start function loads schedule if not yet loaded)
-        acquire_triggers = {f'dig_trigger_{i+1}':t for i,t in enumerate(job.digitizer_triggers)}
-        trigger_channels = {f'dig_trigger_channels_{dig_name}':triggers
-                            for dig_name, triggers in job.digitizer_trigger_channels.items()}
-        schedule_params = job.schedule_params.copy()
-        schedule_params.update(acquire_triggers)
-        schedule_params.update(trigger_channels)
+        schedule_params = self._get_hvi_params(job)
         job.hw_schedule.set_configuration(schedule_params, job.n_waveforms)
         n_rep = job.n_rep if job.n_rep else 1
         job.hw_schedule.start(job.playback_time, n_rep, schedule_params)
@@ -399,12 +530,11 @@ class QsUploader:
 
     def get_channel_data(self, seq_id, index):
         acq_desc = self.acq_description
-        if (acq_desc.seq_id != seq_id
-            or (index is not None and acq_desc.index != index)):
+        if acq_desc.seq_id != seq_id or (index is not None and acq_desc.index != index):
             raise Exception(f'Data for index {index} not available')
 
         dig_data = {}
-        for dig_name,channel_nums in acq_desc.enabled_channels.items():
+        for dig_name, channel_nums in acq_desc.enabled_channels.items():
             dig = self.digitizers[dig_name]
             dig_data[dig_name] = {}
             active_channels = dig.active_channels
@@ -422,7 +552,12 @@ class QsUploader:
             if len(in_ch) == 2:
                 raw_I = dig_data[dig_name][in_ch[0]]
                 raw_Q = dig_data[dig_name][in_ch[1]]
-                raw_ch = (raw_I + 1j * raw_Q) * np.exp(1j*channel.phase)
+                if dig.get_channel_acquisition_mode(in_ch[0]) in [2, 3, 4, 5]:
+                    # phase shift is already applied in HW.
+                    phase = 0.0
+                else:
+                    phase = channel.phase
+                raw_ch = (raw_I + 1j * raw_Q) * np.exp(1j*phase)
             else:
                 # this can be complex valued output with LO modulation or phase shift in digitizer (FPGA)
                 raw_ch = dig_data[dig_name][in_ch[0]]
@@ -433,7 +568,7 @@ class QsUploader:
             result[channel_name] = raw_ch
 
         if acq_desc.n_rep:
-            for key,value in result.items():
+            for key, value in result.items():
                 result[key] = value.reshape((acq_desc.n_rep, -1))
                 if acq_desc.average_repetitions:
                     result[key] = np.mean(result[key], axis=0)
@@ -448,13 +583,12 @@ class QsUploader:
             index (tuple) : index that has to be released; if None release all.
         """
         for job in self.jobs:
-            if (seq_id is None
-                or (job.seq_id == seq_id and (index is None or job.index == index))):
+            if seq_id is None or (job.seq_id == seq_id and (index is None or job.index == index)):
                 job.release()
 
     def release_all_awg_memory(self):
         for awg in self.AWGs.values():
-            for ch in [1,2,3,4]:
+            for ch in [1, 2, 3, 4]:
                 awg.awg_flush(ch)
             if hasattr(awg, 'release_waveform_memory'):
                 awg.release_waveform_memory()
@@ -464,7 +598,6 @@ class QsUploader:
     def release_jobs(self):
         for job in self.jobs:
             job.release()
-
 
     def wait_until_AWG_idle(self):
         '''
@@ -479,9 +612,20 @@ class QsUploader:
 
 
 @dataclass
+class AwgOscillators:
+    delay: float
+    startup_time: float
+    prolongation_time: float
+    mode: str
+    oscillators: List[Tuple[str, int, int]] = field(default_factory=list)
+    dig2osc: Dict[str, Tuple[str, int, int]] = field(default_factory=dict)
+
+
+@dataclass
 class AwgQueueItem:
     wave_reference: object
     sample_rate: float
+
 
 @dataclass
 class AcqDescription:
@@ -493,9 +637,10 @@ class AcqDescription:
     n_rep: int
     average_repetitions: bool
 
+
 class Job(object):
-    """docstring for upload_job"""
-    def __init__(self, job_list, sequence, index, seq_id, n_rep, sample_rate, neutralize=True, priority=0):
+
+    def __init__(self, job_list, sequence, index, seq_id, n_rep, sample_rate, neutralize=True):
         '''
         Args:
             job_list (list): list with all jobs.
@@ -505,7 +650,6 @@ class Job(object):
             n_rep (int) : number of repetitions of this sequence.
             sample_rate (float) : sample rate
             neutralize (bool) : place a neutralizing segment at the end of the upload
-            priority (int) : priority of the job (the higher one will be excuted first)
         '''
         self.job_list = job_list
         self.sequence = sequence
@@ -514,8 +658,7 @@ class Job(object):
         self.n_rep = n_rep
         self.default_sample_rate = sample_rate
         self.neutralize = neutralize
-        self.priority = priority
-        self.playback_time = 0 #total playtime of the waveform
+        self.playback_time = 0   # total playtime of the waveform
         self.acquisition_conf = None
 
         self.released = False
@@ -523,7 +666,6 @@ class Job(object):
         self.channel_queues = dict()
         self.hw_schedule = None
         logger.debug(f'new job {seq_id}-{index}')
-
 
     def add_hw_schedule(self, hw_schedule, schedule_params):
         """
@@ -548,7 +690,6 @@ class Job(object):
 
         self.channel_queues[channel_name].append(AwgQueueItem(wave_ref, sample_rate))
 
-
     def release(self):
         if self.released:
             logger.warning(f'job {self.seq_id}-{self.index} already released')
@@ -565,11 +706,10 @@ class Job(object):
         if self in self.job_list:
             self.job_list.remove(self)
 
-
     def __del__(self):
         if not self.released:
             logger.warning(f'Job {self.seq_id}-{self.index} was not released. '
-                            'Automatic release in destructor.')
+                           'Automatic release in destructor.')
             self.release()
 
 
@@ -586,10 +726,11 @@ class ChannelInfo:
     # aggregation state
     integral: float = 0.0
 
+
 @dataclass
 class RenderSection:
     sample_rate: float
-    t_start: float # can be negative for negative channel delays
+    t_start: float  # can be negative for negative channel delays
     npt: int = 0
 
     @property
@@ -604,6 +745,7 @@ class RenderSection:
                 self.npt = int((self.npt + AwgConfig.ALIGNMENT - 1) // AwgConfig.ALIGNMENT) * AwgConfig.ALIGNMENT
         else:
             self.npt = int(self.npt // AwgConfig.ALIGNMENT) * AwgConfig.ALIGNMENT
+
 
 @dataclass
 class JobUploadInfo:
@@ -635,8 +777,8 @@ class SegmentRenderInfo:
 @dataclass
 class RefChannels:
     start_time: float
-    start_phase: Dict[str,float] = field(default_factory=dict)
-    start_phases_all: List[Dict[str,float]] = field(default_factory=list)
+    start_phase: Dict[str, float] = field(default_factory=dict)
+    start_phases_all: List[Dict[str, float]] = field(default_factory=list)
 
 
 @dataclass
@@ -692,13 +834,12 @@ class UploadAggregator:
         self.max_pre_start_ns = -min(0, *delays)
         self.max_post_end_ns = max(0, *delays)
 
-
     def _integrate(self, job):
 
         if not job.neutralize:
             return
 
-        for iseg,seg in enumerate(job.sequence):
+        for iseg, seg in enumerate(job.sequence):
             sample_rate = get_sample_rate(job, seg)
 
             for channel_name, channel_info in self.channels.items():
@@ -714,7 +855,6 @@ class UploadAggregator:
                     if UploadAggregator.verbose:
                         logger.debug(f'Integral seg:{iseg} {channel_name} integral:{channel_info.integral}')
 
-
     def _generate_sections(self, job):
         max_pre_start_ns = self.max_pre_start_ns
         max_post_end_ns = self.max_post_end_ns
@@ -726,7 +866,9 @@ class UploadAggregator:
             # work with sample rate in GSa/s
             sample_rate = get_sample_rate(job, seg) * 1e-9
             duration = seg.get_total_time(job.index)
-            npt =  iround(duration * sample_rate)
+            if UploadAggregator.verbose:
+                logger.debug(f'Seg duration:{duration:9.3f}')
+            npt = iround(duration * sample_rate)
             info = SegmentRenderInfo(sample_rate, t_start, npt)
             segments.append(info)
             t_start = info.t_end
@@ -740,7 +882,7 @@ class UploadAggregator:
         sections.append(section)
         section.npt += iround(max_pre_start_ns * section.sample_rate)
 
-        for iseg,seg in enumerate(segments):
+        for iseg, seg in enumerate(segments):
             sample_rate = seg.sample_rate
 
             if iseg < nseg-1:
@@ -765,7 +907,6 @@ class UploadAggregator:
                 section = RenderSection(sample_rate, section.t_end)
                 sections.append(section)
                 section.npt -= n_start_transition
-
 
             seg.section = section
             seg.offset = section.npt
@@ -794,6 +935,8 @@ class UploadAggregator:
 
         # add post stop samples; seg = last segment, section is last section
         n_post = iround(((seg.t_end + max_post_end_ns) - section.t_end) * section.sample_rate)
+        if UploadAggregator.verbose:
+            logger.debug(f'Post: {n_post}, npt:{section.npt}')
         section.npt += n_post
 
         # add DC compensation
@@ -801,7 +944,9 @@ class UploadAggregator:
         logger.info(f'DC compensation time: {compensation_time*1e9} ns')
         compensation_npt = int(np.ceil(compensation_time * section.sample_rate * 1e9))
         if compensation_npt > 50_000:
-            # more than 50_000 samples? Use new segment with lower sample rate for compensation
+            # More than 50_000 samples? Use new segment with lower sample rate for compensation
+            # Upload of 50_000 samples takes ~ 1 ms. It saves upload time to
+            # create a new waveform with lower sample rate.
 
             sample_rate = 1e9 * section.sample_rate * 5_000 / compensation_npt
             # find an existing sample rate
@@ -817,7 +962,7 @@ class UploadAggregator:
             # calculate npt
             compensation_npt = int(np.ceil(compensation_time * section.sample_rate * 1e9))
             logger.info(f'Added new segment for DC compensation: {int(compensation_time*1e9)} ns, '
-                         f'sample_rate: {sr/1e6} MHz, {compensation_npt} Sa')
+                        f'sample_rate: {sr/1e6} MHz, {compensation_npt} Sa')
 
         job.upload_info.dc_compensation_duration = compensation_npt/section.sample_rate
         section.npt += compensation_npt
@@ -835,7 +980,6 @@ class UploadAggregator:
             for section in sections:
                 logger.info(f'section: {section}')
 
-
     def _generate_upload_wvf(self, job, awg_upload_func):
         segments = self.segments
         sections = job.upload_info.sections
@@ -845,23 +989,20 @@ class UploadAggregator:
         for i in range(len(job.sequence)):
             ref_channel_states.start_phases_all.append(dict())
         for channel_name, qubit_channel in self.qubit_channels.items():
-            if (QsUploader.use_iq_sequencers
-                and channel_name in self.sequencer_channels):
+            if QsUploader.use_iq_sequencers and channel_name in self.sequencer_channels:
                 # skip IQ sequencer channels
                 continue
             phase = 0
-            for iseg,seg in enumerate(job.sequence):
+            for iseg, seg in enumerate(job.sequence):
                 ref_channel_states.start_phases_all[iseg][channel_name] = phase
                 seg_ch = seg[channel_name]
                 phase += seg_ch.get_accumulated_phase(job.index)
 
         for channel_name, channel_info in self.channels.items():
-            if (QsUploader.use_iq_sequencers
-                and channel_name in self.sequencer_out_channels):
+            if QsUploader.use_iq_sequencers and channel_name in self.sequencer_out_channels:
                 # skip IQ sequencer channels
                 continue
-            if (QsUploader.use_baseband_sequencers
-                and channel_name in self.sequencer_channels):
+            if QsUploader.use_baseband_sequencers and channel_name in self.sequencer_channels:
                 # skip baseband sequencer channels
                 continue
 
@@ -869,7 +1010,7 @@ class UploadAggregator:
             buffer = np.zeros(section.npt)
             bias_T_compensation_mV = 0
 
-            for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
+            for iseg, (seg, seg_render) in enumerate(zip(job.sequence, segments)):
 
                 sample_rate = seg_render.sample_rate
                 n_delay = iround(channel_info.delay_ns * sample_rate)
@@ -882,11 +1023,12 @@ class UploadAggregator:
                 ref_channel_states.start_time = seg_render.t_start
                 ref_channel_states.start_phase = ref_channel_states.start_phases_all[iseg]
                 start = time.perf_counter()
-                #print(f'start: {channel_name}.{iseg}: {ref_channel_states.start_time}')
+                # print(f'start: {channel_name}.{iseg}: {ref_channel_states.start_time}')
                 wvf = seg_ch.get_segment(job.index, sample_rate*1e9, ref_channel_states)
                 duration = time.perf_counter() - start
                 if UploadAggregator.verbose:
-                    logger.debug(f'generated [{job.index}]{iseg}:{channel_name} {len(wvf)} Sa, in {duration*1000:6.3f} ms')
+                    logger.debug(f'generated [{job.index}]{iseg}:{channel_name} {len(wvf)} Sa, '
+                                 f'in {duration*1000:6.3f} ms')
 
                 if len(wvf) != seg_render.npt:
                     logger.warning(f'waveform {iseg}:{channel_name} {len(wvf)} Sa <> sequence length {seg_render.npt}')
@@ -900,11 +1042,13 @@ class UploadAggregator:
 #                    n_delay_welding = iround(channel_info.delay_ns * section.sample_rate)
                     t_welding = (section.t_end - seg_render.t_start)
                     i_start = iround(t_welding*sample_rate) - n_delay
-                    n_section = iround(t_welding*section.sample_rate) + iround(-channel_info.delay_ns * section.sample_rate)
+                    n_section = (iround(t_welding*section.sample_rate)
+                                 + iround(-channel_info.delay_ns * section.sample_rate))
 
                     if n_section > 0:
                         if iround(n_section*sample_rate/section.sample_rate) >= len(wvf):
-                            raise Exception(f'segment {iseg} too short for welding. (nwelding:{n_section}, len_wvf:{len(wvf)})')
+                            raise Exception(f'segment {iseg} too short for welding. '
+                                            f'(nwelding:{n_section}, len_wvf:{len(wvf)})')
 
                         isub = [iround(i*sample_rate/section.sample_rate) for i in np.arange(n_section)]
                         welding_samples = np.take(wvf, isub)
@@ -917,7 +1061,6 @@ class UploadAggregator:
 
                     section = seg_render.section
                     buffer = np.zeros(section.npt)
-
 
                 if seg_render.end_section:
                     next_section = seg_render.end_section
@@ -937,11 +1080,14 @@ class UploadAggregator:
                     section = next_section
                     buffer = np.zeros(section.npt)
 
-                    n_section = iround(t_welding*section.sample_rate) + iround(channel_info.delay_ns * section.sample_rate)
+                    n_section = (iround(t_welding*section.sample_rate)
+                                 + iround(channel_info.delay_ns * section.sample_rate))
                     if iround(n_section*sample_rate/section.sample_rate) >= len(wvf):
-                        raise Exception(f'segment {iseg} too short for welding. (nwelding:{n_section}, len_wvf:{len(wvf)})')
+                        raise Exception(f'segment {iseg} too short for welding. '
+                                        f'(nwelding:{n_section}, len_wvf:{len(wvf)})')
 
-                    isub = [min(len(wvf)-1, i_end + iround(i*sample_rate/section.sample_rate)) for i in np.arange(n_section)]
+                    isub = [min(len(wvf)-1, i_end + iround(i*sample_rate/section.sample_rate))
+                            for i in np.arange(n_section)]
                     welding_samples = np.take(wvf, isub)
                     buffer[:n_section] = welding_samples
 
@@ -950,7 +1096,6 @@ class UploadAggregator:
                         logger.error(f'OOPS-2 section mismatch {iseg}, {channel_name}')
                     offset = seg_render.offset + n_delay
                     buffer[offset+i_start:offset + len(wvf)] = wvf[i_start:]
-
 
             if job.neutralize:
                 if section != sections[-1]:
@@ -961,7 +1106,7 @@ class UploadAggregator:
                                      section.sample_rate, awg_upload_func)
                     section = sections[-1]
                     buffer = np.zeros(section.npt)
-                    logger.info(f'DC compensation section with {section.npt} Sa')
+                    logger.debug(f'DC compensation section with {section.npt} Sa')
 
                 compensation_npt = iround(job.upload_info.dc_compensation_duration * section.sample_rate)
 
@@ -969,7 +1114,8 @@ class UploadAggregator:
                     compensation_voltage = -channel_info.integral * section.sample_rate / compensation_npt * 1e9
                     job.upload_info.dc_compensation_voltages[channel_name] = compensation_voltage
                     buffer[-(compensation_npt+1):-1] = compensation_voltage
-                    logger.info(f'DC compensation {channel_name}: {compensation_voltage:6.1f} mV {compensation_npt} Sa')
+                    logger.info(f'DC compensation {channel_name}: '
+                                f'{compensation_voltage:6.1f} mV {compensation_npt} Sa')
                 else:
                     job.upload_info.dc_compensation_voltages[channel_name] = 0
 
@@ -981,7 +1127,7 @@ class UploadAggregator:
     def _render_markers(self, job, awg_upload_func):
         for channel_name, marker_channel in self.marker_channels.items():
             if UploadAggregator.verbose:
-                logger.debug(f'Marker: {channel_name} ({marker_channel.amplitude} mV, {marker_channel.delay:+2.0f} ns)')
+                logger.debug(f'Marker {channel_name} ({marker_channel.amplitude} mV, {marker_channel.delay:+2.0f} ns)')
             start_stop = []
             if channel_name in self.rf_marker_pulses:
                 offset = marker_channel.delay
@@ -1025,7 +1171,7 @@ class UploadAggregator:
             section = sections[i_section]
             pt_on = int((t_on - section.t_start) * section.sample_rate)
             if pt_on < 0:
-                logger.info(f'Warning: Marker setup before waveform; aligning with start')
+                logger.info('Warning: Marker setup before waveform; aligning with start')
                 pt_on = 0
             if t_off < section.t_end:
                 pt_off = int((t_off - section.t_start) * section.sample_rate)
@@ -1064,7 +1210,7 @@ class UploadAggregator:
 
     def _preprocess_conditional_segments(self, job):
         self.conditional_segments = [None] * len(job.sequence)
-        for iseg,seg in enumerate(job.sequence):
+        for iseg, seg in enumerate(job.sequence):
             if isinstance(seg, conditional_segment):
                 self.conditional_segments[iseg] = QsConditionalSegment(seg)
 
@@ -1091,7 +1237,7 @@ class UploadAggregator:
                                          qubit_channel.iq_channel.LO)
             job.iq_sequences[channel_name] = sequence
 
-            for iseg,(seg,seg_render) in enumerate(zip(job.sequence,segments)):
+            for iseg, (seg, seg_render) in enumerate(zip(job.sequence, segments)):
                 if not isinstance(seg, conditional_segment):
                     seg_ch = seg[channel_name]
                     data = seg_ch._get_data_all_at(job.index)
@@ -1121,7 +1267,8 @@ class UploadAggregator:
                                                     condition_register=3)
             sequence.close()
             duration = time.perf_counter() - start
-            logger.debug(f'generated iq sequence {channel_name} {duration*1000:6.3f} ms')
+            if UploadAggregator.verbose:
+                logger.debug(f'generated iq sequence {channel_name} {duration*1000:6.3f} ms')
 
 #    def _generate_sequencer_baseband_upload(self, job):
 # TODO @@@ baseband pulses
@@ -1143,34 +1290,23 @@ class UploadAggregator:
 #                wvf = seg_ch.get_segment(job.index, sample_rate*1e9)
 #                duration = time.perf_counter() - start
 
-    def _count_hvi_measurements(self, hvi_params):
-        n = 0
-        while(True):
-            if n == 0 and 'dig_wait' in hvi_params:
-                n += 1
-            elif f'dig_wait_{n+1}' in hvi_params or f'dig_trigger_{n+1}' in hvi_params:
-                n += 1
-            else:
-                return n
+    def _check_hvi_triggers(self, hvi_params):
+        for name in hvi_params:
+            if name.startswith('dig_wait') or name.startswith('dig_trigger'):
+                raise Exception(f"digitizer triggering with '{name}' is not supported anymore")
 
     def _generate_digitizer_triggers(self, job):
         trigger_channels = defaultdict(list)
-        digitizer_trigger_channels = {}
         job.n_acq_samples = defaultdict(int)
         job.t_measure = {}
 
-        n_hvi_triggers = self._count_hvi_measurements(job.schedule_params)
-        has_HVI_triggers = n_hvi_triggers > 0
-        if has_HVI_triggers:
-            for ch_name in self.digitizer_channels:
-                job.n_acq_samples[ch_name] = n_hvi_triggers
-                job.t_measure[ch_name] = job.acquisition_conf.t_measure
+        self._check_hvi_triggers(job.schedule_params)
 
-        # TODO @@@: cleanup this messy code.
-        for channel_name, channel in self.digitizer_channels.items():
+        for ch_name, channel in self.digitizer_channels.items():
             rf_source = channel.rf_source
             if rf_source is not None:
                 rf_marker_pulses = []
+                # NOTE: this fails when multiple digitizer channels share the same RF marker.
                 self.rf_marker_pulses[rf_source.output] = rf_marker_pulses
 
             offset = int(self.max_pre_start_ns) + channel.delay
@@ -1178,33 +1314,31 @@ class UploadAggregator:
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
                 if isinstance(seg, conditional_segment):
                     # logger.debug(f'conditional for {channel_name}')
-                    seg_ch = get_conditional_channel(seg, channel_name)
+                    seg_ch = get_conditional_channel(seg, ch_name)
                 else:
-                    seg_ch = seg[channel_name]
+                    seg_ch = seg[ch_name]
                 acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
                 for acquisition in acquisition_data:
-                    if has_HVI_triggers:
-                        raise Exception('Cannot combine HVI digitizer triggers with acquisition() calls')
                     if acquisition.n_repeat is not None:
                         raise Exception('Acquisition n_repeat is not supported for Keysight')
                     job.n_acq_samples[ch_name] += 1
                     t = seg_render.t_start + acquisition.start
-                    for ch in channel.channel_numbers:
-                        trigger_channels[t+offset].append((channel.module_name, ch))
-                    # set empty list. Fill later after sorting all triggers
-                    digitizer_trigger_channels[channel.module_name] = []
-                    t_measure = acquisition.t_measure if acquisition.t_measure is not None else job.acquisition_conf.t_measure
+                    t_measure = (acquisition.t_measure
+                                 if acquisition.t_measure is not None
+                                 else job.acquisition_conf.t_measure)
                     # if t_measure = -1, then measure till end of sequence. (time trace feature)
                     if t_measure < 0:
                         t_measure = self.segments[-1].t_end - t
-                    if channel_name in job.t_measure:
-                        if t_measure != job.t_measure[channel_name]:
+                    if ch_name in job.t_measure:
+                        if t_measure != job.t_measure[ch_name]:
                             raise Exception(
                                     't_measure must be same for all triggers, '
-                                    f'channel:{channel_name}, '
-                                    f'{t_measure}!={job.t_measure[channel_name]}')
+                                    f'channel:{ch_name}, '
+                                    f'{t_measure}!={job.t_measure[ch_name]}')
                     else:
-                        job.t_measure[channel_name] = t_measure
+                        job.t_measure[ch_name] = t_measure
+
+                    trigger_channels[t+offset].append(ch_name)
                     t_end = t+t_measure
                     if rf_source is not None and rf_source.mode != 'continuous':
                         rf_marker_pulses.append(RfMarkerPulse(t, t_end))
@@ -1220,22 +1354,18 @@ class UploadAggregator:
                         rf_pulse.start -= rf_source.startup_time_ns
                         rf_pulse.stop += rf_source.prolongation_ns
 
-        job.digitizer_triggers = list(trigger_channels.keys())
-        job.digitizer_triggers.sort()
-        for name, triggers in digitizer_trigger_channels.items():
-            for trigger in job.digitizer_triggers:
-                all_channels = trigger_channels[trigger]
-                triggers.append([nr for module_name, nr in all_channels if module_name == name])
+        continuous_mode = getattr(job.hw_schedule, 'script_name', '') == 'Continuous'
+        if continuous_mode and len(trigger_channels) > 0:
+            raise Exception('Digitizer acquisitions are not supported in continuous mode')
 
-        job.digitizer_trigger_channels = digitizer_trigger_channels
+        job.digitizer_triggers = dict(sorted(trigger_channels.items()))
         if UploadAggregator.verbose:
-            logger.info(f'digitizer triggers: {job.digitizer_triggers}')
+            logger.debug(f'digitizer triggers: {job.digitizer_triggers}')
 
     def _generate_digitizer_sequences(self, job):
 
-        for name, value in job.schedule_params.items():
-            if name.startswith('dig_trigger_') or name.startswith('dig_wait'):
-                raise Exception('HVI triggers not supported with QS')
+        self._check_hvi_triggers(job.schedule_params)
+        continuous_mode = getattr(job.hw_schedule, 'script_name', '') == 'Continuous'
 
         job.n_acq_samples = defaultdict(int)
         job.t_measure = {}
@@ -1264,6 +1394,7 @@ class UploadAggregator:
             rf_source = channel.rf_source
             if rf_source is not None:
                 rf_marker_pulses = []
+                # NOTE: this fails when multiple digitizer channels share the same RF marker.
                 self.rf_marker_pulses[rf_source.output] = rf_marker_pulses
 
             t_end = None
@@ -1277,6 +1408,8 @@ class UploadAggregator:
                     seg_ch = seg[channel_name]
                 acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
                 for acquisition in acquisition_data:
+                    if continuous_mode:
+                        raise Exception('Digitizer acquisitions are not supported in continuous mode')
                     t = seg_render.t_start + acquisition.start
                     if acquisition.t_measure is not None:
                         t_measure = acquisition.t_measure
@@ -1318,7 +1451,6 @@ class UploadAggregator:
 
             sequence.close()
 
-
     def upload_job(self, job, awg_upload_func):
 
         job.upload_info = JobUploadInfo()
@@ -1326,28 +1458,20 @@ class UploadAggregator:
         job.iq_sequences = {}
         job.digitizer_sequences = {}
         job.digitizer_triggers = {}
-        job.digitizer_trigger_channels = {}
         self.rf_marker_pulses = {}
 
         self._integrate(job)
-
         self._generate_sections(job)
-
         self._preprocess_conditional_segments(job)
-
         self._generate_upload_wvf(job, awg_upload_func)
-
         if QsUploader.use_iq_sequencers:
             self._generate_sequencer_iq_upload(job)
-
-#        if QsUploader.use_baseband_sequencers:
-#            self._generate_sequencer_baseband_upload(job)
-
+        # if QsUploader.use_baseband_sequencers:
+        #     self._generate_sequencer_baseband_upload(job)
         if QsUploader.use_digitizer_sequencers:
             self._generate_digitizer_sequences(job)
         else:
             self._generate_digitizer_triggers(job)
-
         self._render_markers(job, awg_upload_func)
 
     def get_max_compensation_time(self):
@@ -1361,7 +1485,6 @@ class UploadAggregator:
             sample_rate (float) : rate at which the AWG runs.
         '''
         return max(self.get_compensation_time(channel_info) for channel_info in self.channels.values())
-
 
     def get_compensation_time(self, channel_info):
         '''
@@ -1378,15 +1501,14 @@ class UploadAggregator:
             result = -channel_info.integral / channel_info.dc_compensation_min
         return result
 
-
     def _add_bias_T_compensation(self, buffer, bias_T_compensation_mV, sample_rate, channel_info):
 
         if channel_info.bias_T_RC_time:
             compensation_factor = 1 / (sample_rate * 1e9 * channel_info.bias_T_RC_time)
             compensation = np.cumsum(buffer) * compensation_factor + bias_T_compensation_mV
             bias_T_compensation_mV = compensation[-1]
-            logger.info(f'bias-T compensation  min:{np.min(compensation):5.1f} max:{np.max(compensation):5.1f} mV')
+            if UploadAggregator.verbose:
+                logger.info(f'bias-T compensation  min:{np.min(compensation):5.1f} max:{np.max(compensation):5.1f} mV')
             buffer += compensation
 
         return bias_T_compensation_mV
-
