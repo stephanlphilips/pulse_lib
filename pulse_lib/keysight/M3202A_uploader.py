@@ -356,8 +356,6 @@ class M3202A_Uploader:
                                 and not set(dig_channel.channel_numbers).isdisjoint(channels)):
                             video_mode_los.add(osc)
                 hvi_params['video_mode_los'] = list(video_mode_los)
-                # @@@ DEBUG CODE
-                print(f"video mode channels -> los: {hvi_params['video_mode_channels']} -> {video_mode_los}")
 
         return hvi_params
 
