@@ -51,11 +51,31 @@ class M3202A_Uploader:
 
         self.release_all_awg_memory()
         self._config_marker_channels()
+        self._check_digitizer_channels()
         self._configure_rf_sources()
 
     @property
     def supports_conditionals(self):
         return False
+
+    def _check_digitizer_channels(self):
+        for name, channel in self.digitizer_channels.items():
+            dig_name = channel.module_name
+            dig = self.digitizers[dig_name]
+            in_ch = channel.channel_numbers
+            # Note: Digitizer FPGA returns IQ in complex value.
+            #       2 input channels are used with external IQ demodulation without processing in FPGA.
+            acq_mode = dig.get_channel_acquisition_mode(in_ch[0])
+            if len(in_ch) == 2 and acq_mode in [2, 3, 4, 5]:
+                print(f"Warning channel '{name}' with acquisition mode {acq_mode}' should be configured "
+                      "in pulse-lib with 1 input channel. Use pulselib.define_digitizer_channel()")
+            elif len(in_ch) == 1 and channel.iq_out and acq_mode in [0, 1]:
+                print(f"Warning channel '{name}' with acquisition mode {acq_mode}' only has real-valued data, "
+                      "but `iq_out` is set to True. This will have no effect.")
+            if acq_mode in [2, 3] and channel.frequency is not None:
+                if channel.hw_input_channel is None:
+                    print(f"Warning input for channel '{name}' not specified, using {in_ch[0]} by default. "
+                          "Configure the input channel with pulselib.set_digitizer_hw_input_channel()")
 
     def _config_marker_channels(self):
         for channel in self.marker_channels.values():
@@ -102,7 +122,6 @@ class M3202A_Uploader:
                 awg_oscillators.dig2osc[dig_ch.name] = osc
                 awg = self.AWGs[awg_name]
                 awg.set_lo_mode(awg_ch, True)
-                # TODO @@@ allow sweep/change of frequency, amplitude.
                 amplitude = rf_source.amplitude / rf_source.attenuation
                 enable = rf_source.mode == 'continuous'
                 awg.config_lo(awg_ch, osc_num, enable, dig_ch.frequency, amplitude)
@@ -446,7 +465,7 @@ class M3202A_Uploader:
             raise Exception(f'Data for index {index} not available')
 
         dig_data = {}
-        for dig_name, channel_nums in acq_desc.enabled_channels.items():
+        for dig_name in acq_desc.enabled_channels:
             dig = self.digitizers[dig_name]
             dig_data[dig_name] = {}
             active_channels = dig.active_channels
@@ -465,11 +484,11 @@ class M3202A_Uploader:
                 raw_I = dig_data[dig_name][in_ch[0]]
                 raw_Q = dig_data[dig_name][in_ch[1]]
                 if dig.get_channel_acquisition_mode(in_ch[0]) in [2, 3, 4, 5]:
-                    # phase shift is already applied in HW.
-                    phase = 0.0
+                    # Note: Wrong configuration! len(in_ch) should be 1
+                    # phase shift is already applied in HW. Only use data of first channel
+                    raw_ch = raw_I
                 else:
-                    phase = channel.phase
-                raw_ch = (raw_I + 1j * raw_Q) * np.exp(1j*phase)
+                    raw_ch = (raw_I + 1j * raw_Q) * np.exp(1j*channel.phase)
             else:
                 # this can be complex valued output with LO modulation or phase shift in digitizer (FPGA)
                 raw_ch = dig_data[dig_name][in_ch[0]]
