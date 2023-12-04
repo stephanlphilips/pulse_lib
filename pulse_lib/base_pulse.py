@@ -154,16 +154,20 @@ class pulselib:
         self.marker_channels[marker_name] = marker_channel(marker_name, AWG_name, channel_number,
                                                            setup_ns, hold_ns, amplitude, invert)
 
-    def define_digitizer_channel(self, name, digitizer_name, channel_number, iq_out=False):
+    def define_digitizer_channel(self, name, digitizer_name, channel_number, iq_out=False,
+                                 hw_input_channel=None):
         ''' Defines a digitizer channel.
         Args:
             channel_name (str): name of the channel.
             digitizer_name (str): name of digitizer
             channel_number (int): channel number
             iq_out (bool): if True output I+Q data, else output I data only.
+            hw_input_channel (Optional[int]): channel number of input on hardware. (Keysight only)
         '''
         self._check_uniqueness_of_channel_name(name)
         self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, [channel_number], iq_out=iq_out)
+        if hw_input_channel is not None:
+            self.set_digitizer_hw_input_channel(name, hw_input_channel)
 
     def define_digitizer_channel_iq(self, name, digitizer_name, channel_numbers, phase=0.0, iq_out=False):
         ''' Defines a digitizer I/Q input pair.
