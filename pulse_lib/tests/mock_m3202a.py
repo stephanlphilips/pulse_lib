@@ -76,7 +76,7 @@ class MockM3202A(Instrument):
         size = len(wave)
         # discretize samples
         data = (wave*2**15).astype(np.int16)
-        data &= 0xFFFC # 14 bit resolution
+        data &= 0xFFF8  # 13 bit resolution
         data = data.astype(float)
         data /= 2**15
         slot = self.memory_manager.allocate(size)
@@ -148,20 +148,24 @@ class MockM3202A(Instrument):
             return 200e6/prescaler
 
     def _upconvert_filtered(self, t, wave):
-        t = np.linspace(t[0], t[-1]+1e-9, len(t)*10, endpoint=False)
-        d = np.zeros(len(wave)*10)
-        d[::10] = wave
         fname = os.path.dirname(__file__) + f'/keysight_data/keysight_pulse_response_{self.digital_filter_mode}.hdf5'
         pulse_response = xr.open_dataset(fname)
         t_response = pulse_response.coords['t'].data
         response = pulse_response['y'].data / 0.77
+        sr = round(1/(t_response[1]-t_response[0]))
+
+        t = np.linspace(t[0], t[-1]+1e-9, len(t)*sr, endpoint=False)
+        d = np.zeros(len(wave)*sr)
+        d[::sr] = wave
+
         d = np.convolve(d, response)
-        n_before = round(-t_response[0]*10)
-        n_after = round(t_response[-1]*10)
+        n_before = round(-t_response[0]*sr)
+        n_after = round(t_response[-1]*sr)
         return t, d[n_before: -n_after]
 
 
-    def plot(self, bias_T_rc_time=0, discrete=False, analogue=False, IQ=False, LO_f=None):
+    def plot(self, bias_T_rc_time=0, discrete=False, analogue=False, IQ=False, LO_f=None,
+             analogue_shift=0.0):
         iq_data = {}
         for channel in range(1,5):
             data, prescaler = self.get_data_prescaler(channel)
@@ -219,7 +223,7 @@ class MockM3202A(Instrument):
                 ta,da = self._upconvert_filtered(t, wave)
                 if IQ:
                     iq_data[channel] = da
-                pt.plot(ta, da, label=f'{self.name}-{channel} analogue')
+                pt.plot(ta+analogue_shift, da, label=f'{self.name}-{channel} analogue')
             if bias_T_rc_time:
                 biased = np.concatenate(biased_data)
                 pt.plot(t, biased, ':', label=f'{self.name}-{channel} bias-T')
@@ -261,6 +265,12 @@ class MockM3202A_fpga(MockM3202A):
         '''
         self.marker_table = table.copy()
 
+    def set_lo_mode(self, ch, enable):
+        pass
+
+    def config_lo(self, awg_ch, osc_num, enable, frequency, amplitude):
+        pass # TODO: add to plotting.
+
     def plot_marker(self):
         if len(self.marker_table) > 0:
             t = []
@@ -283,7 +293,8 @@ class MockM3202A_fpga(MockM3202A):
 
             pt.plot(t, values, ':', label=f'{self.name}-T')
 
-    def plot(self, bias_T_rc_time=0, discrete=False, analogue=False, IQ=False, LO_f=None):
+    def plot(self, bias_T_rc_time=0, discrete=False, analogue=False, IQ=False, LO_f=None,
+             analogue_shift=0.0):
         super().plot(bias_T_rc_time=bias_T_rc_time, discrete=discrete, analogue=analogue,
-                     IQ=IQ, LO_f=LO_f)
+                     IQ=IQ, LO_f=LO_f, analogue_shift=analogue_shift)
         self.plot_marker()
