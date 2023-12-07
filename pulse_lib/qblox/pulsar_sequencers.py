@@ -57,7 +57,7 @@ class PulsarConfig:
 class LatchEvent:
     time: int
     reset: bool = False
-    counters: Optional[List[str]] = None
+    enable: bool = False
 
 
 @dataclass
@@ -682,7 +682,8 @@ class IQSequenceBuilder(SequenceBuilderBase):
                 if self.t_next_marker is not None and t >= self.t_next_marker:
                     raise Exception(f'Cannot set marker in conditional segment {self.name}, t:{t}')
                 if self._t_next_latch_event is not None and t >= self._t_next_latch_event:
-                    raise Exception(f'Cannot enable latches in conditional segment {self.name}, t:{t}')
+                    raise Exception(f'Cannot enable latches in conditional segment {self.name}, t:{t}, '
+                                    f'{self._latch_events[self._ilatch_event]}')
                 return
             else:
                 # add latch events, but not on same time as marker
@@ -728,8 +729,9 @@ class IQSequenceBuilder(SequenceBuilderBase):
         if latch_event.reset:
             self.seq.latch_reset(t_offset=t)
         else:
-            counters = [self._trigger_counters[name] for name in latch_event.counters]
-            self.seq.latch_enable(counters, t_offset=t)
+            if Version(q1pulse_version) < Version('0.11.5'):
+                raise Exception('Upgrade q1pulse to version 0.11.5+ for correct feedback implementation')
+            self.seq.latch_enable(latch_event.enable, t_offset=t)
         # Increment time with time used for latch instruction
         self.t_end = t+4
         self._set_next_latch_event()

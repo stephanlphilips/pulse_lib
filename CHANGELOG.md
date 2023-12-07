@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.9] - 2023-12-07
+
+- Fixed Qblox feedback for multiple measurements (requires Q1Pulse v0.11.5)
+
 ## \[1.7.8] - 2023-12-04
 
 - Added high resolution rendering of ramps on voltage channels (Qblox)

@@ -455,16 +455,16 @@ class Job(object):
         active_counters = set()
         latching_counters = set()
         pending_resets = set()
-        enabled_latches = set()
+        latching_enabled = False
         last_t = 0
         for t, channel_name, action in sorted(events):
-            if t != last_t and latching_counters != enabled_latches:
-                enabled_latches = latching_counters.copy()
+            feedback_channels.add(channel_name)
+            if t != last_t and (len(latching_counters) > 0) != latching_enabled:
+                latching_enabled = len(latching_counters) > 0
                 if not latch_events:
                     # disable all latches at start of sequence
-                    latch_events.append(LatchEvent(0, counters=[]))
-                latch_events.append(LatchEvent(last_t, counters=list(enabled_latches)))
-                feedback_channels.add(channel_name)
+                    latch_events.append(LatchEvent(0, enable=False))
+                latch_events.append(LatchEvent(last_t, enable=latching_enabled))
             last_t = t
             if action == 'latch-enable':
                 if channel_name in pending_resets:
