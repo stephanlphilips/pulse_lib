@@ -319,13 +319,13 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
 
         self._emit_if_gap(t_start)
 
-        dvdt = (v_end - v_start) / (t_end - t_start)
         is_ramp = abs(v_end - v_start) > _lsb_step
         line_start = PulsarConfig.ceil(max(t_start, self._t_wave_end))
         line_end = PulsarConfig.floor(t_end)
         is_long = (line_end - line_start) > (100 if is_ramp else 40)
 
         if is_long:
+            dvdt = (v_end - v_start) / (t_end - t_start)
             if line_start - t_start > 0:
                 t_end_wave = line_start
                 v_end_wave = v_start + dvdt * (t_end_wave - t_start)
@@ -373,10 +373,12 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         if self._hres:
             istart = math.floor(t_start + 1e-8)
             iend = math.ceil(t_end - 1e-8)
-            dvdt = (v_end - v_start) / (t_end - t_start)
+            n = iend - istart
+            if n == 0:
+                return
             dt_start = t_start - istart
             dt_end = iend - t_end
-            n = iend - istart
+            dvdt = (v_end - v_start) / (t_end - t_start)
             data = np.linspace(v_start-dt_start*dvdt, v_end+dt_end*dvdt, n, endpoint=False)
             data[0] = (1-dt_start)*v_start
             data[-1] -= dt_end*v_end
