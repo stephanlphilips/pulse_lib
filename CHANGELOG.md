@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.10] - 2023-12-14
+
+- Fixed acquisition to allow simultaneous acquisition by combining segments (QConstruct simultaneous)
+- Added update_end(stop) to segment to extend segment till at least `stop`.
+
 ## \[1.7.9] - 2023-12-07
 
 - Fixed Qblox feedback for multiple measurements (requires Q1Pulse v0.11.5)
