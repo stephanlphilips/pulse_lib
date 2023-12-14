@@ -103,13 +103,6 @@ class segment_acquisition():
         self.data_tmp.add_acquisition(acq, wait=wait)
         return self.data_tmp
 
-# @@@@ remove?
-#    def __add__(self, other):
-#        if (len(self._measurement_segment._measurements) > 0
-#            or len(other._measurement_segment._measurements) > 0):
-#            raise Exception(f'Measurements cannot (yet) be combined')
-#        return segment_acquisition(self.name, self._measurement_segment)
-
     def append(self, other):
         '''
         Append a segment to the end of this segment.
@@ -131,6 +124,13 @@ class segment_acquisition():
             self.__add_segment(other_loopobj, time)
         else:
             self.__add_segment(other.data[0], time)
+
+        for m in other._measurement_segment.measurements:
+            if m.acquisition_channel == self.name:
+                m_copy = copy.copy(m)
+                m_copy.index = self._measurement_index
+                self._measurement_segment._measurements.append(m_copy)
+                self._measurement_index += 1
 
         return self
 

@@ -113,11 +113,8 @@ class acquisition_data(parent_data):
         self.end_time = max(self.end_time, time + other.end_time)
 
     def __copy__(self):
-        """
-        make a copy of this marker.
-        """
         my_copy = acquisition_data()
-        my_copy.data = copy.copy(self.data)
+        my_copy.data = copy.deepcopy(self.data)
         my_copy.start_time = copy.copy(self.start_time)
         my_copy.end_time = copy.copy(self.end_time)
 
@@ -138,8 +135,7 @@ class acquisition_data(parent_data):
         data_copy_shifted = copy.copy(self)
 
         for i in range(len(data_copy_shifted.data)):
-            data_copy_shifted.my_data[i] = acquisition_data(data_copy_shifted.data[i].start + time_shift,
-                                                            data_copy_shifted.data[i].t_mreasure)
+            data_copy_shifted.data[i].start += time_shift
 
         return data_copy_shifted
 
