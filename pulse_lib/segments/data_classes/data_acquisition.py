@@ -77,6 +77,10 @@ class acquisition_data(parent_data):
         """
         self.end_time += time
 
+    def update_end_time(self, end):
+        if end + self.start_time > self.end_time:
+            self.end_time = end + self.start_time
+
     @property
     def total_time(self):
         '''

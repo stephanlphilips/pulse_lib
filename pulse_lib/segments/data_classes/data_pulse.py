@@ -186,9 +186,9 @@ class pulse_data(parent_data):
             self.pulse_deltas.append(delta)
             self._consolidated = False
         # always update end time
-        self._update_end_time(delta.time)
+        self.update_end_time(delta.time)
 
-    def _update_end_time(self, t):
+    def update_end_time(self, t):
         if t != np.inf and t > self.end_time:
             self.end_time = t
 
@@ -200,21 +200,21 @@ class pulse_data(parent_data):
             MW_data_object (IQ_data_single) : description MW pulse (see pulse_lib.segments.data_classes.data_IQ)
         """
         self.MW_pulse_data.append(MW_data_object)
-        self._update_end_time(MW_data_object.stop)
+        self.update_end_time(MW_data_object.stop)
 
     def add_chirp(self, chirp):
         self.chirp_data.append(chirp)
-        self._update_end_time(chirp.stop)
+        self.update_end_time(chirp.stop)
 
     def add_custom_pulse_data(self, custom_pulse: custom_pulse_element):
         self.custom_pulse_data.append(custom_pulse)
-        self._update_end_time(custom_pulse.stop)
+        self.update_end_time(custom_pulse.stop)
 
     def add_phase_shift(self, phase_shift: PhaseShift):
         if not phase_shift.is_near_zero:
             self._phase_shifts_consolidated = False
             self.phase_shifts.append(phase_shift)
-        self._update_end_time(phase_shift.time)
+        self.update_end_time(phase_shift.time)
 
     @property
     def total_time(self):
@@ -235,7 +235,7 @@ class pulse_data(parent_data):
         if time is None:
             time = self.total_time
         else:
-            self._update_end_time(time)
+            self.update_end_time(time)
 
         self.start_time = time
 
@@ -290,7 +290,7 @@ class pulse_data(parent_data):
 
         self._consolidated = False
         self._phase_shifts_consolidated = False
-        self._update_end_time(time + other.total_time)
+        self.update_end_time(time + other.total_time)
 
     def shift_MW_frequency(self, frequency):
         '''
@@ -503,6 +503,8 @@ class pulse_data(parent_data):
                     # symmetric 2nd order correction used in v1.7+
                     samples[i] += - dt*(t_sample-dt)*delta.ramp/2/2
                     samples2[i] = - dt*(t_sample-dt)*delta.ramp/2/2
+                    # samples[i] += - dt*(t_sample-dt)*delta.ramp*(dt)*0.5
+                    # samples2[i] = - dt*(t_sample-dt)*delta.ramp*(1-dt)*0.5
             else:
                 for i, delta in enumerate(self.pulse_deltas):
                     times[i] = delta.time

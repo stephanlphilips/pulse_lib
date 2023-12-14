@@ -321,7 +321,6 @@ class segment_container():
             for channel in self.channels.values():
                 channel.reset_time(time)
 
-
     def get_waveform(self, channel, index = [0], sample_rate=1e9, ref_channel_states=None):
         '''
         function to get the raw data of a waveform,
@@ -367,6 +366,21 @@ class segment_container():
         if reset_time:
             self.reset_time()
 
+    def update_end(self, stop, channels=None):
+        '''
+        Sets the end of the segment to at least stop (relative to current start time).
+        This has an effect similar to add_block(0, stop, 0.0), but works on all
+        Args:
+            stop (float, loop_obj) : minimum end time of segment.
+            channels (List[str]): channels to add the wait to. If None add to all channels.
+        '''
+        if channels is None:
+            for channel in self.channels.values():
+                channel.update_end(stop)
+        else:
+            for channel in channels:
+                self[channel].update_end(stop)
+
     def add_block(self, start, stop, channels, amplitudes, reset_time=False):
         '''
         Adds a block to each of the specified channels.
@@ -380,6 +394,8 @@ class segment_container():
         for channel, amplitude in zip(channels, amplitudes):
             self[channel].add_block(start, stop, amplitude)
         if reset_time:
+            if len(channels) == 0:
+                self.update_end(stop)
             self.reset_time()
 
     def add_ramp(self, start, stop, channels, start_amplitudes, stop_amplitudes, keep_amplitude=False, reset_time=False):
@@ -397,6 +413,8 @@ class segment_container():
         for channel, start_amp, stop_amp in zip(channels, start_amplitudes, stop_amplitudes):
             self[channel].add_ramp_ss(start, stop, start_amp, stop_amp, keep_amplitude=keep_amplitude)
         if reset_time:
+            if len(channels) == 0:
+                self.update_end(stop)
             self.reset_time()
 
     def add_HVI_variable(self, marker_name, value):

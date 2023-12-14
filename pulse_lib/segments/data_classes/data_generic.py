@@ -58,6 +58,10 @@ class parent_data(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def update_end_time(self, end):
+        raise NotImplementedError()
+
+    @abstractmethod
     def integrate_waveform(self, sample_rate):
         '''
         takes a full integral of the currently scheduled waveform.

@@ -32,7 +32,7 @@ class segment_pulse(segment_base):
         super().__init__(name, pulse_data(hres=hres), segment_type)
 
     @loop_controller
-    def add_block(self,start,stop, amplitude):
+    def add_block(self, start, stop, amplitude):
         '''
         add a block pulse on top of the existing pulse.
         '''
@@ -95,6 +95,8 @@ class segment_pulse(segment_base):
                                                 step=stop_amplitude))
             self.data_tmp.add_delta(pulse_delta(np.inf,
                                                 step=-stop_amplitude))
+        else:
+            self.data_tmp.update_end_time(stop + self.data_tmp.start_time)
 
         return self.data_tmp
 

@@ -64,6 +64,10 @@ class marker_data(parent_data):
         """
         self.end_time += time
 
+    def update_end_time(self, t):
+        if t + self.start_time > self.end_time:
+            self.end_time = t + self.start_time
+
     @property
     def total_time(self):
         '''

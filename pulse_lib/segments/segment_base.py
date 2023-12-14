@@ -85,6 +85,17 @@ class segment_base():
         return self.data_tmp
 
     @loop_controller
+    def update_end(self, stop):
+        '''
+        Sets the end of the segment to at least stop (relative to current start time).
+        This has an effect similar to add_block(0, stop, 0.0), but works on all
+        Args:
+            stop (float) : minimum end time of segment.
+        '''
+        self.data_tmp.update_end_time(stop)
+        return self.data_tmp
+
+    @loop_controller
     def wait(self, time, reset_time=False):
         '''
         resets the time back to zero after a certain point

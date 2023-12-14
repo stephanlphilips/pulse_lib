@@ -42,6 +42,9 @@ class marker_HVI_variable(parent_data):
     def wait(self, time):
         raise NotImplementedError()
 
+    def update_end_time(self, end):
+        raise NotImplementedError()
+
     def integrate_waveform(self, sample_rate):
         raise NotImplementedError()
 
