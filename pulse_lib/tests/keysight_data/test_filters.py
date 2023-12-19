@@ -1,6 +1,7 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
 
+
 #%%
 def test1(filter_mode):
     pulse = context.init_pulselib(n_gates=1)
@@ -13,11 +14,11 @@ def test1(filter_mode):
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 1
-    context.add_hw_schedule(sequence)
 
     context.plot_awgs(sequence, analogue_out=True)
 
 #    return context.run('hres1', sequence)
+
 
 def test2(filter_mode, t_ramp):
     pulse = context.init_pulselib(n_gates=1)
@@ -34,11 +35,11 @@ def test2(filter_mode, t_ramp):
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 1
-    context.add_hw_schedule(sequence)
 
     context.plot_awgs(sequence, analogue_out=True)
 
 #    return context.run('hres1', sequence)
+
 
 #%%
 if __name__ == '__main__':

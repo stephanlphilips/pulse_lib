@@ -1,8 +1,10 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
-import pulse_lib.segments.utility.looping as lp
 
 #%%
+import pulse_lib.segments.utility.looping as lp
+
+
 def test1():
     pulse = context.init_pulselib(n_gates=2)
 
@@ -24,11 +26,11 @@ def test1():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 1 # 10000
-    context.add_hw_schedule(sequence)
 
     context.plot_awgs(sequence, ylim=(-0.0,0.100), xlim=(0, 50))
 
 #    return context.run('hres1', sequence)
+
 
 def test2():
     pulse = context.init_pulselib(n_gates=3)
@@ -71,11 +73,11 @@ def test2():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 1 # 10000
-    context.add_hw_schedule(sequence)
 
     context.plot_awgs(sequence, ylim=(-0.0,0.100), xlim=(0, 70))
 
 #    return context.run('hres1', sequence)
+
 
 def test3():
     pulse = context.init_pulselib(n_gates=3)
@@ -132,7 +134,6 @@ def test3():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 1 # 15000
-    context.add_hw_schedule(sequence)
 
 #    sequence.dt(0.2)
 #    context.plot_awgs(sequence, ylim=(-0.100,0.100), xlim=(0, 26))
@@ -141,6 +142,7 @@ def test3():
         context.plot_awgs(sequence, ylim=(-0.100,0.100), xlim=(0, 40))
 
 #    return context.run('hres2', sequence)
+
 
 #%%
 if __name__ == '__main__':

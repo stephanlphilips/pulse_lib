@@ -2,6 +2,7 @@
 from pulse_lib.tests.configurations.test_configuration import context
 import matplotlib.pyplot as pt
 
+
 #%%
 def test1():
     pulse = context.init_pulselib(n_gates=2, n_sensors=1, virtual_gates=True)
@@ -30,7 +31,6 @@ def test1():
     sequence = pulse.mk_sequence([s])
 #    sequence.n_rep = 10000
     sequence.n_rep = None
-    context.add_hw_schedule(sequence)
     m_param = sequence.get_measurement_param()
 
     context.plot_awgs(sequence, ylim=(-0.2,1.100), xlim=(0, 100))
@@ -41,7 +41,6 @@ def test1():
 
     context.plot_awgs(sequence, ylim=(-0.2,1.100), xlim=(0, 100))
     return context.run('virtual_gates2', sequence, m_param)
-
 
 
 #%%

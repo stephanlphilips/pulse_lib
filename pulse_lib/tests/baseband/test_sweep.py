@@ -1,11 +1,11 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
-import pulse_lib.segments.utility.looping as lp
 
-import matplotlib.pyplot as pt
-import numpy as np
 
 #%%
+import pulse_lib.segments.utility.looping as lp
+
+
 def test1():
     pulse = context.init_pulselib(n_gates=1)
 
@@ -23,12 +23,12 @@ def test1():
     s.wait(20)
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = None
-    context.add_hw_schedule(sequence)
 
     for a in sequence.amplitude.values:
         sequence.amplitude(a)
         context.plot_awgs(sequence, analogue_out=True,
                           ylim=(-0.1, 0.250), xlim=(0, 80))
+
 
 #%%
 if __name__ == '__main__':

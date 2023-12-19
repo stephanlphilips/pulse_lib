@@ -1,9 +1,12 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
+
+# %%
 import pulse_lib.segments.utility.looping as lp
 
+
 def test():
-    pulse = context.init_pulselib(n_gates=1, n_sensors=1)
+    pulse = context.init_pulselib(n_gates=1, n_sensors=2, rf_sources=True)
 
     t_pulse = lp.linspace(200, 600, 3, name='t_pulse', axis=0)
     amplitude = lp.linspace(100, 400, 4, name='amplitude', axis=1)
@@ -21,7 +24,6 @@ def test():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 10000
-    context.add_hw_schedule(sequence)
     m_param = sequence.get_measurement_param()
 
     for t in sequence.t_pulse.values:
@@ -36,9 +38,10 @@ def test():
 
     return ds
 
+
 if __name__ == '__main__':
     import numpy as np
     ds = test()
-    print(np.mean(ds.SD1_1, axis=2))
-    print(np.mean(ds.SD1_2, axis=2))
-    print(np.mean(ds.SD1_3, axis=2))
+    # print(np.mean(ds.SD1_1, axis=2))
+    # print(np.mean(ds.SD1_2, axis=2))
+    # print(np.mean(ds.SD1_3, axis=2))

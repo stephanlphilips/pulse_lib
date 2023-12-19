@@ -1,9 +1,10 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
 
+
 #%%
 def test1():
-    pulse = context.init_pulselib(n_gates=2, n_sensors=2)
+    pulse = context.init_pulselib(n_gates=2, n_sensors=2, rf_sources=True)
 
     s = pulse.mk_segment()
 
@@ -17,13 +18,13 @@ def test1():
     sequence.n_rep = None
     sequence.set_acquisition(sample_rate=500e3)
     m_param = sequence.get_measurement_param()
-    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, print_acquisitions=True)
 
     return context.run('down-sampling1', sequence, m_param)
 
+
 def test2():
-    pulse = context.init_pulselib(n_gates=2, n_sensors=2)
+    pulse = context.init_pulselib(n_gates=2, n_sensors=2, rf_sources=True)
 #    # now with other delays
 #    pulse.add_channel_delay('P1', -20)
 #    pulse.add_channel_delay('M1', 40)
@@ -44,10 +45,10 @@ def test2():
     sequence.n_rep = 2
     sequence.set_acquisition(sample_rate=500e3)
     m_param = sequence.get_measurement_param()
-    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, print_acquisitions=True)
 
     return context.run('down-sampling2', sequence, m_param)
+
 
 if __name__ == '__main__':
     ds1 = test1()

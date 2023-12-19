@@ -2,6 +2,7 @@
 from pulse_lib.tests.configurations.test_configuration import context
 import pulse_lib.segments.utility.looping as lp
 
+
 #%%
 def test1():
     pulse = context.init_pulselib(n_qubits=4, n_sensors=1)
@@ -30,11 +31,11 @@ def test1():
     sequence.n_rep = 10
     m_param = sequence.get_measurement_param()
 
-    context.add_hw_schedule(sequence)
     for i in range(len(t_wait)):
         context.plot_awgs(sequence, index=(i,))
 
     return context.run('iq-markers', sequence, m_param)
+
 
 def test2():
     '''
@@ -69,11 +70,11 @@ def test2():
     sequence.n_rep = 1
     m_param = sequence.get_measurement_param()
 
-    context.add_hw_schedule(sequence)
     for i in range(len(t_wait)):
         context.plot_awgs(sequence, index=(i,))
 
     return context.run('iq-markers-2', sequence, m_param)
+
 
 #%%
 

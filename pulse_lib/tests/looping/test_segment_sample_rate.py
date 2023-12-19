@@ -36,7 +36,6 @@ def test():
     s3.P1.add_block(0, 100, 80.0)
 
     sequence = pulse.mk_sequence([s1, s2, s3])
-    context.add_hw_schedule(sequence)
     for t in sequence.t_wait.values:
         sequence.t_wait(t)
         context.plot_awgs(sequence, ylim=(-0.100,0.100))

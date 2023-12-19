@@ -1,6 +1,7 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
 
+
 #%%
 def test():
     pulse = context.init_pulselib(n_gates=2, n_qubits=3, n_sensors=2, n_markers=1)
@@ -20,7 +21,6 @@ def test():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 1
-    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, print_acquisitions=True)
 
     # now with other delays
@@ -31,10 +31,10 @@ def test():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 1
-    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, print_acquisitions=True)
 
     return None
+
 
 if __name__ == '__main__':
     ds = test()

@@ -1,6 +1,9 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
+
+#%%
 import pulse_lib.segments.utility.looping as lp
+
 
 def test():
     pulse = context.init_pulselib(n_gates=1, n_sensors=1)
@@ -31,7 +34,6 @@ def test():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 2
-    context.add_hw_schedule(sequence)
     m_param = sequence.get_measurement_param()
     for t in sequence.t_all.values:
         sequence.t_all(t)
@@ -42,6 +44,7 @@ def test():
     ds = context.run('test_2D_divide', sequence, m_param)
 
     return ds
+
 
 if __name__ == '__main__':
     ds = test()

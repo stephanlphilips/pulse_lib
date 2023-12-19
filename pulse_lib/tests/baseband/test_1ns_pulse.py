@@ -1,7 +1,6 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
-import pulse_lib.segments.utility.looping as lp
-from numpy import pi
+
 
 #%%
 def test1():
@@ -20,7 +19,6 @@ def test1():
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 2000
     m_param = sequence.get_measurement_param()
-    context.add_hw_schedule(sequence)
 
 #    context.plot_awgs(sequence, ylim=(-0.0,0.100), xlim=(0, 50))
 

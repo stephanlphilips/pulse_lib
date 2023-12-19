@@ -1,11 +1,12 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
-import pulse_lib.segments.utility.looping as lp
+
 
 #%%
 def add(segment, template):
     template.build(segment)
     segment.reset_time()
+
 
 def add_simultaneous(pulse, segment, templates):
     for template in templates:
@@ -14,6 +15,7 @@ def add_simultaneous(pulse, segment, templates):
 	    segment.add(sub)
     segment.reset_time()
 
+
 class BlockTemplate:
     def __init__(self, gate, voltage):
         self.gate = gate
@@ -21,6 +23,7 @@ class BlockTemplate:
 
     def build(self, segment, **kwargs):
         segment[self.gate].add_block(0, 100, self.voltage)
+
 
 class MWTemplate:
     def __init__(self, qubit, f):
@@ -32,6 +35,8 @@ class MWTemplate:
         segment.wait(5)
 
 #%%
+import pulse_lib.segments.utility.looping as lp
+
 
 def test1():
     pulse = context.init_pulselib(n_gates=2, n_qubits=2)
@@ -49,7 +54,6 @@ def test1():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 10
-    context.add_hw_schedule(sequence)
 
     context.plot_segments([s])
     context.plot_awgs(sequence, ylim=(-0.100,0.100))
@@ -73,7 +77,6 @@ def test2():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 10
-    context.add_hw_schedule(sequence)
 
     for i,n in enumerate(n_cliff):
         context.plot_segments([s], index=[i])

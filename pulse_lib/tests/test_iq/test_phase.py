@@ -4,6 +4,7 @@ from pulse_lib.tests.configurations.test_configuration import context
 #%%
 from numpy import pi
 
+
 def test1():
     pulse = context.init_pulselib(n_qubits=1)
 
@@ -24,10 +25,10 @@ def test1():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 1
-    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence)
 
     return None
+
 
 def test2():
     # not aligned pulses
@@ -50,10 +51,10 @@ def test2():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 1
-    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence)
 
     return None
+
 
 #%%
 

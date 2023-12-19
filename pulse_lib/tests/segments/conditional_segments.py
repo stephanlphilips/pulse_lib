@@ -45,7 +45,6 @@ def test1():
 
     sequence = pulse.mk_sequence([s1, cond_seg1])
     sequence.n_rep = 3
-    context.add_hw_schedule(sequence)
 
     context.plot_awgs(sequence, ylim=(-0.100,0.100))
 
@@ -82,7 +81,6 @@ def test2():
 
     sequence = pulse.mk_sequence([s1, cond_seg1])
     sequence.n_rep = 3
-    context.add_hw_schedule(sequence)
 
     context.plot_awgs(sequence, ylim=(-0.100,0.100))
 
@@ -130,7 +128,6 @@ def test3():
 
     sequence = pulse.mk_sequence([s1, cond_seg1, cond_seg2, s_end])
     sequence.n_rep = 3
-    context.add_hw_schedule(sequence)
 
     context.plot_awgs(sequence, ylim=(-0.100,0.100))
 

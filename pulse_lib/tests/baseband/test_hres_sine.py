@@ -5,6 +5,7 @@ from pulse_lib.tests.configurations.test_configuration import context
 import numpy as np
 import matplotlib.pyplot as pt
 
+
 def test1(t1, t2=10, hres=True):
     pulse = context.init_pulselib(n_gates=2)
     context.station.AWG1.set_digital_filter_mode(3)
@@ -39,7 +40,6 @@ def test1(t1, t2=10, hres=True):
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = None
-    context.add_hw_schedule(sequence)
 
     context.plot_awgs(sequence, ylim=(-0.110, 0.110), xlim=(5, 30), analogue_out=True)
     pt.title(f't1: {t1} t2: {t2}')
@@ -82,7 +82,6 @@ def test2(t1, hres=True):
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = None
-    context.add_hw_schedule(sequence)
 
     context.plot_awgs(sequence, ylim=(-0.110, 0.110), xlim=(5, 30), analogue_out=True)
     pt.title(f't1: {t1} t2: {t2}')
@@ -131,7 +130,6 @@ def test3(t1, hres=True):
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = None
-    context.add_hw_schedule(sequence)
 
     context.plot_awgs(sequence, ylim=(-0.110, 0.110), xlim=(5, 30))#, analogue_out=True)
     pt.title(f't1: {t1} t2: {t2}')

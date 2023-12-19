@@ -21,8 +21,6 @@ def test1():
     m_param.add_sensor_histogram('SD1', 20, (0.0, 20_000.0))
     m_param.add_sensor_histogram('SD2', 20, (0.0, 20_000.0), accepted_only=True)
 
-    context.add_hw_schedule(sequence)
-
     return context.run('histogram', sequence, m_param)
 
 

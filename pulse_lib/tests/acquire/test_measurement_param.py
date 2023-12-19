@@ -1,6 +1,7 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
 
+
 #%%
 def test1():
     pulse = context.init_pulselib(n_gates=2, n_sensors=2)
@@ -15,9 +16,9 @@ def test1():
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = None
     m_param = sequence.get_measurement_param()
-    context.add_hw_schedule(sequence)
 
     return context.run('m_param1', sequence, m_param)
+
 
 def test2():
     pulse = context.init_pulselib(n_gates=2, n_sensors=2)
@@ -34,9 +35,9 @@ def test2():
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 4
     m_param = sequence.get_measurement_param()
-    context.add_hw_schedule(sequence)
 
     return context.run('m_param2', sequence, m_param)
+
 
 def test3(iq_mode):
     pulse = context.init_pulselib(n_gates=2, n_sensors=2, rf_sources=True)
@@ -52,9 +53,9 @@ def test3(iq_mode):
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 4
     m_param = sequence.get_measurement_param(iq_mode=iq_mode)
-    context.add_hw_schedule(sequence)
 
     return context.run('m_param3_'+iq_mode, sequence, m_param)
+
 
 def test4():
     pulse = context.init_pulselib(n_gates=2, n_sensors=2)
@@ -69,9 +70,9 @@ def test4():
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 4
     m_param = sequence.get_measurement_param()
-    context.add_hw_schedule(sequence)
 
     return context.run('m_param2', sequence, m_param)
+
 
 #%%
 

@@ -7,6 +7,8 @@ NOTE:
     context sets: pulse.add_channel_compensation_limit(gate, (-100, 50))
 '''
 #%%
+
+
 def test1():
     pulse = context.init_pulselib(n_gates=4)
 
@@ -21,10 +23,10 @@ def test1():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 2
-    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, print_acquisitions=True)
 
     return None
+
 
 def test2():
     pulse = context.init_pulselib(n_gates=4)
@@ -42,7 +44,6 @@ def test2():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 2
-    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, print_acquisitions=True)
 
     return None

@@ -1,6 +1,7 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
 
+
 #%%
 def test1():
     pulse = context.init_pulselib(n_gates=2, n_sensors=2)
@@ -14,13 +15,13 @@ def test1():
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = None
-    context.add_hw_schedule(sequence)
     sequence.upload()
     sequence.play()
     data = sequence.get_measurement_results()
     print(data)
 
     return None
+
 
 def test2(iq_mode):
     pulse = context.init_pulselib(n_gates=2, n_sensors=2, rf_sources=True)
@@ -35,7 +36,6 @@ def test2(iq_mode):
 
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 4
-    context.add_hw_schedule(sequence)
 
     sequence.upload()
     sequence.play()

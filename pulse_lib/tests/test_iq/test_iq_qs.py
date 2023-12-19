@@ -1,7 +1,8 @@
-from numpy import pi
 from pulse_lib.tests.configurations.test_configuration import context
 
 #%%
+from numpy import pi
+
 
 def test1():
     '''
@@ -28,11 +29,11 @@ def test1():
     context.plot_segments([s])
 
     sequence = pulse.mk_sequence([s])
-    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, ylim=(-0.100,0.100))
     context.pulse.awg_devices['AWG3'].describe()
 
     return None
+
 
 def test2():
     '''
@@ -53,11 +54,11 @@ def test2():
     context.plot_segments([s])
 
     sequence = pulse.mk_sequence([s])
-    context.add_hw_schedule(sequence)
     context.plot_awgs(sequence, ylim=(-0.100,0.100))
     context.pulse.awg_devices['AWG3'].describe()
 
     return None
+
 
 if __name__ == '__main__':
     ds1 = test1()

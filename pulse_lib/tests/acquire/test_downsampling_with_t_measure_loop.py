@@ -4,6 +4,7 @@ import pulse_lib.segments.utility.looping as lp
 
 #%%
 
+
 def test():
     pulse = context.init_pulselib(n_gates=6, n_qubits=4, n_sensors=2)
 
@@ -20,7 +21,6 @@ def test():
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 10
     sequence.set_acquisition(sample_rate=1000e3)
-    context.add_hw_schedule(sequence)
     m_param = sequence.get_measurement_param()
     print(m_param.setpoints)
 

@@ -2,6 +2,8 @@
 from pulse_lib.tests.configurations.test_configuration import context
 
 #%%
+
+
 def test1(t):
     pulse = context.init_pulselib(n_gates=1, n_markers=1, n_sensors=1)
 
@@ -36,7 +38,6 @@ def test1(t):
     context.plot_awgs(sequence, ylim=(-0.2, 0.2))
 
     m_param = sequence.get_measurement_param()
-    context.add_hw_schedule(sequence)
 
     return context.run('shuttle', sequence, m_param)
 
@@ -78,7 +79,6 @@ def test2(t):
     context.plot_awgs(sequence, ylim=(-0.2, 0.2))
 
     m_param = sequence.get_measurement_param()
-    context.add_hw_schedule(sequence)
 
     return context.run('shuttle', sequence, m_param)
 
@@ -100,6 +100,7 @@ if __name__ == '__main__':
     # hres
     ds1 = test2(4.1)
     ds1 = test2(9.34)
+
 
 #%%
 if False:

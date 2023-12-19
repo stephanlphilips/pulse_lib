@@ -70,7 +70,6 @@ def test1():
             aggregate_func=IQDemodulator(sample_rate, f).demodulate)
 
     m_param = sequence.get_measurement_param(iq_mode='amplitude+phase')
-    context.add_hw_schedule(sequence)
 
     t = np.arange(0, t_measure, 1e9/sample_rate)  # [ns]
     t *= 1e-9  # [s]
@@ -128,7 +127,6 @@ def test2():
             aggregate_func=demodulate)
 
     m_param = sequence.get_measurement_param(iq_mode='amplitude+phase')
-    context.add_hw_schedule(sequence)
 
     t = np.arange(0, t_measure, 1e9/sample_rate) # [ns]
     t *= 1e-9 # [s]

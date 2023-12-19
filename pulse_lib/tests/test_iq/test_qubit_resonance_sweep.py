@@ -1,8 +1,11 @@
 
 from pulse_lib.tests.configurations.test_configuration import context
-import pulse_lib.segments.utility.looping as lp
+
 
 #%%
+import pulse_lib.segments.utility.looping as lp
+
+
 def test1():
     '''
     Sweep both f_res and f_drive
@@ -25,11 +28,11 @@ def test1():
     sequence.set_qubit_resonance_frequency('q1', f_q1)
     m_param = sequence.get_measurement_param()
 
-    context.add_hw_schedule(sequence)
     for i in range(len(f_q1)):
         context.plot_awgs(sequence, index=(i,))
 
     return context.run('iq-markers', sequence, m_param)
+
 
 def test2():
     '''
@@ -54,11 +57,12 @@ def test2():
     sequence.set_qubit_resonance_frequency('q1', f_q1)
     m_param = sequence.get_measurement_param()
 
-    context.add_hw_schedule(sequence)
     for i in range(len(f_q1)):
         context.plot_awgs(sequence, index=(i,))
 
     return context.run('iq-markers', sequence, m_param)
+
+
 #%%
 
 if __name__ == '__main__':
