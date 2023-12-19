@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+import re
 from typing import Dict, Union
 
 from qcodes import Parameter
@@ -152,6 +153,7 @@ class pulselib:
             Keysight channel number 0 is trigger out, 1..4: use AWG analogue channel
             Tektronix: tuple, e.g. (1,2), defines marker output, integer uses analogue output channel
         '''
+        self._check_uniqueness_of_channel_name(marker_name)
         self.marker_channels[marker_name] = marker_channel(marker_name, AWG_name, channel_number,
                                                            setup_ns, hold_ns, amplitude, invert)
 
@@ -629,8 +631,17 @@ class pulselib:
                 hardware.sync_data()
 
     def _check_uniqueness_of_channel_name(self, channel_name):
+        if len(channel_name) < 2:
+            raise Exception(f"Channel name '{channel_name}' is too short")
+        if len(channel_name) > 10:
+            raise Exception(f"Channel name '{channel_name}' is too long")
+        if '{' in channel_name:
+            raise Exception(f"Illegal channel name '{channel_name}'. Did you forget the f in front of the string?")
+        if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", channel_name):
+            raise Exception(f"Invalid channel name '{channel_name}'")
+
         if (channel_name in self.awg_channels
                 or channel_name in self.marker_channels
                 or channel_name in self.digitizer_channels
                 or channel_name in self.qubit_channels):
-            raise ValueError(f"double declaration of the a channel/marker name ({channel_name}).")
+            raise ValueError(f"duplicate declaration of the a channel/marker name '{channel_name}'.")
