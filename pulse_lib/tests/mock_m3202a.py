@@ -72,6 +72,9 @@ class MockM3202A(Instrument):
     def configure_marker_output(self, invert: bool = False):
         pass
 
+    def set_waveform_limit(self, size):
+        pass
+
     def upload_waveform(self, wave) -> WaveformReference:
         size = len(wave)
         # discretize samples

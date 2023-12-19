@@ -27,7 +27,9 @@ def read_channels(pulselib, t_measure, channels=None, sample_rate=None, iq_mode=
         raise Exception(f't_measure ({t_measure} ns) < 1/sample_rate ({int(1e9/sample_rate)} ns)')
 
     # set sample rate for Keysight upload.
-    if t_measure > 200_000:
+    if t_measure > 2_000_000:
+        awg_sample_rate = 1e6
+    elif t_measure > 200_000:
         awg_sample_rate = 1e7
     elif t_measure > 20_000:
         awg_sample_rate = 1e8
@@ -42,7 +44,6 @@ def read_channels(pulselib, t_measure, channels=None, sample_rate=None, iq_mode=
         seg[ch].acquire(0, t_measure, wait=True)
 
     sequence = pulselib.mk_sequence([seg])
-#    sequence.set_hw_schedule() @@@ configure single shot and video mode schedules at pulselib init!!
     sequence.n_rep = None
     if sample_rate is not None:
         sequence.set_acquisition(sample_rate=sample_rate)

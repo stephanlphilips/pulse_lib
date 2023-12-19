@@ -3,7 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class HardwareScheduleMock:
-    def __init__(self):
+    def __init__(self, pulse=None):
         self.loaded = False
         self.sequence_params = None
 

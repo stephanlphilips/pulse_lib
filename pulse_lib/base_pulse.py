@@ -43,6 +43,7 @@ class pulselib:
             self._configure_digitizer = True
 
         self._backend = backend
+        self._default_hw_schedule_creator = None
 
         if np.__version__ < '1.20':
             raise Exception(f'Pulselib requires numpy 1.20+. Found version {np.__version__}')
@@ -444,6 +445,9 @@ class pulselib:
                 awg_channels=list(self.awg_channels.keys())
                 )
 
+    def set_default_hw_schedule_creator(self, hw_schedule_creator):
+        self._default_hw_schedule_creator = hw_schedule_creator
+
     def _create_M3202A_uploader(self):
         try:
             from pulse_lib.keysight.M3202A_uploader import M3202A_Uploader
@@ -536,7 +540,11 @@ class pulselib:
         '''
         segments: list of segment_container.
         '''
-        seq_obj = sequencer(self.uploader, self.digitizer_channels, self.awg_channels)
+        default_hw_schedule = None
+        if self._default_hw_schedule_creator is not None:
+            default_hw_schedule = self._default_hw_schedule_creator(self)
+        seq_obj = sequencer(self.uploader, self.digitizer_channels, self.awg_channels,
+                            default_hw_schedule=default_hw_schedule)
         seq_obj.add_sequence(segments)
         seq_obj.configure_digitizer = self.configure_digitizer
         return seq_obj

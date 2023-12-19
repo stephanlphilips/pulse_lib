@@ -32,7 +32,8 @@ class sequencer():
     Class to make sequences for segments.
     """
 
-    def __init__(self, upload_module, digitizer_channels, awg_channels):
+    def __init__(self, upload_module, digitizer_channels, awg_channels,
+                 default_hw_schedule=None):
         '''
         make a new sequence object.
         Args:
@@ -59,8 +60,9 @@ class sequencer():
         # arguments of post processing the might be needed during rendering.
         self.neutralize = True
 
-        # hardware schedule (HVI)
-        self.hw_schedule = None
+        # hardware schedule (Keysight, Tektronix)
+        self.hw_schedule = default_hw_schedule
+        self.schedule_params = dict()
 
         self._n_rep = 1000
         self._sample_rate = 1e9
@@ -552,7 +554,8 @@ class sequencer():
                 upload_job.qubit_resonance_frequencies = self._qubit_resonance_frequencies
                 if self.hw_schedule is not None:
                     hvi_markers = self._HVI_variables.item(tuple(index)).HVI_markers
-                    upload_job.add_hw_schedule(self.hw_schedule, hvi_markers)
+                    schedule_params = {**self.schedule_params, **hvi_markers}
+                    upload_job.add_hw_schedule(self.hw_schedule, schedule_params)
                 if self._condition_measurements.feedback_events:
                     upload_job.set_feedback(self._condition_measurements)
 

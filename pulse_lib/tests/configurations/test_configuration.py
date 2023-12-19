@@ -2,6 +2,7 @@ import logging
 import os
 import math
 from collections.abc import Sequence
+from functools import partial
 from numbers import Number
 from typing import Dict, List, Union
 import matplotlib.pyplot as pt
@@ -264,6 +265,8 @@ class Context:
             if 'Dig1' not in pulse.digitizers:
                 pulse.add_digitizer(station.components['Dig1'])
 
+        self.set_default_hw_schedule(cfg.get('schedule', None))
+
         if finish:
             pulse.finish_init()
 
@@ -279,19 +282,17 @@ class Context:
             pulse.add_awg(self.station.components[awg])
         pulse.define_marker(name, awg, channel, setup_ns=setup_ns, hold_ns=hold_ns)
 
-    def add_hw_schedule(self, sequence):
-        cfg = self._configuration
-        schedule = cfg.get('schedule', None)
+    def set_default_hw_schedule(self, schedule):
         if schedule == 'Mock':
-            sequence.set_hw_schedule(HardwareScheduleMock())
+            hw_schedule_creator = HardwareScheduleMock
         elif schedule == 'HVI2':
-            hvi2_schedule = getattr(self, 'hvi2_schedule', None)
-            if hvi2_schedule is None:
-                from core_tools.HVI2.hvi2_schedule_loader import Hvi2ScheduleLoader
-                self.hvi2_schedule = Hvi2ScheduleLoader(self.pulse, "SingleShot")
-            sequence.set_hw_schedule(self.hvi2_schedule)
+            from core_tools.HVI2.hvi2_schedule_loader import Hvi2ScheduleLoader
+            hw_schedule_creator = partial(Hvi2ScheduleLoader, script_name='SingleShot')
         elif schedule == 'TektronixM4i':
-            sequence.set_hw_schedule(TektronixSchedule(self.pulse))
+            hw_schedule_creator = TektronixSchedule
+        else:
+            hw_schedule_creator = None
+        self.pulse.set_default_hw_schedule_creator(hw_schedule_creator)
 
     def launch_databrowser(self):
         global _ct_configured
