@@ -44,7 +44,6 @@ def test1():
     sequence.n_rep = 2
 
     m_param = sequence.get_measurement_param(iq_mode='amplitude+phase')
-    context.add_hw_schedule(sequence)
 
     t = np.arange(0, t_measure, 1e9/sample_rate)  # [ns]
     t *= 1e-9  # [s]
