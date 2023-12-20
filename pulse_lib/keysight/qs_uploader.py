@@ -121,7 +121,10 @@ class QsUploader:
                 awg_oscillators.oscillators.append(osc)
                 awg_oscillators.dig2osc[dig_ch.name] = osc
                 awg = self.AWGs[awg_name]
-                awg.set_lo_mode(awg_ch, True)
+                try:
+                    awg.set_lo_mode(awg_ch, True)
+                except AttributeError:
+                    raise Exception('RF generator must be configured on module with M3202A_fpga driver')
                 amplitude = rf_source.amplitude / rf_source.attenuation
                 enable = rf_source.mode == 'continuous'
                 awg.config_lo(awg_ch, osc_num, enable, dig_ch.frequency, amplitude)
