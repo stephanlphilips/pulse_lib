@@ -285,14 +285,14 @@ class M3202A_Uploader:
                 # Set phase for IQ demodulated input
                 if channel_conf.phase is not None:
                     for ch in channel_conf.channel_numbers:
-                        dig.set_lo(ch, 0, channel_conf.phase)
+                        dig.set_lo(ch, 0, np.degrees(channel_conf.phase))
             if acq_mode in [2, 3]:
                 # Set frequency, amplitude and phase for IQ demodulation in FPGA.
                 if channel_conf.frequency is not None:
                     for ch in channel_conf.channel_numbers:
                         dig.set_lo(ch,
                                    channel_conf.frequency,
-                                   channel_conf.phase,
+                                   np.degrees(channel_conf.phase),
                                    channel_conf.hw_input_channel,
                                    )
                     if channel_conf.rf_source is not None:
@@ -752,8 +752,10 @@ class UploadAggregator:
             delays.append(channel.delay)
             if channel.rf_source is not None:
                 rf_source = channel.rf_source
-                delays.append(rf_source.delay - rf_source.startup_time_ns)
-                delays.append(rf_source.delay + rf_source.prolongation_ns)
+                if rf_source.mode == 'pulsed':
+                    # HVI2 can only start RF source 30 ns after start of waveform
+                    delays.append(rf_source.delay - rf_source.startup_time_ns - 30)
+                    delays.append(rf_source.delay + rf_source.prolongation_ns)
 
         self.max_pre_start_ns = -min(0, *delays)
         self.max_post_end_ns = max(0, *delays)
