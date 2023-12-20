@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.11] - 2023-12-20
+
+- Added RF parameters frequency, source_amplitude and phase
+- Added set_default_hw_schedule for Keysight and Tektronix
+- Validate channel names
+- Fixed unit of phase setting for Keysight RF demodulation [rad]
+
 ## \[1.7.10] - 2023-12-14
 
 - Fixed acquisition to allow simultaneous acquisition by combining segments (QConstruct simultaneous)
