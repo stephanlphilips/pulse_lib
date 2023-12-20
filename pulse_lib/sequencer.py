@@ -63,6 +63,8 @@ class sequencer():
         # hardware schedule (Keysight, Tektronix)
         self.hw_schedule = default_hw_schedule
         self.schedule_params = dict()
+        if self.hw_schedule is not None:
+            self.hw_schedule.set_schedule_parameters()
 
         self._n_rep = 1000
         self._sample_rate = 1e9
