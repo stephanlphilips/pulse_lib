@@ -11,6 +11,7 @@ from pulse_lib.configuration.physical_channels import (
         awg_channel, marker_channel, digitizer_channel, resonator_rf_source)
 from pulse_lib.configuration.iq_channels import IQ_channel, QubitChannel
 from pulse_lib.configuration.devices import awg_slave
+from pulse_lib.configuration.rf_parameters import RfParameters
 from pulse_lib.virtual_matrix.virtual_gate_matrices import VirtualGateMatrices
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ class pulselib:
         self.awg_channels = dict()
         self.marker_channels = dict()
         self.digitizer_channels = dict()
+        self.rf_params = dict()
         self._virtual_matrices = VirtualGateMatrices()
         self.qubit_channels = dict()
         self.IQ_channels = dict()
@@ -171,6 +173,7 @@ class pulselib:
         self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, [channel_number], iq_out=iq_out)
         if hw_input_channel is not None:
             self.set_digitizer_hw_input_channel(name, hw_input_channel)
+        self.rf_params[name] = RfParameters(self.digitizer_channels[name])
 
     def define_digitizer_channel_iq(self, name, digitizer_name, channel_numbers, phase=0.0, iq_out=False):
         ''' Defines a digitizer I/Q input pair.
