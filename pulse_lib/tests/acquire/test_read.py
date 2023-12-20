@@ -31,13 +31,14 @@ def test3(iq_mode='I+Q'):
 
 def test4():
     # takes 100 seconds to run !!!
-    pulse = context.init_pulselib(n_gates=1, n_sensors=2, rf_sources=False)
+    pulse = context.init_pulselib(n_gates=1, n_sensors=2, rf_sources=True)
     if pulse._backend in ['Keysight', 'Keysight_QS']:
         for awg in pulse.awg_devices.values():
             # 1e8 samples at 1e6 Sa/s => 100 sec.
             awg.set_waveform_limit(1e8)
 
-    dc_param = read_channels(pulse, 100e9, sample_rate=100) # 100 Hz, 100 seconds
+    # Note: Keysight maximum wave duration in HVI single shot schedule is 2^32 * 10 ns = 42.9 s
+    dc_param = read_channels(pulse, 40e9, sample_rate=100) # 100 Hz, 40 seconds
 
     return context.run('read', dc_param)
 
