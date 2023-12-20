@@ -155,11 +155,11 @@ class Context:
             n_gates = len(gates)
             self.virtual_matrix = np.diag([0.9]*n_gates) + 0.1
             pulse.add_virtual_matrix(
-                    name='virtual-gates',
-                    real_gate_names=gates,
-                    virtual_gate_names=['v'+gate for gate in gates],
-                    matrix=self.virtual_matrix
-                    )
+                name='virtual-gates',
+                real_gate_names=gates,
+                virtual_gate_names=['v'+gate for gate in gates],
+                matrix=self.virtual_matrix
+            )
 
         for i in range(n_markers):
             self._add_marker(f'M{i+1}')
@@ -252,6 +252,10 @@ class Context:
                     output = params['output']
                     if not isinstance(output, str):
                         output = tuple(output)
+                    channel_conf = pulse.digitizer_channels[sensor]
+                    channel_conf.iq_out = True
+                    dig = pulse.digitizers[channel_conf.module_name]
+                    dig.set_channel_acquisition_mode(channel_conf.channel_number, 2)
                     pulse.set_digitizer_frequency(sensor, params.get('frequency', None))
                     pulse.set_digitizer_rf_source(sensor,
                                                   output=output,
@@ -259,6 +263,7 @@ class Context:
                                                   mode='pulsed',
                                                   startup_time_ns=params['startup_time'],
                                                   prolongation_ns=params.get('prolongation_time', 0))
+                    pulse.set_digitizer_hw_input_channel(sensor, params.get('hw_input_channel'))
 
         if backend == 'Tektronix_5014':
             # pulselib always wants a digitizer for Tektronix

@@ -168,8 +168,9 @@ QbloxGS1:
 
 KeysightSdS:
     station: keysight_test_sds.yaml
+    backend: Keysight
     # station: keysight_test_sds_qs.yaml
-    backend: Keysight_QS
+    # backend: Keysight_QS
     schedule: HVI2
     # P1,P3,P6,P7 are connected to SD1-SD4
     awg_channels:
@@ -186,7 +187,21 @@ KeysightSdS:
         SD3: [Dig1,3]
         SD4: [Dig1,4]
     rf:
+        # SD2:
+        #     output: M1
+        #     startup_time: 500
+        SD1:
+            output: [AWG1,4]
+            frequency: 150e6
+            amplitude: 200
+            startup_time: 200
+            prolongation_time: 30
+            hw_input_channel: 1
         SD2:
-            output: M1
-            startup_time: 500
+            output: [AWG1,4]
+            frequency: 100e6
+            amplitude: 400
+            startup_time: 200
+            prolongation_time: 30
+            hw_input_channel: 1
     runner: core_tools
