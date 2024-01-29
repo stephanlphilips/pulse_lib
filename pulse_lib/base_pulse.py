@@ -635,9 +635,9 @@ class pulselib:
 
     def _check_uniqueness_of_channel_name(self, channel_name):
         if len(channel_name) < 2:
-            raise Exception(f"Channel name '{channel_name}' is too short")
-        if len(channel_name) > 10:
-            raise Exception(f"Channel name '{channel_name}' is too long")
+            raise Exception(f"Channel name '{channel_name}' is too short. Min is 2")
+        if len(channel_name) > 16:
+            raise Exception(f"Channel name '{channel_name}' is too long. Max is 16.")
         if '{' in channel_name:
             raise Exception(f"Illegal channel name '{channel_name}'. Did you forget the f in front of the string?")
         if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", channel_name):
