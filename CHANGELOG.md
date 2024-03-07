@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.12] - 2024-03-07
+
+- Modified Keysight_QS backend to drive qubits without MW source using plunger and barrier gates.
+
 ## \[1.7.11] - 2023-12-20
 
 - Added RF parameters frequency, source_amplitude and phase

@@ -121,7 +121,8 @@ class Context:
     def init_pulselib(self, n_gates=0, n_qubits=0, n_markers=0,
                       n_sensors=0, rf_sources=False,
                       virtual_gates=False, finish=True,
-                      no_IQ=False):
+                      no_IQ=False,
+                      drive_with_plungers=False):
         self.n_plots = 0
         cfg = self._configuration
         station = self.station
@@ -164,55 +165,72 @@ class Context:
         for i in range(n_markers):
             self._add_marker(f'M{i+1}')
 
-        n_iq = math.ceil(n_qubits/2)
-        for i in range(n_iq):
-            I, Q = f'I{i+1}', f'Q{i+1}',
-            awg, channel_I = gate_map[I]
-            awg, channel_Q = gate_map[Q]
-            if awg not in pulse.awg_devices:
-                pulse.add_awg(station.components[awg])
-            pulse.define_channel(I, awg, channel_I)
-            pulse.add_channel_delay(I, -20)
-            if not no_IQ:
-                pulse.define_channel(Q, awg, channel_Q)
-                pulse.add_channel_delay(Q, -20)
-            sig_gen = station.components[f'sig_gen{i+1}']
-
-            iq_channel_name = f'IQ{i+1}'
-            if i == 0:
-                iq_marker = 'M_IQ1'
-                self._add_marker(iq_marker, setup_ns=100, hold_ns=20)
-                pulse.add_channel_delay(iq_marker, -20)
-            elif i == 1:
-                iq_marker = 'M_IQ2'
-                self._add_marker(iq_marker, setup_ns=100, hold_ns=20)
-                pulse.add_channel_delay(iq_marker, -20)
-            else:
-                iq_marker = ''
-
-            if not no_IQ:
-                pulse.define_iq_channel(iq_channel_name, i_name=I, q_name=Q,
-                                        marker_name=iq_marker)
-                pulse.set_iq_lo(iq_channel_name, sig_gen.frequency)
-
-                # LO freqs: 2.400, 2.800
-                sig_gen.frequency(2.400e9 + i*0.400e9)
-                # qubit freqs: 2.450, 2.550, 2.650, 2.750
-                for j in range(2):
-                    qubit = 2*i+j+1
-                    if qubit < n_qubits+1:
-                        resonance_frequency = 2.350e9 + qubit*0.100e9
-                        pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
-            else:
-                pulse.define_iq_channel(iq_channel_name, i_name=I,
-                                        marker_name=iq_marker)
+        if drive_with_plungers:
+            for i in range(n_qubits):
+                qubit = i+1
+                if backend == 'Keysight_QS':
+                    # Use a new awg channel on the same output to drive the qubit.
+                    drive_channel_name = f"P{qubit}_drive"
+                    awg_channel = pulse.awg_channels[f"P{qubit}"]
+                    pulse.define_channel(drive_channel_name, awg_channel.awg_name, awg_channel.channel_number)
+                else:
+                    drive_channel_name = f"P{qubit}"
+                iq_channel_name = f"drive_q{qubit}"
+                pulse.define_iq_channel(iq_channel_name, i_name=drive_channel_name)
                 pulse.set_iq_lo(iq_channel_name, 0.0)
                 # qubit freqs: 50, 100, 150, 200 MHz
-                for j in range(2):
-                    qubit = 2*i+j+1
-                    if qubit < n_qubits+1:
-                        resonance_frequency = qubit*0.050e9
-                        pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
+                resonance_frequency = qubit*0.050e9
+                pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
+        else:
+            n_iq = math.ceil(n_qubits/2)
+            for i in range(n_iq):
+                I, Q = f'I{i+1}', f'Q{i+1}',
+                awg, channel_I = gate_map[I]
+                awg, channel_Q = gate_map[Q]
+                if awg not in pulse.awg_devices:
+                    pulse.add_awg(station.components[awg])
+                pulse.define_channel(I, awg, channel_I)
+                pulse.add_channel_delay(I, -20)
+                if not no_IQ:
+                    pulse.define_channel(Q, awg, channel_Q)
+                    pulse.add_channel_delay(Q, -20)
+                sig_gen = station.components[f'sig_gen{i+1}']
+
+                iq_channel_name = f'IQ{i+1}'
+                if i == 0:
+                    iq_marker = 'M_IQ1'
+                    self._add_marker(iq_marker, setup_ns=100, hold_ns=20)
+                    pulse.add_channel_delay(iq_marker, -20)
+                elif i == 1:
+                    iq_marker = 'M_IQ2'
+                    self._add_marker(iq_marker, setup_ns=100, hold_ns=20)
+                    pulse.add_channel_delay(iq_marker, -20)
+                else:
+                    iq_marker = ''
+
+                if not no_IQ:
+                    pulse.define_iq_channel(iq_channel_name, i_name=I, q_name=Q,
+                                            marker_name=iq_marker)
+                    pulse.set_iq_lo(iq_channel_name, sig_gen.frequency)
+
+                    # LO freqs: 2.400, 2.800
+                    sig_gen.frequency(2.400e9 + i*0.400e9)
+                    # qubit freqs: 2.450, 2.550, 2.650, 2.750
+                    for j in range(2):
+                        qubit = 2*i+j+1
+                        if qubit < n_qubits+1:
+                            resonance_frequency = 2.350e9 + qubit*0.100e9
+                            pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
+                else:
+                    pulse.define_iq_channel(iq_channel_name, i_name=I,
+                                            marker_name=iq_marker)
+                    pulse.set_iq_lo(iq_channel_name, 0.0)
+                    # qubit freqs: 50, 100, 150, 200 MHz
+                    for j in range(2):
+                        qubit = 2*i+j+1
+                        if qubit < n_qubits+1:
+                            resonance_frequency = qubit*0.050e9
+                            pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
 
         if n_sensors > 0:
             pulse.configure_digitizer = True

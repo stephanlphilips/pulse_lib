@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Tuple
 from uuid import UUID
 
-from .sequencer_device import add_sequencers
+from .sequencer_device import SequencerInfo, SequencerDevice
 from .qs_conditional import get_conditional_channel, get_acquisition_names, QsConditionalSegment
 from .qs_sequence import AcquisitionSequenceBuilder, IQSequenceBuilder, SequenceConditionalEntry
 
@@ -47,7 +47,7 @@ class QsUploader:
         self.jobs = []
         self.acq_description = None
 
-        add_sequencers(self, awg_devices, awg_channels, IQ_channels)
+        self._add_sequencers(awg_devices, awg_channels, IQ_channels)
 
         self.release_all_awg_memory()
         self._config_marker_channels()
@@ -57,6 +57,66 @@ class QsUploader:
     @property
     def supports_conditionals(self):
         return True
+
+    def _add_sequencers(self, AWGs, awg_channels, IQ_channels):
+        sequencer_devices: Dict[str, SequencerDevice] = {}
+        self.sequencer_channels:Dict[str, SequencerInfo] = {}
+        # collect output channels. They should not be rendered to full waveforms
+        self.sequencer_out_channels:List[str] = []
+
+        for awg_name, awg in AWGs.items():
+            if hasattr(awg, 'get_sequencer'):
+                sequencer_devices[awg_name] = SequencerDevice(awg)
+
+        for IQ_channel in IQ_channels.values():
+            iq_pair = IQ_channel.IQ_out_channels
+            if len(iq_pair) > 2:
+                raise Exception(f'IQ-channel should have 2 awg channels '
+                                f'({iq_pair})')
+            iq_awg_channels = [awg_channels[iq_channel_info.awg_channel_name] for iq_channel_info in iq_pair]
+            awg_names = [awg_channel.awg_name for awg_channel in iq_awg_channels]
+            if not any(awg_name in sequencer_devices for awg_name in awg_names):
+                continue
+
+            if len(awg_names) == 2 and awg_names[0] != awg_names[1]:
+                raise Exception(f'IQ channels should be on 1 awg: {iq_pair}')
+
+            self.sequencer_out_channels += [awg_channel.name for awg_channel in iq_awg_channels]
+
+            seq_device = sequencer_devices[awg_names[0]]
+            channel_numbers = [awg_channel.channel_number for awg_channel in iq_awg_channels]
+            if len(channel_numbers) == 2:
+                sequencers = seq_device.add_iq_channel(IQ_channel, channel_numbers)
+            elif len(channel_numbers) == 1:
+                sequencers = seq_device.add_drive_channel(IQ_channel, channel_numbers[0])
+            else:
+                raise Exception(
+                    f"Unsupported IQ configuration with channel numbers {channel_numbers} for {IQ_channel.name}")
+            self.sequencer_channels.update(sequencers)
+
+        # # @@@ commented out, because base band channels do not yet work.
+        # for awg_channel in awg_channels.values():
+        #     if (awg_channel.awg_name in obj.sequencer_devices
+        #         and awg_channel.name not in obj.sequencer_out_channels):
+        #         seq_device = obj.sequencer_devices[awg_channel.awg_name]
+        #         bb_seq = seq_device.add_bb_channel(awg_channel.channel_number, awg_channel.name)
+
+        #         obj.sequencer_channels[bb_seq.channel_name] = bb_seq
+        #         obj.sequencer_out_channels += [bb_seq.channel_name]
+
+        # for dev in obj.sequencer_devices.values():
+        #     awg = dev.awg
+        #     for i,seq_info in enumerate(dev.sequencers):
+        #         if seq_info is None:
+        #             continue
+        #         seq = awg.get_sequencer(i+1)
+        #         if seq_info.frequency is None:
+        #             # sequencer output is A for channels 1 and 3 and B for 2 and 4
+        #             output = 'BA'[seq_info.channel_numbers[0] % 2]
+        #             seq.set_baseband(output)
+        #         else:
+        #             seq.configure_oscillators(seq_info.frequency, seq_info.phases[0], seq_info.phases[1])
+
     def _check_digitizer_channels(self):
         for name, channel in self.digitizer_channels.items():
             dig_name = channel.module_name
@@ -1252,6 +1312,20 @@ class UploadAggregator:
             if isinstance(seg, conditional_segment):
                 self.conditional_segments[iseg] = QsConditionalSegment(seg)
 
+    def _get_iq_channel_delay(self, qubit_channel):
+        out_channels = qubit_channel.iq_channel.IQ_out_channels
+        if len(out_channels) == 1:
+            awg_channel_name = out_channels[0].awg_channel_name
+            return self.channels[awg_channel_name].delay_ns
+        else:
+            delays = []
+            for i in range(2):
+                awg_channel_name = out_channels[i].awg_channel_name
+                delays.append(self.channels[awg_channel_name].delay_ns)
+            if delays[0] != delays[1]:
+                raise Exception(f'I/Q Channel delays must be equal ({qubit_channel.channel_name})')
+            return delays[0]
+
     def _generate_sequencer_iq_upload(self, job):
         segments = self.segments
 
@@ -1260,16 +1334,11 @@ class UploadAggregator:
                 logger.warning(f'QS driver (M3202A_QS) not loaded for qubit channel {channel_name}')
                 continue
             start = time.perf_counter()
-            delays = []
-            for i in range(2):
-                awg_channel_name = qubit_channel.iq_channel.IQ_out_channels[i].awg_channel_name
-                delays.append(self.channels[awg_channel_name].delay_ns)
-            if delays[0] != delays[1]:
-                raise Exception(f'I/Q Channel delays must be equal ({channel_name})')
+            delay = self._get_iq_channel_delay(qubit_channel)
 
             sequencer_offset = self.sequencer_channels[channel_name].sequencer_offset
             # subtract offset, because it's started before 'classical' queued waveform
-            t_start = int(-self.max_pre_start_ns - delays[0]) - sequencer_offset
+            t_start = int(-self.max_pre_start_ns - delay) - sequencer_offset
 
             sequence = IQSequenceBuilder(channel_name, t_start,
                                          qubit_channel.iq_channel.LO)

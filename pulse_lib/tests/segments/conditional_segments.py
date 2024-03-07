@@ -6,6 +6,7 @@ from pulse_lib.tests.configurations.test_configuration import context
 from pulse_lib.segments.conditional_segment import conditional_segment
 from pulse_lib.segments.utility.measurement_ref import MeasurementRef
 
+drive_with_plungers = False
 
 def get_feedback_latency(backend):
     if backend in ['Tektronix_5014', 'Keysight']:
@@ -17,9 +18,9 @@ def get_feedback_latency(backend):
         feedback_latency = 500
     return feedback_latency
 
-
 def test1():
-    pulse = context.init_pulselib(n_gates=2, n_qubits=2, n_sensors=2)
+    pulse = context.init_pulselib(n_gates=2, n_qubits=2, n_sensors=2, drive_with_plungers=drive_with_plungers)
+    f_q1 = pulse.qubit_channels['q1'].resonance_frequency
 
     feedback_latency = get_feedback_latency(pulse._backend)
     if feedback_latency is None:
@@ -38,7 +39,7 @@ def test1():
     s_true = pulse.mk_segment()
     s_false = pulse.mk_segment()
 
-    s_false.q1.add_MW_pulse(10, 20, 80.0, 2.450e9)
+    s_false.q1.add_MW_pulse(10, 20, 80.0, f_q1)
     s_false.wait(10, reset_time=True)
 
     cond_seg1 = conditional_segment(MeasurementRef('m1'), [s_false, s_true], name='cond')
@@ -54,6 +55,7 @@ def test1():
 
 def test2():
     pulse = context.init_pulselib(n_gates=2, n_qubits=2, n_sensors=2)
+    f_q1 = pulse.qubit_channels['q1'].resonance_frequency
 
     feedback_latency = get_feedback_latency(pulse._backend)
     if feedback_latency is None:
@@ -74,7 +76,7 @@ def test2():
     s_true = pulse.mk_segment()
     s_false = pulse.mk_segment()
 
-    s_false.q1.add_MW_pulse(10, 20, 80.0, 2.450e9)
+    s_false.q1.add_MW_pulse(10, 20, 80.0, f_q1)
     s_false.wait(10, reset_time=True)
 
     cond_seg1 = conditional_segment(MeasurementRef('m0'), [s_false, s_true], name='cond')
@@ -90,6 +92,8 @@ def test2():
 
 def test3():
     pulse = context.init_pulselib(n_gates=2, n_qubits=2, n_sensors=2)
+    f_q1 = pulse.qubit_channels['q1'].resonance_frequency
+    f_q2 = pulse.qubit_channels['q2'].resonance_frequency
 
     feedback_latency = get_feedback_latency(pulse._backend)
     if feedback_latency is None:
@@ -110,7 +114,7 @@ def test3():
     s_true = pulse.mk_segment()
     s_false = pulse.mk_segment()
 
-    s_false.q1.add_MW_pulse(10, 20, 80.0, 2.450e9)
+    s_false.q1.add_MW_pulse(10, 20, 80.0, f_q1)
     s_false.wait(40, reset_time=True)
 
     cond_seg1 = conditional_segment(MeasurementRef('m0'), [s_false, s_true], name='cond')
@@ -118,7 +122,7 @@ def test3():
     s_true = pulse.mk_segment()
     s_false = pulse.mk_segment()
 
-    s_false.q2.add_MW_pulse(10, 20, 80.0, 2.450e9)
+    s_false.q2.add_MW_pulse(10, 20, 80.0, f_q2)
     s_false.wait(20, reset_time=True)
 
     cond_seg2 = conditional_segment(MeasurementRef('m1'), [s_false, s_true], name='cond')
