@@ -13,6 +13,7 @@ setup(name="pulse_lib",
             'si_prefix',
             'qcodes>=0.27.0',
             'numpy>=1.20.0',
+            'scipy',
             ],
     license='MIT',
     package_data={
