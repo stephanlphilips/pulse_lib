@@ -82,7 +82,7 @@ class segment_IQ(segment_base):
         Add chirp to the segment.
         Args:
             t0(float) : start time in ns
-            t1(float) : stop tiume in ns
+            t1(float) : stop time in ns
             f0(float) : start frequency
             f1 (float) : stop frequency
             amp (float) : amplitude of the pulse.
@@ -115,12 +115,11 @@ class segment_IQ(segment_base):
         if out_channel_info.image == '-':
             phase_shift += np.pi
 
-        local_data = copy.copy(self.data).flatten()
+        data = self.data
+        local_data = data_container(shape=data.shape).flatten()
         # downconvert the sigal saved in the data object, so later on, in the real MW source, it can be upconverted again.
-        for i in range(len(local_data)):
-            local_data[i] = self.data.flat[i] * correction_gain
-            local_data[i].shift_MW_phases(phase_shift)
-            local_data[i].shift_MW_frequency(LO)
+        for i in range(data.size):
+            local_data[i] = data.flat[i].get_IQ_data(correction_gain, LO, phase_shift)
 
         local_data = local_data.reshape(self.data.shape)
 

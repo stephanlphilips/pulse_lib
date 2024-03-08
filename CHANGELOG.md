@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.13] - 2024-03-08
+
+- Performance improvement in MW pulse processing. (30% gain in precompile of randomized benchmarking.)
+
 ## \[1.7.12] - 2024-03-07
 
 - Modified Keysight_QS backend to drive qubits without MW source using plunger and barrier gates.

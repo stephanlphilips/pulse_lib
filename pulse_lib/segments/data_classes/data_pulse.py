@@ -292,36 +292,6 @@ class pulse_data(parent_data):
         self._phase_shifts_consolidated = False
         self.update_end_time(time + other.total_time)
 
-    def shift_MW_frequency(self, frequency):
-        '''
-        shift the frequency of a MW signal. This is needed for dealing with the upconverion of a IQ signal.
-
-        Args:
-            frequency (float) : frequency you want to shift
-        '''
-        for mw_pulse in self.MW_pulse_data:
-            mw_pulse.frequency -= frequency
-
-        for chirp in self.chirp_data:
-            chirp.start_frequency -= frequency
-            chirp.stop_frequency -= frequency
-
-    def shift_MW_phases(self, phase_shift):
-        '''
-        Shift the phases of all the microwaves present in the MW data object
-
-        Args:
-            phase_shift (float) : amount of phase to shift in rad.
-        '''
-        if phase_shift == 0:
-            return
-
-        for mw_pulse in self.MW_pulse_data:
-            mw_pulse.phase_offset += phase_shift
-
-        for chirp in self.chirp_data:
-            chirp.phase += phase_shift
-
     def __copy__(self):
         # NOTE: Copy is called in pulse_data_all, before adding virtual channels.
         #       It is also called when a dimension is added in looping.
@@ -626,6 +596,40 @@ class pulse_data(parent_data):
             elements.append(OffsetRamp(time, time+duration, v_start, v_stop))
         elements.sort(key=lambda p: (p.start, p.stop))
         return elements
+
+    def get_IQ_data(self, gain, frequency_shift, phase_shift):
+        '''
+        Returns MW data with modified amplitude, frequency and phase.
+
+        Args:
+            gain (float): amplitude gain
+            frequency_shift (float): frequency shift
+            phase_shift (float): phase shift
+        '''
+        self._consolidate_phase_shifts()
+        new_data = pulse_data()
+
+        new_data.MW_pulse_data = copy.deepcopy(self.MW_pulse_data)
+        for mw_pulse in new_data.MW_pulse_data:
+            mw_pulse.amplitude *= gain
+            mw_pulse.frequency -= frequency_shift
+            mw_pulse.phase_offset += phase_shift
+
+        new_data.chirp_data = copy.deepcopy(self.chirp_data)
+        for chirp in new_data.chirp_data:
+            chirp.amplitude *= gain
+            chirp.start_frequency -= frequency_shift
+            chirp.stop_frequency -= frequency_shift
+            chirp.phase += phase_shift
+
+        new_data.phase_shifts = copy.copy(self.phase_shifts)
+        new_data.end_time = self.end_time
+        new_data.start_time = self.start_time
+        new_data._hres = self._hres
+        new_data._consolidated = self._consolidated
+        new_data._phase_shifts_consolidated = self._phase_shifts_consolidated
+
+        return new_data
 
     def _render(self, sample_rate, ref_channel_states, LO):
         '''
