@@ -26,6 +26,14 @@ class SequencerDevice:
         self.sequencer_offset: int = 10
         if hasattr(self.awg, 'get_sequencer_offset'):
             self.sequencer_offset = self.awg.get_sequencer_offset()
+        self._clear_sequences()
+
+    def _clear_sequences(self):
+        for i in range(1, 13):
+            seq = self.awg.get_sequencer(i)
+            seq.flush_waveforms()
+            schedule = []
+            seq.load_schedule(schedule)
 
     def _get_sequencer_group(self, channel_number: int):
         if channel_number in [1, 2]:
