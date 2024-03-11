@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.14] - 2024-03-11
+
+- Clear sequencer memory in FPGA when Keysight_QS is configured.
+
 ## \[1.7.13] - 2024-03-08
 
 - Performance improvement in MW pulse processing. (30% gain in precompile of randomized benchmarking.)
