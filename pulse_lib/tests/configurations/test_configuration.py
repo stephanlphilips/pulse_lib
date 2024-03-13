@@ -117,6 +117,39 @@ class Context:
 
         self.awgs = awgs
         self.digitizers = digs
+        if backend == 'Keysight_QS':
+            self._configure_pxi()
+
+    def _configure_pxi(self):
+        import keysightSD1 as SD1
+        from keysight_fpga.sd1.sd1_utils import check_error
+
+        pxi_triggers = [
+                SD1.SD_TriggerExternalSources.TRIGGER_PXI6,
+                SD1.SD_TriggerExternalSources.TRIGGER_PXI7,
+            ]
+
+        # configure AWG PXI trigger in
+        for awg in self.awgs:
+            print('pxi', awg.name)
+            with awg._lock:
+                for pxi in pxi_triggers:
+                    check_error(awg.awg.FPGATriggerConfig(
+                            pxi,
+                            SD1.SD_FpgaTriggerDirection.IN,
+                            SD1.SD_TriggerPolarity.ACTIVE_LOW,
+                            SD1.SD_SyncModes.SYNC_NONE,
+                            0))
+
+        # configure digitizer PXI trigger out
+        for pxi in pxi_triggers:
+            check_error(self.digitizers[0].SD_AIN.FPGATriggerConfig(
+                    pxi,
+                    SD1.SD_FpgaTriggerDirection.INOUT,
+                    SD1.SD_TriggerPolarity.ACTIVE_LOW,
+                    SD1.SD_SyncModes.SYNC_NONE,
+                    0))
+
 
     def init_pulselib(self, n_gates=0, n_qubits=0, n_markers=0,
                       n_sensors=0, rf_sources=False,
