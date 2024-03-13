@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.15] - 2024-03-13
+
+- Added oscillator triggering for QS mode.
+
 ## \[1.7.14] - 2024-03-11
 
 - Clear sequencer memory in FPGA when Keysight_QS is configured.
