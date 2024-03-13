@@ -121,6 +121,7 @@ class Context:
             self._configure_pxi()
 
     def _configure_pxi(self):
+        # TODO Fix for mock.
         import keysightSD1 as SD1
         from keysight_fpga.sd1.sd1_utils import check_error
 
@@ -303,10 +304,10 @@ class Context:
                     output = params['output']
                     if not isinstance(output, str):
                         output = tuple(output)
-                    if len(output) == 2:
-                        awg_name = output[0]
-                        if awg_name not in pulse.awg_devices:
-                            pulse.add_awg(station.components[awg_name])
+                        if len(output) == 2:
+                            awg_name = output[0]
+                            if awg_name not in pulse.awg_devices:
+                                pulse.add_awg(station.components[awg_name])
 
                     channel_conf = pulse.digitizer_channels[sensor]
                     channel_conf.iq_out = True
