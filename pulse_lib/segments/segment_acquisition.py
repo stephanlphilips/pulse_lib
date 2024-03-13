@@ -75,6 +75,9 @@ class segment_acquisition():
         '''
         if n_repeat is not None and interval is None:
             raise Exception('interval must be specified when n_repeat is set')
+        # @@@ MAKE proper solution
+        # if isinstance(ref, str):
+        #     ref = MeasurementRef(ref)
         if isinstance(ref, MeasurementRef) and zero_on_high:
             ref.inverted()
         # TODO: measurements are not sorted in time. So, this works as long as they are added in right order.
