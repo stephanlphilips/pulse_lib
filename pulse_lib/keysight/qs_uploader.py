@@ -1330,6 +1330,19 @@ class UploadAggregator:
                 raise Exception(f'I/Q Channel delays must be equal ({qubit_channel.channel_name})')
             return delays[0]
 
+    def _get_iq_channel_attenuation(self, qubit_channel):
+        out_channels = qubit_channel.iq_channel.IQ_out_channels
+
+        if len(out_channels) == 1:
+            awg_channel_name = out_channels[0].awg_channel_name
+            return self.channels[awg_channel_name].attenuation
+        else:
+            att = [self.channels[output.awg_channel_name].attenuation for output in out_channels]
+            if min(att) != max(att):
+                raise Exception('Attenuation for IQ output is not equal for channels '
+                                f'{[[output.awg_channel_name] for output in out_channels]}')
+            return att[0]
+
     def _generate_sequencer_iq_upload(self, job):
         segments = self.segments
 
@@ -1339,13 +1352,17 @@ class UploadAggregator:
                 continue
             start = time.perf_counter()
             delay = self._get_iq_channel_delay(qubit_channel)
+            attenuation = self._get_iq_channel_attenuation(qubit_channel)
 
             sequencer_offset = self.sequencer_channels[channel_name].sequencer_offset
             # subtract offset, because it's started before 'classical' queued waveform
             t_start = int(-self.max_pre_start_ns - delay) - sequencer_offset
 
-            sequence = IQSequenceBuilder(channel_name, t_start,
-                                         qubit_channel.iq_channel.LO)
+            sequence = IQSequenceBuilder(
+                channel_name,
+                t_start,
+                qubit_channel.iq_channel.LO,
+                attenuation=attenuation)
             job.iq_sequences[channel_name] = sequence
 
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, segments)):

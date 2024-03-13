@@ -97,11 +97,12 @@ class DigitizerSequenceEntry:
 
 
 class IQSequenceBuilder:
-    def __init__(self, name, t_start, lo_freq):
+    def __init__(self, name, t_start, lo_freq, attenuation=1.0):
         self.name = name
         self.time = iround(t_start)
         self.end_pulse = self.time
         self.lo_freq = lo_freq
+        self.attenuation = attenuation
         self.pending_instruction = None
         self.sequence = []
         self.waveforms = []
@@ -187,9 +188,14 @@ class IQSequenceBuilder:
         if abs(end_frequency) > 450e6:
             raise Exception(f'Chirp NCO frequency {end_frequency/1e6:5.1f} MHz is out of range')
         ph_gen = chirp.phase_mod_generator()
-        return Waveform(chirp.amplitude, 1.0, frequency,
-                        ph_gen(duration, 1.0),
-                        0, 0, duration)
+        return Waveform(
+            chirp.amplitude / self.attenuation,
+            1.0,
+            frequency,
+            ph_gen(duration, 1.0),
+            0,
+            0,
+            duration)
 
     def _render_waveform(self, mw_pulse_data, prephase=0, postphase=0):
         # always render at 1e9 Sa/s
@@ -207,9 +213,14 @@ class IQSequenceBuilder:
 
         prephase += mw_pulse_data.phase_offset
         postphase -= mw_pulse_data.phase_offset
-        return Waveform(mw_pulse_data.amplitude, amp_envelope,
-                        frequency, pm_envelope,
-                        prephase, postphase, duration)
+        return Waveform(
+            mw_pulse_data.amplitude / self.attenuation,
+            amp_envelope,
+            frequency,
+            pm_envelope,
+            prephase,
+            postphase,
+            duration)
 
     def _render_waveform_start_stop(self, mw_pulse_data):
         frequency = mw_pulse_data.frequency - self.lo_freq
@@ -218,13 +229,20 @@ class IQSequenceBuilder:
 
         prephase = mw_pulse_data.phase_offset
         postphase = -mw_pulse_data.phase_offset
-        start_wvf = Waveform(mw_pulse_data.amplitude, 1.0,
-                             frequency, 0.0,
-                             prephase=prephase,
-                             duration=2, restore_frequency=False)
-        stop_wvf = Waveform(mw_pulse_data.amplitude, 1.0,
-                            frequency, 0.0,
-                            postphase=postphase)
+        start_wvf = Waveform(
+            mw_pulse_data.amplitude / self.attenuation,
+            1.0,
+            frequency,
+            0.0,
+            prephase=prephase,
+            duration=2,
+            restore_frequency=False)
+        stop_wvf = Waveform(
+            mw_pulse_data.amplitude / self.attenuation,
+            1.0,
+            frequency,
+            0.0,
+            postphase=postphase)
         return start_wvf, stop_wvf
 
 
