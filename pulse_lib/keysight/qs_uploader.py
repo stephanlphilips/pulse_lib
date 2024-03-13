@@ -153,7 +153,9 @@ class QsUploader:
                 awg.set_channel_offset(offset, channel.channel_number)
 
     def _configure_rf_sources(self):
-    # TODO @@@@ only if awg not QS.
+        # TODO @@@@ only if awg not QS.
+        # NOTE: only works for M3202A_fpga driver.
+        # TODO: implement for M3202A_QS driver. Take care of video mode!!
         awg_oscillators = None
         for dig_ch in self.digitizer_channels.values():
             if dig_ch.rf_source is not None and dig_ch.frequency is not None:
@@ -376,6 +378,7 @@ class QsUploader:
                                    channel_conf.hw_input_channel,
                                    )
                     if channel_conf.rf_source is not None:
+                        # TODO implement for QS
                         rf_source = channel_conf.rf_source
                         osc = self._awg_oscillators.dig2osc[ch_name]
                         awg_name, awg_ch, osc_num = osc
@@ -386,21 +389,22 @@ class QsUploader:
 
     def _get_hvi_params(self, job):
         hvi_params = job.schedule_params.copy()
-        hvi_params.update(
-                {f'dig_trigger_{i+1}': t
-                 for i, t in enumerate(job.digitizer_triggers.keys())
-                 })
-        dig_trigger_channels = {
-                dig_name: [[] for _ in job.digitizer_triggers]
-                for dig_name in self.digitizers.keys()}
-        for i, ch_names in enumerate(job.digitizer_triggers.values()):
-            for ch_name in ch_names:
-                dig_ch = self.digitizer_channels[ch_name]
-                dig_trigger_channels[dig_ch.module_name][i] += dig_ch.channel_numbers
-        hvi_params.update(
-                {f'dig_trigger_channels_{dig_name}': triggers
-                 for dig_name, triggers in dig_trigger_channels.items()
-                 })
+        if not QsUploader.use_digitizer_sequencers:
+            hvi_params.update(
+                    {f'dig_trigger_{i+1}': t
+                     for i, t in enumerate(job.digitizer_triggers.keys())
+                     })
+            dig_trigger_channels = {
+                    dig_name: [[] for _ in job.digitizer_triggers]
+                    for dig_name in self.digitizers.keys()}
+            for i, ch_names in enumerate(job.digitizer_triggers.values()):
+                for ch_name in ch_names:
+                    dig_ch = self.digitizer_channels[ch_name]
+                    dig_trigger_channels[dig_ch.module_name][i] += dig_ch.channel_numbers
+            hvi_params.update(
+                    {f'dig_trigger_channels_{dig_name}': triggers
+                     for dig_name, triggers in dig_trigger_channels.items()
+                     })
 
         for awg_name, awg in self.AWGs.items():
             hvi_params[f'use_awg_sequencers_{awg_name}'] = (
@@ -1474,6 +1478,8 @@ class UploadAggregator:
         self._check_hvi_triggers(job.schedule_params)
         continuous_mode = getattr(job.hw_schedule, 'script_name', '') == 'Continuous'
 
+        trigger_channels = defaultdict(list)
+
         job.n_acq_samples = defaultdict(int)
         job.t_measure = {}
 
@@ -1544,6 +1550,7 @@ class UploadAggregator:
                     t_end = t+t_measure
                     if rf_source is not None and rf_source.mode != 'continuous':
                         rf_marker_pulses.append(RfMarkerPulse(t, t_end))
+                    trigger_channels[t+offset].append(channel_name)
 
             if rf_source is not None:
                 if rf_source.mode == 'continuous' and t_end is not None:
@@ -1557,6 +1564,8 @@ class UploadAggregator:
                         rf_pulse.stop += rf_source.prolongation_ns
 
             sequence.close()
+        # Only used for oscillators
+        job.digitizer_triggers = dict(sorted(trigger_channels.items()))
 
     def upload_job(self, job, awg_upload_func):
 
