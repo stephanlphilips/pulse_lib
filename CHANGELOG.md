@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.16] - 2024-03-13
+
+- Use AWG channel attenuation for Keysight QS sequences.
+
 ## \[1.7.15] - 2024-03-13
 
 - Added oscillator triggering for QS mode.
