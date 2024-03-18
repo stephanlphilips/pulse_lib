@@ -204,9 +204,10 @@ class Context:
                 qubit = i+1
                 if backend == 'Keysight_QS':
                     # Use a new awg channel on the same output to drive the qubit.
-                    drive_channel_name = f"P{qubit}_drive"
                     awg_channel = pulse.awg_channels[f"P{qubit}"]
-                    pulse.define_channel(drive_channel_name, awg_channel.awg_name, awg_channel.channel_number)
+                    drive_channel_name = f"P{qubit}_drive"
+                    if drive_channel_name not in pulse.awg_channels:
+                        pulse.define_channel(drive_channel_name, awg_channel.awg_name, awg_channel.channel_number)
                 else:
                     drive_channel_name = f"P{qubit}"
                 iq_channel_name = f"drive_q{qubit}"
@@ -333,6 +334,13 @@ class Context:
             pulse.finish_init()
 
         return pulse
+
+    def copy_attenuation_to_drive(self):
+        pulse = self.pulse
+        for channel_name, awg_channel in pulse.awg_channels.items():
+            if channel_name.endswith("_drive"):
+                base_channel = pulse.awg_channels[channel_name[:-6]]
+                awg_channel.attenuation = base_channel.attenuation
 
     def _add_marker(self, name, setup_ns=0, hold_ns=0):
         cfg = self._configuration
