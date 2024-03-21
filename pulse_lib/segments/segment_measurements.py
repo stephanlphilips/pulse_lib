@@ -2,7 +2,7 @@
 Measurement channel implementation.
 """
 from dataclasses import dataclass
-from typing import Optional, Callable
+from typing import Optional, Callable, Tuple
 
 import numpy as np
 
@@ -31,6 +31,8 @@ class measurement_acquisition(measurement_base):
     '''
     Function aggregating data on time axis to new value.
     '''
+    f_sweep: Optional[Tuple[float, float]] = None
+    """ frequency sweep start, stop values. stop is inclusive. Values set by sequencer. """
 
     @property
     def has_threshold(self):

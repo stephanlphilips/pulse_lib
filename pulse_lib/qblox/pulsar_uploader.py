@@ -270,6 +270,9 @@ class PulsarUploader:
         total_seconds = job.playback_time * n_rep * 1e-9
         timeout_minutes = int(total_seconds*1.1 / 60) + 1
 
+        if total_seconds > 3.0:
+            logger.warning(f"Expected duration for point: {total_seconds+0.1:.1f} s")
+
         # update resonator frequency, threshold and threshold phase
         for ch_name, dig_channel in self.digitizer_channels.items():
             nco_freq = dig_channel.frequency
@@ -899,6 +902,8 @@ class UploadAggregator:
                                          nco_frequency=nco_freq,
                                          rf_source=digitizer_channel.rf_source)
         seq.set_time_offset(t_offset)
+        # NCO delay is 4 ns less than delay between output and input
+        seq.nco_delay = digitizer_channel.delay - 4
 
         if digitizer_channel.rf_source is not None:
             seq.offset_rf_ns = PulsarConfig.align(self.max_pre_start_ns + digitizer_channel.rf_source.delay)
@@ -932,7 +937,8 @@ class UploadAggregator:
 
                 if acquisition.n_repeat:
                     seq.repeated_acquire(t, t_measure, acquisition.n_repeat,
-                                         PulsarConfig.floor(acquisition.interval))
+                                         PulsarConfig.floor(acquisition.interval),
+                                         acq_conf.f_sweep)
                     if acq_conf.sample_rate is not None:
                         logger.info('Acquisition sample_rate is ignored when n_repeat is set')
                 elif acq_conf.sample_rate is not None:
@@ -940,7 +946,7 @@ class UploadAggregator:
                     if n_cycles < 1:
                         raise Exception(f'{channel_name} acquisition t_measure ({t_measure}) < 1/sample_rate '
                                         f'({trigger_period})')
-                    seq.repeated_acquire(t, trigger_period, n_cycles, trigger_period)
+                    seq.repeated_acquire(t, trigger_period, n_cycles, trigger_period, acq_conf.f_sweep)
                 else:
                     seq.acquire(t, t_measure)
                 if acquisition.threshold is not None and use_feedback:

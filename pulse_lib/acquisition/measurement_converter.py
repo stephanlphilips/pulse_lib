@@ -278,8 +278,12 @@ class MeasurementConverter:
                 n_samples = m.n_samples
                 if not isinstance(n_samples, Number):
                     n_samples = max(n_samples)
-                time = tuple(np.arange(n_samples, dtype=float) * m.interval)
-                sp_raw.append(time, 'time', 'time', 'ns')
+                if m.f_sweep is None:
+                    time = tuple(np.arange(n_samples, dtype=float) * m.interval)
+                    sp_raw.append(time, 'time', 'time', 'ns')
+                else:
+                    f = tuple(np.linspace(m.f_sweep[0], m.f_sweep[1], n_samples, dtype=float))
+                    sp_raw.append(f, 'frequency', 'frequency', 'Hz')
 
             self.sp_raw.append(sp_raw)
             channel = digitizer_channels[channel_name]

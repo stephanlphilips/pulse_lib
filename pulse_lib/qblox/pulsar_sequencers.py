@@ -775,9 +775,11 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self.rf_source_mode = rf_source.mode if rf_source is not None else None
         self._pulse_end = -1
         self.offset_rf_ns = 0
+        self._nco_prop_delay = 0
+        self._nco_prop_delay_en = False
         if rf_source is not None:
             if isinstance(rf_source.output,str):
-                raise Exception(f'Qblox RF source must be configured using module name and channel numbers')
+                raise Exception('Qblox RF source must be configured using module name and channel numbers')
             scaling = 1/(rf_source.attenuation * self.max_output_voltage*1000)
             self._rf_amplitude = rf_source.amplitude * scaling
             self._n_out_ch = 1 if isinstance(rf_source.output[1], int) else 2
@@ -797,6 +799,14 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         elif self._integration_time != value:
             raise Exception('Only 1 integration time (t_measure) per channel is supported')
 
+    @property
+    def nco_prop_delay(self):
+        return self._nco_prop_delay
+
+    @nco_prop_delay.setter
+    def nco_prop_delay(self, delay):
+        self._nco_prop_delay = delay
+
     def add_markers(self, markers):
         for marker in markers:
             t,value = marker
@@ -815,7 +825,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._add_command(t,
                           self.seq.acquire, 'default', 'increment', t_offset=t)
 
-    def repeated_acquire(self, t, t_integrate, n, t_period):
+    def repeated_acquire(self, t, t_integrate, n, t_period, f_sweep):
         t += self.offset_ns
         duration = (n-1) * t_period + t_integrate
         self._update_time(t, duration)
@@ -824,9 +834,19 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._add_scaling(1/t_integrate, n)
         if self.rf_source_mode in ['pulsed', 'shaped']:
             self._add_pulse(t, duration)
-        # enqueue: self.seq.repeated_acquire(n, t_period, 'default', 'increment', t_offset=t)
-        self._add_command(t,
-                          self.seq.repeated_acquire, n, t_period, 'default', 'increment', t_offset=t)
+        if f_sweep is None:
+            # enqueue: self.seq.repeated_acquire(n, t_period, 'default', 'increment', t_offset=t)
+            self._add_command(t,
+                              self.seq.repeated_acquire, n, t_period, 'default', 'increment', t_offset=t)
+        else:
+            # enable nco propagation delay for frequency changing
+            self._nco_prop_delay_en = True
+            # enqueue: self.seq.repeated_acquire(n, t_period, 'default', 'increment', t_offset=t)
+            self._add_command(t,
+                              self.seq.acquire_frequency_sweep, n, t_period, f_sweep[0], f_sweep[1],
+                              'default', 'increment',
+                              acq_delay=PulsarConfig.align(self._nco_prop_delay + 4),
+                              t_offset=t)
 
     def reset_bin_counter(self, t):
         t += self.offset_ns
@@ -850,6 +870,10 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._commands.sort(key=lambda cmd:cmd.time)
         for cmd in self._commands:
             cmd.func(*cmd.args, **cmd.kwargs)
+        if self._nco_prop_delay_en:
+            self.seq.nco_prop_delay = self.nco_prop_delay
+        else:
+            self.seq.nco_prop_delay = 0
 
     def get_data_scaling(self):
         if isinstance(self._data_scaling, (Number, type(None))):

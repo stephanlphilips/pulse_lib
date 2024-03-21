@@ -1,3 +1,4 @@
+from typing import Tuple, Optional
 import matplotlib.pyplot as pt
 from qcodes import Parameter
 
@@ -163,10 +164,11 @@ class sequencer():
 
     def _get_measurement_converter(self):
         if self._measurement_converter is None:
+            n_rep = self.n_rep if not self._acquisition_conf.average_repetitions else None
             self._set_num_samples()
             self._measurements_description.calculate_measurement_offsets()
             self._measurement_converter = MeasurementConverter(self._measurements_description,
-                                                               self.n_rep, self._acquisition_conf.sample_rate)
+                                                               n_rep, self._acquisition_conf.sample_rate)
         return self._measurement_converter
 
     def add_sequence(self, sequence):
@@ -336,7 +338,8 @@ class sequencer():
                         sample_rate=None,
                         channels=[],
                         average_repetitions=None,
-                        aggregate_func=None
+                        aggregate_func=None,
+                        f_sweep: Optional[Tuple[float,float]] = None,
                         ):
         '''
         Args:
@@ -349,6 +352,10 @@ class sequencer():
             average_repetitions (bool): Average data over the sequence repetitions.
             aggregate_func:
                 Function aggregating data on time axis to new value. Must be used with sample_rate.
+            f_sweep:
+                If not None this specifies the start and stop (inclusive) frequencies for a frequency sweep
+                on the digitizer frequency (and rf_source frequency).
+                Currently only supported on Qblox.
         '''
         if self._measurement_converter is not None:
             raise Exception('Acquisition parameters cannot be changed after calling  '
@@ -364,6 +371,10 @@ class sequencer():
             conf.average_repetitions = average_repetitions
         if aggregate_func is not None:
             conf.aggregate_func = aggregate_func
+        if f_sweep is not None:
+            if conf.sample_rate is None:
+                raise Exception("sample rate must be set for frequency sweep")
+            conf.f_sweep = f_sweep
 
     def _set_num_samples(self):
         default_t_measure = self._acquisition_conf.t_measure
@@ -407,6 +418,8 @@ class sequencer():
                 m.aggregate_func = self._acquisition_conf.aggregate_func
             else:
                 m.n_samples = 1
+            if m.n_samples > 0 and self._acquisition_conf.f_sweep is not None:
+                m.f_sweep = self._acquisition_conf.f_sweep
 
     def get_measurement_param(self, name='seq_measurements', upload=None,
                               states=True, values=True,

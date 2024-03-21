@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Union, List, Callable
+from typing import Optional, Union, List, Callable, Tuple
 
 import numpy as np
 
@@ -39,6 +39,11 @@ class AcquisitionConf:
     aggregate_func: Callable[[np.ndarray], np.ndarray] = None
     '''
     Function aggregating data on time axis to new value.
+    '''
+
+    f_sweep: Optional[Tuple[float, float]] = None
+    '''
+    If not None f_sweep contains start and stop frequency for frequency sweep. Step frequency is inclusive.
     '''
 
     # TODO are the options needed?
