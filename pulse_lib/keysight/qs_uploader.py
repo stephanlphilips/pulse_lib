@@ -331,6 +331,9 @@ class QsUploader:
             sample_rate = None
         else:
             sample_rate = job.acquisition_conf.sample_rate
+        if job.acquisition.f_sweep is not None:
+            raise Exception("In sequence resonator frequency sweep not supported for Keysight")
+
         for channel_name, t_measure in job.t_measure.items():
             if channel_name not in channels:
                 continue
@@ -620,6 +623,9 @@ class QsUploader:
         schedule_params = self._get_hvi_params(job)
         job.hw_schedule.set_configuration(schedule_params, job.n_waveforms)
         n_rep = job.n_rep if job.n_rep else 1
+        run_duration = n_rep * job.playback_time * 1e-9 + 0.1
+        if run_duration > 3.0:
+            logger.warning(f"Expected duration for point: {run_duration:.1f} s")
         job.hw_schedule.start(job.playback_time, n_rep, schedule_params)
 
         if release_job:
