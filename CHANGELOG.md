@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.18] - 2024-03-21
+
+- Fix error check on RF frequency sweep
+
 ## \[1.7.17] - 2024-03-21
 
 - Added scan_resonator_frequency for fast digitizer/rf_source frequency sweep on Qblox.
