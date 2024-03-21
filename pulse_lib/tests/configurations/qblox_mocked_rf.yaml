@@ -1,0 +1,30 @@
+instruments:
+
+  sig_gen1:
+    type: qcodes.tests.instrument_mocks.DummyInstrument
+    enable_forced_reconnect: true
+    init:
+      gates: ['frequency','power']
+    parameters:
+      frequency:
+        limits: [0,20e9]
+
+  sig_gen2:
+    type: qcodes.tests.instrument_mocks.DummyInstrument
+    enable_forced_reconnect: true
+    init:
+      gates: ['frequency','power']
+    parameters:
+      frequency:
+        limits: [0,20e9]
+
+  Qblox:
+    type: q1simulator.Cluster
+    enable_forced_reconnect : True
+    init:
+      modules:
+        1: QCM
+        2: QCM
+        3: QCM-RF
+        4: QRM
+        5: QRM-RF
