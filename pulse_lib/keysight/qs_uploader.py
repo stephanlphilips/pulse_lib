@@ -331,7 +331,7 @@ class QsUploader:
             sample_rate = None
         else:
             sample_rate = job.acquisition_conf.sample_rate
-        if job.acquisition.f_sweep is not None:
+        if job.acquisition_conf.f_sweep is not None:
             raise Exception("In sequence resonator frequency sweep not supported for Keysight")
 
         for channel_name, t_measure in job.t_measure.items():

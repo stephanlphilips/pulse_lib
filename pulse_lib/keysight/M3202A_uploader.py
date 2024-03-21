@@ -249,7 +249,7 @@ class M3202A_Uploader:
         if channels is None:
             channels = list(job.n_acq_samples.keys())
         sample_rate = job.acquisition_conf.sample_rate
-        if job.acquisition.f_sweep is not None:
+        if job.acquisition_conf.f_sweep is not None:
             raise Exception("In-sequence resonator frequency sweep not supported for Keysight")
         for channel_name, t_measure in job.t_measure.items():
             if channel_name not in channels:
