@@ -117,7 +117,7 @@ class Context:
 
         self.awgs = awgs
         self.digitizers = digs
-        if backend == 'Keysight_QS':
+        if backend == 'Keysight_QS' and cfg['schedule'] == 'HVI2':
             self._configure_pxi()
 
     def _configure_pxi(self):
@@ -403,7 +403,8 @@ class Context:
                 param(v)
                 self._play_loop(sequence, i+1, wait)
         else:
-            sequence.upload()
+            job = sequence.upload()
+            self.last_job = job
             sequence.play()
             if wait and self.pulse._backend in ['Keysight', 'Keysight_QS']:
                 sequence.uploader.wait_until_AWG_idle()
@@ -479,6 +480,7 @@ class Context:
                   **kwargs):
         self.last_sequence = sequence
         job = sequence.upload(index)
+        self.last_job = job
         sequence.play(index)
         pulse = self.pulse
         if savefig:

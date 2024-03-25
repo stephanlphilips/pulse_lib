@@ -76,6 +76,13 @@ class MockM3102A(Instrument):
         n_samples = max(1, int(t_measure/interval))
         return n_samples, interval
 
+    def set_lo(self, channel, frequency, phase, input_channel=None):
+        properties = self.measure._ch_properties[channel]
+        properties.lo_phase = phase
+        properties.lo_frequency = frequency
+        properties.input_channel = input_channel if input_channel is not None else channel
+
+
 @dataclass
 class ChannelProperties:
     n_cycles: int = 1
@@ -83,6 +90,9 @@ class ChannelProperties:
     samples_per_cycle: int = 1
     data_mode: int = 0
     acquisition_mode: int = 0
+    lo_phase: float = 0
+    lo_frequency: float = 0
+    input_channel: int = 0
 
 class ChannelData:
     def __init__(self):

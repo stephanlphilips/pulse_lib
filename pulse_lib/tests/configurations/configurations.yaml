@@ -41,7 +41,9 @@ KeysightQSMocked:
         SD2: [Dig1,2]
     rf:
         SD2:
-            output: M1
+            output: [AWG1,4]
+            frequency: 2e6
+            amplitude: 400
             startup_time: 500
     runner: core_tools
 

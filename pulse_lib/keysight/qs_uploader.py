@@ -9,7 +9,12 @@ from uuid import UUID
 
 from .sequencer_device import SequencerInfo, SequencerDevice
 from .qs_conditional import get_conditional_channel, get_acquisition_names, QsConditionalSegment
-from .qs_sequence import AcquisitionSequenceBuilder, IQSequenceBuilder, SequenceConditionalEntry
+from .qs_sequence import (
+    AcquisitionSequenceBuilder,
+    IQSequenceBuilder,
+    SequenceConditionalEntry,
+    RFSequenceBuilder
+    )
 
 from pulse_lib.segments.data_classes.data_IQ import IQ_data_single, Chirp
 from pulse_lib.segments.conditional_segment import conditional_segment
@@ -53,6 +58,7 @@ class QsUploader:
         self._config_marker_channels()
         self._check_digitizer_channels()
         self._configure_rf_sources()
+        self._configure_rf_sequencers()
 
     @property
     def supports_conditionals(self):
@@ -60,6 +66,7 @@ class QsUploader:
 
     def _add_sequencers(self, AWGs, awg_channels, IQ_channels):
         sequencer_devices: Dict[str, SequencerDevice] = {}
+        self.sequencer_devices = sequencer_devices
         self.sequencer_channels:Dict[str, SequencerInfo] = {}
         # collect output channels. They should not be rendered to full waveforms
         self.sequencer_out_channels:List[str] = []
@@ -153,13 +160,21 @@ class QsUploader:
                 awg.set_channel_offset(offset, channel.channel_number)
 
     def _configure_rf_sources(self):
-        # TODO @@@@ only if awg not QS.
         # NOTE: only works for M3202A_fpga driver.
-        # TODO: implement for M3202A_QS driver. Take care of video mode!!
         awg_oscillators = None
         for dig_ch in self.digitizer_channels.values():
             if dig_ch.rf_source is not None and dig_ch.frequency is not None:
                 rf_source = dig_ch.rf_source
+                awg_name, awg_ch = rf_source.output
+                awg = self.AWGs[awg_name]
+                if not hasattr(awg, 'set_lo_mode'):
+                    if hasattr(awg, 'get_sequencer'):
+                        # Add oscillator in _configure_lo_sequencers
+                        continue
+                    else:
+                        raise Exception('RF generator must be configured on module with M3202A_fpga driver '
+                                        'or M3202A_QS driver')
+
                 if awg_oscillators is None:
                     awg_oscillators = AwgOscillators(delay=rf_source.delay,
                                                      startup_time=rf_source.startup_time_ns,
@@ -172,7 +187,7 @@ class QsUploader:
                             or rf_source.mode != awg_oscillators.mode):
                         raise Exception('RF source delay, startup time, prolongation time and mode '
                                         'must be equal for all oscillators')
-                awg_name, awg_ch = rf_source.output
+
                 osc_num = 0
                 for osc in awg_oscillators.oscillators:
                     if osc[:2] == (awg_name, awg_ch):
@@ -182,15 +197,36 @@ class QsUploader:
                 osc = (awg_name, awg_ch, osc_num)
                 awg_oscillators.oscillators.append(osc)
                 awg_oscillators.dig2osc[dig_ch.name] = osc
-                awg = self.AWGs[awg_name]
-                try:
-                    awg.set_lo_mode(awg_ch, True)
-                except AttributeError:
-                    raise Exception('RF generator must be configured on module with M3202A_fpga driver')
+                awg.set_lo_mode(awg_ch, True)
                 amplitude = rf_source.amplitude / rf_source.attenuation
                 enable = rf_source.mode == 'continuous'
                 awg.config_lo(awg_ch, osc_num, enable, dig_ch.frequency, amplitude)
+
         self._awg_oscillators = awg_oscillators
+
+    def _configure_rf_sequencers(self):
+        rf_sequencers: Dict[str, SequencerInfo] = {}
+        self.rf_sequencers = rf_sequencers
+        for dig_ch in self.digitizer_channels.values():
+            if dig_ch.rf_source is not None and dig_ch.frequency is not None:
+                rf_source = dig_ch.rf_source
+                awg_name, awg_ch = rf_source.output
+                awg = self.AWGs[awg_name]
+                if not hasattr(awg, 'get_sequencer'):
+                    continue
+
+                seq_device = self.sequencer_devices[awg_name]
+                name = dig_ch.name + '_RF'
+                rf_sequencers[name] = seq_device.add_nco_channel(name, awg_ch)
+
+                # delay=rf_source.delay,
+                # startup_time=rf_source.startup_time_ns,
+                # prolongation_time=rf_source.prolongation_ns,
+                # mode=rf_source.mode
+                # amplitude = rf_source.amplitude / rf_source.attenuation
+                # enable = rf_source.mode == 'continuous'
+                # # note digitizer frequency can change.
+
 
     def get_effective_sample_rate(self, sample_rate):
         """
@@ -380,7 +416,7 @@ class QsUploader:
                                    np.degrees(channel_conf.phase),
                                    channel_conf.hw_input_channel,
                                    )
-                    if channel_conf.rf_source is not None:
+                    if channel_conf.rf_source is not None and self._awg_oscillators is not None:
                         # TODO implement for QS
                         rf_source = channel_conf.rf_source
                         osc = self._awg_oscillators.dig2osc[ch_name]
@@ -591,8 +627,42 @@ class QsUploader:
                     logger.debug(f'{awg_sequencer.channel_name} create waves:{(t2-t1)*1000:6.3f}, '
                                  f'seq:{(t3-t2)*1000:6.3f} ms')
             seq.load_schedule(schedule)
+
         if QsUploader.verbose:
             logger.debug(f'loaded awg sequences in {(time.perf_counter() - start)*1000:6.3f} ms')
+
+        for rf_sequencer in self.rf_sequencers.values():
+            awg = self.AWGs[rf_sequencer.module_name]
+            channel_name = rf_sequencer.channel_name
+            seq = awg.get_sequencer(rf_sequencer.sequencer_index)
+            seq.flush_waveforms()
+            schedule = []
+
+            if rf_sequencer.channel_name in job.rf_sequences:
+                dig_ch = self.digitizer_channels[rf_sequencer.channel_name[:-3]]
+                sequence = job.rf_sequences[rf_sequencer.channel_name]
+                if len(sequence.waveforms) > 0:
+                    seq._frequency = dig_ch.frequency
+                    if seq._frequency is None:
+                        raise Exception('RF resonance frequency must be configured for QS')
+                    if abs(seq._frequency) > 450e6:
+                        raise Exception(f'{channel_name} RF frequency {seq._frequency/1e6:5.1f} MHz is out of range')
+
+                for number, wvf in enumerate(sequence.waveforms):
+                    seq.upload_waveform(number, wvf.offset, wvf.duration,
+                                        wvf.amplitude,
+                                        frequency=dig_ch.frequency,
+                                        restore_frequency=False,
+                                        append_zero=False)
+
+                t2 = time.perf_counter()
+                for i, entry in enumerate(sequence.sequence):
+                    schedule.append(AwgInstruction(i, entry.time_after, wave_number=entry.waveform_index))
+                t3 = time.perf_counter()
+                if QsUploader.verbose:
+                    logger.debug(f'{rf_sequencer.channel_name} create waves:{(t2-t1)*1000:6.3f}, '
+                                 f'seq:{(t3-t2)*1000:6.3f} ms')
+            seq.load_schedule(schedule)
 
         start = time.perf_counter()
         for dig_channel in self.digitizer_channels.values():
@@ -1500,6 +1570,7 @@ class UploadAggregator:
 
         self._check_hvi_triggers(job.schedule_params)
         continuous_mode = getattr(job.hw_schedule, 'script_name', '') == 'Continuous'
+        video_mode = 'video_mode_channels' in job.schedule_params
 
         trigger_channels = defaultdict(list)
 
@@ -1529,9 +1600,17 @@ class UploadAggregator:
             job.digitizer_sequences[channel_name] = sequence
             rf_source = channel.rf_source
             if rf_source is not None:
-                rf_marker_pulses = []
-                # NOTE: this fails when multiple digitizer channels share the same RF marker.
-                self.rf_marker_pulses[rf_source.output] = rf_marker_pulses
+                if isinstance(rf_source.output, str):
+                    rf_type = 'marker'
+                    rf_marker_pulses = []
+                    # NOTE: this fails when multiple digitizer channels share the same RF marker.
+                    self.rf_marker_pulses[rf_source.output] = rf_marker_pulses
+                else:
+                    rf_type = 'generator'
+                    rf_sequence = RFSequenceBuilder(channel_name+'_RF', rf_source, int(self.max_pre_start_ns))
+                    job.rf_sequences[channel_name+'_RF'] = rf_sequence
+            else:
+                rf_type = None
 
             t_end = None
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, segments)):
@@ -1572,19 +1651,33 @@ class UploadAggregator:
                         logger.debug(f'Acq: {acquisition.ref}: {pxi_trigger}')
                     t_end = t+t_measure
                     if rf_source is not None and rf_source.mode != 'continuous':
-                        rf_marker_pulses.append(RfMarkerPulse(t, t_end))
+                        if rf_type == 'marker':
+                            rf_marker_pulses.append(RfMarkerPulse(t, t_end))
+                        elif rf_type == 'generator':
+                            rf_sequence.enable(t, t_end)
                     trigger_channels[t+offset].append(channel_name)
 
             if rf_source is not None:
                 if rf_source.mode == 'continuous' and t_end is not None:
-                    rf_marker_pulses.append(RfMarkerPulse(0, t_end))
+                    if rf_type == 'marker':
+                        rf_marker_pulses.append(RfMarkerPulse(0, t_end))
+                    elif rf_type == 'generator':
+                        rf_sequence.enable(t, t_end)
 
-                for rf_pulse in rf_marker_pulses:
-                    rf_pulse.start += rf_source.delay
-                    rf_pulse.stop += rf_source.delay
-                    if rf_source.mode in ['pulsed', 'continuous']:
-                        rf_pulse.start -= rf_source.startup_time_ns
-                        rf_pulse.stop += rf_source.prolongation_ns
+                if rf_type == 'marker':
+                    for rf_pulse in rf_marker_pulses:
+                        rf_pulse.start += rf_source.delay
+                        rf_pulse.stop += rf_source.delay
+                        if rf_source.mode in ['pulsed', 'continuous']:
+                            rf_pulse.start -= rf_source.startup_time_ns
+                            rf_pulse.stop += rf_source.prolongation_ns
+
+            if video_mode and rf_source is not None:
+                dig_name = channel.module_name
+                video_mode_channels = job.schedule_params['video_mode_channels']
+                if (dig_name in video_mode_channels
+                        and (set(channel.channel_numbers) & set(video_mode_channels[dig_name]))):
+                    rf_sequence.enable(0, job.playback_time)
 
             sequence.close()
         # Only used for oscillators
@@ -1597,6 +1690,7 @@ class UploadAggregator:
         job.iq_sequences = {}
         job.digitizer_sequences = {}
         job.digitizer_triggers = {}
+        job.rf_sequences = {}
         self.rf_marker_pulses = {}
 
         self._integrate(job)

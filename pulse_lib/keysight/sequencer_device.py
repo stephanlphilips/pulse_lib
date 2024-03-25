@@ -97,6 +97,13 @@ class SequencerDevice:
         return assigned_sequencers
 
     def add_drive_channel(self, IQ_channel, channel_number):
+        assigned_sequencers = {}
+        for qubit_channel in IQ_channel.qubit_channels:
+            sequencer = self.add_nco_channel(qubit_channel.channel_name, channel_number)
+            assigned_sequencers[qubit_channel.channel_name] = sequencer
+        return assigned_sequencers
+
+    def add_nco_channel(self, channel_name, channel_number):
         if channel_number % 2 == 1:
             # output on channel 1 or 3, i.e. NCO A
             gains = [1.0, 0.0]
@@ -105,17 +112,13 @@ class SequencerDevice:
             gains = [0.0, 1.0]
         phases = [90.0, 90.0]
 
-        assigned_sequencers = {}
-        for qubit_channel in IQ_channel.qubit_channels:
-            seq_num = self._get_sequencer([channel_number])
+        seq_num = self._get_sequencer([channel_number])
 
-            sequencer = SequencerInfo(self.awg.name, seq_num,
-                                      qubit_channel.channel_name, phases,
-                                      gains, self.sequencer_offset)
-            assigned_sequencers[qubit_channel.channel_name] = sequencer
-
-            self._configure_ncos(seq_num, gains[0], gains[1], phases[0], phases[1])
-        return assigned_sequencers
+        sequencer = SequencerInfo(self.awg.name, seq_num,
+                                  channel_name, phases,
+                                  gains, self.sequencer_offset)
+        self._configure_ncos(seq_num, gains[0], gains[1], phases[0], phases[1])
+        return sequencer
 
     def _configure_ncos(self, seq_num, gainA, gainB, phaseA, phaseB):
         seq = self.awg.get_sequencer(seq_num)

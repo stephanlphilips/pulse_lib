@@ -249,7 +249,7 @@ class IQSequenceBuilder:
     def _add_waveform(self, t, waveform):
         t = iround(t)
         if t < self.time:
-            raise Exception(f'Oops! Pulses should be rendered in right order')
+            raise Exception(f'Oops! Pulses should be rendered in right order {t} < {self.time} ')
         offset = t % 5
         t_instruction = t - offset
         waveform.offset = offset
@@ -274,7 +274,7 @@ class IQSequenceBuilder:
     def _add_phase_shift(self, t, phase_shift):
         t = iround(t)
         if t < self.time:
-            raise Exception(f'Oops! Pulses should be rendered in right order')
+            raise Exception(f'Oops! Pulses should be rendered in right order {t} < {self.time} ')
         offset = t % 5
         t_instruction = t - offset
 
@@ -366,6 +366,52 @@ class IQSequenceBuilder:
             index = len(self.waveforms)
             self.waveforms.append(waveform)
         return index
+
+
+class RFSequenceBuilder:
+    def __init__(self, name, rf_source, offset):
+        # note rf frequency can change. RF frequency should be set in play()
+        self.name = name
+        self._time = 0
+        self.sequence = []
+        self.waveforms = []
+        self._amplitude = rf_source.amplitude / rf_source.attenuation
+        self._start_offset = offset + rf_source.delay - rf_source.startup_time_ns
+        self._stop_offset = offset + rf_source.delay - rf_source.prolongation_ns
+        self._amplitude = rf_source.amplitude / rf_source.attenuation
+
+    def enable(self, t_start, t_stop):
+        if t_start < 0:
+            raise Exception(f'start time cannot be negative ({t_start})')
+        t_start = iround(t_start + self._start_offset) // 5 * 5
+        t_stop = iround(t_stop + self._stop_offset + 4) // 5 * 5
+        first_enable = len(self.sequence) == 0
+        if first_enable:
+            self._add_waveforms()
+            if t_start > 0:
+                self._add_entry(0, self._idle_index)
+        if self._time >= t_start:
+            # change time of last stop by increasing wait_after of last start
+            last_instruction = self.sequence[-2]
+            last_instruction.time_after += t_stop - self._time
+            self._time = t_stop
+        else:
+            self._add_entry(t_start, self._active_index)
+            self._add_entry(t_stop, self._idle_index)
+
+    def _add_entry(self, t, index):
+        if t > 0:
+            time_after = t - self._time
+            self.sequence[-1].time_after = time_after
+        self.sequence.append(SequenceEntry(waveform_index=index))
+        self._time = t
+
+    def _add_waveforms(self):
+        idle_wvf = Waveform(amplitude=0, duration=2)
+        active_wvf = Waveform(amplitude=self._amplitude, duration=2)
+        self.waveforms = [idle_wvf, active_wvf]
+        self._idle_index = 0
+        self._active_index = 1
 
 
 class AcquisitionSequenceBuilder:

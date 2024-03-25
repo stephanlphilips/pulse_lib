@@ -183,6 +183,12 @@ class SequencerChannel:
                         prephase=None, postphase=None, restore_frequency=True, append_zero=True):
         if frequency is None:
             frequency = self._frequency
+        if am_envelope is None:
+            am_envelope = 1.0
+        if prephase is None:
+            prephase = 0.0
+        if postphase is None:
+            postphase = 0.0
         self._waveforms[number] = Waveform(offset, duration, amplitude, am_envelope,
                        frequency, pm_envelope, prephase, postphase,
                        self._frequency,
