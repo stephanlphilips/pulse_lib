@@ -369,6 +369,9 @@ class IQSequenceBuilder:
 
 
 class RFSequenceBuilder:
+    # correction time to get LO of M3202A_fpga and generator of M3202_QS in sync.
+    _rf_time_correction = 34
+
     def __init__(self, name, rf_source, offset):
         # note rf frequency can change. RF frequency should be set in play()
         self.name = name
@@ -376,42 +379,58 @@ class RFSequenceBuilder:
         self.sequence = []
         self.waveforms = []
         self._amplitude = rf_source.amplitude / rf_source.attenuation
+        self._offset = offset
         self._start_offset = offset + rf_source.delay - rf_source.startup_time_ns
         self._stop_offset = offset + rf_source.delay - rf_source.prolongation_ns
         self._amplitude = rf_source.amplitude / rf_source.attenuation
+        self._frequency = 0
 
     def enable(self, t_start, t_stop):
         if t_start < 0:
             raise Exception(f'start time cannot be negative ({t_start})')
-        t_start = iround(t_start + self._start_offset) // 5 * 5
-        t_stop = iround(t_stop + self._stop_offset + 4) // 5 * 5
         first_enable = len(self.sequence) == 0
         if first_enable:
             self._add_waveforms()
-            if t_start > 0:
-                self._add_entry(0, self._idle_index)
-        if self._time >= t_start:
+            self.sequence.append(SequenceEntry(waveform_index=self._start_index))
+
+        t_start = iround(t_start + self._start_offset) // 5 * 5
+        t_stop = iround(t_stop + self._stop_offset + 4) // 5 * 5
+        print('enable', t_start, t_stop)
+        if not first_enable and self._time >= t_start:
             # change time of last stop by increasing wait_after of last start
             last_instruction = self.sequence[-2]
             last_instruction.time_after += t_stop - self._time
             self._time = t_stop
         else:
-            self._add_entry(t_start, self._active_index)
-            self._add_entry(t_stop, self._idle_index)
+            self._add_entry(t_start, self._on_index)
+            self._add_entry(t_stop, self._off_index)
+
+    def set_frequency(self, frequency):
+        self._frequency = frequency
+        self._update_frequency()
 
     def _add_entry(self, t, index):
-        if t > 0:
-            time_after = t - self._time
-            self.sequence[-1].time_after = time_after
-        self.sequence.append(SequenceEntry(waveform_index=index))
+        time_after = t - self._time
+        if time_after < 5:
+            raise Exception(f"Illegal wait time {time_after} ns. Minimum wait time is 5 ns.")
+        self.sequence[-1].time_after = time_after
+        # Set minimum time. It will be overwritten when the next entry is added.
+        self.sequence.append(SequenceEntry(waveform_index=index, time_after=5))
         self._time = t
 
     def _add_waveforms(self):
-        idle_wvf = Waveform(amplitude=0, duration=2)
-        active_wvf = Waveform(amplitude=self._amplitude, duration=2)
-        self.waveforms = [idle_wvf, active_wvf]
-        self._idle_index = 0
-        self._active_index = 1
+        start_wvf = Waveform(amplitude=0, offset=0, duration=3, frequency=self._frequency,
+                             prephase=self._rf_time_correction*self._frequency*1e-9*2*np.pi)
+        on_wvf = Waveform(amplitude=self._amplitude, duration=2, frequency=self._frequency)
+        off_wvf = Waveform(amplitude=0, duration=2, frequency=self._frequency)
+        self.waveforms = [start_wvf, on_wvf, off_wvf]
+        self._start_index = 0
+        self._on_index = 1
+        self._off_index = 2
+
+    def _update_frequency(self):
+        # just recreate the waveforms
+        self._add_waveforms()
 
 
 class AcquisitionSequenceBuilder:
