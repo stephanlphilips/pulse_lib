@@ -169,11 +169,9 @@ class pulselib:
             iq_out (bool): if True output I+Q data, else output I data only.
             hw_input_channel (Optional[int]): channel number of input on hardware. (Keysight only)
         '''
-        self._check_uniqueness_of_channel_name(name)
-        self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, [channel_number], iq_out=iq_out)
+        self._define_dig_channel(name, digitizer_name, [channel_number], iq_out=iq_out)
         if hw_input_channel is not None:
             self.set_digitizer_hw_input_channel(name, hw_input_channel)
-        self.rf_params[name] = RfParameters(self.digitizer_channels[name])
 
     def define_digitizer_channel_iq(self, name, digitizer_name, channel_numbers, phase=0.0, iq_out=False):
         ''' Defines a digitizer I/Q input pair.
@@ -184,10 +182,17 @@ class pulselib:
             phase (float): phase shift in rad.
             iq_out (bool): if True output I+Q data, else output I data only.
         '''
+        self._define_dig_channel(name, digitizer_name, channel_numbers,
+                                 phase=phase,
+                                 iq_out=iq_out, iq_input=True)
+
+    def _define_dig_channel(self, name, digitizer_name, channel_numbers,
+                            phase=0.0, iq_out=False, iq_input=False):
         self._check_uniqueness_of_channel_name(name)
         self.digitizer_channels[name] = digitizer_channel(name, digitizer_name, channel_numbers,
                                                           iq_out=iq_out, phase=phase,
-                                                          iq_input=True)
+                                                          iq_input=iq_input)
+        self.rf_params[name] = RfParameters(self.digitizer_channels[name])
 
     def set_digitizer_phase(self, channel_name, phase):
         '''

@@ -20,7 +20,7 @@ def test_freq():
 def test_ampl():
     pulse = context.init_pulselib(n_gates=2, n_sensors=2, rf_sources=True)
 
-    rf_amplitude = pulse.rf_params['SD2'].source_amplitude
+    rf_amplitude = pulse.rf_params['SD1'].source_amplitude
     meas_param = read_channels(pulse, 2_000, channels=['SD1'], iq_mode='I+Q')
     ds = do1D(rf_amplitude, 20.0, 200.0, 10, 0.0, meas_param, name='amplitude_sweep', reset_param=True).run()
 
