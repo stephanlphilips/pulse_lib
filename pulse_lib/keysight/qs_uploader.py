@@ -294,7 +294,8 @@ class QsUploader:
 
         aggregator = UploadAggregator(self.AWGs, self.digitizers, self.awg_channels,
                                       self.marker_channels, self.digitizer_channels,
-                                      self.qubit_channels, self.sequencer_channels, self.sequencer_out_channels)
+                                      self.qubit_channels, self.sequencer_channels,
+                                      self.sequencer_out_channels, self.rf_sequencers)
 
         aggregator.upload_job(job, self.__upload_to_awg)
 
@@ -419,7 +420,11 @@ class QsUploader:
                     if channel_conf.rf_source is not None and self._awg_oscillators is not None:
                         # TODO implement for QS
                         rf_source = channel_conf.rf_source
-                        osc = self._awg_oscillators.dig2osc[ch_name]
+                        try:
+                            osc = self._awg_oscillators.dig2osc[ch_name]
+                        except KeyError:
+                            logger.error(f"RF for channel {ch_name} not on M3202A_fpga module")
+                            continue
                         awg_name, awg_ch, osc_num = osc
                         awg = self.AWGs[awg_name]
                         amplitude = rf_source.amplitude / rf_source.attenuation
@@ -641,17 +646,21 @@ class QsUploader:
             if rf_sequencer.channel_name in job.rf_sequences:
                 dig_ch = self.digitizer_channels[rf_sequencer.channel_name[:-3]]
                 sequence = job.rf_sequences[rf_sequencer.channel_name]
+                sequence.set_frequency(dig_ch.frequency)
                 if len(sequence.waveforms) > 0:
-                    seq._frequency = dig_ch.frequency
-                    if seq._frequency is None:
-                        raise Exception('RF resonance frequency must be configured for QS')
-                    if abs(seq._frequency) > 450e6:
-                        raise Exception(f'{channel_name} RF frequency {seq._frequency/1e6:5.1f} MHz is out of range')
+                    if dig_ch.frequency is None:
+                        raise Exception('RF frequency not set for {channel_name}')
+                    if abs(dig_ch.frequency) > 450e6:
+                        raise Exception(f'{channel_name} RF frequency {dig_ch.frequency/1e6:5.1f} MHz is out of range')
 
+                # oscillator is started with start waveform which has a small offset. Do not set a default frequency.
+                seq._frequency = 0
                 for number, wvf in enumerate(sequence.waveforms):
                     seq.upload_waveform(number, wvf.offset, wvf.duration,
                                         wvf.amplitude,
-                                        frequency=dig_ch.frequency,
+                                        am_envelope=1.0,
+                                        frequency=wvf.frequency,
+                                        prephase=wvf.prephase,
                                         restore_frequency=False,
                                         append_zero=False)
 
@@ -967,7 +976,7 @@ class UploadAggregator:
     verbose = False
 
     def __init__(self, AWGs, digitizers, awg_channels, marker_channels, digitizer_channels,
-                 qubit_channels, sequencer_channels, sequencer_out_channels):
+                 qubit_channels, sequencer_channels, sequencer_out_channels, rf_sequencers):
         self.AWGs = AWGs
         self.digitizers = digitizers
         self.npt = 0
@@ -976,6 +985,7 @@ class UploadAggregator:
         self.sequencer_channels = sequencer_channels
         self.sequencer_out_channels = sequencer_out_channels
         self.qubit_channels = qubit_channels
+        self.rf_sequencers = rf_sequencers
 
         self.channels = dict()
 
@@ -1598,6 +1608,7 @@ class UploadAggregator:
                 raise Exception(f'QS driver (M3102A_QS) not configured for digitizer {channel.module_name}')
             sequence = AcquisitionSequenceBuilder(channel_name)
             job.digitizer_sequences[channel_name] = sequence
+            rf_type = None
             rf_source = channel.rf_source
             if rf_source is not None:
                 if isinstance(rf_source.output, str):
@@ -1605,12 +1616,13 @@ class UploadAggregator:
                     rf_marker_pulses = []
                     # NOTE: this fails when multiple digitizer channels share the same RF marker.
                     self.rf_marker_pulses[rf_source.output] = rf_marker_pulses
-                else:
+                elif channel_name+'_RF' in self.rf_sequencers:
+                    rf_channel_name = channel_name+'_RF'
                     rf_type = 'generator'
-                    rf_sequence = RFSequenceBuilder(channel_name+'_RF', rf_source, int(self.max_pre_start_ns))
-                    job.rf_sequences[channel_name+'_RF'] = rf_sequence
-            else:
-                rf_type = None
+                    sequencer_offset = self.rf_sequencers[rf_channel_name].sequencer_offset
+                    rf_sequence = RFSequenceBuilder(rf_channel_name, rf_source,
+                                                    int(self.max_pre_start_ns+sequencer_offset))
+                    job.rf_sequences[rf_channel_name] = rf_sequence
 
             t_end = None
             for iseg, (seg, seg_render) in enumerate(zip(job.sequence, segments)):
