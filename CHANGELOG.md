@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.20] - 2024-03-26
+
+- Added RF generator to Keysight QS.
+
 ## \[1.7.19] - 2024-03-26
 
 - Fix define_digitizer_channel_iq: add RF parameters.
