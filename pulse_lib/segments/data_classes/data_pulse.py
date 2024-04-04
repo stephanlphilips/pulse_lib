@@ -682,6 +682,8 @@ class pulse_data(parent_data):
             amp = mw_pulse.amplitude
             freq = mw_pulse.frequency
             phase = mw_pulse.phase_offset
+            # angular frequency in rad/sample
+            w = 2*np.pi*freq*1e-9/sample_rate
 
             if not mw_pulse.coherent_pulsing:
                 # it's not an IQ pulse, but a sine wave on voltage channel.
@@ -701,20 +703,27 @@ class pulse_data(parent_data):
                     stop_pt = start_pt + n_pt
                     t_offset = start_pt - start_pulse * sample_rate
                     t = t_offset + np.arange(n_pt)
-                    wvf[start_pt:stop_pt] += amp*amp_envelope*np.sin(2*np.pi*freq/sample_rate*1e-9*t + total_phase)
+                    sine_data = amp*amp_envelope*np.sin(w*t + total_phase)
+                    wvf[start_pt:stop_pt] += sine_data
                 else:
                     if mw_pulse.envelope is not None:
                         # TODO envelope
                         raise Exception('sine pulse on voltage channel with hres timing does not support shaping.')
+                    # NOTE:
+                    # When a sine is split in two parts, then the 2 parts rendered together should still give
+                    # the same total waveform.
+                    # To achieve this the sine is sampled and the first and last sample are multiplied with the
+                    # fraction that is in the sample period.
                     start_pt = math.floor(start_pulse * sample_rate + 1e-5)
                     stop_pt = math.ceil(stop_pulse * sample_rate - 1e-5)
                     n_pt = stop_pt - start_pt
                     t_offset = start_pt - start_pulse * sample_rate
                     t = t_offset + np.arange(n_pt)
-                    sine_data = amp*np.sin(2*np.pi*freq/sample_rate*1e-9*t + phase)
-                    sine_data[0] = (1 - start_pulse * sample_rate + start_pt) * amp * np.sin(phase)
-                    sine_data[-1] = (1 - stop_pt + stop_pulse * sample_rate) * \
-                        amp*np.sin(2*np.pi*freq/sample_rate*1e-9*(stop_pulse-start_pulse-1/sample_rate) + phase)
+                    sine_data = amp*np.sin(w*t + phase)
+                    frac_start = start_pt + 1 - start_pulse * sample_rate
+                    frac_stop = 1 - stop_pt + stop_pulse * sample_rate
+                    sine_data[0] = frac_start * sine_data[0]
+                    sine_data[-1] = frac_stop * sine_data[-1]
                     wvf[start_pt:stop_pt] += sine_data
             else:
                 if LO:
@@ -756,7 +765,8 @@ class pulse_data(parent_data):
 
                 total_phase = phase_shift + phase + phase_envelope + ref_start_phase
                 t = start_pt+ref_start_time/sample_rate + np.arange(n_pt)
-                wvf[start_pt:stop_pt] += amp*amp_envelope*np.sin(2*np.pi*freq/sample_rate*1e-9*t + total_phase)
+                sine_data = amp*amp_envelope*np.sin(w*t + total_phase)
+                wvf[start_pt:stop_pt] += sine_data
 
         for custom_pulse in self.custom_pulse_data:
             data = custom_pulse.render(sample_rate*1e9)

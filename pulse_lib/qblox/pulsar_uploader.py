@@ -741,17 +741,14 @@ class UploadAggregator:
                     v_stop = scaling * e.v_stop
                     seq.ramp(t, t_end, v_start, v_stop)
                 elif isinstance(e, IQ_data_single):
+                    if e.envelope is not None:
+                        raise Exception(f"phase and amplitude modulation are not supported on {channel_name}")
+                    if e.coherent_pulsing:
+                        raise Exception(f"phase coherent pulses not supported on {channel_name}. "
+                                        "Qubit channel should be used for phase coherent pulses.")
                     t = e.start + seg_start
                     t_end = e.stop + seg_start
-                    #  TODO FIX resolution!!
-                    wave_duration = iround(e.stop) - iround(e.start)  # 1 ns resolution
-                    amod, phmod = get_modulation(e.envelope, wave_duration)
-                    if e.coherent_pulsing:
-                        phase = e.phase_offset + 2*np.pi*e.frequency*t*1e-9
-                    else:
-                        phase = e.phase_offset
-                    sinewave = SineWaveform(wave_duration, e.frequency, phase, amod, phmod)
-                    seq.add_sin(t, t_end, e.amplitude*scaling, sinewave)
+                    seq.add_sin(t, t_end, e.amplitude*scaling, e.frequency, e.phase_offset)
                 elif isinstance(e, PhaseShift):
                     raise Exception('Phase shift not supported for AWG channel')
                 elif isinstance(e, Chirp):

@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.21] - 2024-04-04
+
+- Added high resolution sine wave to Qblox.
+
 ## \[1.7.20] - 2024-03-26
 
 - Added RF generator to Keysight QS.

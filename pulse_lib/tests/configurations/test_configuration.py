@@ -477,6 +477,7 @@ class Context:
 
     def plot_awgs(self, sequence, index=None, print_acquisitions=False,
                   analogue_out=False, savefig=False,
+                  analogue_shift=0.0,
                   **kwargs):
         self.last_sequence = sequence
         job = sequence.upload(index)
@@ -487,14 +488,16 @@ class Context:
             ion_ctx = pt.ioff()
         for awg in list(pulse.awg_devices.values()) + list(pulse.digitizers.values()):
             if hasattr(awg, 'plot'):
-                pt.figure()
+                # pt.figure()
                 render_kwargs = {}
                 if analogue_out:
                     render_kwargs['analogue'] = True
+                if analogue_shift:
+                    render_kwargs['analogue_shift'] = analogue_shift
                 awg.plot(**render_kwargs)
                 # awg.plot(discrete=True)
                 pt.legend()
-                pt.grid()
+                pt.grid(True)
                 pt.ylabel('amplitude [V]')
                 pt.xlabel('time [ns]')
                 pt.title(f'output {awg.name}')

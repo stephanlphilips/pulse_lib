@@ -348,12 +348,33 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             self._emit_waveform_part(t_start)
             self._render_ramp(t_start, t_end, v_start, v_end)
 
-    def add_sin(self, t_start, t_end, amplitude, waveform):
-        t_start = iround(t_start)
-        data = waveform.render() * amplitude
+    def add_sin(self, t_start, t_end, amplitude, frequency, phase):
+        if self._hres:
+            t_start = PulsarConfig.hres_round(t_start)
+            t_end = PulsarConfig.hres_round(t_end)
+            i_start = math.floor(t_start + 1e-5)
+            i_end = math.ceil(t_end - 1e-5)
+            t_offset = i_start - t_start
+        else:
+            t_start = iround(t_start)
+            t_end = iround(t_end)
+            i_start = t_start
+            i_end = t_end
+            t_offset = 0
+
+        n_pt = i_end - i_start
+        t = t_offset + np.arange(n_pt)
+        w = 2*np.pi*frequency*1e-9
+        sine_data = amplitude * np.sin(w*t + phase)
+        if self._hres:
+            frac_start = i_start + 1 - t_start
+            frac_end = 1 - i_end + t_end
+            sine_data[0] = frac_start * sine_data[0]
+            sine_data[-1] = frac_end * sine_data[-1]
+
         self._emit_if_gap(t_start)
         self._emit_waveform_part(t_start)
-        self._add_waveform_data(t_start, data)
+        self._add_waveform_data(i_start, sine_data)
 
     def custom_pulse(self, t_start, t_end, amplitude, custom_pulse):
         t_start = iround(t_start)
@@ -417,7 +438,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             waveform = self._waveform
             if min_length > len(waveform):
                 if min_length > 8000:
-                    raise Exception(f'Rendered waveform too big for Qblox module')
+                    raise Exception(f'Rendered waveform too big for Qblox module ({min_length} > 8000)')
                 min_length = math.ceil(min_length/100)*100
                 logger.info(f'Extending waveform to {min_length}')
                 self._waveform = np.zeros(min_length)
@@ -523,6 +544,9 @@ class IQSequenceBuilder(SequenceBuilderBase):
 
     def pulse(self, t_start, t_end, amplitude, waveform):
         self._check_set_nco_freq()
+        # NOTE:
+        # Pulses are aligned on 1 ns. This affects the duration of the pulse.
+        # A time shift should not affect the phase, because the phase is tracked by the NCO.
         t_start = iround(t_start + self.offset_ns)
         t_end = iround(t_end + self.offset_ns)
         t_pulse = PulsarConfig.floor(t_start)
