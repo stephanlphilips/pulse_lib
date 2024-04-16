@@ -259,7 +259,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
         g1.add_block(0, t_prebias, vpx*0.35)
         # correct voltage to ensure average == 0.0 (No DC correction pulse needed at end)
         # Note that voltage on g2 ends center of sweep, i.e. (close to) 0.0 V
-        total_duration = prebias_pts + n_ptx*n_pt2 * (2 if add_pulse_gate_correction else 1)
+        total_duration = 2*prebias_pts + n_ptx*n_pt2 * (2 if add_pulse_gate_correction else 1)
         g2.add_block(0, -1, -(prebias_pts * vp2)/total_duration)
         g2.add_block(0, t_prebias, vp2)
         for g,v in pulse_channels:
