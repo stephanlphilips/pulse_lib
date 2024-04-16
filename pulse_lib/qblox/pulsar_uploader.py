@@ -384,12 +384,12 @@ class PulsarUploader:
             seq_id (uuid) : id of the sequence. if None release all
             index (tuple) : index that has to be released; if None release all.
         """
-        for job in self.jobs:
+        for job in self.jobs.copy():
             if seq_id is None or (job.seq_id == seq_id and (index is None or job.index == index)):
                 job.release()
 
     def release_jobs(self):
-        for job in self.jobs:
+        for job in self.jobs.copy():
             job.release()
 
 

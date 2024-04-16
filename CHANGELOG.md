@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.22] - 2024-04-16
+
+- Fixed releasing jobs from uploader.
+- Small correction to DC compensation in Qblox fast scan 2D.
+
 ## \[1.7.21] - 2024-04-04
 
 - Added high resolution sine wave to Qblox.

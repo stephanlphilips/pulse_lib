@@ -231,7 +231,7 @@ class Tektronix5014_Uploader:
             seq_id (uuid) : id of the sequence. if None release all
             index (tuple) : index that has to be released; if None release all.
         """
-        for job in self.jobs:
+        for job in list(self.jobs):
             if (seq_id is None
                 or (job.seq_id == seq_id and (index is None or job.index == index))):
                 job.release()
