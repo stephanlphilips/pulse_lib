@@ -136,7 +136,7 @@ def _get_new_dim_loop(current_dim, axis, shape):
         shape [int] : the number of elements that a are along that loop axis.
 
     Returns:
-        new_dim [array] : new dimensions of the data obeject when one would include the loop spec
+        new_dim [array] : new dimensions of the data object when one would include the loop spec
         axis [int] : axis on which a loop variable was put (if free assign option was used (axis of -1))
     '''
     current_dim = list(current_dim)
@@ -164,10 +164,10 @@ def _get_new_dim_loop(current_dim, axis, shape):
                 new_dim = current_dim
                 new_dim[-1-axis] = shape
             else:
-                raise ValueError("Dimensions on loop axis {} not compatible with previous loops\n\
-                    (current dimensions is {}, wanted is {}).\n\
-                    Please change loop axis or update the length.".format(axis,
-                    current_dim[-axis-1], shape))
+                raise ValueError(
+                    f"Dimensions on loop axis {axis} not compatible with previous loops\n\
+                    (current dimensions is {current_dim[-axis-1]}, wanted is {shape}).\n\
+                    Please change loop axis or update the length.")
 
     return tuple(new_dim), axis
 

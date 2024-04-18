@@ -57,6 +57,7 @@ class segment_container():
         self.name = name
         self.sample_rate = sample_rate
         self.is_slice = False
+        self.slice_index = []
 
         # define real channels (+ markers)
         for name in channel_names:
@@ -123,6 +124,7 @@ class segment_container():
                 new._shape = (1,)
 
             new.is_slice = True
+            new.slice_index = self.slice_index + [index]
             # update the references in of all the channels
 
             return new

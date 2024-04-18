@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.23] - 2024-04-18
+
+- Fixed adding (simultaneous) segments with multiple looping variables.
+
 ## \[1.7.22] - 2024-04-16
 
 - Fixed releasing jobs from uploader.

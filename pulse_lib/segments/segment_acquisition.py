@@ -120,9 +120,16 @@ class segment_acquisition():
             time (double/loop_obj) : add at the given time. if None, append at t_start of the segment)
         '''
         if other.shape != (1,):
-            other_loopobj = loop_obj()
-            other_loopobj.add_data(other.data, axis=list(range(other.data.ndim -1,-1,-1)),
-                                   dtype=object)
+            data = other.data
+            ndim = data.ndim
+            axes = []
+            for i, n in enumerate(data.shape, 1):
+                if n > 1:
+                    axes.append(ndim-i)
+            data = np.squeeze(data)
+
+            other_loopobj = loop_obj(no_setpoints=True)
+            other_loopobj.add_data(data, axis=axes, dtype=object)
             self._setpoints += other._setpoints
             self.__add_segment(other_loopobj, time)
         else:
