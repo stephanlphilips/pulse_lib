@@ -395,7 +395,6 @@ class RFSequenceBuilder:
 
         t_start = iround(t_start + self._start_offset) // 5 * 5
         t_stop = iround(t_stop + self._stop_offset + 4) // 5 * 5
-        print('enable', t_start, t_stop)
         if not first_enable and self._time >= t_start:
             # change time of last stop by increasing wait_after of last start
             last_instruction = self.sequence[-2]

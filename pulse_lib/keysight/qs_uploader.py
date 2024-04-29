@@ -644,6 +644,7 @@ class QsUploader:
             schedule = []
 
             if rf_sequencer.channel_name in job.rf_sequences:
+                t1 = time.perf_counter()
                 dig_ch = self.digitizer_channels[rf_sequencer.channel_name[:-3]]
                 sequence = job.rf_sequences[rf_sequencer.channel_name]
                 sequence.set_frequency(dig_ch.frequency)
@@ -661,6 +662,7 @@ class QsUploader:
                                         am_envelope=1.0,
                                         frequency=wvf.frequency,
                                         prephase=wvf.prephase,
+                                        postphase=0,
                                         restore_frequency=False,
                                         append_zero=False)
 
@@ -1689,7 +1691,7 @@ class UploadAggregator:
                 video_mode_channels = job.schedule_params['video_mode_channels']
                 if (dig_name in video_mode_channels
                         and (set(channel.channel_numbers) & set(video_mode_channels[dig_name]))):
-                    rf_sequence.enable(0, job.playback_time)
+                    rf_sequence.enable(0, job.upload_info.sections[-1].t_end)
 
             sequence.close()
         # Only used for oscillators
