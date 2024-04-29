@@ -219,15 +219,6 @@ class QsUploader:
                 name = dig_ch.name + '_RF'
                 rf_sequencers[name] = seq_device.add_nco_channel(name, awg_ch)
 
-                # delay=rf_source.delay,
-                # startup_time=rf_source.startup_time_ns,
-                # prolongation_time=rf_source.prolongation_ns,
-                # mode=rf_source.mode
-                # amplitude = rf_source.amplitude / rf_source.attenuation
-                # enable = rf_source.mode == 'continuous'
-                # # note digitizer frequency can change.
-
-
     def get_effective_sample_rate(self, sample_rate):
         """
         Returns the sample rate that will be used by the Keysight AWG.
@@ -418,7 +409,6 @@ class QsUploader:
                                    channel_conf.hw_input_channel,
                                    )
                     if channel_conf.rf_source is not None and self._awg_oscillators is not None:
-                        # TODO implement for QS
                         rf_source = channel_conf.rf_source
                         try:
                             osc = self._awg_oscillators.dig2osc[ch_name]
