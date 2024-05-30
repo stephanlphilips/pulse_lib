@@ -45,7 +45,7 @@ def read_channels(pulselib, t_measure, channels=None, sample_rate=None, iq_mode=
 
     seg = pulselib.mk_segment(sample_rate=awg_sample_rate)
     for ch in channels:
-        seg[ch].acquire(0, t_measure, wait=True)
+        seg[ch].acquire(0, t_measure, wait=True, ref=ch)
 
     sequence = pulselib.mk_sequence([seg])
     sequence.n_rep = None
