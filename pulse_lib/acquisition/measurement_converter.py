@@ -422,17 +422,9 @@ class MeasurementConverter:
                     sp_list.append(sp)
                 else:
                     funcs = iq_mode2func(selection.iq_mode)
-                    if isinstance(funcs, list):
-                        for postfix, _ in funcs:
-                            unit = 'rad' if postfix == '_phase' else 'mV'
-                            sp_new = sp.with_attributes(name=sp.name+postfix, unit=unit)
-                            sp_list.append(sp_new)
-                    else:
-                        if selection.iq_mode == 'phase':
-                            sp_new = sp.with_attributes(unit='rad')
-                            sp_list.append(sp_new)
-                        else:
-                            sp_list.append(sp)
+                    for postfix, _, unit in funcs:
+                        sp_new = sp.with_attributes(name=sp.name+postfix, unit=unit)
+                        sp_list.append(sp_new)
         if selection.states:
             sp_list += self.sp_states
         if selection.values:
@@ -453,11 +445,8 @@ class MeasurementConverter:
                     data.append(raw)
                 else:
                     funcs = iq_mode2func(selection.iq_mode)
-                    if isinstance(funcs, list):
-                        for _, func in funcs:
-                            data.append(func(raw))
-                    else:
-                        data.append(funcs(raw))
+                    for _, func, _ in funcs:
+                        data.append(func(raw))
         if selection.states:
             data += self._states
         if selection.values:

@@ -72,7 +72,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
         logger.error(msg)
         raise Exception(msg)
 
-    acq_channels,channel_map = _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex)
+    acq_channels, channel_map = _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex)
 
     vp = swing/2
     line_margin = int(line_margin)
@@ -97,7 +97,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
     seg  = pulse_lib.mk_segment()
     g1 = seg[gate]
     pulse_channels = []
-    for ch,v in pulse_gates.items():
+    for ch, v in pulse_gates.items():
         pulse_channels.append((seg[ch], v))
 
     if not biasT_corr:
@@ -108,13 +108,13 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
             gp.add_block(0, t_prebias, -v)
         seg.reset_time()
 
-    for i,voltage in enumerate(voltages):
+    for i, voltage in enumerate(voltages):
         g1.add_block(0, step_eff, voltage)
         if 0 <= i-line_margin < n_pt:
             for acq_ch in acq_channels:
                 seg[acq_ch].acquire(acquisition_delay, t_step)
 
-        for gp,v in pulse_channels:
+        for gp, v in pulse_channels:
             gp.add_block(0, step_eff, v)
             # compensation for pulse gates
             if biasT_corr:
@@ -141,7 +141,7 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
     my_seq.set_acquisition(t_measure=t_step, channels=acq_channels, average_repetitions=True)
 
     if not reload_seq:
-        logger.info(f'Upload')
+        logger.info('Upload')
         my_seq.upload()
 
     return _scan_parameter(pulse_lib, my_seq, t_step,
@@ -220,7 +220,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
         logger.error(msg)
         raise Exception(msg)
 
-    acq_channels,channel_map = _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex)
+    acq_channels, channel_map = _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex)
 
     line_margin = int(line_margin)
     add_pulse_gate_correction = biasT_corr and len(pulse_gates) > 0
@@ -248,7 +248,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
     g1 = seg[gate1]
     g2 = seg[gate2]
     pulse_channels = []
-    for ch,v in pulse_gates.items():
+    for ch, v in pulse_gates.items():
         pulse_channels.append((seg[ch], v))
 
     if biasT_corr:
@@ -272,7 +272,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
         g2.add_block(0, step_eff*n_ptx, v2)
         for acq_ch in acq_channels:
             seg[acq_ch].acquire(step_eff*line_margin+acquisition_delay, n_repeat=n_pt1, interval=step_eff)
-        for g,v in pulse_channels:
+        for g, v in pulse_channels:
             g.add_block(0, step_eff*n_ptx, v)
         seg.reset_time()
 
@@ -281,7 +281,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
             # sweep g1 onces more; best effect on bias-T
             # keep g2 on 0
             g1.add_ramp_ss(0, step_eff*n_ptx, -vpx, vpx)
-            for g,v in pulse_channels:
+            for g, v in pulse_channels:
                 g.add_block(0, step_eff*n_ptx, -v)
             seg.reset_time()
 
@@ -306,7 +306,7 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
     my_seq.set_acquisition(t_measure=t_step, channels=acq_channels, average_repetitions=True)
 
     if not reload_seq:
-        logger.info(f'Seq upload')
+        logger.info('Seq upload')
         my_seq.upload()
 
     return _scan_parameter(pulse_lib, my_seq, t_step,
@@ -320,6 +320,10 @@ def _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex):
         iq_mode = 'I+Q'
     if channel_map is not None:
         acq_channels = set(v[0] for v in channel_map.values())
+        for key, value in channel_map.items():
+            if len(value) == 2:
+                # add unit
+                channel_map[key] = (value[0], value[1], 'mV')
     else:
         dig_channels = pulse_lib.digitizer_channels
         if channels is None:
@@ -330,15 +334,12 @@ def _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex):
         channel_map = {}
         for name in acq_channels:
             dig_ch = dig_channels[name]
-            if dig_ch.iq_out and iq_mode != 'Complex':
+            if dig_ch.iq_out:
                 ch_funcs = iq_mode2func(iq_mode)
-                if isinstance(ch_funcs, list):
-                    for postfix,func in ch_funcs:
-                        channel_map[name+postfix] = (name, func)
-                else:
-                    channel_map[name] = (name, ch_funcs)
+                for postfix, func, unit in ch_funcs:
+                    channel_map[name+postfix] = (name, func, unit)
             else:
-                channel_map[name] = (name, lambda x:x)
+                channel_map[name] = (name, lambda x:x, 'mV')
 
     return acq_channels, channel_map
 
@@ -374,19 +375,25 @@ class _scan_parameter(MultiParameter):
         self.biasT_corr = biasT_corr
         self.shape = shape
         self.reload_seq = reload_seq
-
+        units = tuple(unit for _, _, unit in channel_map.values())
         n_out_ch = len(self.channel_names)
-        super().__init__(name='fastScan', names = self.channel_names,
-                        shapes = tuple([shape]*n_out_ch),
-                        labels = self.channel_names, units = tuple(['mV']*n_out_ch),
-                        setpoints = tuple([setpoint]*n_out_ch), setpoint_names=tuple([names]*n_out_ch),
-                        setpoint_labels=tuple([names]*n_out_ch), setpoint_units=(("mV",)*len(names),)*n_out_ch,
-                        docstring='Scan parameter for digitizer')
+
+        super().__init__(
+            name='fastScan',
+            names=self.channel_names,
+            shapes=tuple([shape]*n_out_ch),
+            labels=self.channel_names,
+            units=units,
+            setpoints=tuple([setpoint]*n_out_ch),
+            setpoint_names=tuple([names]*n_out_ch),
+            setpoint_labels=tuple([names]*n_out_ch),
+            setpoint_units=(("mV",)*len(names),)*n_out_ch,
+            docstring='Scan parameter for digitizer')
 
     def get_raw(self):
 
         if self.reload_seq:
-            logger.info(f'Seq upload')
+            logger.info('Seq upload')
             self.my_seq.upload()
             self.my_seq.play()
         else:
@@ -427,6 +434,6 @@ class _scan_parameter(MultiParameter):
 
     def __del__(self):
         if not self.my_seq is None and not self.pulse_lib is None:
-            logger.debug(f'Automatic cleanup in __del__(); Calling stop()')
+            logger.debug('Automatic cleanup in __del__(); Calling stop()')
             self.stop()
 
