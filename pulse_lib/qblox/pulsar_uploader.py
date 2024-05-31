@@ -276,16 +276,20 @@ class PulsarUploader:
         # update resonator frequency, threshold and threshold phase
         for ch_name, dig_channel in self.digitizer_channels.items():
             nco_freq = dig_channel.frequency
+            data_scaling = job.acq_data_scaling[ch_name]
+            acq_threshold = job.acquisition_thresholds[ch_name]
             if nco_freq is not None:
                 job.program[ch_name].nco_frequency = nco_freq
-            if job.acq_data_scaling[ch_name] and job.acquisition_thresholds[ch_name] is not None: # TODO @@@ refactor data structure acquisiton
+            if data_scaling is not None and acq_threshold is not None: # TODO @@@ refactor data structure acquisiton
+                if not isinstance(data_scaling, Number):
+                    raise Exception(f"Channel '{ch_name}' with feedback cannot have multiple integration times")
                 in_ranges = self.q1instrument.get_input_ranges(ch_name)
                 ch_number = dig_channel.channel_numbers[0]
-                mv2threshold = 1/(in_ranges[ch_number]/2*job.acq_data_scaling[ch_name]*1000)
-                job.program[ch_name].thresholded_acq_threshold = job.acquisition_thresholds[ch_name] * mv2threshold
+                mv2threshold = 1/(in_ranges[ch_number]/2*data_scaling*1000)
+                job.program[ch_name].thresholded_acq_threshold = acq_threshold * mv2threshold
                 job.program[ch_name].thresholded_acq_rotation = np.degrees(dig_channel.phase) % 360
                 if PulsarUploader.verbose:
-                    logger.debug(f'{ch_name} threshold {job.acquisition_thresholds[ch_name]:5.2f} mV ' +
+                    logger.debug(f'{ch_name} threshold {acq_threshold:5.2f} mV ' +
                                  f'acq: {job.program[ch_name].thresholded_acq_threshold}')
                     logger.debug(f'{ch_name} rotation {dig_channel.phase:6.3f} rad ' +
                                  f'acq: {job.program[ch_name].thresholded_acq_rotation:5.1f} degrees')
@@ -947,6 +951,8 @@ class UploadAggregator:
                 else:
                     seq.acquire(t, t_measure)
                 if acquisition.threshold is not None and use_feedback:
+                    # TODO calculate scaled threshold here and not in play?
+                    # TODO check if this threshold is needed for feedback?
                     if acq_threshold is None:
                         acq_threshold = acquisition.threshold
                         acq_threshold_trigger_invert = acquisition.zero_on_high
