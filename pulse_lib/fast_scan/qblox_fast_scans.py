@@ -403,8 +403,7 @@ class _scan_parameter(MultiParameter):
 
         # get the data
         data = []
-        for setting in self.channel_map.values():
-            ch, func = setting
+        for ch, func, _ in self.channel_map.values():
             # channel data already is in mV
             ch_data = raw_dict[ch]
             data.append(func(ch_data))
