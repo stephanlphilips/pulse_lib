@@ -2,7 +2,7 @@ import logging
 import math
 from numbers import Number
 from copy import copy
-from typing import Any, List, Dict, Callable, Optional
+from typing import Any, List, Dict, Callable
 from dataclasses import dataclass
 from contextlib import contextmanager
 
@@ -251,7 +251,7 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
         if offset:
             tail = -(len(data)+offset) %4
             data = np.concatenate([ [0.0]*offset, data, [0.0]*tail ])
-        for index,wave in enumerate(self.custom_pulses):
+        for index, wave in enumerate(self.custom_pulses):
             if np.all(wave == data):
                 return f'custom_{index}'
         index = len(self.custom_pulses)
@@ -334,7 +334,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
                 t_start = t_end_wave
                 v_start = v_end_wave
             elif self._rendering:
-                self._emit_waveform(t_start)
+                self._emit_waveform(line_start)
 
             t_end_ramp = line_end
             if t_end_ramp != t_end:
@@ -511,7 +511,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         self._set_offset(t, self.v_compensation)
         self.add_integral(np.sum(waveform))
 
-        for index,data in enumerate(self._waveforms):
+        for index, data in enumerate(self._waveforms):
             if len(data) == len(waveform) and np.allclose(data, waveform):
                 waveid = f'wave_{index}'
                 break
@@ -796,6 +796,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._integration_time = None
         self._data_scaling = None
         self._commands = []
+        self._weights = []
         self.rf_source_mode = rf_source.mode if rf_source is not None else None
         self._pulse_end = -1
         self.offset_rf_ns = 0
@@ -810,7 +811,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
 
     @property
     def integration_time(self):
-        return self.seq.integration_length_acq
+        return self._integration_time
 
     @integration_time.setter
     def integration_time(self, value):
@@ -834,20 +835,38 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
     def add_markers(self, markers):
         for marker in markers:
             t,value = marker
-            self._add_command(t,
+            # offset command sorting time to be before acquire
+            self._add_command(t - 0.01,
                               self.seq.set_markers, value, t_offset=t)
 
     def acquire(self, t, t_integrate):
+        if self.integration_time is not None and self.integration_time != t_integrate:
+            # use weighed acquisition
+            self.acquire_weighed(t, np.ones(int(t_integrate)))
+        else:
+            t += self.offset_ns
+            self._update_time(t, t_integrate)
+            self.integration_time = t_integrate
+            self.n_triggers += 1
+            self._add_scaling(1/t_integrate, 1)
+            if self.rf_source_mode in ['pulsed', 'shaped']:
+                self._add_pulse(t - self.offset_ns, t_integrate)
+            # enqueue: self.seq.acquire('default', 'increment', t_offset=t)
+            self._add_command(t,
+                              self.seq.acquire, 'default', 'increment', t_offset=t)
+
+    def acquire_weighed(self, t, weight):
         t += self.offset_ns
+        t_integrate = len(weight)
         self._update_time(t, t_integrate)
-        self.integration_time = t_integrate
         self.n_triggers += 1
-        self._add_scaling(1/t_integrate, 1)
+        self._add_scaling(1/np.sum(np.abs(weight)), 1)
         if self.rf_source_mode in ['pulsed', 'shaped']:
-            self._add_pulse(t, t_integrate)
-        # enqueue: self.seq.acquire('default', 'increment', t_offset=t)
+            self._add_pulse(t - self.offset_ns, t_integrate)
+        weight_id = self._add_weight(weight)
+        # enqueue: self.seq.acquire_weighed('default', 'increment', weight_id, t_offset=t)
         self._add_command(t,
-                          self.seq.acquire, 'default', 'increment', t_offset=t)
+                          self.seq.acquire_weighed, 'default', 'increment', weight_id, t_offset=t)
 
     def repeated_acquire(self, t, t_integrate, n, t_period, f_sweep):
         t += self.offset_ns
@@ -857,7 +876,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self.n_triggers += n
         self._add_scaling(1/t_integrate, n)
         if self.rf_source_mode in ['pulsed', 'shaped']:
-            self._add_pulse(t, duration)
+            self._add_pulse(t - self.offset_ns, duration)
         if f_sweep is None:
             # enqueue: self.seq.repeated_acquire(n, t_period, 'default', 'increment', t_offset=t)
             self._add_command(t,
@@ -912,7 +931,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
                 pass
             else:
                self._data_scaling = [self._data_scaling] * self.n_triggers
-               self._data_scaling[-n:-1] = scaling
+               self._data_scaling[-n:] = [scaling] * n
         else:
            self._data_scaling += [scaling] * n
 
@@ -920,15 +939,12 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._commands.append(_SeqCommand(t, func, args, kwargs))
 
     def _add_pulse(self, t, duration):
-        # subtract offset of acquistion and add offset of rf source
-        t -= self.offset_ns
         t += self.offset_rf_ns
 
         t_start = t
         t_end = t + duration
-        if self.rf_source_mode == 'pulsed':
-            t_start -= self.rf_source.startup_time_ns
-            t_end += self.rf_source.prolongation_ns
+        t_start -= self.rf_source.startup_time_ns
+        t_end += self.rf_source.prolongation_ns
 
         if t_start < 0:
             raise Exception('RF source has negative start time. Acquisition triggered too early. '
@@ -940,7 +956,8 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
             # amplitude 1 should be 0.0. It's the Q-component used in IQ modulation.
             # only the I-component is used to set the amplitude.
             amp1 = 0.0 if self._n_out_ch == 2 else None
-            self._add_command(t_start,
+            # offset command sorting time to be before acquire
+            self._add_command(t_start - 0.01,
                               self.seq.set_offset, amp0, amp1, t_offset=t_start)
         self._pulse_end = t_end
 
@@ -949,6 +966,19 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
             t = self._pulse_end
             t = PulsarConfig.align(t)
             amp1 = 0.0 if self._n_out_ch == 2 else None
-            self._add_command(t,
+            # offset command sorting time to be before acquire
+            self._add_command(t - 0.01,
                               self.seq.set_offset, 0.0, amp1, t_offset=t)
             self._pulse_end = -1
+
+    def _add_weight(self, weight):
+        for index, data in enumerate(self._weights):
+            if len(data) == len(weight) and np.allclose(data, weight):
+                weight_id = f'weight_{index}'
+                break
+        else:
+            index = len(self._weights)
+            weight_id = f'weight_{index}'
+            self._weights.append(weight)
+            self.seq.add_weight(weight_id, weight)
+        return weight_id

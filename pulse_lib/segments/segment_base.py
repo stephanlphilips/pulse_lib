@@ -137,7 +137,7 @@ class segment_base():
         item.is_slice = True
         if use_end_time_cache:
             i = key[0]
-            # Note: the numpy slice uses the same memory!
+            # Note: the numpy slice uses a writable view on the same memory!
             if len(self.shape) == 1:
                 item._end_times = self._end_times[i:i+1]
             else:

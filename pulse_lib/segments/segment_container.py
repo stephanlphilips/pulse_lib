@@ -130,46 +130,6 @@ class segment_container():
             return new
         raise KeyError(index)
 
-# @@@ Remove?
-    def __copy__(self):
-        raise Exception('copy')
-#        new = segment_container([])
-#
-#        new._virtual_gate_matrices = self._virtual_gate_matrices
-#        new._IQ_channel_objs = self._IQ_channel_objs
-#
-#        new.channels = {}
-#
-#        for chan_name, chan in self.channels.items():
-#            new_chan = copy.copy(chan)
-#            setattr(new, chan_name,new_chan)
-#            new.channels[chan_name] = new_chan
-#
-#        new.render_mode = copy.copy(self.render_mode)
-#        new._software_markers = copy.copy(self._software_markers)
-#        new._segment_measurements = copy.copy(self._segment_measurements)
-#        new._setpoints = copy.copy(self._setpoints)
-#
-#        # update the references in of all the channels
-##        add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
-#
-#        return new
-#
-#    def __add__(self, other):
-#        new = self.__copy__()
-#        for name in self.channels.keys():
-#            new_chan = new[name] + other[name]
-#            setattr(new, name, new_chan)
-#            new.channels[name] = new_chan
-#        new._software_markers += other._software_markers
-#        new._segment_measurements += other._segment_measurements
-#        new._setpoints = copy.copy(self._setpoints)
-#        new._setpoints += other._setpoints
-#
-#        # update the references in of all the channels
-##        add_reference_channels(new, self._virtual_gate_matrices, self._IQ_channel_objs)
-#        return new
-
     def add(self, other, time=None):
         '''
         Add the other segment to this segment at specified time.

@@ -9,7 +9,7 @@ def test1():
     pulse = context.init_pulselib(n_gates=2)
 
     dt = lp.linspace(0.25, 0.75, 3, name='dt', axis=0)
-#    dt = lp.linspace(-1.0, 1.0, 5, name='dt', axis=0)
+    # dt = lp.linspace(-1.0, 1.0, 5, name='dt', axis=0)
 
     s = pulse.mk_segment(hres=True)
 
@@ -27,9 +27,9 @@ def test1():
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 1 # 10000
 
-    context.plot_awgs(sequence, ylim=(-0.0,0.100), xlim=(0, 50))
+    context.plot_awgs(sequence, ylim=(-0.0, 0.100), xlim=(0, 50))
 
-#    return context.run('hres1', sequence)
+    # return context.run('hres1', sequence)
 
 
 def test2():
@@ -74,9 +74,9 @@ def test2():
     sequence = pulse.mk_sequence([s])
     sequence.n_rep = 1 # 10000
 
-    context.plot_awgs(sequence, ylim=(-0.0,0.100), xlim=(0, 70))
+    context.plot_awgs(sequence, ylim=(-0.0, 0.100), xlim=(0, 70))
 
-#    return context.run('hres1', sequence)
+    # return context.run('hres1', sequence)
 
 
 def test3():
@@ -139,13 +139,38 @@ def test3():
 #    context.plot_awgs(sequence, ylim=(-0.100,0.100), xlim=(0, 26))
     for t in sequence.dt.values:
         sequence.dt(t)
-        context.plot_awgs(sequence, ylim=(-0.100,0.100), xlim=(0, 40))
+        context.plot_awgs(sequence, ylim=(-0.100, 0.100), xlim=(0, 40))
 
-#    return context.run('hres2', sequence)
+    # return context.run('hres2', sequence)
 
+
+def test4():
+    pulse = context.init_pulselib(n_gates=2)
+
+    dt = lp.linspace(-1.0, 1.0, 5, name='dt', axis=0)
+
+    s = pulse.mk_segment(hres=True)
+
+    for t in dt:
+        s.wait(15)
+        s.P1.add_ramp_ss(4, 8, 0, 80)
+        s.P1.add_block(8, 10, 80)
+        s.P1.add_ramp_ss(10, 14, 80, 0)
+        s.reset_time()
+        s.P1.add_ramp_ss(0, 200, 0, 100)
+    # s.wait(100000)
+    s.P1.add_ramp_ss(0, 200, 0, 100)
+
+    sequence = pulse.mk_sequence([s])
+    sequence.n_rep = 1 # 10000
+
+    context.plot_awgs(sequence, ylim=(-0.0, 0.100), xlim=(0, 500))
+
+    # return context.run('hres1', sequence)
 
 #%%
 if __name__ == '__main__':
     ds1 = test1()
     ds2 = test2()
     ds3 = test3()
+    ds4 = test4()
