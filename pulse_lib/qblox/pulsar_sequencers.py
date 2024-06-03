@@ -2,7 +2,7 @@ import logging
 import math
 from numbers import Number
 from copy import copy
-from typing import Any, List, Dict, Callable, Optional
+from typing import Any, List, Dict, Callable
 from dataclasses import dataclass
 from contextlib import contextmanager
 
@@ -334,7 +334,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
                 t_start = t_end_wave
                 v_start = v_end_wave
             elif self._rendering:
-                self._emit_waveform(t_start)
+                self._emit_waveform(line_start)
 
             t_end_ramp = line_end
             if t_end_ramp != t_end:
