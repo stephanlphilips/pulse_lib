@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.25] - 2024-06-03
+
+- Fixed timing of rf_source in continuous mode for Qblox.
+- Fixed exception in sub-nanosecond ramps for Qblox.
+- Fixed unit radians for phase in measurement parameter.
+- Allow multiple integration times on channel (if not using feedback on Qblox).
+
 ## \[1.7.24] - 2024-04-29
 
 - Fixed RF generation in video mode with Keysight_QS
