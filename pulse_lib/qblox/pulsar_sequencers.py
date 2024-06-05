@@ -148,7 +148,7 @@ class SequenceBuilderBase:
 
     def wait_till(self, t):
         t += self.offset_ns
-        self._update_time(t, 0)
+        self._update_time_and_markers(t, 0)
         self.seq.add_comment(f'wait {t}')
         self.seq.wait(t)
 
