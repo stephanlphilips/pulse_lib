@@ -359,6 +359,29 @@ class MeasurementConverter:
                         channel_raw = m.aggregate_func(t_start, channel_raw)
                 self._raw.append(channel_raw)
 
+    def _threshold_data(self, m, raw_index):
+        values = self._raw[raw_index]
+        result = values > m.threshold
+        if m.zero_on_high:
+            result = result ^ 1
+        result = result.astype(int)
+
+        hw_thresholded = self._hw_thresholded.get(raw_index, None)
+        if hw_thresholded is not None and np.any(result != hw_thresholded):
+            different = np.where(result != hw_thresholded)
+            n_different = len(different)
+            val_range = np.max(values) - np.min(values)
+            rel_differences = (values[different] - m.threshold) / val_range
+            if (np.max(np.abs(rel_differences)) > 0.01
+                or n_different > max(1, len(values)*0.005)):
+                    logger.warning(f"{len(different)} differences between hardware and software threshold "
+                                   f"for '{m.name}'. (indices: {different}, values: {values[different]})")
+            else:
+                logger.info(f"{len(different)} differences between hardware and software threshold "
+                            f"for '{m.name}'. (indices: {different}, values: {values[different]})")
+
+        return result
+
     def _set_states(self):
         # iterate through measurements and keep last named values in dictionary
         results = []
@@ -374,14 +397,7 @@ class MeasurementConverter:
                     acquisition_cnt += 1
                     # do not add to result
                     continue
-                result = self._raw[acquisition_cnt] > m.threshold
-                if m.zero_on_high:
-                    result = result ^ 1
-                result = result.astype(int)
-                hw_thresholded = self._hw_thresholded.get(acquisition_cnt, None)
-                if hw_thresholded is not None and np.any(result != hw_thresholded):
-                    logger.warning(f'{np.sum(result != hw_thresholded)} differences between hardware and software '
-                                   f'threshold. (indices: {np.where(result != hw_thresholded)})')
+                result = self._threshold_data(m, acquisition_cnt)
                 acquisition_cnt += 1
             elif isinstance(m, measurement_expression):
                 result = m.expression.evaluate(last_result)
