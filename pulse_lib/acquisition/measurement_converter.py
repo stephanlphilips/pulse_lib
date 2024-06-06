@@ -238,6 +238,27 @@ class MeasurementParameter(MultiParameter):
 
 
 class MeasurementConverter:
+    ALLOWED_RELATIVE_THRESHOLD_DEVIATION = 0.01
+    '''
+    Allowed maximum deviation resulting is a difference between HW and SW thresholded data.
+    Deviation is relative with respect to range of measured values.
+    Warnings are raised when there is a difference in thresholded data on a raw
+    value that is further from the threshold than specified allowed deviation.
+    This warning indicates that the raw data has a small range with respect to the
+    resolution of the hardware. It could also be due to a problem in the HW or SW.
+
+    Note: On Qblox the error in the *rotated* data before thresholding is ~IQ_signal_level/2**11.
+    So the range of the signal should be at least IQ_signal_level / 20.
+    '''
+    ALLOWED_FRACTION_THRESHOLD_DIFFERENCES = 0.002
+    '''
+    Allowed fraction of measurements that has a difference between HW and SW thresholded data.
+    A warning is raised when more measurements have a different thresholded value.
+    This warning indicates that there is too much data very close to the threshold.
+    This warning indicates that the raw data has a small range with respect to the
+    resolution of the hardware. It could also be due to a problem in the HW or SW.
+    '''
+
     def __init__(self, description, n_rep, sample_rate):
         self._description = description
         self.n_rep = n_rep
@@ -360,25 +381,34 @@ class MeasurementConverter:
                 self._raw.append(channel_raw)
 
     def _threshold_data(self, m, raw_index):
-        values = self._raw[raw_index]
+        values = self._raw[raw_index].real
         result = values > m.threshold
         if m.zero_on_high:
             result = result ^ 1
         result = result.astype(int)
 
         hw_thresholded = self._hw_thresholded.get(raw_index, None)
+        if hw_thresholded is not None:
+            print()
+            print(f'Above threshold {np.sum(hw_thresholded)}, {np.sum(hw_thresholded)/len(values):%}')
         if hw_thresholded is not None and np.any(result != hw_thresholded):
-            different = np.where(result != hw_thresholded)
+            different = (result != hw_thresholded).nonzero()[0]
             n_different = len(different)
-            val_range = np.max(values) - np.min(values)
-            rel_differences = (values[different] - m.threshold) / val_range
-            if (np.max(np.abs(rel_differences)) > 0.01
-                or n_different > max(1, len(values)*0.005)):
-                    logger.warning(f"{len(different)} differences between hardware and software threshold "
-                                   f"for '{m.name}'. (indices: {different}, values: {values[different]})")
+            max_value, min_value = np.max(values), np.min(values)
+            value_differences = values[different] - m.threshold
+            rel_differences = value_differences / (max_value - min_value)
+            msg = (f"{n_different} differences between hardware and software thresholded results for '{m.name}'. "
+                   f"Raw value range: [{min_value:.6f}, {max_value:.6f}] mV, max difference: {np.max(np.abs(value_differences)):.6f} mV")
+            if (np.max(np.abs(rel_differences)) > MeasurementConverter.ALLOWED_RELATIVE_THRESHOLD_DEVIATION
+                    or n_different > max(1, len(values)*MeasurementConverter.ALLOWED_FRACTION_THRESHOLD_DIFFERENCES)):
+                logger.warning(msg)
+                # level='WARNING'
             else:
-                logger.info(f"{len(different)} differences between hardware and software threshold "
-                            f"for '{m.name}'. (indices: {different}, values: {values[different]})")
+                logger.info(msg)
+                # level='INFO'
+            logger.info(f"indices: {different}, values-threshold: {value_differences} mV")
+            # print(level, msg)
+            # print(f"{min(value_differences):.6f}, {max(value_differences):.6f}, {np.max(np.abs(rel_differences)):.2%}, {max_value-min_value:.6f}")
 
         return result
 
