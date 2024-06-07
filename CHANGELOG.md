@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.26] - 2024-06-07
+
+- Improved HW/SW threshold checking with configuration:
+  pulse_lib.acquisition.measurement_converter.MeasurementConverter.ALLOWED_RELATIVE_THRESHOLD_DEVIATION
+  pulse_lib.acquisition.measurement_converter.MeasurementConverter.ALLOWED_FRACTION_THRESHOLD_DIFFERENCES
+- Fixed error on feedback event insertion for Qblox.
+
 ## \[1.7.25] - 2024-06-03
 
 - Fixed timing of rf_source in continuous mode for Qblox.
