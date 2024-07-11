@@ -1601,6 +1601,7 @@ class UploadAggregator:
             sequence = AcquisitionSequenceBuilder(channel_name)
             job.digitizer_sequences[channel_name] = sequence
             rf_type = None
+            rf_sequence = None
             rf_source = channel.rf_source
             if rf_source is not None:
                 if isinstance(rf_source.output, str):
@@ -1676,7 +1677,7 @@ class UploadAggregator:
                             rf_pulse.start -= rf_source.startup_time_ns
                             rf_pulse.stop += rf_source.prolongation_ns
 
-            if video_mode and rf_source is not None:
+            if video_mode and rf_sequence is not None:
                 dig_name = channel.module_name
                 video_mode_channels = job.schedule_params['video_mode_channels']
                 if (dig_name in video_mode_channels
