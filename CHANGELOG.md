@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.27] - 2024-07-24
+
+- Fix Keysight_QS with RF source and video mode
+- Removed accidentally committed print statements
+
 ## \[1.7.26] - 2024-06-07
 
 - Improved HW/SW threshold checking with configuration:
