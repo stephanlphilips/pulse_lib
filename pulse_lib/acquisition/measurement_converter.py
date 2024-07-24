@@ -388,9 +388,6 @@ class MeasurementConverter:
         result = result.astype(int)
 
         hw_thresholded = self._hw_thresholded.get(raw_index, None)
-        if hw_thresholded is not None:
-            print()
-            print(f'Above threshold {np.sum(hw_thresholded)}, {np.sum(hw_thresholded)/len(values):%}')
         if hw_thresholded is not None and np.any(result != hw_thresholded):
             different = (result != hw_thresholded).nonzero()[0]
             n_different = len(different)
