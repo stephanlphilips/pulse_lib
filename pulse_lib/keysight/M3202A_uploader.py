@@ -442,6 +442,9 @@ class M3202A_Uploader:
                 cycles = 1 if not continuous_mode else 0
                 for queue_item in queue:
                     prescaler = awg.convert_sample_rate_to_prescaler(queue_item.sample_rate)
+                    if prescaler > 255 and getattr(awg, 'hvi_queue_control', False):
+                        raise Exception("Disable hvi_queue_control for AWGs. It cannot handle "
+                                        "low sample rates and is not needed anymore with current firmware")
                     awg.awg_queue_waveform(
                             channel_number, queue_item.wave_reference,
                             trigger_mode, start_delay, cycles, prescaler)
