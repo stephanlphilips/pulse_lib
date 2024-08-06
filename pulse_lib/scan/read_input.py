@@ -30,15 +30,30 @@ def read_channels(pulselib, t_measure, channels=None, sample_rate=None, iq_mode=
     if sample_rate and int(t_measure) < int(1e9/sample_rate):
         raise Exception(f't_measure ({t_measure} ns) < 1/sample_rate ({int(1e9/sample_rate)} ns)')
 
-    # set sample rate for Keysight upload.
-    if t_measure > 2_000_000:
-        awg_sample_rate = 1e6
-    elif t_measure > 200_000:
-        awg_sample_rate = 1e7
-    elif t_measure > 20_000:
-        awg_sample_rate = 1e8
+    if pulselib._backend in ["Keysight", "Keysight_QS", "M3202A"]:
+        if t_measure > 42e9:
+            raise Exception("Keysight backend implementation does not support t_measure > 42 s")
+        if (pulselib._backend == "Keysight_QS"
+            and sample_rate is not None
+            and t_measure*1e-9*sample_rate > 2e6):
+                raise Exception(f"Too many samples for Keysight_QS ({int(t_measure*1e-9*sample_rate)} > 2e6)")
+        # set sample rate for Keysight upload.
+        if t_measure > 20_000_000:
+            awg_sample_rate = 1e5
+        elif t_measure > 2_000_000:
+            awg_sample_rate = 1e6
+        elif t_measure > 200_000:
+            awg_sample_rate = 1e7
+        elif t_measure > 20_000:
+            awg_sample_rate = 1e8
+        else:
+            awg_sample_rate = 1e9
     else:
-        awg_sample_rate = 1e9
+        # let the driver set the sample rate.
+        awg_sample_rate = None
+    if pulselib._backend == "Qblox":
+        if t_measure > 2.1e9:
+            raise Exception("Qblox backend implementation does not support t_measure > 2.1 s")
 
     if channels is None:
         channels = pulselib.digitizer_channels.keys()
