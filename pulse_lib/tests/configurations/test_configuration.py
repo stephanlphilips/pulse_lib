@@ -96,9 +96,10 @@ class Context:
         cfg = self._configuration
         backend = cfg['backend']
         if backend in ['Keysight', 'Keysight_QS']:
-            # for awg in awgs:
-            #     # anti-ringing filter
-            #     awg.set_digital_filter_mode(3)
+            for awg in awgs:
+                # anti-ringing filter
+                # awg.set_digital_filter_mode(3)
+                awg.set_waveform_limit(10e6)
             for dig in digs:
                 # Set mode AVERAGE
                 dig.set_acquisition_mode(1)
@@ -208,6 +209,7 @@ class Context:
                     drive_channel_name = f"P{qubit}_drive"
                     if drive_channel_name not in pulse.awg_channels:
                         pulse.define_channel(drive_channel_name, awg_channel.awg_name, awg_channel.channel_number)
+                    # pulse.add_channel_attenuation(drive_channel_name, 0.1)
                 else:
                     drive_channel_name = f"P{qubit}"
                 iq_channel_name = f"drive_q{qubit}"
@@ -371,7 +373,7 @@ class Context:
         if not _ct_configured:
             ct.configure(os.path.join(self._dir, 'ct_config.yaml'))
             _ct_configured = True
-        ct.launch_databrowser()
+        ct.launch_qt_databrowser()
 
     def init_coretools(self):
         global _ct_configured
