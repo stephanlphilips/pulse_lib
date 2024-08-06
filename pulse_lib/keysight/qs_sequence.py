@@ -442,6 +442,8 @@ class AcquisitionSequenceBuilder:
 
     def acquire(self, t_start, t_integrate, n_repeat=1,
                 threshold=0, pxi_trigger=None):
+        # cast to Python int (not numpy) to avoid numeric overflow for t > 2**31
+        t_integrate = int(t_integrate)
         self._wait_till(t_start)
         entry = DigitizerSequenceEntry()
         self.sequence.append(entry)
