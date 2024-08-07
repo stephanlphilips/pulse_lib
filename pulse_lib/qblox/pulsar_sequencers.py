@@ -816,7 +816,9 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
     @integration_time.setter
     def integration_time(self, value):
         if value is None:
-            raise ValueError('integration time cannot be None')
+            raise ValueError('Integration time cannot be None')
+        if value > 2**24-4:
+            raise ValueError(f'Integration time of {value} ns is too large. Max value: {2**24-4} ns')
         if self._integration_time is None:
             logger.info(f'{self.name}: integration time {value}')
             self._integration_time = value
