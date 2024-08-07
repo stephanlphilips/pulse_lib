@@ -682,7 +682,7 @@ class UploadAggregator:
         marker_value = 1 << marker_channel.channel_number
         return merge_markers(channel_name, start_stop, marker_value, min_off_ns=20)
 
-    def get_markers_seq(self, job, seq_name):
+    def get_markers_seq(self, job, seq_name, seq_delay=None):
         marker_names = self.seq_markers.get(seq_name, [])
         if len(marker_names) == 0:
             return []
@@ -690,6 +690,14 @@ class UploadAggregator:
         markers = []
         for marker_name in marker_names:
             marker_channel = self.marker_channels[marker_name]
+            if seq_delay is not None:
+                t_before_pulse = marker_channel.setup_ns - marker_channel.delay + seq_delay
+                t_after_pulse = marker_channel.hold_ns + marker_channel.delay - seq_delay
+                if t_before_pulse <= 0:
+                    raise Exception(f"Marker {marker_name} on {seq_name} starts after pulse.")
+                if t_after_pulse <= 0:
+                    raise Exception(f"Marker {marker_name} on {seq_name} stops before end of pulse.")
+
             markers += self.get_markers(job, marker_channel)
 
         s = 0
@@ -813,7 +821,7 @@ class UploadAggregator:
                                 mixer_gain=qubit_channel.correction_gain,
                                 mixer_phase_offset=qubit_channel.correction_phase)
 
-        scaling = 1/(attenuation * seq.max_output_voltage*1000)
+        scaling = 1/(attenuation * seq.max_output_voltage*1000) # @@@@ Multiply with sqrt(2)
 
         seq.set_time_offset(t_offset)
         if self.feedback_triggers:
@@ -821,7 +829,7 @@ class UploadAggregator:
                 seq.add_trigger_counter(trigger)
             seq.add_latch_events(job.latch_events)
 
-        markers = self.get_markers_seq(job, channel_name)
+        markers = self.get_markers_seq(job, channel_name, delay)
         seq.add_markers(markers)
 
         for iseg, (seg, seg_render) in enumerate(zip(job.sequence, segments)):
