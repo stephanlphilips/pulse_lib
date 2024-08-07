@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.28] - 2024-08-07
+
+- Fixed Keysight_QS for acquisitions > 2.1 s.
+- Fixed read_channels for Keysight_QS with t_measure > 2.1 s or > 4000 samples.
+  Limit is now 42 s.
+- Added check on Qblox IQ marker timing.
+- Automatically adjust RF frequency for Keysight_QS resonator drive (3.8 kHz resolution).
+- Added checks on limits in read_channels for Qblox and Keysight.
+
 ## \[1.7.27] - 2024-07-24
 
 - Fix Keysight_QS with RF source and video mode
