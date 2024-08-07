@@ -640,6 +640,16 @@ class QsUploader:
                 t1 = time.perf_counter()
                 dig_ch = self.digitizer_channels[rf_sequencer.channel_name[:-3]]
                 sequence = job.rf_sequences[rf_sequencer.channel_name]
+
+                rf_freq_resolution = 1e9/2**18
+                # add a small margin to avoid rounding errors
+                if (dig_ch.frequency + 1e-6) % rf_freq_resolution > 0.001:
+                    old_f = dig_ch.frequency
+                    new_f = old_f - old_f % rf_freq_resolution
+                    print("*** Automatically adjusting RF drive and modulation frequency to matching values:"
+                          f"{old_f/1e6:.6f} MHz -> {new_f/1e6:.6f} MHz ***")
+                    dig_ch.frequency = new_f
+
                 sequence.set_frequency(dig_ch.frequency)
                 if len(sequence.waveforms) > 0:
                     if dig_ch.frequency is None:
