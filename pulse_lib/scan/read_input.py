@@ -37,6 +37,12 @@ def read_channels(pulselib, t_measure, channels=None, sample_rate=None, iq_mode=
             and sample_rate is not None
             and t_measure*1e-9*sample_rate > 2e6):
                 raise Exception(f"Too many samples for Keysight_QS ({int(t_measure*1e-9*sample_rate)} > 2e6)")
+        if sample_rate is not None and sample_rate < 1000:
+            factor = 1000/sample_rate
+            max_output = 0.25 / factor
+            print(f"Warning: sample rate of {sample_rate} Sa/s is {factor:.1f} times the safe limit. "
+                  f"Numerical overflow could occur. Check if all measured data is < {max_output:.2%} of configured "
+                  "digitizer input range.")
         # set sample rate for Keysight upload.
         if t_measure > 20_000_000:
             awg_sample_rate = 1e5
@@ -51,9 +57,11 @@ def read_channels(pulselib, t_measure, channels=None, sample_rate=None, iq_mode=
     else:
         # let the driver set the sample rate.
         awg_sample_rate = None
-    if pulselib._backend == "Qblox":
-        if t_measure > 2.1e9:
-            raise Exception("Qblox backend implementation does not support t_measure > 2.1 s")
+
+    if (pulselib._backend == "Qblox"
+        and sample_rate is not None
+        and t_measure*1e-9*sample_rate > 130_000):
+            raise Exception(f"Too many samples for Qblox QRM ({int(t_measure*1e-9*sample_rate)} > 130_000)")
 
     if channels is None:
         channels = pulselib.digitizer_channels.keys()
