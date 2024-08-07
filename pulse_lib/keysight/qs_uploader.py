@@ -672,6 +672,9 @@ class QsUploader:
         for dig_channel in self.digitizer_channels.values():
             dig = self.digitizers[dig_channel.module_name]
             if QsUploader.use_digitizer_sequencers and hasattr(dig, 'get_sequencer'):
+                for ch_num in dig_channel.channel_numbers:
+                    if dig.get_channel_acquisition_mode(ch_num) == 0:
+                        raise Exception(f"Digitizer cannot be in Normal mode for QS sequencer ({dig.name}:{ch_num})")
                 seq_numbers = dig_channel.channel_numbers
                 for seq_nr in seq_numbers:
                     seq = dig.get_sequencer(seq_nr)
