@@ -22,8 +22,7 @@ class VirtualGateMatrices:
             v_gates += vm.virtual_gates
         return v_gates
 
-    @property
-    def virtual_gate_projection(self):
+    def get_virtual_gate_projection(self, physical_channels):
         '''
         Returns a dictionary with per virtual gate name a dictionary
         with real gate names and multipliers.
@@ -31,18 +30,34 @@ class VirtualGateMatrices:
              'vP1': {'P1': 1.0, 'P2': -0.12},
              'vP2': {'P1': -0.10, 'P2': 1.0},
         '''
-        # first create dictionary with all v_gates and their matrix
-        v_gates = {}
+        gates = list(physical_channels)
+        projection_matrix = np.eye(len(gates))
+
         for vm in self._virtual_matrices.values():
-            for gate in vm.virtual_gates:
-                v_gates[gate] = vm
 
-        vg_map = {}
-        for v_gate in v_gates:
-            combination = self._get_combination(v_gate, v_gates)
-            vg_map[v_gate] = combination.gate_multipliers
+            real_gates = vm.real_gates
+            v2r = vm.v2r_matrix
+            # select real gate columns from projection matrix
+            col_indices = [gates.index(gate) for gate in real_gates]
+            m = projection_matrix[:, col_indices]
+            # multiply and concatenate
+            p_new = m @ v2r
 
-        return vg_map
+            projection_matrix = np.concatenate([projection_matrix, p_new], axis=-1)
+            # add virtual gates to gate list
+            gates += vm.virtual_gates
+
+        # return map....
+        result = {}
+        for i, gate in enumerate(gates):
+            gate_values = {}
+            result[gate] = gate_values
+            for j, real_gate in enumerate(physical_channels):
+                value = projection_matrix[j, i]
+                if np.abs(value) > 1e-4:
+                    gate_values[real_gate] = value
+
+        return result
 
     def add(self, name, real_gate_names, virtual_gate_names, matrix,
             real2virtual=False,
@@ -124,35 +139,4 @@ class VirtualGateMatrices:
         self._virtual_matrices[name] = vgm
 
 
-    def _get_combination(self, gate, v_gates):
-        '''
-        Resolves virtual gate to real gate projection.
-        '''
-        vm = v_gates[gate]
-        iv = vm.virtual_gates.index(gate)
-        multipliers = vm.v2r_matrix[:,iv]
-        combination = GateCombination()
-        for ir,r_gate in enumerate(vm.real_gates):
-            if r_gate in v_gates:
-                combination.add_virtual(
-                        self._get_combination(r_gate, v_gates),
-                        multipliers[ir]
-                        )
-            else:
-                combination.add_real(r_gate, multipliers[ir])
-        return combination
 
-
-
-class GateCombination:
-    def __init__(self):
-        self.gate_multipliers = {}
-
-    def add_real(self, gate, multiplier):
-        self.gate_multipliers.setdefault(gate, 0)
-        self.gate_multipliers[gate] += multiplier
-
-    def add_virtual(self, gate_combination, multiplier):
-        for gate,m in gate_combination.gate_multipliers.items():
-            self.gate_multipliers.setdefault(gate, 0)
-            self.gate_multipliers[gate] += m*multiplier

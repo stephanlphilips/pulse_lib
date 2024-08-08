@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.29] - 2024-08-08
+
+- Big performance improvement in virtual matrix processing during compilation.
+
 ## \[1.7.28] - 2024-08-07
 
 - Fixed Keysight_QS for acquisitions > 2.1 s.

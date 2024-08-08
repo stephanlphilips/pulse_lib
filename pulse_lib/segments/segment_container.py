@@ -44,6 +44,7 @@ class segment_container():
         """
         # physical + virtual channels + digitizer channels
         self.channels = {}
+        self.physical_channels = channel_names
         self.render_mode = False
         self._total_times = None
         self._render_shape = None
@@ -483,7 +484,8 @@ def add_reference_channels(segment_container_obj, virtual_gate_matrices, IQ_chan
         seg_ch.add_reference_markers = list()
 
     if virtual_gate_matrices:
-        for virtual_gate_name,virt2real in virtual_gate_matrices.virtual_gate_projection.items():
+        projection = virtual_gate_matrices.get_virtual_gate_projection(segment_container_obj.physical_channels)
+        for virtual_gate_name,virt2real in projection.items():
             for real_gate_name, multiplier in virt2real.items():
                 if abs(multiplier) > 1E-4:
                     real_channel = segment_container_obj[real_gate_name]
