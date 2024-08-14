@@ -76,6 +76,15 @@ def read_channels(pulselib, t_measure, channels=None, sample_rate=None, iq_mode=
         sequence.set_acquisition(sample_rate=sample_rate)
 
     param = sequence.get_measurement_param(upload='auto', iq_mode=iq_mode)
+
+    parameters = dict(
+        t_measure=dict(label="t_measure", value=t_measure, unit="ns"),
+        iq_mode=iq_mode,
+        )
+    if sample_rate is not None:
+        parameters['sample_rate'] = dict(label="sample_rate", value=sample_rate, unit="Sa/s")
+    param.update_snapshot(snapshot_extra={"parameters": parameters})
+
     return param
 
 
@@ -138,4 +147,16 @@ def scan_resonator_frequency(
         )
 
     param = sequence.get_measurement_param(upload='auto', iq_mode=iq_mode)
+    parameters = dict(
+        t_measure=dict(label="t_measure", value=t_measure, unit="ns"),
+        f_start=dict(label="f_start", value=f_start, unit="Hz"),
+        f_stop=dict(label="f_stop", value=f_stop, unit="Hz"),
+        f_step=dict(label="f_step", value=f_step, unit="Hz"),
+        iq_mode=iq_mode,
+        )
+    if average_repetitions:
+        parameters['average_repetitions'] = average_repetitions
+        parameters['n_rep'] = n_rep
+    param.update_snapshot(snapshot_extra={"parameters": parameters})
+
     return param

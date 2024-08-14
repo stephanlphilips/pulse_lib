@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+from typing import Any, Dict, Optional
 from qcodes import MultiParameter
 
 import numpy as np
@@ -144,10 +146,30 @@ def fast_scan1D_param(pulse_lib, gate, swing, n_pt, t_step,
         logger.info('Upload')
         my_seq.upload()
 
+    parameters = dict(
+            gate=gate,
+            swing=dict(label="swing", value=swing, unit="mV"),
+            n_pt=n_pt,
+            t_measure=dict(label="t_measure", value=t_step, unit="ns"),
+            biasT_corr=biasT_corr,
+            iq_mode=iq_mode,
+            acquisition_delay=dict(
+                label="acquisition_delay",
+                value=acquisition_delay_ns,
+                unit="ns"),
+            enabled_markers=enabled_markers,
+            pulse_gates={
+                name: dict(label=name, value=value, unit="mV")
+                for name, value in pulse_gates
+                },
+            line_margin=line_margin,
+            )
+
     return _scan_parameter(pulse_lib, my_seq, t_step,
                            (n_pt, ), (gate, ), (tuple(voltages_sp), ),
                            biasT_corr, channel_map=channel_map,
-                           reload_seq=reload_seq)
+                           reload_seq=reload_seq,
+                           snapshot_extra={"parameters": parameters})
 
 
 def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_step,
@@ -309,10 +331,33 @@ def fast_scan2D_param(pulse_lib, gate1, swing1, n_pt1, gate2, swing2, n_pt2, t_s
         logger.info('Seq upload')
         my_seq.upload()
 
+    parameters = dict(
+            gate1=gate1,
+            swing1=dict(label="swing1", value=swing1, unit="mV"),
+            n_pt1=n_pt1,
+            gate2=gate2,
+            swing2=dict(label="swing2", value=swing2, unit="mV"),
+            n_pt2=n_pt2,
+            t_measure=dict(label="t_measure", value=t_step, unit="ns"),
+            biasT_corr=biasT_corr,
+            iq_mode=iq_mode,
+            acquisition_delay=dict(
+                label="acquisition_delay",
+                value=acquisition_delay_ns,
+                unit="ns"),
+            enabled_markers=enabled_markers,
+            pulse_gates={
+                name: dict(label=name, value=value, unit="mV")
+                for name, value in pulse_gates
+                },
+            line_margin=line_margin,
+            )
+
     return _scan_parameter(pulse_lib, my_seq, t_step,
                            (n_pt2, n_pt1), (gate2, gate1),
                            (tuple(voltages2_sp), (tuple(voltages1_sp),)*n_pt2),
-                           biasT_corr, channel_map, reload_seq=reload_seq)
+                           biasT_corr, channel_map, reload_seq=reload_seq,
+                           snapshot_extra={"parameters": parameters})
 
 
 def _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex):
@@ -339,7 +384,7 @@ def _get_channels(pulse_lib, channel_map, channels, iq_mode, iq_complex):
                 for postfix, func, unit in ch_funcs:
                     channel_map[name+postfix] = (name, func, unit)
             else:
-                channel_map[name] = (name, lambda x:x, 'mV')
+                channel_map[name] = (name, None, 'mV')
 
     return acq_channels, channel_map
 
@@ -349,7 +394,7 @@ class _scan_parameter(MultiParameter):
     generator for the parameter f
     """
     def __init__(self, pulse_lib, my_seq, t_measure, shape, names, setpoint,
-                 biasT_corr, channel_map, reload_seq):
+                 biasT_corr, channel_map, reload_seq, snapshot_extra):
         """
         args:
             pulse_lib (pulselib): pulse library object
@@ -365,6 +410,7 @@ class _scan_parameter(MultiParameter):
             reload_seq (bool):
                 If True the sequence is uploaded for every scan.
                 This gives makes the scan a bit slower, but allows to sweep all pulse-lib settings.
+            snapshot_extra (dict<str, any>): snapshot
         """
         self.my_seq = my_seq
         self.pulse_lib = pulse_lib
@@ -377,6 +423,16 @@ class _scan_parameter(MultiParameter):
         self.reload_seq = reload_seq
         units = tuple(unit for _, _, unit in channel_map.values())
         n_out_ch = len(self.channel_names)
+
+        channel_map_snapshot = {}
+        for name, mapping in channel_map.items():
+            channel_map_snapshot[name] = {
+                "channel": mapping[0],
+                "func": getattr(mapping[1], "__name__", str(mapping[1])),
+                "unit": mapping[2],
+                }
+        snapshot_extra["parameters"]["channel_map"] = channel_map_snapshot
+        self._snapshot_extra = snapshot_extra
 
         super().__init__(
             name='fastScan',
@@ -406,7 +462,10 @@ class _scan_parameter(MultiParameter):
         for ch, func, _ in self.channel_map.values():
             # channel data already is in mV
             ch_data = raw_dict[ch]
-            data.append(func(ch_data))
+            if func is not None:
+                data.append(func(ch_data))
+            else:
+                data.append(ch_data)
 
         # make sure that data is put in the right order.
         data_out = [np.zeros(self.shape, dtype=d.dtype) for d in data]
@@ -421,6 +480,14 @@ class _scan_parameter(MultiParameter):
                 data_out[i] = ch_data
 
         return tuple(data_out)
+
+    def snapshot_base(self,
+                      update: Optional[bool] = True,
+                      params_to_skip_update: Optional[Sequence[str]] = None
+                      ) -> Dict[Any, Any]:
+        snapshot = super().snapshot_base(update, params_to_skip_update)
+        snapshot.update(self._snapshot_extra)
+        return snapshot
 
     def stop(self):
         if not self.my_seq is None and not self.pulse_lib is None:
