@@ -1,37 +1,13 @@
 import qcodes as qc
 
-from qblox_instruments import Pulsar
 from qblox_instruments import Cluster, ClusterType
 
 try:
-    from q1simulator import Q1Simulator
+    from q1simulator import Cluster as SimCluster
     _q1simulator_found = True
 except:
     print('package q1simulator not found')
     _q1simulator_found = False
-
-
-def add_module(module_type, name, ip_addr):
-    if name in station.components:
-        pulsar = station[name]
-    else:
-        if _use_simulator:
-            if not _q1simulator_found:
-                raise Exception('q1simulator not found')
-            pulsar = Q1Simulator(name, sim_type=module_type)
-            # pulsar.config('trace', True)
-        elif _use_dummy:
-            print(f'Starting {module_type} {name} dummy')
-            pulsar = Pulsar(name, ip_addr, dummy_type='Pulsar '+module_type)
-            pulsar.is_dummy = True
-        else:
-            print(f'Connecting {module_type} {name} on {ip_addr}...')
-            pulsar = Pulsar(name, ip_addr)
-
-        station.add_component(pulsar)
-
-    pulsar.reset()
-    return pulsar
 
 if not qc.Station.default:
     station = qc.Station()
@@ -41,45 +17,41 @@ else:
 
 _use_simulator = True
 _use_dummy = False
-_use_cluster = False
 
+try:
+    cluster = station['Qblox_Cluster']
+    cluster.reset()
+    qcm0 = cluster.module8
+    qrm1 = cluster.module10
+except:
+    if _use_simulator:
+        cfg = {
+            8: "QCM",
+            10: "QRM",
+            }
+        cluster =  SimCluster('Q1Simulator_Cluster', modules=cfg)
+    elif _use_dummy:
+        cfg = {
+            8: ClusterType.CLUSTER_QCM,
+            10: ClusterType.CLUSTER_QRM
+            }
+        cluster = Cluster('Qblox_Cluster', '192.168.0.2', dummy_cfg=cfg)
+        # set property is_dummy to use in Q1Pulse state checking
+        cluster.is_dummy = True
+    else:
+        cluster = Cluster('Qblox_Cluster', '192.168.0.2')
 
-if _use_cluster:
-    try:
-        cluster = station['Qblox_Cluster']
-        cluster.reset()
-        qcm0 = cluster.module8
-        qrm1 = cluster.module10
-    except:
-        dummy_cfg = None
-        if _use_dummy:
-            cfg = {
-                8:ClusterType.CLUSTER_QCM,
-                10:ClusterType.CLUSTER_QRM
-                }
-            cluster = Cluster('Qblox_Cluster', '192.168.0.2', dummy_cfg=cfg)
-            # set property is_dummy to use in Q1Pulse state checking
-            cluster.is_dummy = True
-        else:
-            cluster = Cluster('Qblox_Cluster', '192.168.0.2')
+    station.add_component(cluster)
+    cluster.reset()
 
-        station.add_component(cluster)
-        cluster.reset()
+    print('Cluster:')
+    print(cluster.get_system_status())
+    for module in cluster.modules:
+        if module.present():
+            rf = '-RF' if module.is_rf_type else ''
+            print(f'  slot {module.slot_idx}: {module.module_type}{rf}')
 
-        print(f'Cluster:')
-        print(cluster.get_system_state())
-        for module in cluster.modules:
-            if module.present():
-                rf = '-RF' if module.is_rf_type else ''
-                print(f'  slot {module.slot_idx}: {module.module_type}{rf}')
-
-        qcm0 = cluster.module8
-        qrm1 = cluster.module10
-        station.add_component(qcm0)
-        station.add_component(qrm1)
-else:
-    qcm0 = add_module('QCM', 'qcm0', '192.168.0.2')
-    qrm1 = add_module('QRM', 'qrm1', '192.168.0.3')
-
-    qcm0.reference_source('internal')
-    qrm1.reference_source('external')
+    qcm0 = cluster.module8
+    qrm1 = cluster.module10
+    station.add_component(qcm0)
+    station.add_component(qrm1)
