@@ -1,5 +1,6 @@
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Tuple, List
+from typing import Any, Dict, List, Optional, Tuple
 from numbers import Number
 import logging
 import numpy as np
@@ -89,6 +90,10 @@ class MeasurementParameter(MultiParameter):
         self._mc = mc
         self._data_selection = data_selection
         self._derived_params = {}
+        self._snapshot_extra = {}
+
+    def update_snapshot(self, snapshot_extra: Dict[str, Any]):
+        self._snapshot_extra.update(snapshot_extra)
 
     def add_derived_param(self, name, func, label=None, unit='mV',
                           time_trace=False,
@@ -235,6 +240,14 @@ class MeasurementParameter(MultiParameter):
                 data_map[name] = dp_data
 
         return data
+
+    def snapshot_base(self,
+                      update: Optional[bool] = True,
+                      params_to_skip_update: Optional[Sequence[str]] = None
+                      ) -> Dict[Any, Any]:
+        snapshot = super().snapshot_base(update, params_to_skip_update)
+        snapshot.update(self._snapshot_extra)
+        return snapshot
 
 
 class MeasurementConverter:
@@ -489,7 +502,10 @@ class MeasurementConverter:
                 else:
                     funcs = iq_mode2func(selection.iq_mode)
                     for _, func, _ in funcs:
-                        data.append(func(raw))
+                        if func is not None:
+                            data.append(func(raw))
+                        else:
+                            data.append(raw)
         if selection.states:
             data += self._states
         if selection.values:

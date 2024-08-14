@@ -6,7 +6,7 @@ def iq_mode2func(iq_mode):
         list[Tuple[str, func[np.array]->np.array], str]
     '''
     func_map = {
-        'Complex': [('', lambda x:x, 'mV')],
+        'Complex': [('', None, 'mV')],
         'I': [('', np.real, 'mV')],
         'Q': [('', np.imag, 'mV')],
         'amplitude': [('', np.abs, 'mV')],
