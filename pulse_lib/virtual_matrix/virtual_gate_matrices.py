@@ -11,16 +11,17 @@ class VirtualGateMatrices:
     '''
     def __init__(self):
         self._virtual_matrices = {}
+        self._projection_cache_physical_channels = None
+        self._projection_cache_matrices = []
+        self._projection_cache_projection = None
+        self._virtual_gate_names = []
 
     @property
     def virtual_gate_names(self):
         '''
         Returns names of all virtual gates in all virtual gate matrices.
         '''
-        v_gates = []
-        for vm in self._virtual_matrices.values():
-            v_gates += vm.virtual_gates
-        return v_gates
+        return self._virtual_gate_names
 
     def get_virtual_gate_projection(self, physical_channels):
         '''
@@ -30,6 +31,16 @@ class VirtualGateMatrices:
              'vP1': {'P1': 1.0, 'P2': -0.12},
              'vP2': {'P1': -0.10, 'P2': 1.0},
         '''
+        # cache physical channels and matrices. Do not recompute if nothing changed.
+        if (self._projection_cache_physical_channels == list(physical_channels)
+            and len(self._virtual_matrices) == len(self._projection_cache_matrices)):
+                for i, vm in enumerate(self._virtual_matrices.values()):
+                    if not np.array_equal(vm._matrix, self._projection_cache_matrices[i]):
+                        break
+                else:
+                    # nothing has changed.
+                    return self._projection_cache_projection
+
         gates = list(physical_channels)
         projection_matrix = np.eye(len(gates))
 
@@ -47,7 +58,7 @@ class VirtualGateMatrices:
             # add virtual gates to gate list
             gates += vm.virtual_gates
 
-        # return map....
+        # return map
         result = {}
         for i, gate in enumerate(gates):
             gate_values = {}
@@ -56,6 +67,12 @@ class VirtualGateMatrices:
                 value = projection_matrix[j, i]
                 if np.abs(value) > 1e-4:
                     gate_values[real_gate] = value
+
+        self._projection_cache_physical_channels = list(physical_channels)
+        self._projection_cache_matrices = []
+        for vm in self._virtual_matrices.values():
+            self._projection_cache_matrices.append(vm._matrix.copy())
+        self._projection_cache_projection = result
 
         return result
 
@@ -138,5 +155,10 @@ class VirtualGateMatrices:
                                 )
         self._virtual_matrices[name] = vgm
 
+        # precompute list with virtual gate names
+        v_gates = []
+        for vm in self._virtual_matrices.values():
+            v_gates += vm.virtual_gates
+        self._virtual_gate_names = v_gates
 
 

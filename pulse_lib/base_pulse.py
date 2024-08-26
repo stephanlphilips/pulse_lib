@@ -455,6 +455,9 @@ class pulselib:
                 awg_channels=list(self.awg_channels.keys())
                 )
 
+    def get_virtual_gate_projection(self):
+        return self._virtual_matrices.get_virtual_gate_projection(self.awg_channels.keys())
+
     def set_default_hw_schedule_creator(self, hw_schedule_creator):
         self._default_hw_schedule_creator = hw_schedule_creator
 
