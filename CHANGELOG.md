@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.30] - 2024-08-26
+
+- Added update_snapshot() to MeasurementParameter to allow custom snapshot data.
+- Added arguments of fast_scan and read_input to snapshot.
+- Fixed corner case bug in Qblox backend.
+- Fixed bug in time trace with parameter sweeps.
+- Small performance improvement in virtual matrix processing.
+
 ## \[1.7.29] - 2024-08-08
 
 - Big performance improvement in virtual matrix processing during compilation.
