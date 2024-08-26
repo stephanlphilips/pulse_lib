@@ -452,7 +452,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         self._aligned = self._t_wave_end % 4 == 0
 
         # Note: this will be overwritten in _render_ramp.
-        iend = self._t_wave_end - self._t_wave_start
+        iend = self._t_wave_end - self._t_wave_start - 1
         self._equal_voltage = abs(waveform[istart] - waveform[iend]) < _lsb_step
         self._t_constant = 0
 
@@ -805,7 +805,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         if rf_source is not None:
             if isinstance(rf_source.output,str):
                 raise Exception('Qblox RF source must be configured using module name and channel numbers')
-            scaling = 1/(rf_source.attenuation * self.max_output_voltage*1000)
+            scaling = 1/(rf_source.attenuation * self.max_output_voltage*1000) # @@@@ Multiply with sqrt(2)
             self._rf_amplitude = rf_source.amplitude * scaling
             self._n_out_ch = 1 if isinstance(rf_source.output[1], int) else 2
 
