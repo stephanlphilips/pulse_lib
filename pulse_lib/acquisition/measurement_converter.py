@@ -311,7 +311,7 @@ class MeasurementConverter:
             if m.interval is not None and m.aggregate_func is None:
                 n_samples = m.n_samples
                 if not isinstance(n_samples, Number):
-                    n_samples = max(n_samples)
+                    n_samples = np.max(n_samples)
                 if m.f_sweep is None:
                     time = tuple(np.arange(n_samples, dtype=float) * m.interval)
                     sp_raw.append(time, 'time', 'time', 'ns')
@@ -381,7 +381,7 @@ class MeasurementConverter:
                     n_samples = m.n_samples
                     if not isinstance(n_samples, Number):
                         # NOTE: n_samples is an array (loop_obj)
-                        shape = channel_data.shape[:-1]+(max(n_samples),)
+                        shape = channel_data.shape[:-1]+(np.max(n_samples),)
                         channel_raw = np.full(shape, np.nan)
                         n_samples = n_samples[tuple(index)]
                         channel_raw[..., :n_samples] = channel_data[..., data_offset:data_offset+n_samples]

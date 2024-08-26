@@ -406,7 +406,7 @@ class sequencer():
                     else:
                         m.n_samples = np.zeros(t_measure.shape, dtype=int)
                         for i, t in enumerate(t_measure.flat):
-                            m.n_samples[i], m.interval = \
+                            m.n_samples.flat[i], m.interval = \
                                 self.uploader.actual_acquisition_points(m.acquisition_channel,
                                                                         t, sample_rate)
                 else:
@@ -418,7 +418,7 @@ class sequencer():
                 m.aggregate_func = self._acquisition_conf.aggregate_func
             else:
                 m.n_samples = 1
-            if m.n_samples > 0 and self._acquisition_conf.f_sweep is not None:
+            if self._acquisition_conf.f_sweep is not None and np.all(m.n_samples > 0):
                 m.f_sweep = self._acquisition_conf.f_sweep
 
     def get_measurement_param(self, name='seq_measurements', upload=None,
