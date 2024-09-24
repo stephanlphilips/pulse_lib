@@ -61,6 +61,9 @@ class VirtualGateMatrices:
         # return map
         result = {}
         for i, gate in enumerate(gates):
+            if gate in physical_channels:
+                # Only project virtual gates to physical gates. Skip real gates.
+                continue
             gate_values = {}
             result[gate] = gate_values
             for j, real_gate in enumerate(physical_channels):
