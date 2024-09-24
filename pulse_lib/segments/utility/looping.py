@@ -72,7 +72,7 @@ class loop_obj():
             self.labels = labels
 
         if units is None:
-            self.units = tuple(['no_label']*self.ndim)
+            self.units = tuple(['']*self.ndim)
         elif type(units) == str:
             self.units = (units, )
         else:
