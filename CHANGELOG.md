@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.31] - 2024-09-25
+
+- Fixed bug in amplitude of pulses on real channels introduced in v1.7.29.
+
 ## \[1.7.30] - 2024-08-26
 
 - Added update_snapshot() to MeasurementParameter to allow custom snapshot data.
