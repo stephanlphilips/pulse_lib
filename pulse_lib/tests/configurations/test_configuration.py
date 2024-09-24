@@ -77,11 +77,11 @@ class Context:
                     rf = 'RF' if module.is_rf_type else ''
                     print(f'  Add {module.name}: {module.module_type}{rf}')
                     station.add_component(module, module.name)
-#                    try:
-#                        module.config('trace', True)
-#                        module.config('render_repetitions', False)
-#                    except:
-#                        pass
+                    # try:
+                    #     # module.config('trace', True)
+                    #     module.config('render_repetitions', True)
+                    # except:
+                    #     pass
                     if module.is_qcm_type:
                         awgs.append(module)
                     else:
@@ -203,7 +203,7 @@ class Context:
         if drive_with_plungers:
             for i in range(n_qubits):
                 qubit = i+1
-                if backend == 'Keysight_QS':
+                if backend in ['Keysight_QS', 'Qblox']:
                     # Use a new awg channel on the same output to drive the qubit.
                     awg_channel = pulse.awg_channels[f"P{qubit}"]
                     drive_channel_name = f"P{qubit}_drive"
@@ -236,11 +236,11 @@ class Context:
                 iq_channel_name = f'IQ{i+1}'
                 if i == 0:
                     iq_marker = 'M_IQ1'
-                    self._add_marker(iq_marker, setup_ns=100, hold_ns=20)
+                    self._add_marker(iq_marker, setup_ns=50, hold_ns=20)
                     pulse.add_channel_delay(iq_marker, -20)
                 elif i == 1:
                     iq_marker = 'M_IQ2'
-                    self._add_marker(iq_marker, setup_ns=100, hold_ns=20)
+                    self._add_marker(iq_marker, setup_ns=50, hold_ns=20)
                     pulse.add_channel_delay(iq_marker, -20)
                 else:
                     iq_marker = ''
@@ -256,7 +256,7 @@ class Context:
                     for j in range(2):
                         qubit = 2*i+j+1
                         if qubit < n_qubits+1:
-                            resonance_frequency = 2.350e9 + qubit*0.100e9
+                            resonance_frequency = 2.400e9 + qubit*0.020e9
                             pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
                 else:
                     pulse.define_iq_channel(iq_channel_name, i_name=I,
@@ -490,7 +490,7 @@ class Context:
             ion_ctx = pt.ioff()
         for awg in list(pulse.awg_devices.values()) + list(pulse.digitizers.values()):
             if hasattr(awg, 'plot'):
-                # pt.figure()
+                pt.figure()
                 render_kwargs = {}
                 if analogue_out:
                     render_kwargs['analogue'] = True

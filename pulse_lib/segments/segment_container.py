@@ -6,7 +6,6 @@ This object also allows you to do operations on all segments at the same time.
 from pulse_lib.segments.segment_pulse import segment_pulse
 from pulse_lib.segments.segment_IQ import segment_IQ
 from pulse_lib.segments.segment_markers import segment_marker
-from pulse_lib.segments.segment_HVI_variables import segment_HVI_variables
 from pulse_lib.segments.segment_acquisition import segment_acquisition
 from pulse_lib.segments.segment_measurements import segment_measurements
 
@@ -22,13 +21,6 @@ import copy
 from dataclasses import dataclass
 
 class segment_container():
-    '''
-    Class containing all the single segments for for a series of channels.
-    This is a organisational class.
-    Class is capable of termining what volatages are required for each channel.
-    Class returns vmin/vmax data to awg object
-    Class returns upload data as a numpy<double> array to awg object.
-    '''
     def __init__(self, channel_names, markers=[], virtual_gate_matrices=None, IQ_channels_objs=[],
                  digitizer_channels = [],
                  name=None, sample_rate=None, hres=False):
@@ -49,7 +41,6 @@ class segment_container():
         self._total_times = None
         self._render_shape = None
         self.id = uuid.uuid4()
-        self._software_markers = segment_HVI_variables("HVI_markers")
         self._segment_measurements = segment_measurements()
 
         self._virtual_gate_matrices = virtual_gate_matrices
@@ -117,14 +108,12 @@ class segment_container():
                 setattr(new, name,new_chan)
                 new.channels[name] = new_chan
 
-            # No HVI variables on slices.
-            new._software_markers = None
             new._setpoints = self._setpoints # @@@ -1 setpoint...
             new._shape = self._shape[1:]
             if new._shape == ():
                 new._shape = (1,)
 
-            new.is_slice = True
+            new.is_slice = True # @@@ add reference to original segment container.
             new.slice_index = self.slice_index + [index]
             # update the references in of all the channels
 
@@ -140,10 +129,6 @@ class segment_container():
         '''
         for name in self.channels.keys():
             self[name].add(other[name], time)
-
-    @property
-    def software_markers(self):
-        return self._software_markers
 
     @property
     def measurements(self):
@@ -308,10 +293,6 @@ class segment_container():
             if use_end_time_cache:
                 channel._end_times = np.zeros(shape) + channel._end_times
 
-        self._software_markers.data = update_dimension(self._software_markers.data, shape)
-        if use_end_time_cache:
-            self._software_markers._end_times = np.zeros(shape) + self._software_markers._end_times
-
     def wait(self, time, channels=None, reset_time=False):
         '''
         Wait for specified time after current end of all segments.
@@ -379,15 +360,6 @@ class segment_container():
             if len(channels) == 0:
                 self.update_end(stop)
             self.reset_time()
-
-    def add_HVI_variable(self, marker_name, value):
-        """
-        add time for the marker.
-        Args:
-            name (str) : name of the variable
-            value (Any) : value to assign to the variable
-        """
-        self._software_markers._add_HVI_variable(marker_name, value)
 
     def add_measurement_expression(self, expression=None, name=None, accept_if=None):
         '''
@@ -487,11 +459,10 @@ def add_reference_channels(segment_container_obj, virtual_gate_matrices, IQ_chan
         projection = virtual_gate_matrices.get_virtual_gate_projection(segment_container_obj.physical_channels)
         for virtual_gate_name,virt2real in projection.items():
             for real_gate_name, multiplier in virt2real.items():
-                if abs(multiplier) > 1E-4:
-                    real_channel = segment_container_obj[real_gate_name]
-                    virtual_channel_reference_info = virtual_pulse_channel_info(virtual_gate_name,
-                        multiplier, segment_container_obj)
-                    real_channel.add_reference_channel(virtual_channel_reference_info)
+                real_channel = segment_container_obj[real_gate_name]
+                virtual_channel_reference_info = virtual_pulse_channel_info(virtual_gate_name,
+                    multiplier, segment_container_obj)
+                real_channel.add_reference_channel(virtual_channel_reference_info)
 
 
     # define virtual IQ channels
@@ -552,8 +523,6 @@ if __name__ == '__main__':
     seg.q1.reset_time()
     seg.q1.add_chirp(0,100,1.1e9,1.e9, 100)
     seg.q1.wait(10)
-    seg.add_HVI_marker("my_test")
-    # print(seg._software_markers.data)
     # print(seg.setpoint_data)
     # print(a.a.data[2,2,2])
 

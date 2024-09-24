@@ -13,7 +13,6 @@ from configuration.small import init_hardware, init_pulselib
 from utils.plot import plot_awgs
 from projects.qc_utils.dataset_utils import sort_dataset
 
-#from core_tools.HVI2.hvi2_schedule_loader import Hvi2ScheduleLoader
 
 def upload_play(seq):
     seq.upload()

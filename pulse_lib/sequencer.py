@@ -4,11 +4,10 @@ from qcodes import Parameter
 
 from .schedule.hardware_schedule import HardwareSchedule
 from .segments.conditional_segment import conditional_segment
-from .segments.data_classes.data_HVI_variables import marker_HVI_variable
-from .segments.data_classes.data_generic import data_container, parent_data
+from .segments.data_classes.data_generic import parent_data
 from .segments.segment_container import segment_container
 from .segments.segment_measurements import measurement_acquisition
-from .segments.utility.data_handling_functions import find_common_dimension, update_dimension
+from .segments.utility.data_handling_functions import find_common_dimension
 from .segments.utility.setpoint_mgr import setpoint_mgr, setpoint
 from .segments.utility.looping import loop_obj
 from .measurements_description import measurements_description
@@ -16,8 +15,6 @@ from .acquisition.acquisition_conf import AcquisitionConf
 from .acquisition.player import SequencePlayer
 from .acquisition.measurement_converter import MeasurementConverter, DataSelection, MeasurementParameter
 from .compiler.condition_measurements import ConditionMeasurements
-
-from si_prefix import si_format
 
 import time
 from numbers import Number
@@ -69,7 +66,6 @@ class sequencer():
 
         self._n_rep = 1000
         self._sample_rate = 1e9
-        self._HVI_variables = None
         self._alignment = None
         self._acquisition_conf = AcquisitionConf()
         self._measurement_converter = None
@@ -126,13 +122,6 @@ class sequencer():
         return self._total_time
 
     @property
-    def HVI_variables(self):
-        """
-        object that contains variable that can be ported into HVI.
-        """
-        return self._HVI_variables
-
-    @property
     def sample_rate(self):
         return self._sample_rate
 
@@ -146,7 +135,7 @@ class sequencer():
         """
         self._sample_rate = self.uploader.get_effective_sample_rate(rate)
 
-        msg = f"effective sampling rate is set to {si_format(self._sample_rate, precision=1)}Sa/s"
+        msg = f"effective sampling rate is set to {self._sample_rate/1e6:.1f}MSa/s"
         logger.info(msg)
         print("Info : " + msg)
 
@@ -218,8 +207,6 @@ class sequencer():
         self._setpoints = setpoint_data
         self._shape = tuple(self._shape)
         self._sweep_index = [0]*self.ndim
-        self._HVI_variables = data_container(marker_HVI_variable())
-        self._HVI_variables = update_dimension(self._HVI_variables, self.shape)
 
         dig_awg_delay = self._calculate_max_dig_delay()
         self._condition_measurements = ConditionMeasurements(self._measurements_description,
@@ -229,7 +216,6 @@ class sequencer():
         t_tot = np.zeros(self.shape)
 
         for seg_container in self.sequence:
-            self._HVI_variables += seg_container.software_markers.pulse_data_all
             self._condition_measurements.add_segment(seg_container, t_tot)
             self._measurements_description.add_segment(seg_container, t_tot)
             t_tot += seg_container.total_time
@@ -321,7 +307,6 @@ class sequencer():
                     label=(frequency.labels[0],),
                     unit=(frequency.units[0],),
                     setpoint=(frequency.setvals[0],))
-            self._HVI_variables = update_dimension(self._HVI_variables, self.shape)
             self._generate_sweep_params()
         self._qubit_resonance_frequencies[qubit_channel_name] = frequency
 
@@ -568,9 +553,7 @@ class sequencer():
                 upload_job.set_acquisition_conf(self._acquisition_conf)
                 upload_job.qubit_resonance_frequencies = self._qubit_resonance_frequencies
                 if self.hw_schedule is not None:
-                    hvi_markers = self._HVI_variables.item(tuple(index)).HVI_markers
-                    schedule_params = {**self.schedule_params, **hvi_markers}
-                    upload_job.add_hw_schedule(self.hw_schedule, schedule_params)
+                    upload_job.add_hw_schedule(self.hw_schedule, self.schedule_params)
                 if self._condition_measurements.feedback_events:
                     upload_job.set_feedback(self._condition_measurements)
 

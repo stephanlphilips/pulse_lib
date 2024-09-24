@@ -3,7 +3,6 @@ File contains an object that mananges segments. E.g. you are dealing with mutipl
 This object also allows you to do operations on all segments at the same time.
 """
 
-from pulse_lib.segments.segment_HVI_variables import segment_HVI_variables
 from pulse_lib.segments.segment_measurements import segment_measurements
 from pulse_lib.segments.segment_container import segment_container
 from pulse_lib.segments.data_classes.data_generic import map_index
@@ -28,7 +27,6 @@ class conditional_segment:
         self.branches = branches
 
         # software markers and measurements stay empty
-        self._software_markers = segment_HVI_variables("HVI_markers")
         self._segment_measurements = segment_measurements()
 
         # sample_rate must be equal
@@ -47,10 +45,6 @@ class conditional_segment:
 #    @property
 #    def channels(self):
 #        return self.branches[0].channels
-
-    @property
-    def software_markers(self):
-        return self._software_markers
 
     @property
     def measurements(self):
