@@ -1,7 +1,6 @@
 import logging
 import numpy as np
 import re
-from typing import Dict, Union
 
 from qcodes import Parameter
 
@@ -379,7 +378,7 @@ class pulselib:
         if marker_name:
             iq_channel.add_marker(marker_name)
 
-    def set_iq_lo(self, iq_channel_name: str, lo: Union[Parameter, float]) -> None:
+    def set_iq_lo(self, iq_channel_name: str, lo: Parameter | float) -> None:
         '''
         Sets the LO frequency (parameter) for the IQ channel.
         Args:
@@ -427,14 +426,14 @@ class pulselib:
     def set_qubit_correction_gain(self, qubit_channel_name, correction_gain_I, correction_gain_Q):
         self.qubit_channels[qubit_channel_name].correction_gain = (correction_gain_I, correction_gain_Q)
 
-    def set_channel_attenuations(self, attenuation_dict: Dict[str, float]):
+    def set_channel_attenuations(self, attenuation_dict: dict[str, float]):
         for channel, attenuation in attenuation_dict.items():
             if channel not in self.awg_channels:
                 logger.info(f'Channel {channel} defined in hardware, but not in pulselib; skipping channel')
                 continue
             self.awg_channels[channel].attenuation = attenuation
 
-    def get_channel_attenuations(self) -> Dict[str, float]:
+    def get_channel_attenuations(self) -> dict[str, float]:
         return {c.name: c.attenuation for c in self.awg_channels.values()}
 
     def add_virtual_matrix(self, name,
