@@ -83,9 +83,9 @@ def test4():
 
     m_param2D = fast_scan2D_param(
             pulse,
-            'P1', 100, 51,
-            'P2', 20, 21,
-            2000,
+            'P1', 100, 6,
+            'P2', 20, 5,
+            20_000,
             iq_mode='amplitude+phase')
 
 

@@ -9,7 +9,7 @@ def test1():
     pulse = context.init_pulselib(n_gates=1, n_sensors=2, rf_sources=True)
 
     scan_param = scan_resonator_frequency(
-        pulse, 'SD1', 500, 100e6, 200e6, 1e6, iq_mode='I+Q')
+        pulse, 'SD2', 500, 100e6, 200e6, 1e6, iq_mode='I+Q')
 
     return context.run('freq_scan', scan_param)
 
@@ -18,7 +18,7 @@ def test2():
     pulse = context.init_pulselib(n_gates=1, n_sensors=2, rf_sources=True)
 
     scan_param = scan_resonator_frequency(
-        pulse, 'SD1', 500, 100e6, 200e6, 30e6,
+        pulse, 'SD2', 500, 100e6, 200e6, 30e6,
         n_rep=10,
         iq_mode='I+Q')
 
@@ -29,7 +29,7 @@ def test3():
     pulse = context.init_pulselib(n_gates=1, n_sensors=2, rf_sources=True)
 
     scan_param = scan_resonator_frequency(
-        pulse, 'SD1', 500, 100e6, 200e6, 10e6,
+        pulse, 'SD2', 500, 100e6, 200e6, 10e6,
         n_rep=10,
         average_repetitions=True,
         iq_mode='I+Q')
