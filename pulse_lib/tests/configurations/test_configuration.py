@@ -256,7 +256,7 @@ class Context:
                     for j in range(2):
                         qubit = 2*i+j+1
                         if qubit < n_qubits+1:
-                            resonance_frequency = 2.400e9 + qubit*0.020e9
+                            resonance_frequency = 2.400e9 + qubit*0.050e9
                             pulse.define_qubit_channel(f"q{qubit}", iq_channel_name, resonance_frequency)
                 else:
                     pulse.define_iq_channel(iq_channel_name, i_name=I,
