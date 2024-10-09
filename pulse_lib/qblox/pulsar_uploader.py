@@ -889,7 +889,7 @@ class UploadAggregator:
             elif isinstance(e, custom_pulse_element):
                 raise Exception('Custom pulses are not supported for IQ channel')
             else:
-                raise Exception('Unknown pulse element {type(e)}')
+                raise Exception(f'Unknown pulse element {type(e)}')
 
     def add_acquisition_channel(self, job, digitizer_channel):
         for name in job.schedule_params:
