@@ -6,7 +6,7 @@ print('packages: %s' % packages)
 
 
 setup(name="pulse_lib",
-	version="1.7.31",
+	version="1.7.32",
 	packages = find_packages(),
     python_requires=">=3.7",
     install_requires=[
