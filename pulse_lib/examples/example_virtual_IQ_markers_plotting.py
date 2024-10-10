@@ -61,7 +61,6 @@ def create_seq(pulse_lib):
     s.P2.add_block(0, 1e5, 120)
     s.vP4.add_block(1e4, 9e4, 120)
     s.reset_time()
-    s.add_HVI_marker('ping', 99)
 
 
     # segment without data. Will be used for DC compensation with low sample rate

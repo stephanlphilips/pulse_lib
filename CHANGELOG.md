@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.32] - 2024-10-10
+
+- Optimized off resonant pulses for Qblox to use less memory.
+- Added optional, loopable kwargs to add_MW_pulse for AM and PM.
+- Require Python >= 3.10 and numpy >= 1.24, < 2.0
+- Remove HVI variables from segments.
+
 ## \[1.7.31] - 2024-09-25
 
 - Fixed bug in amplitude of pulses on real channels introduced in v1.7.29.

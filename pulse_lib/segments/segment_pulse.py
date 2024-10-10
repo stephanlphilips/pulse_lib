@@ -189,33 +189,3 @@ class segment_pulse(segment_base):
     def __copy__(self):
         cpy = segment_pulse(self.name)
         return self._copy(cpy)
-
-
-
-if __name__ == '__main__':
-
-    from pulse_lib.segments.segment_HVI_variables import segment_HVI_variables
-    test_HVI_marker = segment_HVI_variables("name")
-
-    s = segment_pulse("test", test_HVI_marker)
-    from pulse_lib.segments.utility.looping import linspace
-
-    a = tuple()
-    b = tuple()
-    print(a, b, a+b)
-    t2 = linspace(100,500, 20, axis= 0)
-    t = linspace(1,50, 10000, name = "test", unit = "test", axis= 0)
-
-    # s.data_tmp = s.data[0]
-    s.add_block(20, 50, 20)
-    print(s.data[0].total_time)
-    s.add_HVI_marker("test", 15)
-    # s.reset_time()
-    # s.add_block(20, 30, t)
-    # s.wait(10)
-    # s.plot_segment()
-    # plt.show()
-    print(s.setpoints)
-    # print(s.loops)
-    # print(s.units)
-    print(test_HVI_marker.data)

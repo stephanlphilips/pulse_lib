@@ -132,6 +132,7 @@ class SequenceBuilderBase:
     def _set_markers(self, t, value):
         self.seq.set_markers(value, t_offset=t)
 
+    # TODO @@@ improve error message. MW pulse (start, end), MW pulse (start, end)
     def _update_time(self, t, duration):
         if t < self.t_end:
             raise Exception(f'Overlapping pulses {t} < {self.t_end} ({self.name})')
@@ -421,6 +422,8 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
 
     def _add_waveform_data(self, t_start, data, v_start=None):
         n = len(data)
+        if n == 0:
+            return
         t_end = t_start + n
         if not self._rendering:
             self._t_wave_start = PulsarConfig.floor(t_start)
@@ -489,6 +492,8 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         #      This reduces memory usage.
         waveform = self._waveform
         n = t_end - self._t_wave_start
+        if n <= 0:
+            return
         self._play_waveform(self._t_wave_start, waveform[:n].copy())
 
         if t_end < self._t_wave_end:
@@ -549,6 +554,9 @@ class IQSequenceBuilder(SequenceBuilderBase):
         # A time shift should not affect the phase, because the phase is tracked by the NCO.
         t_start = iround(t_start + self.offset_ns)
         t_end = iround(t_end + self.offset_ns)
+        if t_end - t_start == 0:
+            # Nothing to render
+            return
         t_pulse = PulsarConfig.floor(t_start)
         self._update_time_and_markers(t_pulse, t_end-t_pulse)
         self.add_comment(f'MW pulse {waveform.frequency/1e6:6.2f} MHz {waveform.duration} ns')
@@ -563,13 +571,24 @@ class IQSequenceBuilder(SequenceBuilderBase):
         if abs(waveform.frequency) > 1:
             if abs(waveform.frequency) > 400e6:
                 raise Exception(f'Waveform frequency {waveform.frequency/1e6:5.1f} MHz out of range')
-            wave_ids = self.register_sinewave_iq(waveform)
-            self.seq.shaped_pulse(wave_ids[0], amplitude,
-                                  wave_ids[1], amplitude,
-                                  t_offset=t_pulse)
-            # Adjust NCO after driving with other frequency
-            delta_phase = 2*np.pi*waveform.frequency*waveform.duration*1e-9
-            self.shift_phase(PulsarConfig.ceil(t_end-self.offset_ns), delta_phase)
+            w = 2 * np.pi * waveform.frequency * 1e-9
+            if isinstance(waveform.phmod, Number) and isinstance(waveform.amod, Number):
+                self.seq.set_frequency(waveform.frequency + self.nco_frequency, t_offset=t_pulse)
+                phase = waveform.phase + waveform.phmod - (t_start-t_pulse) * w
+                self._add_boxcar_pulse(amplitude * waveform.amod, phase, t_pulse, t_start, t_end)
+                t_pulse_end = PulsarConfig.ceil(t_end)
+                self.seq.set_frequency(self.nco_frequency, t_offset=t_pulse_end)
+                # Adjust NCO after running with other frequency for longer time than the pulse.
+                delta_phase = -w*(PulsarConfig.ceil(t_end)-t_end + t_start-t_pulse)
+                self.shift_phase(PulsarConfig.ceil(t_end)-self.offset_ns, delta_phase)
+            else:
+                wave_ids = self.register_sinewave_iq(waveform)
+                self.seq.shaped_pulse(wave_ids[0], amplitude,
+                                      wave_ids[1], amplitude,
+                                      t_offset=t_pulse)
+                # Adjust NCO after driving with other frequency
+                delta_phase = w*waveform.duration
+                self.shift_phase(PulsarConfig.ceil(t_end)-self.offset_ns, delta_phase)
 
         elif not isinstance(waveform.phmod, Number):
             wave_ids = self.register_sinewave_iq(waveform)
@@ -580,41 +599,44 @@ class IQSequenceBuilder(SequenceBuilderBase):
             # frequency is less than 1 Hz make it 0.
             waveform.frequency = 0
             # phase is constant
-            cycles = waveform.phase + waveform.phmod
+            phase = waveform.phase + waveform.phmod
             if isinstance(waveform.amod, Number):
-                ampI = amplitude * waveform.amod * np.cos(cycles)
-                ampQ = amplitude * waveform.amod * np.sin(cycles)
-                # generate block pulse
-                t_start_offset = t_start % 4
-                t_end_offset = t_end % 4
-                duration = t_end-t_start
-                if duration < 200:
-                    # Create square waveform with offset
-                    wave_id = self._register_squarewave(t_start_offset, duration)
-                    self.seq.shaped_pulse(wave_id, ampI, wave_id, ampQ, t_offset=t_pulse)
-                elif t_start_offset == 0 and t_end_offset == 0:
-                    # Create aligned block pulse with offset
-                    self.seq.block_pulse(duration, ampI, ampQ, t_offset=t_start)
-                else:
-                    # Create square waveform for start and end, and use offset in between.
-                    if t_start_offset:
-                        wave_id_start = self._register_squarewave(t_start_offset, 4-t_start_offset)
-                        self.seq.shaped_pulse(wave_id_start, ampI, wave_id_start, ampQ, t_offset=t_pulse)
-                    block_duration = PulsarConfig.floor(t_end) - PulsarConfig.ceil(t_start)
-                    self.seq.block_pulse(block_duration, ampI, ampQ,
-                                         t_offset=PulsarConfig.ceil(t_start))
-                    if t_end_offset:
-                        wave_id_end = self._register_squarewave(0, t_end_offset)
-                        self.seq.shaped_pulse(wave_id_end, ampI, wave_id_end, ampQ, t_offset=t_end-t_end_offset)
+                self._add_boxcar_pulse(amplitude * waveform.amod, phase, t_pulse, t_start, t_end)
             else:
                 # phase is accounted for in ampI, ampQ
                 waveform.phase = np.pi/2 # pi/2, because waveform.render uses sin instead of cos.
                 waveform.phmod = 0
-                ampI = amplitude * np.cos(cycles)
-                ampQ = amplitude * np.sin(cycles)
+                ampI = amplitude * np.cos(phase)
+                ampQ = amplitude * np.sin(phase)
                 # same wave for I and Q
                 wave_id = self.register_sinewave(waveform)
                 self.seq.shaped_pulse(wave_id, ampI, wave_id, ampQ, t_offset=t_pulse)
+
+    def _add_boxcar_pulse(self, amplitude, phase, t_pulse, t_start, t_end):
+        ampI = amplitude * np.cos(phase)
+        ampQ = amplitude * np.sin(phase)
+        # generate block pulse
+        t_start_offset = t_start % 4
+        t_end_offset = t_end % 4
+        duration = t_end-t_start
+        if duration < 200:
+            # Create square waveform with offset
+            wave_id = self._register_squarewave(t_start_offset, duration)
+            self.seq.shaped_pulse(wave_id, ampI, wave_id, ampQ, t_offset=t_pulse)
+        elif t_start_offset == 0 and t_end_offset == 0:
+            # Create aligned block pulse with offset
+            self.seq.block_pulse(duration, ampI, ampQ, t_offset=t_pulse)
+        else:
+            # Create square waveform for start and end, and use offset in between.
+            if t_start_offset:
+                wave_id_start = self._register_squarewave(t_start_offset, 4-t_start_offset)
+                self.seq.shaped_pulse(wave_id_start, ampI, wave_id_start, ampQ, t_offset=t_pulse)
+            block_duration = PulsarConfig.floor(t_end) - PulsarConfig.ceil(t_start)
+            self.seq.block_pulse(block_duration, ampI, ampQ,
+                                 t_offset=PulsarConfig.ceil(t_start))
+            if t_end_offset:
+                wave_id_end = self._register_squarewave(0, t_end_offset)
+                self.seq.shaped_pulse(wave_id_end, ampI, wave_id_end, ampQ, t_offset=t_end-t_end_offset)
 
     def _register_squarewave(self, offset, duration):
         wave_id = f'square_{offset}_{duration}'
@@ -639,6 +661,9 @@ class IQSequenceBuilder(SequenceBuilderBase):
         self._update_time_and_markers(t_phase, 0.0)
         # normalize phase to -1.0 .. + 1.0 for Q1Pulse sequencer
         norm_phase = (phase/np.pi + 1) % 2 - 1
+        if -1e-6 < norm_phase < 1e-6:
+            # ignore very small phase shifts
+            return
         self.seq.shift_phase(norm_phase, t_offset=t_phase)
 
     def chirp(self, t_start, t_end, amplitude, start_frequency, stop_frequency):

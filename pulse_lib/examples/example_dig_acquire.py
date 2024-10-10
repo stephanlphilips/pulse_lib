@@ -7,7 +7,6 @@ import qcodes.logger as logger
 from qcodes.logger import start_all_logging
 
 from pulse_lib.tests.hw_schedule_mock import HardwareScheduleMock
-#from core_tools.HVI2.hvi2_schedule_loader import Hvi2ScheduleLoader
 
 from configuration.medium import init_hardware, init_pulselib
 from utils.plot import plot_awgs

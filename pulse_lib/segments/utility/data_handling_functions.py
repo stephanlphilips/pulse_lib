@@ -1,14 +1,15 @@
 import copy
 from functools import wraps
 from dataclasses import dataclass
-from typing import Union, List
 import numpy as np
 
 from pulse_lib.segments.utility.looping import loop_obj
 from pulse_lib.segments.data_classes.data_generic import data_container
 from pulse_lib.segments.utility.setpoint_mgr import setpoint
 
+
 use_end_time_cache = True
+
 
 def find_common_dimension(dim_1, dim_2):
     '''
@@ -174,7 +175,7 @@ def _get_new_dim_loop(current_dim, axis, shape):
 
 def _update_segment_dims(segment, lp, rendering=False):
     data = segment.data if not rendering else segment.pulse_data_all
-    for i,a in enumerate(lp.axis):
+    for i, a in enumerate(lp.axis):
         if (a >= len(data.shape)
             or data.shape[a] != lp.shape[i]
             or (not lp.no_setpoints and a not in segment._setpoints)):
@@ -193,7 +194,7 @@ def _update_segment_dims(segment, lp, rendering=False):
         if new_shape != data.shape:
             if segment.is_slice:
                 # TODO: Fix this with refactored indexing.
-                raise Exception(f'Cannot resize data in slice (Indexing). '
+                raise Exception('Cannot resize data in slice (Indexing). '
                                 'All loop axes must be added before indexing segment.')
             data = update_dimension(data, new_shape)
             if use_end_time_cache:
@@ -214,8 +215,9 @@ def _update_segment_dims(segment, lp, rendering=False):
 
 @dataclass
 class LoopInfo:
-    key: Union[int,str]
-    axes: List[int]
+    key: int | str
+    axes: list[int]
+
 
 _in_loop = False
 def loop_controller(func):
@@ -241,25 +243,26 @@ def loop_controller(func):
             loop_info_args = []
             loop_info_kwargs = []
 
-            for i,arg in enumerate(args):
+            for i, arg in enumerate(args):
                 if isinstance(arg, loop_obj):
                     axes = _update_segment_dims(obj, arg)
                     loop_info_args.append(LoopInfo(i, axes))
 
-            for key,kwarg in kwargs.items():
+            for key, kwarg in kwargs.items():
                 if isinstance(kwarg, loop_obj):
                     axes = _update_segment_dims(obj, kwarg)
                     loop_info_kwargs.append(LoopInfo(key, axes))
 
             data = obj.data
 
-            if data.shape == (1,):
-                obj.data_tmp = data[0]
-                data[0] = func(obj, *args, **kwargs)
-                if use_end_time_cache:
-                    obj._end_times[0] = data[0].end_time
-            elif len(loop_info_args) == 0 and len(loop_info_kwargs) == 0:
-                loop_over_data(func, obj, data, obj._end_times, args, kwargs)
+            if len(loop_info_args) == 0 and len(loop_info_kwargs) == 0:
+                if data.shape == (1,):
+                    obj.data_tmp = data[0]
+                    data[0] = func(obj, *args, **kwargs)
+                    if use_end_time_cache:
+                        obj._end_times[0] = data[0].end_time
+                else:
+                    loop_over_data(func, obj, data, obj._end_times, args, kwargs)
             else:
                 args_cpy = list(args)
                 kwargs_cpy = kwargs.copy()
