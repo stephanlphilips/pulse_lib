@@ -54,7 +54,7 @@ class segment_IQ(segment_base):
         return self.data_tmp
 
     @loop_controller
-    def add_MW_pulse(self, t0, t1, amp, freq, phase = 0, AM = None, PM = None):
+    def add_MW_pulse(self, t0, t1, amp, freq, phase = 0, AM = None, PM = None, **kwargs):
         '''
         Make a sine pulse (generic constructor)
 
@@ -66,12 +66,13 @@ class segment_IQ(segment_base):
             phase (float) : phase of the microwave.
             AM ('str/tuple/function') : function describing an amplitude modulation (see examples in pulse_lib.segments.data_classes.data_IQ)
             PM ('str/tuple/function') : function describing an phase modulation (see examples in pulse_lib.segments.data_classes.data_IQ)
+            kwargs: keyword arguments passed into the AM and PM functions.
         '''
         MW_data = IQ_data_single(t0 + self.data_tmp.start_time,
                                  t1 + self.data_tmp.start_time,
                                  amp, freq,
                                  phase,
-                                 envelope_generator(AM, PM),
+                                 envelope_generator(AM, PM, kwargs),
                                  self.name)
         self.data_tmp.add_MW_data(MW_data)
         return self.data_tmp

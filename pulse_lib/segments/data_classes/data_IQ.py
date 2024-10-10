@@ -1,37 +1,37 @@
-"""
-data class to store IQ based signals.
-"""
+from collections.abc import Callable
+
 from scipy import signal
 import numpy as np
 
 from dataclasses import dataclass
 
+
+EnvelopeFunction = Callable[[float, float, ...], np.ndarray]
+
+
 class envelope_generator():
-    """
-    Object that handles envelope functions that can be used in spin qubit experiments.
-    Key properties
-        * Makes sure average amplitude of the evelope is the one expressed
-        * Executes some subsampling functions to give greater time resolution than the sample rate of the AWG.
-        * Allows for plotting the FT of the envelope function.
-    """
-    def __init__(self, AM_envelope_function = None, PM_envelope_function = None):
+    def __init__(self,
+                 AM_envelope_function: str | tuple[str, ...] | EnvelopeFunction | None = None,
+                 PM_envelope_function: str | tuple[str, ...] | EnvelopeFunction | None = None,
+                 kwargs: dict[str, any] | None = None):
         """
         define envelope funnctions.
         Args
-            AM_envelope_function (str/tuple) : spec of a windowing as defined for the scipy.signal.windows.get_window function
-            AM_envelope_function (lamba M) : (function overload) function where M is the number of points where the evelopen should be rendered for.
-            AM_envelope_function (lamba M) : (function overload) function where M is the number of points where the evelopen should be rendered for.
+            AM_envelope_function ('str/tuple/function') : function describing an amplitude modulation (see examples in pulse_lib.segments.data_classes.data_IQ)
+            PM_envelope_function ('str/tuple/function') : function describing an phase modulation (see examples in pulse_lib.segments.data_classes.data_IQ)
+            kwargs: keyword arguments passed into the AM and PM functions.
         """
         self.AM_envelope_function = AM_envelope_function
         self.PM_envelope_function = PM_envelope_function
+        self.kwargs = kwargs
 
-    def get_AM_envelope(self, delta_t, sample_rate=1):
+    def get_AM_envelope(self, delta_t: float, sample_rate: float = 1.0):
         """
-        Render the envelope for the given waveshape (in init).
+        Render the amplitude envelope for the wave.
 
         Args:
-            delta_t (float) : time of the pulse (5.6 ns)
-            sample_rate (float) : number of samples per second (e.g. 1GS/s)
+            delta_t: time of the pulse [ns]
+            sample_rate: number of samples per second [GSa/s]
 
         Returns:
             envelope (np.ndarray[ndim=1, dtype=double]) : envelope function in DC
@@ -46,17 +46,17 @@ class envelope_generator():
         elif isinstance(self.AM_envelope_function, tuple) or isinstance(self.AM_envelope_function, str):
             envelope = signal.get_window(self.AM_envelope_function, int(n_points*10))[::10][:int(n_points)] #ugly fix
         else:
-            envelope = self.AM_envelope_function(delta_t, sample_rate) # user reponsible to do good subsampling him/herself.
+            envelope = self.AM_envelope_function(delta_t, sample_rate, **self.kwargs)
 
         return envelope
 
-    def get_PM_envelope(self, delta_t, sample_rate=1):
+    def get_PM_envelope(self, delta_t: float, sample_rate: float = 1):
         """
-        Render the envelope for the given waveshape (in init).
+        Return the phase modulation values for the wave.
 
         Args:
-            delta_t (float) : time of the pulse (5.6 ns)
-            sample_rate (float) : number of samples per second (e.g. 1GS/s)
+            delta_t: time of the pulse [ns]
+            sample_rate: number of samples per second [GSa/s]
 
         Returns:
             envelope (np.ndarray[ndim=1, dtype=double]) : envelope function in DC
@@ -71,11 +71,12 @@ class envelope_generator():
         elif isinstance(self.PM_envelope_function, tuple) or isinstance(self.PM_envelope_function, str):
             envelope = signal.get_window(self.PM_envelope_function, int(n_points*10))[::10]
         else:
-            envelope = self.PM_envelope_function(delta_t, sample_rate) # user reponsible to do good subsampling him/herself.
+            envelope = self.PM_envelope_function(delta_t, sample_rate, **self.kwargs)
 
         return envelope
 
-def make_chirp(f_start, f_stop, time0, time1):
+
+def make_chirp(f_start: float, f_stop: float, time0: float, time1: float):
     '''
     Make a chirp.
 
@@ -86,7 +87,7 @@ def make_chirp(f_start, f_stop, time0, time1):
 
     chirp_constant = (f_stop - f_start)/(time1*1e-9-time0*1e-9)/2
 
-    def my_chirp(delta_t, sample_rate = 1):
+    def my_chirp(delta_t: float, sample_rate: float = 1.0):
         """
         Function that makes a phase envelope to make a chirped pulse
 
@@ -105,13 +106,14 @@ def make_chirp(f_start, f_stop, time0, time1):
 
     return my_chirp
 
+
 @dataclass
 class IQ_data_single:
-    start : float = 0
-    stop : float = 0
-    amplitude : float = 1
-    frequency : float = 0
-    phase_offset : float = 0
+    start : float = 0.0
+    stop : float = 0.0
+    amplitude : float = 1.0
+    frequency : float = 0.0
+    phase_offset : float = 0.0
     ''' offset from coherent pulse  '''
     envelope : envelope_generator = None
     ref_channel : str = None
@@ -121,6 +123,7 @@ class IQ_data_single:
     def start_phase(self):
         ''' Old name for phase_offset '''
         return self.phase_offset
+
 
 @dataclass
 class Chirp:
@@ -137,6 +140,7 @@ class Chirp:
         return make_chirp(self.start_frequency,
                           self.stop_frequency,
                           self.start, self.stop)
+
 
 if __name__ == '__main__':
 
