@@ -217,7 +217,11 @@ class PulsarUploader:
                                       self.marker_sequencers, self.seq_markers
                                       )
 
-        aggregator.build(job)
+        try:
+            aggregator.build(job)
+        except Exception:
+            logger.error(f"Error during compilation:\n{job.program.describe()}")
+            raise
 
         duration = time.perf_counter() - start
         logger.info(f'generated upload data {job.index} ({duration*1000:6.3f} ms)')
@@ -743,6 +747,9 @@ class UploadAggregator:
             data = seg_ch._get_data_all_at(job.index)
             if PulsarUploader.resolution_1ns:
                 seq.hres = data._hres
+            # NOTE: break_ramps ensures that there is all ramps are
+            # broken at start/end of sine and custom pulses.
+            # Elements are ordered such that the ramps are added as last.
             entries = data.get_data_elements(break_ramps=True)
             for e in entries:
                 # NOTE: alignment is done in VoltageSequenceBuilder

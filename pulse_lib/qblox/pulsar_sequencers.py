@@ -69,6 +69,8 @@ class MarkerEvent:
     '''
 
 class SequenceBuilderBase:
+    verbose = False
+
     def __init__(self, name, sequencer):
         self.name = name
         self.seq = sequencer
@@ -157,6 +159,9 @@ class SequenceBuilderBase:
         for i in range(self.imarker, len(self.markers)):
             marker = self.markers[i]
             self._set_markers(marker.time, marker.enabled_markers)
+        if self.verbose:
+            wavelengths = {name:len(wave.data) for name, wave in self.seq._waves._waves.items()}
+            logger.info(f"waveforms: {wavelengths} ({sum(wavelengths.values())})")
 
 
 # Range is -1.0 ... +1.0 with 16 bits => 2 / 2**16
@@ -294,9 +299,11 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         # NOTE:
         # pulsar_uploader and data_pulse should make sure that custom_pulse and sin are added
         # before the ramp. No custom pulse or sin should start during a ramp.
-
         # There can be multiple ramps during 1 custom pulse. data_pulse sorts ramps and pulses.
+        # No pulses will be added with a start time earlier than the previous one.
 
+        if self.verbose:
+            logger.info(f"ramp {t_start}, {t_end}, {v_start}, {v_end}")
         if self._hres:
             t_start = PulsarConfig.hres_round(t_start)
             t_end = PulsarConfig.hres_round(t_end)
@@ -350,6 +357,8 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             self._render_ramp(t_start, t_end, v_start, v_end)
 
     def add_sin(self, t_start, t_end, amplitude, frequency, phase):
+        if self.verbose:
+            logger.info(f"sin {t_start}, {t_end}")
         if self._hres:
             t_start = PulsarConfig.hres_round(t_start)
             t_end = PulsarConfig.hres_round(t_end)
@@ -424,6 +433,8 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         n = len(data)
         if n == 0:
             return
+        if t_start < self._t_wave_start:
+            raise Exception(f"Error in rendering cannot start in past {t_start} < {self._t_wave_start}")
         t_end = t_start + n
         if not self._rendering:
             self._t_wave_start = PulsarConfig.floor(t_start)
@@ -467,10 +478,6 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
     def _emit_waveform_part(self, t_start):
         if not self._rendering:
             return
-        # do not emit if there is already data after t_start
-        if t_start < self._t_wave_end:
-            # TODO check if significant part before t_start can be emitted.
-            return
         t_start = PulsarConfig.floor(t_start)
         if self._wave_length > PulsarConfig.EMIT_LENGTH1 and self._equal_voltage and (
                 self._aligned or self._t_constant >= 4):
@@ -488,13 +495,16 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         # TODO optimize: Chop off constant part and use set_offset
         #      This reduces memory usage and could result in more reuse of waveforms in certain cases.
 
-        # TODO Chop off constant part with v = 0.0
+        # TODO Chop off constant part (at end) with v = 0.0
         #      This reduces memory usage.
         waveform = self._waveform
         n = t_end - self._t_wave_start
+        if self.verbose:
+            logger.info(f"EMIT waveform {t_end}: {n}")
         if n <= 0:
             return
         self._play_waveform(self._t_wave_start, waveform[:n].copy())
+        self._t_wave_start = t_end
 
         if t_end < self._t_wave_end:
             # copy remainder
@@ -502,7 +512,6 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             remainder = self._t_wave_end - t_end
             new[:remainder] = waveform[n:n+remainder]
             self._waveform = new
-            self._t_wave_start = t_end
             self._v_start = new[0]
             self._wave_length = self._t_wave_end - self._t_wave_start
         else:
