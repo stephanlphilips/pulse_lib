@@ -10,7 +10,6 @@ setup(name="pulse_lib",
 	packages = find_packages(),
     python_requires=">=3.10",
     install_requires=[
-            'si_prefix',
             'qcodes >= 0.27.0',
             'numpy >= 1.24, < 2.0',
             'scipy',
