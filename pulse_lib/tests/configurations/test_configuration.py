@@ -1,6 +1,6 @@
 import logging
-import os
 import math
+import os
 from collections.abc import Sequence
 from functools import partial
 from numbers import Number
@@ -33,6 +33,8 @@ logger = logging.getLogger(__name__)
 
 def init_logging():
     start_all_logging()
+    logging.getLogger("qcodes").setLevel(logging.INFO)
+    logging.getLogger("matplotlib").setLevel(logging.INFO)
     qc_logger.get_console_handler().setLevel(logging.WARN)
     qc_logger.get_file_handler().setLevel(logging.DEBUG)
 
@@ -480,6 +482,7 @@ class Context:
     def plot_awgs(self, sequence, index=None, print_acquisitions=False,
                   analogue_out=False, savefig=False,
                   analogue_shift=0.0,
+                  create_figure=True,
                   **kwargs):
         self.last_sequence = sequence
         job = sequence.upload(index)
@@ -490,7 +493,8 @@ class Context:
             ion_ctx = pt.ioff()
         for awg in list(pulse.awg_devices.values()) + list(pulse.digitizers.values()):
             if hasattr(awg, 'plot'):
-                pt.figure()
+                if create_figure:
+                    pt.figure()
                 render_kwargs = {}
                 if analogue_out:
                     render_kwargs['analogue'] = True
