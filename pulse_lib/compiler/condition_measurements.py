@@ -54,7 +54,6 @@ class FeedbackEvent:
         self._reset_times = np.fmax(self._reset_times, end_times)
 
 
-
 class ConditionMeasurements:
     def __init__(self, measurements_description, uploader, max_awg_to_dig_delay):
         self._md = measurements_description
@@ -77,7 +76,7 @@ class ConditionMeasurements:
             return
 
         if not self._supports_conditionals:
-            raise Exception(f'Backend does not support conditional segments')
+            raise Exception('Backend does not support conditional segments')
 
         condition = segment.condition
         seg_end = seg_start_times + segment.total_time
