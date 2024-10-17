@@ -433,6 +433,7 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
             # there is a significant gap
             self._emit_waveform(PulsarConfig.ceil(t_wave_end))
             return
+        t_start = PulsarConfig.floor(t_start)
         if t_gap >= 0:
             t_constant = max(self._t_constant, t_gap)
             aligned = t_wave_end % 4 == 0
@@ -448,7 +449,6 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
                 self._emit_waveform(t_start)
                 return
 
-        t_start = PulsarConfig.floor(t_start)
         length = t_start - self._t_wave_start
         if length > PulsarConfig.EMIT_LENGTH3:
             # it's getting long...
