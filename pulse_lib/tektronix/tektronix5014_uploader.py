@@ -99,9 +99,9 @@ class Tektronix5014_Uploader:
                 raise ValueError(f'amplitude ({amplitude}) out of range [{min_amplitude}, {max_amplitude}] mV')
             ch_num = channel.channel_number
             # NOTE: Tektronix setting is Vpp, not amplitude.
-            awg.set(f'ch{ch_num}_amp', amplitude/1000*2)
+            awg.parameters[f'ch{ch_num}_amp'].set(amplitude/1000*2)
             offset = channel.offset if channel.offset is not None else 0
-            awg.set(f'ch{ch_num}_offset', offset/1000)
+            awg.parameters[f'ch{ch_num}_offset'].set(offset/1000)
 
         for channel in self.marker_channels.values():
             awg = self.awgs[channel.module_name]
@@ -112,16 +112,16 @@ class Tektronix5014_Uploader:
                 channel_number = channel.channel_number[0]
                 marker_number = channel.channel_number[1]
                 if channel.invert: # @@@ doesn't work?
-                    awg.set(f'ch{channel_number}_m{marker_number}_low', amplitude/1000)
-                    awg.set(f'ch{channel_number}_m{marker_number}_high', 0.0)
+                    awg.parameters[f'ch{channel_number}_m{marker_number}_low'].set(amplitude/1000)
+                    awg.parameters[f'ch{channel_number}_m{marker_number}_high'].set(0.0)
                 else:
-                    awg.set(f'ch{channel_number}_m{marker_number}_high', amplitude/1000)
-                    awg.set(f'ch{channel_number}_m{marker_number}_low', 0.0)
+                    awg.parameters[f'ch{channel_number}_m{marker_number}_high'].set(amplitude/1000)
+                    awg.parameters[f'ch{channel_number}_m{marker_number}_low'].set(0.0)
             else:
                 if amplitude > max_amplitude or amplitude < min_amplitude:
                     raise ValueError(f'amplitude ({amplitude}) out of range [{min_amplitude}, {max_amplitude}] mV')
                 ch_num = channel.channel_number
-                awg.set(f'ch{ch_num}_amp', amplitude/1000*2)
+                awg.parameters[f'ch{ch_num}_amp'].set(amplitude/1000*2)
 
     def get_effective_sample_rate(self, sample_rate):
         """
@@ -261,7 +261,7 @@ class Tektronix5014_Uploader:
             awg.set_sqel_goto_state(element_no, 1)
 
             for channel in enable_channels:
-                awg.set(f'ch{channel}_state', 1)
+                awg.parameters[f'ch{channel}_state'].set(1)
 
     def _configure_digitizers(self, job):
         '''
