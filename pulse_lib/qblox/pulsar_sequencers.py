@@ -638,6 +638,12 @@ class IQSequenceBuilder(SequenceBuilderBase):
 
     def chirp(self, t_start, t_end, amplitude, start_frequency, stop_frequency):
         # set NCO frequency if valid. Otherwise set 0.0 to enable modulation
+        if abs(start_frequency) > 450e6 or abs(stop_frequency) > 450e6:
+            raise Exception(f"{self.name}: Chirp frequencies {start_frequency/1e6:5.1f}, "
+                            f"{stop_frequency/1e6:5.1f} MHz out of range")
+        if start_frequency * stop_frequency <= 0.0:
+            raise Exception(f"Qblox does not support chirp through 0.0 Hz. "
+                            f"Chirp({start_frequency/1e6:5.1f}, {stop_frequency/1e6:5.1f} MHz)")
         if self._has_valid_nco_freq():
             self.seq.nco_frequency = self.nco_frequency
         else:
