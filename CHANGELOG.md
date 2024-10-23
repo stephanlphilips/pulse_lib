@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.33] - 2024-10-23
+
+- Improved waveform partitioning in Qblox compiler to reduce memory usage.
+- Added range check on Qblox chirp.
+- Refactored/cleaned Qblox pulse generation
+- Update for qcodes 0.49
+
 ## \[1.7.32] - 2024-10-10
 
 - Optimized off resonant pulses for Qblox to use less memory.
