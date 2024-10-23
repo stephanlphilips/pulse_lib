@@ -5,7 +5,6 @@ import numpy as np
 import logging
 import math
 from dataclasses import dataclass, field
-from typing import Dict, Optional, List, Union
 from numbers import Number
 from packaging.version import Version
 
@@ -13,7 +12,6 @@ from pulse_lib.segments.conditional_segment import conditional_segment
 
 from .rendering import SineWaveform, get_modulation
 from .pulsar_sequencers import (
-        Voltage1nsSequenceBuilder,
         VoltageSequenceBuilder,
         IQSequenceBuilder,
         AcquisitionSequenceBuilder,
@@ -43,7 +41,6 @@ def iround(value):
 class PulsarUploader:
     verbose = False
     output_dir = None
-    resolution_1ns = True
 
     def __init__(self, awg_devices, awg_channels, marker_channels,
                  IQ_channels, qubit_channels, digitizers, digitizer_channels):
@@ -217,7 +214,11 @@ class PulsarUploader:
                                       self.marker_sequencers, self.seq_markers
                                       )
 
-        aggregator.build(job)
+        try:
+            aggregator.build(job)
+        except Exception:
+            logger.error(f"Error during compilation:\n{job.program.describe()}")
+            raise
 
         duration = time.perf_counter() - start
         logger.info(f'generated upload data {job.index} ({duration*1000:6.3f} ms)')
@@ -400,12 +401,12 @@ class PulsarUploader:
 @dataclass
 class AcqDescription:
     seq_id: UUID
-    index: List[int]
-    channels: List[str]
-    acq_data_scaling: Dict[str, Union[float, np.ndarray]]
+    index: list[int]
+    channels: list[str]
+    acq_data_scaling: dict[str, float | np.ndarray]
     n_rep: int
     average_repetitions: bool = False
-    triggers: Optional[List[object]] = None
+    triggers: list[object] | None = None
 
 
 class Job(object):
@@ -539,7 +540,7 @@ class ChannelInfo:
     dc_compensation: bool = False
     dc_compensation_min: float = 0.0
     dc_compensation_max: float = 0.0
-    bias_T_RC_time: Optional[float] = None
+    bias_T_RC_time: float | None = None
     # aggregation state
     integral: float = 0.0
 
@@ -547,7 +548,7 @@ class ChannelInfo:
 @dataclass
 class JobUploadInfo:
     dc_compensation_duration_ns: float = 0.0
-    dc_compensation_voltages: Dict[str, float] = field(default_factory=dict)
+    dc_compensation_voltages: dict[str, float] = field(default_factory=dict)
 
 
 @dataclass
@@ -719,30 +720,26 @@ class UploadAggregator:
         segments = self.segments
         channel_info = self.channels[channel_name]
 
-        t_offset = PulsarConfig.align(self.max_pre_start_ns + channel_info.delay_ns)
-
-        if PulsarUploader.resolution_1ns:
-            seq = Voltage1nsSequenceBuilder(channel_name, self.program[channel_name],
-                                            rc_time=channel_info.bias_T_RC_time)
-        else:
-            seq = VoltageSequenceBuilder(channel_name, self.program[channel_name],
-                                         rc_time=channel_info.bias_T_RC_time)
-        seq.set_time_offset(t_offset)
+        t_offset = iround(self.max_pre_start_ns + channel_info.delay_ns)
+        seq = VoltageSequenceBuilder(channel_name, self.program[channel_name],
+                                     rc_time=channel_info.bias_T_RC_time)
         scaling = 1/(channel_info.attenuation * seq.max_output_voltage*1000)
 
         markers = self.get_markers_seq(job, channel_name)
         seq.add_markers(markers)
 
         for iseg, (seg, seg_render) in enumerate(zip(job.sequence, segments)):
-            seg_start = seg_render.t_start
+            seg_start = seg_render.t_start + t_offset
             if isinstance(seg, conditional_segment):
                 logger.debug(f'conditional for {channel_name}')
                 seg_ch = get_conditional_channel(seg, channel_name)
             else:
                 seg_ch = seg[channel_name]
             data = seg_ch._get_data_all_at(job.index)
-            if PulsarUploader.resolution_1ns:
-                seq.hres = data._hres
+            seq.hres = data._hres
+            # NOTE: break_ramps ensures that there is all ramps are
+            # broken at start/end of sine and custom pulses.
+            # Elements are ordered such that the ramps are added as last.
             entries = data.get_data_elements(break_ramps=True)
             for e in entries:
                 # NOTE: alignment is done in VoltageSequenceBuilder
@@ -772,7 +769,7 @@ class UploadAggregator:
                 else:
                     raise Exception(f'Unknown pulse element {type(e)}')
 
-        t_end = PulsarConfig.ceil(seg_render.t_end)
+        t_end = PulsarConfig.ceil(seg_render.t_end + t_offset)
         seq.wait_till(t_end)
 
         compensation_ns = job.upload_info.dc_compensation_duration_ns
@@ -811,7 +808,7 @@ class UploadAggregator:
                             f'{[[output.awg_channel_name] for output in iq_out_channels]}')
         attenuation = att[0]
 
-        t_offset = PulsarConfig.align(self.max_pre_start_ns + delay)
+        t_offset = iround(self.max_pre_start_ns + delay)
 
         lo_freq = iq_channel.LO
         nco_freq = get_iq_nco_idle_frequency(job, qubit_channel, job.index)
@@ -823,17 +820,16 @@ class UploadAggregator:
 
         scaling = 1/(attenuation * seq.max_output_voltage*1000) # @@@@ Multiply with sqrt(2)
 
-        seq.set_time_offset(t_offset)
         if self.feedback_triggers:
             for trigger in self.feedback_triggers.values():
                 seq.add_trigger_counter(trigger)
-            seq.add_latch_events(job.latch_events)
+            seq.add_latch_events(job.latch_events, t_offset)
 
         markers = self.get_markers_seq(job, channel_name, delay)
         seq.add_markers(markers)
 
         for iseg, (seg, seg_render) in enumerate(zip(job.sequence, segments)):
-            seg_start = seg_render.t_start
+            seg_start = seg_render.t_start + t_offset
             if not isinstance(seg, conditional_segment):
                 seg_ch = seg[channel_name]
                 self._add_iq_data(job, seg_ch, seg_start, scaling, seq, lo_freq)
@@ -846,7 +842,8 @@ class UploadAggregator:
                 m = measurements[0]
                 dig_channel = m.acquisition_channel
                 m_time = job.condition_measurements.get_end_time(m, job.index)
-                t_min = m_time+job.condition_measurements.min_feedback_time
+                # NOTE: t_min uses extremes of configured channel delays
+                t_min = m_time+job.condition_measurements.min_feedback_time + t_offset
                 with seq.conditional([dig_channel], t_min=t_min, t_max=seg_start) as cond:
                     branches = seg.branches
                     with cond.all_set():
@@ -856,7 +853,7 @@ class UploadAggregator:
                         seg_ch = branches[0][channel_name]
                         self._add_iq_data(job, seg_ch, seg_start, scaling, seq, lo_freq)
 
-        t_end = PulsarConfig.ceil(seg_render.t_end)
+        t_end = PulsarConfig.ceil(seg_render.t_end + t_offset)
         seq.wait_till(t_end)
         # add final markers
         seq.finalize()
@@ -910,12 +907,12 @@ class UploadAggregator:
         seq = AcquisitionSequenceBuilder(channel_name, self.program[channel_name], n_rep,
                                          nco_frequency=nco_freq,
                                          rf_source=digitizer_channel.rf_source)
-        seq.set_time_offset(t_offset)
         # NCO delay is 4 ns less than delay between output and input
         seq.nco_delay = digitizer_channel.delay - 4
 
         if digitizer_channel.rf_source is not None:
-            seq.offset_rf_ns = PulsarConfig.align(self.max_pre_start_ns + digitizer_channel.rf_source.delay)
+            # relative offset of rf_source w.r.t. digitizer. Align to keep constant relative offset.
+            seq.offset_rf_ns = PulsarConfig.align(digitizer_channel.rf_source.delay - digitizer_channel.delay)
 
         markers = self.get_markers_seq(job, channel_name)
         seq.add_markers(markers)
@@ -926,7 +923,7 @@ class UploadAggregator:
         acq_threshold_trigger_invert = False
         use_feedback = channel_name in self.feedback_triggers
         for iseg, (seg, seg_render) in enumerate(zip(job.sequence, self.segments)):
-            seg_start = seg_render.t_start
+            seg_start = seg_render.t_start + t_offset
             if isinstance(seg, conditional_segment):
                 logger.debug(f'conditional for {channel_name}')
                 seg_ch = get_conditional_channel(seg, channel_name)
@@ -935,13 +932,14 @@ class UploadAggregator:
             acquisition_data = seg_ch._get_data_all_at(job.index).get_data()
 
             for acquisition in acquisition_data:
+                # TODO align here or in sequencer?
                 t = PulsarConfig.align(acquisition.start + seg_start)
                 t_measure = acquisition.t_measure if acquisition.t_measure is not None else acq_conf.t_measure
                 if t_measure is None:
                     raise Exception('measurement time has not been configured')
                 # if t_measure = -1, then measure till end of sequence. (time trace feature)
                 if t_measure < 0:
-                    t_measure = self.segments[-1].t_end - t
+                    t_measure = self.segments[-1].t_end + t_offset - t
                 t_measure = PulsarConfig.floor(t_measure)
 
                 if acquisition.n_repeat:
@@ -969,7 +967,7 @@ class UploadAggregator:
                                 or acq_threshold_trigger_invert != acquisition.zero_on_high):
                             raise Exception('With feedback all thresholds on a channel must be equal')
 
-        t_end = PulsarConfig.ceil(seg_render.t_end)
+        t_end = PulsarConfig.ceil(seg_render.t_end + t_offset)
         try:
             seq.wait_till(t_end)
         except Exception:

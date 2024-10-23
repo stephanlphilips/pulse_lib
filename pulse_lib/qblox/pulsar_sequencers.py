@@ -2,7 +2,7 @@ import logging
 import math
 from numbers import Number
 from copy import copy
-from typing import Any, List, Dict, Callable
+from typing import Callable
 from dataclasses import dataclass
 from contextlib import contextmanager
 
@@ -26,9 +26,10 @@ def iround(value):
 
 class PulsarConfig:
     ALIGNMENT = 4 # pulses must be aligned on 4 ns boundaries
-    EMIT_LENGTH1 = 150
-    EMIT_LENGTH2 = 250
-    EMIT_LENGTH3 = 500
+    # 8000 samples memory, max 256 waves.
+    EMIT_LENGTH1 = 100
+    EMIT_LENGTH2 = 200
+    EMIT_LENGTH3 = 300
 
     NS_SUB_DIVISION = 5
 
@@ -69,6 +70,8 @@ class MarkerEvent:
     '''
 
 class SequenceBuilderBase:
+    verbose = False
+
     def __init__(self, name, sequencer):
         self.name = name
         self.seq = sequencer
@@ -77,10 +80,6 @@ class SequenceBuilderBase:
         self.t_next_marker = None
         self.imarker = 0
         self.max_output_voltage = sequencer.max_output_voltage
-        self.offset_ns = 0
-
-    def set_time_offset(self, offset_ns):
-        self.offset_ns = offset_ns
 
     def register_sinewave(self, waveform):
         try:
@@ -148,7 +147,6 @@ class SequenceBuilderBase:
         self.seq.add_comment(comment)
 
     def wait_till(self, t):
-        t += self.offset_ns
         self._update_time_and_markers(t, 0)
         self.seq.add_comment(f'wait {t}')
         self.seq.wait(t)
@@ -157,6 +155,9 @@ class SequenceBuilderBase:
         for i in range(self.imarker, len(self.markers)):
             marker = self.markers[i]
             self._set_markers(marker.time, marker.enabled_markers)
+        if self.verbose:
+            wavelengths = {name:len(wave.data) for name, wave in self.seq._waves._waves.items()}
+            logger.info(f"waveforms: {wavelengths} ({sum(wavelengths.values())})")
 
 
 # Range is -1.0 ... +1.0 with 16 bits => 2 / 2**16
@@ -173,102 +174,12 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
         super().__init__(name, sequencer)
         self.rc_time = rc_time
         self.v_compensation = 0.0
-        self.custom_pulses = []
         if rc_time is not None:
             self.compensation_factor = 1 / (1e9 * rc_time)
         else:
             self.compensation_factor = 0.0
         self._offset = None
 
-    def ramp(self, t_start, t_end, v_start, v_end):
-        '''
-        Note: this function is overridden in Voltage1nsSequenceBuilder
-        '''
-        self._ramp(t_start, t_end, v_start, v_end)
-
-    def _ramp(self, t_start, t_end, v_start, v_end):
-        t_start = PulsarConfig.align(t_start + self.offset_ns)
-        t_end = PulsarConfig.align(t_end + self.offset_ns)
-
-        duration = t_end - t_start
-
-        v_start_comp = v_start + self.v_compensation
-        self.add_integral(duration * (v_start + v_end)/2)
-        v_end_comp = v_end + self.v_compensation
-
-        # ramp only when > 2 bits on 16-bit signed resolution
-        is_ramp = abs(v_start_comp - v_end_comp) > 2*_lsb_step
-        if is_ramp:
-            self._update_time_and_markers(t_start, duration)
-            self.seq.ramp(duration, v_start_comp, v_end_comp, t_offset=t_start, v_after=None)
-            self._offset = None
-        else:
-            # sequencer only updates offset, no continuing action: duration=0
-            self._update_time_and_markers(t_start, 0)
-            self._set_offset(t_start, v_start_comp)
-
-    def _set_offset(self, t, v):
-        # Note: only add instruction when it is a significant step
-        # offset is changed by ramp and set_offset calls.
-        if self._offset is None or abs(self._offset - v) > _lsb_step:
-            self.seq.set_offset(v, t_offset=t)
-            self._offset = v
-
-    def set_offset(self, t, duration, v):
-        if duration == 0:
-            # short-cut for optimization
-            t = PulsarConfig.align(t + self.offset_ns)
-            v += self.v_compensation
-            self._update_time_and_markers(t, 0)
-            self._set_offset(t, v)
-        else:
-            # due to bias-T compensation the offset will not be constant, but a ramp.
-            self._ramp(t, t+duration, v, v)
-
-    def add_sin(self, t_start, t_end, amplitude, waveform):
-        '''
-        Note: sine pulses are waveforms added on top of block pulse.
-        Voltage compensation is in block pulse.
-        '''
-        t_start = PulsarConfig.align(t_start + self.offset_ns)
-        t_end = PulsarConfig.align(t_end + self.offset_ns)
-        self._update_time_and_markers(t_start, t_end-t_start)
-        wave_id = self.register_sinewave(waveform)
-        self.seq.shaped_pulse(wave_id, amplitude, t_offset=t_start)
-
-    def custom_pulse(self, t_start, t_end, amplitude, custom_pulse):
-        '''
-        Note: custom pulses are waveforms added on top of block pulse.
-        Voltage compensation is in block pulse.
-        '''
-        t_start = PulsarConfig.align(t_start + self.offset_ns)
-        t_end = PulsarConfig.align(t_end + self.offset_ns)
-        self._update_time_and_markers(t_start, t_end-t_start)
-        wave_id = self._register_custom_pulse(custom_pulse, amplitude)
-        self.seq.shaped_pulse(wave_id, 1.0, t_offset=t_start)
-
-    def _register_custom_pulse(self, custom_pulse, scaling, offset=0):
-        data = custom_pulse.render(sample_rate=1e9) * scaling
-        if offset:
-            tail = -(len(data)+offset) %4
-            data = np.concatenate([ [0.0]*offset, data, [0.0]*tail ])
-        for index, wave in enumerate(self.custom_pulses):
-            if np.all(wave == data):
-                return f'custom_{index}'
-        index = len(self.custom_pulses)
-        waveid = f'custom_{index}'
-        self.custom_pulses.append(data)
-        self.seq.add_wave(waveid, data)
-        return waveid
-
-    def add_integral(self, integral):
-        self.v_compensation += integral * self.compensation_factor
-
-
-class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
-
-    def __init__(self, name, sequencer, rc_time=None):
-        super().__init__(name, sequencer, rc_time)
         self._hres = False
         self._waveforms = []
         self._waveform = np.zeros(1000)
@@ -278,8 +189,6 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         self._t_wave_end = 0
         self._v_start = None
         self._v_end = None
-        self._aligned = True
-        self._wave_length = 0
         self._constant_end = False
 
     @property
@@ -290,12 +199,26 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
     def hres(self, value):
         self._hres = value
 
+    def set_offset(self, t, duration, v):
+        if duration == 0:
+            # short-cut for optimization
+            t = PulsarConfig.align(t)
+            v += self.v_compensation
+            self._update_time_and_markers(t, 0)
+            self._set_offset(t, v)
+        else:
+            # due to bias-T compensation the offset will not be constant, but a ramp.
+            self._ramp(t, t+duration, v, v)
+
     def ramp(self, t_start, t_end, v_start, v_end):
         # NOTE:
         # pulsar_uploader and data_pulse should make sure that custom_pulse and sin are added
         # before the ramp. No custom pulse or sin should start during a ramp.
-
         # There can be multiple ramps during 1 custom pulse. data_pulse sorts ramps and pulses.
+        # No pulses will be added with a start time earlier than the previous one.
+
+        if self.verbose:
+            logger.info(f"ramp {t_start}, {t_end}, {v_start}, {v_end}")
 
         if self._hres:
             t_start = PulsarConfig.hres_round(t_start)
@@ -306,28 +229,30 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
 
         duration = t_end - t_start
 
-        t_start_offset = PulsarConfig.offset(t_start)
-
-        if duration == 0 and t_start_offset == 0:
-            # Used to reset voltage at end of segment.
-            # This instruction will otherwise be turned into a new short waveform.
-            # Also use it to flush waveform at end of segment
-            if self._rendering and self._wave_length >= 20:
-                self._emit_waveform(PulsarConfig.ceil(self._t_wave_end))
-            if not self._rendering:
-                self.set_offset(t_start, 0, v_end)
+        if duration == 0:
+            if PulsarConfig.offset(t_start) == 0:
+                # Used to reset voltage at end of segment.
+                # This instruction will otherwise be turned into a new short waveform.
+                # Also use it to flush waveform at end of segment
+                if self._rendering and self._t_wave_end - self._t_wave_start >= 8:
+                    self._emit_waveform(self._t_wave_end)
+                if not self._rendering:
+                    self.set_offset(t_start, 0, v_end)
             return
 
-        self._emit_if_gap(t_start)
+        if abs(v_start) < _lsb_step and abs(v_end) < _lsb_step:
+            # nothing to render
+            return
 
         is_ramp = abs(v_end - v_start) > _lsb_step
-        line_start = PulsarConfig.ceil(max(t_start, self._t_wave_end))
-        line_end = PulsarConfig.floor(t_end)
-        is_long = (line_end - line_start) > (100 if is_ramp else 40)
+        is_long = (t_end - max(t_start, self._t_wave_end)) > (100 if is_ramp else 40)
 
         if is_long:
+            line_start = PulsarConfig.ceil(max(t_start, self._t_wave_end))
+            line_end = PulsarConfig.floor(t_end)
             dvdt = (v_end - v_start) / (t_end - t_start)
             if line_start - t_start > 0:
+                self._emit_if_gap(t_start)
                 t_end_wave = line_start
                 v_end_wave = v_start + dvdt * (t_end_wave - t_start)
                 self._render_ramp(t_start, t_end_wave, v_start, v_end_wave)
@@ -350,6 +275,8 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             self._render_ramp(t_start, t_end, v_start, v_end)
 
     def add_sin(self, t_start, t_end, amplitude, frequency, phase):
+        if self.verbose:
+            logger.info(f"sin {t_start}, {t_end}")
         if self._hres:
             t_start = PulsarConfig.hres_round(t_start)
             t_end = PulsarConfig.hres_round(t_end)
@@ -364,6 +291,8 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             t_offset = 0
 
         n_pt = i_end - i_start
+        # if self._hres:
+        #     n_pt += 1
         t = t_offset + np.arange(n_pt)
         w = 2*np.pi*frequency*1e-9
         sine_data = amplitude * np.sin(w*t + phase)
@@ -373,25 +302,61 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             sine_data[0] = frac_start * sine_data[0]
             sine_data[-1] = frac_end * sine_data[-1]
 
-        self._emit_if_gap(t_start)
+            # sine_data[0] = frac_start * amplitude * np.sin(phase)
+            # if frac_end < 0.999:
+            #     sine_data[-2] = frac_end * sine_data[-2]
+            #     sine_data[-1] = frac_end * (amplitude*np.sin(w*iround(t_end-t_start-1)+phase) - sine_data[-2])
+            # else:
+            #     pass
+
         self._emit_waveform_part(t_start)
         self._add_waveform_data(i_start, sine_data)
 
     def custom_pulse(self, t_start, t_end, amplitude, custom_pulse):
         t_start = iround(t_start)
         data = custom_pulse.render(sample_rate=1e9) * amplitude
-        self._emit_if_gap(t_start)
         self._emit_waveform_part(t_start)
         self._add_waveform_data(t_start, data)
 
     def wait_till(self, t):
+        if self.verbose:
+            logger.debug(f"wait till {t}, wave end: {self._t_wave_end}")
         if self._rendering:
             self._emit_waveform(self._t_wave_end)
         super().wait_till(t)
 
+    def _add_integral(self, integral):
+        self.v_compensation += integral * self.compensation_factor
+
+    def _set_offset(self, t, v):
+        # Note: only add instruction when it is a significant step
+        # offset is changed by ramp and set_offset calls.
+        if self._offset is None or abs(self._offset - v) > _lsb_step:
+            self.seq.set_offset(v, t_offset=t)
+            self._offset = v
+
+    def _ramp(self, t_start, t_end, v_start, v_end):
+        t_start = PulsarConfig.align(t_start)
+        t_end = PulsarConfig.align(t_end)
+
+        duration = t_end - t_start
+
+        v_start_comp = v_start + self.v_compensation
+        self._add_integral(duration * (v_start + v_end)/2)
+        v_end_comp = v_end + self.v_compensation
+
+        # ramp only when > 2 bits on 16-bit signed resolution
+        is_ramp = abs(v_start_comp - v_end_comp) > 2*_lsb_step
+        if is_ramp:
+            self._update_time_and_markers(t_start, duration)
+            self.seq.ramp(duration, v_start_comp, v_end_comp, t_offset=t_start, v_after=None)
+            self._offset = None
+        else:
+            # sequencer only updates offset, no continuing action: duration=0
+            self._update_time_and_markers(t_start, 0)
+            self._set_offset(t_start, v_start_comp)
+
     def _render_ramp(self, t_start, t_end, v_start, v_end):
-        if t_start == t_end:
-            return
         if self._hres:
             istart = math.floor(t_start + 1e-8)
             iend = math.ceil(t_end - 1e-8)
@@ -401,21 +366,24 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             dt_start = t_start - istart
             dt_end = iend - t_end
             dvdt = (v_end - v_start) / (t_end - t_start)
+            frac_start = 1 - dt_start
+            frac_end = 1 - dt_end
             data = np.linspace(v_start-dt_start*dvdt, v_end+dt_end*dvdt, n, endpoint=False)
-            data[0] = (1-dt_start)*v_start
-            data[-1] -= dt_end*v_end
+            data[0] = frac_start*(v_start)
+            data[-1] = frac_end*(v_end-dvdt)
             self._add_waveform_data(istart, data, v_start)
         else:
             n = t_end - t_start
+            if n == 0:
+                return
             data  = np.linspace(v_start, v_end, n, endpoint=False)
             self._add_waveform_data(t_start, data, v_start)
 
         if self._v_start is not None:
+            # Note self_v_start is not None if the waveform does not start with sin or custom.
             self._equal_voltage = abs(self._v_start - v_end) < _lsb_step
             if abs(v_end - v_start) > 2*_lsb_step:
-                # ramp
-                dv_dt = (v_end-v_start)/(t_end-t_start)
-                t_constant = _lsb_step / abs(dv_dt)
+                t_constant = 0
             else:
                 t_constant = t_end - t_start
             self._t_constant = t_constant
@@ -424,35 +392,26 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
         n = len(data)
         if n == 0:
             return
+        if self.verbose:
+            logger.debug(f"add data {t_start} {len(data)}")
+        if t_start < self._t_wave_start:
+            raise Exception(f"Error in rendering cannot start in past {t_start} < {self._t_wave_start}")
         t_end = t_start + n
         if not self._rendering:
+            self._rendering = True
             self._t_wave_start = PulsarConfig.floor(t_start)
             self._t_wave_end = t_end
             self._v_start = v_start
-            self._rendering = True
-            istart = t_start - self._t_wave_start
-            min_length = math.ceil((istart+n)/100)*100
-            min_length = max(1000, min_length)
-            self._waveform = np.zeros(min_length)
-            waveform = self._waveform
+            self._waveform = np.zeros(8000)
         else:
-            istart = t_start - self._t_wave_start
-            min_length = istart+n
-            waveform = self._waveform
-            if min_length > len(waveform):
-                if min_length > 8000:
-                    raise Exception(f'Rendered waveform too big for Qblox module ({min_length} > 8000)')
-                min_length = math.ceil(min_length/100)*100
-                logger.info(f'Extending waveform to {min_length}')
-                self._waveform = np.zeros(min_length)
-                self._waveform[:len(waveform)] = waveform
-                waveform = self._waveform
+            self._t_wave_end = max(self._t_wave_end, t_end)
 
+        istart = t_start - self._t_wave_start
+        if istart + n > 8000:
+            raise Exception(f'Rendered waveform too big for Qblox module ({istart+n} > 8000)')
+
+        waveform = self._waveform
         waveform[istart:istart+n] += data
-
-        self._t_wave_end = max(self._t_wave_end, t_end)
-        self._wave_length = self._t_wave_end - self._t_wave_start
-        self._aligned = self._t_wave_end % 4 == 0
 
         # Note: this will be overwritten in _render_ramp.
         iend = self._t_wave_end - self._t_wave_start - 1
@@ -467,54 +426,65 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
     def _emit_waveform_part(self, t_start):
         if not self._rendering:
             return
-        # do not emit if there is already data after t_start
-        if t_start < self._t_wave_end:
-            # TODO check if significant part before t_start can be emitted.
+        t_start = int(t_start)
+        t_wave_end = self._t_wave_end
+        t_gap = t_start - t_wave_end
+        if t_gap >= 40:
+            # there is a significant gap
+            self._emit_waveform(PulsarConfig.ceil(t_wave_end))
             return
         t_start = PulsarConfig.floor(t_start)
-        if self._wave_length > PulsarConfig.EMIT_LENGTH1 and self._equal_voltage and (
-                self._aligned or self._t_constant >= 4):
-            # equal voltages: could be repeatable waveform
-            self._emit_waveform(t_start)
-        elif self._wave_length > PulsarConfig.EMIT_LENGTH2 and self._aligned:
-            # it's aligned: could be repeatable waveform
-            self._emit_waveform(t_start)
-        elif self._wave_length > PulsarConfig.EMIT_LENGTH3:
+        if t_gap >= 0:
+            t_constant = max(self._t_constant, t_gap)
+            aligned = t_wave_end % 4 == 0
+            length = t_wave_end - self._t_wave_start
+            if length > PulsarConfig.EMIT_LENGTH1 and self._equal_voltage and (
+                    t_constant >= 4 or aligned):
+                # equal voltages: could be repeatable waveform
+                self._emit_waveform(t_start)
+                return
+            if length > PulsarConfig.EMIT_LENGTH2 and (
+                    t_constant >= 4 or aligned):
+                # it's aligned: could be repeatable waveform
+                self._emit_waveform(t_start)
+                return
+
+        length = t_start - self._t_wave_start
+        if length > PulsarConfig.EMIT_LENGTH3:
             # it's getting long...
             self._emit_waveform(t_start)
-
 
     def _emit_waveform(self, t_end):
         # TODO optimize: Chop off constant part and use set_offset
         #      This reduces memory usage and could result in more reuse of waveforms in certain cases.
 
-        # TODO Chop off constant part with v = 0.0
+        # TODO Chop off constant part (at end) with v = 0.0
         #      This reduces memory usage.
         waveform = self._waveform
         n = t_end - self._t_wave_start
+        if self.verbose:
+            logger.info(f"EMIT waveform {t_end}: {n}")
         if n <= 0:
             return
         self._play_waveform(self._t_wave_start, waveform[:n].copy())
+        self._t_wave_start = PulsarConfig.ceil(t_end)
 
         if t_end < self._t_wave_end:
             # copy remainder
-            new = np.zeros(1000)
             remainder = self._t_wave_end - t_end
+            new = np.zeros(8000)
             new[:remainder] = waveform[n:n+remainder]
             self._waveform = new
-            self._t_wave_start = t_end
-            self._v_start = new[0]
-            self._wave_length = self._t_wave_end - self._t_wave_start
+            self._v_start = None
         else:
             self._rendering = False
 
     def _play_waveform(self, t_start, waveform):
         # TODO Optimize: check if offset has changed due to ramp or set_offset
 
-        t = PulsarConfig.floor(t_start + self.offset_ns)
-        self._update_time_and_markers(t, 0)
-        self._set_offset(t, self.v_compensation)
-        self.add_integral(np.sum(waveform))
+        self._update_time_and_markers(t_start, 0)
+        self._set_offset(t_start, self.v_compensation)
+        self._add_integral(np.sum(waveform))
 
         for index, data in enumerate(self._waveforms):
             if len(data) == len(waveform) and np.allclose(data, waveform):
@@ -525,7 +495,7 @@ class Voltage1nsSequenceBuilder(VoltageSequenceBuilder):
             waveid = f'wave_{index}'
             self._waveforms.append(waveform)
             self.seq.add_wave(waveid, waveform)
-        self.seq.shaped_pulse(waveid, 1.0, t_offset=t)
+        self.seq.shaped_pulse(waveid, 1.0, t_offset=t_start)
 
 
 class IQSequenceBuilder(SequenceBuilderBase):
@@ -552,8 +522,8 @@ class IQSequenceBuilder(SequenceBuilderBase):
         # NOTE:
         # Pulses are aligned on 1 ns. This affects the duration of the pulse.
         # A time shift should not affect the phase, because the phase is tracked by the NCO.
-        t_start = iround(t_start + self.offset_ns)
-        t_end = iround(t_end + self.offset_ns)
+        t_start = iround(t_start)
+        t_end = iround(t_end)
         if t_end - t_start == 0:
             # Nothing to render
             return
@@ -580,7 +550,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
                 self.seq.set_frequency(self.nco_frequency, t_offset=t_pulse_end)
                 # Adjust NCO after running with other frequency for longer time than the pulse.
                 delta_phase = -w*(PulsarConfig.ceil(t_end)-t_end + t_start-t_pulse)
-                self.shift_phase(PulsarConfig.ceil(t_end)-self.offset_ns, delta_phase)
+                self.shift_phase(PulsarConfig.ceil(t_end), delta_phase)
             else:
                 wave_ids = self.register_sinewave_iq(waveform)
                 self.seq.shaped_pulse(wave_ids[0], amplitude,
@@ -588,7 +558,7 @@ class IQSequenceBuilder(SequenceBuilderBase):
                                       t_offset=t_pulse)
                 # Adjust NCO after driving with other frequency
                 delta_phase = w*waveform.duration
-                self.shift_phase(PulsarConfig.ceil(t_end)-self.offset_ns, delta_phase)
+                self.shift_phase(PulsarConfig.ceil(t_end), delta_phase)
 
         elif not isinstance(waveform.phmod, Number):
             wave_ids = self.register_sinewave_iq(waveform)
@@ -654,10 +624,10 @@ class IQSequenceBuilder(SequenceBuilderBase):
         '''
         # The phase shift can be before or after MW pulse.
         # First try to align towards lower t
-        t_phase = PulsarConfig.floor(t + self.offset_ns)
+        t_phase = PulsarConfig.floor(t)
         if t_phase < self.t_end:
             # Align towards higher t.
-            t_phase = PulsarConfig.ceil(t + self.offset_ns)
+            t_phase = PulsarConfig.ceil(t)
         self._update_time_and_markers(t_phase, 0.0)
         # normalize phase to -1.0 .. + 1.0 for Q1Pulse sequencer
         norm_phase = (phase/np.pi + 1) % 2 - 1
@@ -668,12 +638,18 @@ class IQSequenceBuilder(SequenceBuilderBase):
 
     def chirp(self, t_start, t_end, amplitude, start_frequency, stop_frequency):
         # set NCO frequency if valid. Otherwise set 0.0 to enable modulation
+        if abs(start_frequency) > 450e6 or abs(stop_frequency) > 450e6:
+            raise Exception(f"{self.name}: Chirp frequencies {start_frequency/1e6:5.1f}, "
+                            f"{stop_frequency/1e6:5.1f} MHz out of range")
+        if start_frequency * stop_frequency <= 0.0:
+            raise Exception(f"Qblox does not support chirp through 0.0 Hz. "
+                            f"Chirp({start_frequency/1e6:5.1f}, {stop_frequency/1e6:5.1f} MHz)")
         if self._has_valid_nco_freq():
             self.seq.nco_frequency = self.nco_frequency
         else:
             self.seq.nco_frequency = 0.0
-        t_start = PulsarConfig.align(t_start + self.offset_ns)
-        t_end = PulsarConfig.align(t_end + self.offset_ns)
+        t_start = PulsarConfig.align(t_start)
+        t_end = PulsarConfig.align(t_end)
         self._update_time_and_markers(t_start, 0.0)
         self.seq.chirp(t_end-t_start, amplitude,
                        start_frequency, stop_frequency,
@@ -698,8 +674,6 @@ class IQSequenceBuilder(SequenceBuilderBase):
 
     @contextmanager
     def conditional(self, channels, t_min, t_max):
-        t_min += self.offset_ns
-        t_max += self.offset_ns
         t = max(self.t_end+4, t_min, t_max-40)
         t = PulsarConfig.ceil(t)
         if t > t_max-8:
@@ -753,11 +727,11 @@ class IQSequenceBuilder(SequenceBuilderBase):
         else:
             super()._insert_markers(t)
 
-    def add_latch_events(self, latch_events):
+    def add_latch_events(self, latch_events, t_offset):
         self._latch_events = []
         for event in latch_events:
             event = copy(event)
-            event.time = PulsarConfig.floor(event.time + self.offset_ns)
+            event.time = PulsarConfig.floor(event.time + t_offset)
             self._latch_events.append(event)
         self._ilatch_event = -1
         self._set_next_latch_event()
@@ -807,9 +781,10 @@ class IQSequenceBuilder(SequenceBuilderBase):
 @dataclass
 class _SeqCommand:
     time: int
-    func: Callable[..., Any]
-    args: List[Any]
-    kwargs: Dict[str,Any]
+    func: Callable[..., any]
+    args: list[any]
+    kwargs: dict[str, any]
+
 
 class AcquisitionSequenceBuilder(SequenceBuilderBase):
     def __init__(self, name, sequencer, n_repetitions, nco_frequency=None, rf_source=None):
@@ -828,7 +803,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._nco_prop_delay = 0
         self._nco_prop_delay_en = False
         if rf_source is not None:
-            if isinstance(rf_source.output,str):
+            if isinstance(rf_source.output, str):
                 raise Exception('Qblox RF source must be configured using module name and channel numbers')
             scaling = 1/(rf_source.attenuation * self.max_output_voltage*1000) # @@@@ Multiply with sqrt(2)
             self._rf_amplitude = rf_source.amplitude * scaling
@@ -871,39 +846,36 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
             # use weighed acquisition
             self.acquire_weighed(t, np.ones(int(t_integrate)))
         else:
-            t += self.offset_ns
             self._update_time(t, t_integrate)
             self.integration_time = t_integrate
             self.n_triggers += 1
             self._add_scaling(1/t_integrate, 1)
             if self.rf_source_mode in ['pulsed', 'shaped']:
-                self._add_pulse(t - self.offset_ns, t_integrate)
+                self._add_pulse(t, t_integrate)
             # enqueue: self.seq.acquire('default', 'increment', t_offset=t)
             self._add_command(t,
                               self.seq.acquire, 'default', 'increment', t_offset=t)
 
     def acquire_weighed(self, t, weight):
-        t += self.offset_ns
         t_integrate = len(weight)
         self._update_time(t, t_integrate)
         self.n_triggers += 1
         self._add_scaling(1/np.sum(np.abs(weight)), 1)
         if self.rf_source_mode in ['pulsed', 'shaped']:
-            self._add_pulse(t - self.offset_ns, t_integrate)
+            self._add_pulse(t, t_integrate)
         weight_id = self._add_weight(weight)
         # enqueue: self.seq.acquire_weighed('default', 'increment', weight_id, t_offset=t)
         self._add_command(t,
                           self.seq.acquire_weighed, 'default', 'increment', weight_id, t_offset=t)
 
     def repeated_acquire(self, t, t_integrate, n, t_period, f_sweep):
-        t += self.offset_ns
         duration = (n-1) * t_period + t_integrate
         self._update_time(t, duration)
         self.integration_time = t_integrate
         self.n_triggers += n
         self._add_scaling(1/t_integrate, n)
         if self.rf_source_mode in ['pulsed', 'shaped']:
-            self._add_pulse(t - self.offset_ns, duration)
+            self._add_pulse(t, duration)
         if f_sweep is None:
             # enqueue: self.seq.repeated_acquire(n, t_period, 'default', 'increment', t_offset=t)
             self._add_command(t,
@@ -919,7 +891,6 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
                               t_offset=t)
 
     def reset_bin_counter(self, t):
-        t += self.offset_ns
         # enqueue: self.seq.reset_bin_counter('default')
         self._add_command(t,
                           self.seq.reset_bin_counter, 'default')
@@ -966,9 +937,7 @@ class AcquisitionSequenceBuilder(SequenceBuilderBase):
         self._commands.append(_SeqCommand(t, func, args, kwargs))
 
     def _add_pulse(self, t, duration):
-        t += self.offset_rf_ns
-
-        t_start = t
+        t_start = t + self.offset_rf_ns
         t_end = t + duration
         t_start -= self.rf_source.startup_time_ns
         t_end += self.rf_source.prolongation_ns
