@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.34] - 2024-10-25
+
+- Fixed pulse shaping with scipy windows
+
 ## \[1.7.33] - 2024-10-23
 
 - Improved waveform partitioning in Qblox compiler to reduce memory usage.

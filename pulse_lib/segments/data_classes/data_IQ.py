@@ -38,19 +38,19 @@ class envelope_generator():
         """
 
         n_points = delta_t*sample_rate
-        if n_points < 1: #skip
+        if n_points < 1: # skip
             return 0.0
 
         if self.AM_envelope_function is None:
-            envelope = 1.0  #assume constant envelope
+            envelope = 1.0  # constant envelope
         elif isinstance(self.AM_envelope_function, tuple) or isinstance(self.AM_envelope_function, str):
-            envelope = signal.get_window(self.AM_envelope_function, int(n_points*10))[::10][:int(n_points)] #ugly fix
+            envelope = signal.get_window(self.AM_envelope_function, int(n_points), False)
         else:
             envelope = self.AM_envelope_function(delta_t, sample_rate, **self.kwargs)
 
         return envelope
 
-    def get_PM_envelope(self, delta_t: float, sample_rate: float = 1):
+    def get_PM_envelope(self, delta_t: float, sample_rate: float = 1.0):
         """
         Return the phase modulation values for the wave.
 
@@ -63,13 +63,13 @@ class envelope_generator():
         """
 
         n_points = delta_t*sample_rate
-        if n_points < 1: #skip
+        if n_points < 1: # skip
             return 0
 
         if self.PM_envelope_function is None:
             envelope = 0
         elif isinstance(self.PM_envelope_function, tuple) or isinstance(self.PM_envelope_function, str):
-            envelope = signal.get_window(self.PM_envelope_function, int(n_points*10))[::10]
+            envelope = signal.get_window(self.PM_envelope_function, int(n_points), False)
         else:
             envelope = self.PM_envelope_function(delta_t, sample_rate, **self.kwargs)
 
