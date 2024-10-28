@@ -79,7 +79,7 @@ class MockM3202A(Instrument):
         size = len(wave)
         # discretize samples
         data = (wave*2**15).astype(np.int16)
-        data &= 0xFFF8  # 13 bit resolution
+        data &= np.uint16(0xFFF8)  # 13 bit resolution
         data = data.astype(float)
         data /= 2**15
         slot = self.memory_manager.allocate(size)
