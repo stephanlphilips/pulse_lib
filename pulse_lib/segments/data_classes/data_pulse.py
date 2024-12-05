@@ -501,6 +501,9 @@ class pulse_data(parent_data):
     def _break_ramps(self, elements):
         if self._breaks_processed:
             return
+        if len(elements) == 0:
+            self._breaks_processed = True
+            return
 
         # collect start and stop times of elements.
         breaks = set()
@@ -726,12 +729,11 @@ class pulse_data(parent_data):
                     sine_data[-1] = frac_stop * sine_data[-1]
                     wvf[start_pt:stop_pt] += sine_data
             else:
-                if LO:
+                if LO: # @@@ Check plotting. w already computed before.
                     freq -= LO
                 if abs(freq) > sample_rate*1e9/2:
                     raise Exception(f'Frequency {freq*1e-6:5.1f} MHz is above Nyquist frequency ({sample_rate*1e3/2} MHz)')
                 # TODO add check on configurable bandwidth.
-
                 if ref_channel_states and mw_pulse.ref_channel in ref_channel_states.start_phase:
                     ref_start_time = ref_channel_states.start_time
                     ref_start_phase = ref_channel_states.start_phase[mw_pulse.ref_channel]
