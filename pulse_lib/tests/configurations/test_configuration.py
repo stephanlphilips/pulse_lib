@@ -489,6 +489,7 @@ class Context:
         self.last_job = job
         sequence.play(index)
         pulse = self.pulse
+        backend = pulse._backend
         if savefig:
             ion_ctx = pt.ioff()
         for awg in list(pulse.awg_devices.values()) + list(pulse.digitizers.values()):
@@ -497,7 +498,10 @@ class Context:
                     pt.figure()
                 render_kwargs = {}
                 if analogue_out:
-                    render_kwargs['analogue'] = True
+                    if backend == "Qblox":
+                        render_kwargs['analogue_filter'] = True
+                    else:
+                        render_kwargs['analogue'] = True
                 if analogue_shift:
                     render_kwargs['analogue_shift'] = analogue_shift
                 awg.plot(**render_kwargs)
