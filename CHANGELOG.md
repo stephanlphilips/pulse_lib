@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to Pulselib will be documented in this file.
 
+## \[1.7.36] - 2024-12-09
+
+- Better rendering of ramp in hres mode for ramp of 1 sample and duration < 1 ns.
+
 ## \[1.7.35] - 2024-12-05
 
 - Fixed rendering of ramp in hres mode for ramp of 1 sample and duration < 1 ns.

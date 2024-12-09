@@ -364,15 +364,15 @@ class VoltageSequenceBuilder(SequenceBuilderBase):
             if n == 0:
                 return
 
-            dvdt = (v_end - v_start) / (t_end - t_start)
+            dt_start = t_start - istart
+            dt_end = iend - t_end
             if n == 1:
-                v = (t_end - t_start)*(v_start+v_end-dvdt)/2
+                v = (t_end - t_start)*v_start - dt_end*(v_end - v_start)
                 data = [v]
                 self._add_waveform_data(istart, data, v_start)
                 return
 
-            dt_start = t_start - istart
-            dt_end = iend - t_end
+            dvdt = (v_end - v_start) / (t_end - t_start)
             frac_start = 1 - dt_start
             frac_end = 1 - dt_end
             data = np.linspace(v_start-dt_start*dvdt, v_end+dt_end*dvdt, n, endpoint=False)
