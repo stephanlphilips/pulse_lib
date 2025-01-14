@@ -1,3 +1,8 @@
+# Maintenance moved
+NOTE: This repository is not maintained anymore. A maintained repository can be found on GitLab TU Delft:
+
+https://gitlab.tudelft.nl/qutech-qdlabs/pulse_lib
+
 # Introduction
 
 Pulse_lib is a library to control multi-channel AWG pulse sequences and digitizer acquisitions
